@@ -11,6 +11,7 @@ export default function SignupPage() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
@@ -29,7 +30,7 @@ export default function SignupPage() {
 
     setLoading(true)
 
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -43,9 +44,37 @@ export default function SignupPage() {
       return
     }
 
-    // Profile row is created automatically by the DB trigger
+    // If session is null, Supabase requires email confirmation first
+    if (!data.session) {
+      setAwaitingConfirmation(true)
+      setLoading(false)
+      return
+    }
+
+    // Email confirmation disabled — go straight to onboarding
     router.push('/onboarding')
     router.refresh()
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-[#1D9E75]/15 flex items-center justify-center mx-auto mb-4">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+            <polyline points="22,6 12,13 2,6" />
+          </svg>
+        </div>
+        <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">Check your email</h2>
+        <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
+          We&apos;ve sent a confirmation link to <strong className="text-[#F5F5F2]">{email}</strong>.
+          Click the link to activate your account and continue.
+        </p>
+        <p className="text-xs text-[rgba(245,245,242,0.3)]">
+          Didn&apos;t get it? Check your spam folder.
+        </p>
+      </div>
+    )
   }
 
   return (
