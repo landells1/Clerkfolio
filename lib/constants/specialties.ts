@@ -1,0 +1,52 @@
+// Predefined UK medical specialties
+// Users can also add custom specialties (capped at 50 total per user)
+
+export const PREDEFINED_SPECIALTIES = [
+  'Acute Medicine',
+  'Anaesthetics',
+  'Cardiology',
+  'Cardiothoracic Surgery',
+  'Chemical Pathology',
+  'Clinical Genetics',
+  'Clinical Oncology',
+  'Clinical Pharmacology & Therapeutics',
+  'Dermatology',
+  'Emergency Medicine',
+  'Endocrinology & Diabetes',
+  'Gastroenterology',
+  'General Practice (GP)',
+  'General Surgery',
+  'Geriatric Medicine',
+  'Haematology',
+  'Histopathology',
+  'Infectious Diseases',
+  'Intensive Care Medicine',
+  'Medical Microbiology',
+  'Medical Oncology',
+  'Neurology',
+  'Neurosurgery',
+  'Nuclear Medicine',
+  'Obstetrics & Gynaecology',
+  'Ophthalmology',
+  'Oral & Maxillofacial Surgery',
+  'Orthopaedic Surgery',
+  'Otolaryngology (ENT)',
+  'Paediatrics',
+  'Paediatric Surgery',
+  'Palliative Medicine',
+  'Plastic Surgery',
+  'Psychiatry',
+  'Public Health Medicine',
+  'Radiology',
+  'Renal Medicine (Nephrology)',
+  'Respiratory Medicine',
+  'Rheumatology',
+  'Sport & Exercise Medicine',
+  'Trauma & Orthopaedic Surgery',
+  'Urology',
+  'Vascular Surgery',
+] as const
+
+export const MAX_SPECIALTIES = 50
+
+export type Specialty = typeof PREDEFINED_SPECIALTIES[number] | string
