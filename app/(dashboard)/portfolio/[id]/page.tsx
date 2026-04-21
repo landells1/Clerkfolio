@@ -45,7 +45,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </Link>
-          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${colours}`}>
+          <span className={`inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium border ${colours.badge}`}>
             {catMeta?.label}
           </span>
         </div>

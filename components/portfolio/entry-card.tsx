@@ -32,7 +32,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
-            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${colours}`}>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border ${colours.badge}`}>
               {catMeta?.short}
             </span>
             {entry.specialty_tags.slice(0, 2).map(tag => (

@@ -121,7 +121,7 @@ function EmptyState({ category }: { category: Category | null }) {
       </div>
       {catMeta && colours ? (
         <>
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border mb-3 ${colours}`}>
+          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border mb-3 ${colours.badge}`}>
             {catMeta.label}
           </span>
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No entries yet</p>
