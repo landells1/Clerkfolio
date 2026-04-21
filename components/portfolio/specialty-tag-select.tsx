@@ -23,7 +23,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
   }, [])
 
   const allOptions = [
-    ...userInterests.filter(s => !PREDEFINED_SPECIALTIES.includes(s as never)),
+    ...userInterests.filter(s => !(PREDEFINED_SPECIALTIES as readonly string[]).includes(s)),
     ...PREDEFINED_SPECIALTIES,
   ]
 

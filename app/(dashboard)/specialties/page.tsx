@@ -125,11 +125,11 @@ export default function SpecialtiesPage() {
         </div>
 
         {/* Selected list (custom ones not in predefined list) */}
-        {interests.filter(i => !(PREDEFINED_SPECIALTIES as string[]).includes(i)).length > 0 && (
+        {interests.filter(i => !(PREDEFINED_SPECIALTIES as readonly string[]).includes(i)).length > 0 && (
           <div>
             <p className="text-xs text-[rgba(245,245,242,0.4)] mb-2 font-medium uppercase tracking-wide">Custom</p>
             <div className="flex flex-wrap gap-2">
-              {interests.filter(i => !PREDEFINED_SPECIALTIES.includes(i)).map(s => (
+              {interests.filter(i => !(PREDEFINED_SPECIALTIES as readonly string[]).includes(i)).map(s => (
                 <button
                   key={s}
                   onClick={() => toggle(s)}

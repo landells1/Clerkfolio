@@ -38,7 +38,7 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
               </span>
               <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                 <div
-                  className={`h-full rounded-full transition-all ${colour.bar ?? 'bg-[#1D9E75]'}`}
+                  className={`h-full rounded-full transition-all ${colour.bar}`}
                   style={{ width: `${pct}%` }}
                 />
               </div>
