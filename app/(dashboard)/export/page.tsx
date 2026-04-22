@@ -80,7 +80,7 @@ export default function ExportPage() {
     ? entries
     : entries.filter(e => e.category === categoryFilter)
 
-  const categoriesPresent = [...new Set(entries.map(e => e.category))] as Category[]
+  const categoriesPresent = Array.from(new Set(entries.map(e => e.category))) as Category[]
 
   function toggleEntry(id: string) {
     setSelectedIds(prev => {
@@ -105,7 +105,7 @@ export default function ExportPage() {
       const res = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryIds: [...selectedIds], specialty }),
+        body: JSON.stringify({ entryIds: Array.from(selectedIds), specialty }),
       })
 
       if (!res.ok) {
