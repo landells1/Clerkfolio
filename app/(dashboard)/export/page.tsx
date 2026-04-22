@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
@@ -143,6 +144,16 @@ export default function ExportPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-4xl">
+      {/* Breadcrumb */}
+      <div className="mb-6">
+        <Link href="/portfolio" className="inline-flex items-center gap-1.5 text-sm text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+          Portfolio
+        </Link>
+      </div>
+
       {/* Header */}
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>

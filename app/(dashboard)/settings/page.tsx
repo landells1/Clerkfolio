@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getStorageUsage, FREE_CAP_BYTES } from '@/lib/supabase/storage'
@@ -179,6 +180,27 @@ export default function SettingsPage() {
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your account and preferences.</p>
       </div>
 
+      {/* Quick links */}
+      <div className="flex flex-wrap gap-2 mb-8">
+        {[
+          { href: '/portfolio', label: 'View portfolio' },
+          { href: '/export',    label: 'Export PDF' },
+          { href: '/cases',     label: 'Cases' },
+          { href: '/specialties', label: 'Specialties' },
+        ].map(({ href, label }) => (
+          <Link
+            key={href}
+            href={href}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.06] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.12] transition-colors"
+          >
+            {label}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
+        ))}
+      </div>
+
       {/* Profile */}
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Profile</h2>
@@ -287,7 +309,7 @@ export default function SettingsPage() {
         <div className="space-y-3 text-sm text-[rgba(245,245,242,0.55)] leading-relaxed">
           <p>Your data is stored securely on UK servers (London region) with AES-256 encryption at rest and TLS 1.3 in transit.</p>
           <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
-          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1D9E75] hover:underline">See our privacy policy</a> for full details.</p>
+          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1D9E75] hover:underline">See our privacy policy</a> and <a href="/terms" className="text-[#1D9E75] hover:underline">terms of service</a> for full details.</p>
         </div>
       </section>
 

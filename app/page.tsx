@@ -24,9 +24,27 @@ const font = {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-export default function LandingPage() {
+export default function LandingPage({ searchParams }: { searchParams?: { deleted?: string } }) {
+  const wasDeleted = searchParams?.deleted === 'true'
   return (
     <div style={{ background: pal.bg, color: pal.ink, fontFamily: font.sans, minHeight: '100vh', overflowX: 'hidden' }}>
+      {wasDeleted && (
+        <div style={{
+          background: 'rgba(29,158,117,0.12)',
+          borderBottom: '1px solid rgba(29,158,117,0.25)',
+          padding: '12px 56px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          fontSize: 14,
+          color: 'oklch(0.82 0.13 195)',
+        }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          Your account has been permanently deleted. Sorry to see you go.
+        </div>
+      )}
       <Nav />
       <Hero />
       <Features />
