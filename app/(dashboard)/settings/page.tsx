@@ -162,7 +162,6 @@ export default function SettingsPage() {
   async function handleEmailChange(e: React.FormEvent) {
     e.preventDefault()
     setEmailChangeLoading(true)
-    setEmailChangeMsg(null)
     setEmailChangeError(null)
     const { error } = await supabase.auth.updateUser({ email: newEmail })
     if (error) {
