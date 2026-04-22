@@ -1,6 +1,21 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+/** Renders a live image thumbnail for a local File object, cleaning up the object URL on unmount. */
+function ImagePreview({ file }: { file: File }) {
+  const [src, setSrc] = useState<string | null>(null)
+  useEffect(() => {
+    const url = URL.createObjectURL(file)
+    setSrc(url)
+    return () => URL.revokeObjectURL(url)
+  }, [file])
+  if (!src) return null
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={src} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]" />
+  )
+}
 
 const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx'
 const MAX_FILE_BYTES = 50 * 1024 * 1024 // 50 MB
@@ -113,7 +128,10 @@ export default function EvidenceUpload({
         <ul className="space-y-1.5">
           {files.map((f, i) => (
             <li key={i} className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3 py-2">
-              <span className="shrink-0 text-[rgba(245,245,242,0.4)]">{fileIcon(f.type)}</span>
+              {f.type.startsWith('image/')
+                ? <ImagePreview file={f} />
+                : <span className="shrink-0 text-[rgba(245,245,242,0.4)]">{fileIcon(f.type)}</span>
+              }
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{f.name}</p>
                 <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">{formatBytes(f.size)}</p>

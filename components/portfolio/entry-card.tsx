@@ -27,7 +27,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
   return (
     <Link
       href={`/portfolio/${entry.id}`}
-      className="block bg-[#141416] border border-white/[0.06] rounded-xl p-4 hover:border-white/[0.12] hover:bg-[#1B1B1E] transition-all group"
+      className="block bg-[#141416] border border-white/[0.06] rounded-xl p-4 hover:border-white/[0.12] hover:bg-[#1B1B1E] transition-all group animate-card"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

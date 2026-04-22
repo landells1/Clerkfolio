@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Profile = {
   first_name: string | null
@@ -69,7 +70,9 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const supabase = createClient()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
   const [feedback, setFeedback] = useState({ name: '', email: '', comment: '' })
-  const [feedbackStatus, setFeedbackStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
+  const [feedbackSending, setFeedbackSending] = useState(false)
+  const { addToast } = useToast()
+  const [mobileOpen, setMobileOpen] = useState(false)
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
   const initials = [profile.first_name?.[0], profile.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
@@ -85,7 +88,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setFeedbackStatus('sending')
+    setFeedbackSending(true)
 
     const res = await fetch('/api/feedback', {
       method: 'POST',
@@ -94,23 +97,66 @@ export default function Sidebar({ profile }: { profile: Profile }) {
     })
 
     if (res.ok) {
-      setFeedbackStatus('sent')
       setFeedback({ name: '', email: '', comment: '' })
+      setFeedbackOpen(false)
+      addToast('Feedback sent — thank you!', 'success')
     } else {
-      setFeedbackStatus('error')
+      addToast('Failed to send feedback. Please try again.', 'error')
     }
+    setFeedbackSending(false)
   }
 
   return (
     <>
-      <aside className="w-[240px] h-screen bg-[#0E0E10] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0">
+      {/* Mobile header bar */}
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#0E0E10] border-b border-white/[0.06] flex items-center justify-between px-4">
+        <button
+          onClick={() => setMobileOpen(true)}
+          className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-1"
+          aria-label="Open menu"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <line x1="3" y1="12" x2="21" y2="12" />
+            <line x1="3" y1="18" x2="21" y2="18" />
+          </svg>
+        </button>
+        <div className="flex items-center gap-2">
+          <div className="w-7 h-7 rounded-md bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono flex-shrink-0">
+            C
+          </div>
+          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
+        </div>
+        <div className="w-8" />
+      </div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="lg:hidden fixed inset-0 z-40 bg-black/60 backdrop-blur-sm"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      <aside className={`w-[240px] h-screen bg-[#0E0E10] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center gap-2.5 px-5 py-5 border-b border-white/[0.06] hover:opacity-80 transition-opacity">
+        <div className="flex items-center justify-between border-b border-white/[0.06]">
+        <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">
           <div className="w-7 h-7 rounded-md bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono flex-shrink-0">
             C
           </div>
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
         </Link>
+        <button
+          onClick={() => setMobileOpen(false)}
+          className="lg:hidden mr-4 text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors p-1"
+          aria-label="Close menu"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        </div>
 
         {/* Main nav */}
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
@@ -120,6 +166,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
               <Link
                 key={item.href}
                 href={item.href}
+                onClick={() => setMobileOpen(false)}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
                   active
                     ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
@@ -169,6 +216,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           {/* Settings */}
           <Link
             href="/settings"
+            onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
               pathname === '/settings'
                 ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
@@ -199,7 +247,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
             <div className="flex items-center justify-between mb-5">
               <h2 className="text-base font-semibold text-[#F5F5F2]">Send feedback</h2>
               <button
-                onClick={() => { setFeedbackOpen(false); setFeedbackStatus('idle') }}
+                onClick={() => setFeedbackOpen(false)}
                 className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -208,17 +256,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
               </button>
             </div>
 
-            {feedbackStatus === 'sent' ? (
-              <div className="text-center py-4">
-                <div className="w-10 h-10 rounded-full bg-[#1D9E75]/15 flex items-center justify-center mx-auto mb-3">
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1D9E75" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </div>
-                <p className="text-sm text-[rgba(245,245,242,0.55)]">Thanks for the feedback! We read every message.</p>
-              </div>
-            ) : (
-              <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+            <form onSubmit={handleFeedbackSubmit} className="space-y-3">
                 <div>
                   <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Your name</label>
                   <input
@@ -251,18 +289,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                     placeholder="Tell us what's working, what isn't, or what you'd love to see…"
                   />
                 </div>
-                {feedbackStatus === 'error' && (
-                  <p className="text-sm text-red-400">Something went wrong. Please try again.</p>
-                )}
                 <button
                   type="submit"
-                  disabled={feedbackStatus === 'sending'}
+                  disabled={feedbackSending}
                   className="w-full bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg py-2.5 text-sm transition-colors"
                 >
-                  {feedbackStatus === 'sending' ? 'Sending…' : 'Send feedback'}
+                  {feedbackSending ? 'Sending…' : 'Send feedback'}
                 </button>
               </form>
-            )}
           </div>
         </div>
       )}

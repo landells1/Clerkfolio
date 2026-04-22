@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supabase/storage'
 
 function formatBytes(bytes: number) {
@@ -20,6 +20,23 @@ export default function EvidenceFiles({
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  // Signed URLs for image previews (loaded once on mount)
+  const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    const imageFiles = initialFiles.filter(f => f.mime_type?.startsWith('image/'))
+    if (imageFiles.length === 0) return
+    let cancelled = false
+    ;(async () => {
+      const urls: Record<string, string> = {}
+      for (const f of imageFiles) {
+        const url = await getSignedUrl(f.file_path)
+        if (url) urls[f.id] = url
+      }
+      if (!cancelled) setPreviewUrls(urls)
+    })()
+    return () => { cancelled = true }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDownload(file: EvidenceFile) {
     setDownloading(file.id)
@@ -56,9 +73,18 @@ export default function EvidenceFiles({
             key={file.id}
             className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3.5 py-2.5"
           >
-            <svg className="shrink-0 text-[rgba(245,245,242,0.35)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
-            </svg>
+            {previewUrls[file.id] ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={previewUrls[file.id]}
+                alt=""
+                className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]"
+              />
+            ) : (
+              <svg className="shrink-0 text-[rgba(245,245,242,0.35)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
+              </svg>
+            )}
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{file.file_name}</p>
               <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">{formatBytes(file.file_size)}</p>

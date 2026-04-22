@@ -7,6 +7,7 @@ import { CLINICAL_DOMAINS, type NewCase } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -20,7 +21,9 @@ const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 up
 export default function CaseForm({ mode, initialData, userInterests = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
+  const { addToast } = useToast()
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [title, setTitle] = useState(initialData?.title ?? '')
@@ -70,10 +73,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .single()
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {
+        setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
+        setUploading(false)
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
       setIsDirty(false)
+      addToast('Case logged', 'success')
       router.push(`/cases/${data.id}`)
     } else {
       const { error } = await supabase
@@ -82,10 +88,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .eq('id', initialData!.id!)
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {
+        setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
+        setUploading(false)
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
       setIsDirty(false)
+      addToast('Case updated', 'success')
       router.push(`/cases/${initialData!.id}`)
     }
     router.refresh()
@@ -190,12 +199,22 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         </button>
         <button
           type="submit"
-          disabled={saving}
+          disabled={saving || uploading}
           className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
         >
           {saving ? 'Saving…' : mode === 'create' ? 'Save case' : 'Save changes'}
         </button>
       </div>
+
+      {/* Upload progress bar */}
+      {uploading && (
+        <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
+          <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
+            <div className="h-full bg-[#1D9E75] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+          </div>
+          <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
+        </div>
+      )}
     </form>
   )
 }

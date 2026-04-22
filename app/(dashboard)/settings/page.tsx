@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getStorageUsage, FREE_CAP_BYTES } from '@/lib/supabase/storage'
 import { getSubscriptionInfo } from '@/lib/subscription'
+import { useToast } from '@/components/ui/toast-provider'
 
 function formatStorageBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -23,6 +24,7 @@ const CAREER_STAGES = [
 export default function SettingsPage() {
   const supabase = createClient()
   const router = useRouter()
+  const { addToast } = useToast()
 
   const [profile, setProfile] = useState({
     first_name: '',
@@ -32,18 +34,15 @@ export default function SettingsPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
   const [passwordError, setPasswordError] = useState<string | null>(null)
-  const [passwordSaved, setPasswordSaved] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
 
   const [showEmailChange, setShowEmailChange] = useState(false)
   const [newEmail, setNewEmail] = useState('')
   const [emailChangeLoading, setEmailChangeLoading] = useState(false)
-  const [emailChangeMsg, setEmailChangeMsg] = useState<string | null>(null)
   const [emailChangeError, setEmailChangeError] = useState<string | null>(null)
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -108,8 +107,7 @@ export default function SettingsPage() {
     if (error) {
       setError('Failed to save changes.')
     } else {
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      addToast('Profile saved', 'success')
     }
     setSaving(false)
   }
@@ -133,9 +131,8 @@ export default function SettingsPage() {
     if (error) {
       setPasswordError(error.message)
     } else {
-      setPasswordSaved(true)
+      addToast('Password updated', 'success')
       setPasswordForm({ current: '', next: '', confirm: '' })
-      setTimeout(() => setPasswordSaved(false), 3000)
     }
     setPasswordLoading(false)
   }
@@ -145,7 +142,10 @@ export default function SettingsPage() {
     const res = await fetch('/api/stripe/checkout', { method: 'POST' })
     const json = await res.json()
     if (json.url) window.location.href = json.url
-    else setBillingLoading(false)
+    else {
+      addToast('Could not open billing page. Please try again.', 'error')
+      setBillingLoading(false)
+    }
   }
 
   async function handleManageBilling() {
@@ -153,7 +153,10 @@ export default function SettingsPage() {
     const res = await fetch('/api/stripe/portal', { method: 'POST' })
     const json = await res.json()
     if (json.url) window.location.href = json.url
-    else setBillingLoading(false)
+    else {
+      addToast('Could not open billing page. Please try again.', 'error')
+      setBillingLoading(false)
+    }
   }
 
   async function handleEmailChange(e: React.FormEvent) {
@@ -165,7 +168,7 @@ export default function SettingsPage() {
     if (error) {
       setEmailChangeError(error.message)
     } else {
-      setEmailChangeMsg(`Confirmation email sent to ${newEmail}. Check your inbox and click the link to complete the change.`)
+      addToast('Confirmation email sent. Check your inbox.', 'success')
       setNewEmail('')
       setShowEmailChange(false)
     }
@@ -266,7 +269,6 @@ export default function SettingsPage() {
               disabled
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.4)] cursor-not-allowed"
             />
-            {emailChangeMsg && <p className="text-xs text-[#1D9E75] mt-1">{emailChangeMsg}</p>}
             {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
             {showEmailChange && (
               <form onSubmit={handleEmailChange} className="mt-3 flex gap-2">
@@ -312,7 +314,6 @@ export default function SettingsPage() {
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>
-            {saved && <span className="text-sm text-[#1D9E75]">✓ Saved</span>}
           </div>
         </form>
       </section>
@@ -350,7 +351,6 @@ export default function SettingsPage() {
             >
               {passwordLoading ? 'Updating…' : 'Update password'}
             </button>
-            {passwordSaved && <span className="text-sm text-[#1D9E75]">✓ Password updated</span>}
           </div>
         </form>
       </section>
