@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
 function getPeriodEnd(subscription: Stripe.Subscription): string | null {
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook error: ${String(err)}` }, { status: 400 })
   }
 
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   switch (event.type) {
     case 'checkout.session.completed': {
