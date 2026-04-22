@@ -256,7 +256,7 @@ export default function SettingsPage() {
               <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Email address</label>
               <button
                 type="button"
-                onClick={() => { setShowEmailChange(v => !v); setEmailChangeMsg(null); setEmailChangeError(null) }}
+                onClick={() => { setShowEmailChange(v => !v); setEmailChangeError(null) }}
                 className="text-xs text-[#1D9E75] hover:underline"
               >
                 Change email
