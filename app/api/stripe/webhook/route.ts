@@ -3,6 +3,14 @@ import { stripe } from '@/lib/stripe'
 import { createClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
+function getPeriodEnd(subscription: Stripe.Subscription): string | null {
+  // Newer Stripe API versions (2025+) moved current_period_end to items level
+  const topLevel = (subscription as any).current_period_end as number | undefined
+  const itemLevel = subscription.items?.data?.[0]?.current_period_end as number | undefined
+  const ts = topLevel ?? itemLevel
+  return ts ? new Date(ts * 1000).toISOString() : null
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')
@@ -33,7 +41,7 @@ export async function POST(request: NextRequest) {
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: subscription.id,
         subscription_status: 'active',
-        subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        subscription_period_end: getPeriodEnd(subscription),
       }).eq('id', userId)
 
       break
@@ -48,7 +56,7 @@ export async function POST(request: NextRequest) {
 
       await supabase.from('profiles').update({
         subscription_status: status,
-        subscription_period_end: new Date(subscription.current_period_end * 1000).toISOString(),
+        subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id)
 
       break
