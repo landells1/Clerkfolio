@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRICE_ID } from '@/lib/stripe'
 
-export async function POST(request: NextRequest) {
+// Use a server-side canonical URL — never trust the incoming Origin header for billing redirects
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://medclinidex.vercel.app'
+
+export async function POST(_request: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
@@ -30,14 +33,12 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
   }
 
-  const origin = request.headers.get('origin') ?? 'https://medclinidex.vercel.app'
-
   const session = await stripe.checkout.sessions.create({
     customer: customerId,
     mode: 'subscription',
     line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
-    success_url: `${origin}/settings?upgraded=true`,
-    cancel_url: `${origin}/settings`,
+    success_url: `${APP_URL}/settings?upgraded=true`,
+    cancel_url: `${APP_URL}/settings`,
     allow_promotion_codes: true,
     metadata: { supabase_user_id: user.id },
   })

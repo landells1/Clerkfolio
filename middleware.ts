@@ -25,24 +25,42 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  // Refresh session — required for Supabase SSR
-  const { data: { user } } = await supabase.auth.getUser()
-
   const { pathname } = request.nextUrl
 
-  // Public routes that don't require auth
-  const publicRoutes = ['/', '/login', '/signup', '/reset-password', '/update-password', '/auth/callback', '/api/stripe/webhook', '/privacy', '/terms']
-  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route))
+  // ── Always accessible — bypass auth logic entirely ──────────────────────────
+  // Legal pages, Stripe webhook, auth callbacks. Use exact or prefix matching
+  // intentionally (not startsWith('/') which would match everything).
+  const alwaysAccessible =
+    pathname === '/privacy' ||
+    pathname === '/terms' ||
+    pathname.startsWith('/api/stripe/webhook') ||
+    pathname.startsWith('/auth/')
 
-  // Not logged in → redirect to login (except public routes)
-  if (!user && !isPublicRoute) {
+  if (alwaysAccessible) return supabaseResponse
+
+  // ── Refresh session — required for Supabase SSR ─────────────────────────────
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // ── Routes where unauthenticated access is permitted ────────────────────────
+  // Exact matches only — startsWith('/') would match every path.
+  const unauthAllowed = new Set([
+    '/',
+    '/login',
+    '/signup',
+    '/reset-password',
+    '/update-password',
+  ])
+  const isUnauthRoute = unauthAllowed.has(pathname)
+
+  // Not logged in on a protected route → login
+  if (!user && !isUnauthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
 
-  // Logged in on a public route → check onboarding then redirect
-  if (user && isPublicRoute) {
+  // Logged in on an unauth-only route → dashboard or onboarding
+  if (user && isUnauthRoute) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('onboarding_complete')
@@ -54,8 +72,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Logged in on a protected route — check onboarding
-  if (user && !isPublicRoute && pathname !== '/onboarding') {
+  // Logged in on a protected route — enforce onboarding
+  if (user && !isUnauthRoute && pathname !== '/onboarding') {
     const { data: profile } = await supabase
       .from('profiles')
       .select('onboarding_complete')

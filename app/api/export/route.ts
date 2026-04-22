@@ -2,12 +2,25 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
+import { getSubscriptionInfo } from '@/lib/subscription'
 import React, { type ReactElement } from 'react'
 
 export async function POST(request: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  // ── Server-side subscription gate ─────────────────────────────────────────
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name, trial_started_at, subscription_status, subscription_period_end')
+    .eq('id', user.id)
+    .single()
+
+  const subInfo = getSubscriptionInfo(profile ?? { trial_started_at: null, subscription_status: null, subscription_period_end: null })
+  if (!subInfo.canExport) {
+    return NextResponse.json({ error: 'subscription_required' }, { status: 403 })
+  }
 
   const body = await request.json()
   const { entryIds, specialty } = body as { entryIds: string[]; specialty: string }
@@ -28,13 +41,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 })
   }
 
-  // Fetch user name
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, last_name')
-    .eq('id', user.id)
-    .single()
-
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -47,7 +53,7 @@ export async function POST(request: NextRequest) {
 
   const buffer = await renderToBuffer(element)
 
-  const safeSpecialty = specialty.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  const safeSpecialty = (specialty || 'portfolio').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
   const filename = `clinidex-${safeSpecialty}-${new Date().toISOString().split('T')[0]}.pdf`
 
   return new NextResponse(new Uint8Array(buffer), {
