@@ -277,7 +277,7 @@ export default function SettingsPage() {
         <div className="space-y-3 text-sm text-[rgba(245,245,242,0.55)] leading-relaxed">
           <p>Your data is stored securely on UK servers (London region) with AES-256 encryption at rest and TLS 1.3 in transit.</p>
           <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
-          <p>We do not share your data with third parties. <a href="#" className="text-[#1D9E75] hover:underline">See our privacy policy</a> for full details.</p>
+          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1D9E75] hover:underline">See our privacy policy</a> for full details.</p>
         </div>
       </section>
 

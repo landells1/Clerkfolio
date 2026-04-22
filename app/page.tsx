@@ -607,8 +607,8 @@ function CtaFooter() {
           <span>CLINIDEX · § 2026</span>
         </div>
         <div style={{ display: 'flex', gap: 32 }}>
-          <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</a>
-          <a href="#" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</a>
+          <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
+          <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
           <a href="mailto:hello@clinidex.co.uk" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</a>
         </div>
       </div>

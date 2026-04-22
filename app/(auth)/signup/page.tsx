@@ -144,8 +144,8 @@ export default function SignupPage() {
 
       <p className="text-center text-xs text-[rgba(245,245,242,0.25)] mt-5 leading-relaxed">
         By signing up you agree to our{' '}
-        <span className="text-[rgba(245,245,242,0.45)]">Terms of Service</span> and{' '}
-        <span className="text-[rgba(245,245,242,0.45)]">Privacy Policy</span>.
+        <Link href="/terms" className="text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.8)] underline transition-colors">Terms of Service</Link> and{' '}
+        <Link href="/privacy" className="text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.8)] underline transition-colors">Privacy Policy</Link>.
       </p>
 
       <p className="text-center text-sm text-[rgba(245,245,242,0.35)] mt-4">
