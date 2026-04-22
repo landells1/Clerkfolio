@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
+import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -26,6 +27,7 @@ function entrySubtitle(e: PortfolioEntry): string | null {
 export default function ExportPage() {
   const supabase = createClient()
 
+  const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [specialtyInterests, setSpecialtyInterests] = useState<string[]>([])
   const [specialty, setSpecialty] = useState<string>('')
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all')
@@ -41,10 +43,21 @@ export default function ExportPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase.from('profiles').select('specialty_interests').eq('id', user.id).single()
+      const { data } = await supabase
+        .from('profiles')
+        .select('specialty_interests, trial_started_at, subscription_status, subscription_period_end')
+        .eq('id', user.id)
+        .single()
       const interests: string[] = data?.specialty_interests ?? []
       setSpecialtyInterests(interests)
       if (interests.length > 0) setSpecialty(interests[0])
+      if (data) {
+        setSubInfo(getSubscriptionInfo({
+          trial_started_at: data.trial_started_at,
+          subscription_status: data.subscription_status,
+          subscription_period_end: data.subscription_period_end,
+        }))
+      }
     }
     load()
   }, [supabase])
@@ -140,7 +153,7 @@ export default function ExportPage() {
         </div>
         <button
           onClick={handleGenerate}
-          disabled={totalSelected === 0 || generating}
+          disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.canExport)}
           className="flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-40 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors shrink-0"
         >
           {generating ? (
@@ -160,6 +173,28 @@ export default function ExportPage() {
           )}
         </button>
       </div>
+
+      {/* Pro gate — show if subscription loaded and not allowed to export */}
+      {subInfo && !subInfo.canExport && (
+        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 mb-6 text-center">
+          <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 mb-4">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            <span className="text-amber-400 text-xs font-semibold">Pro feature</span>
+          </div>
+          <h2 className="text-base font-semibold text-[#F5F5F2] mb-2">Your free trial has ended</h2>
+          <p className="text-sm text-[rgba(245,245,242,0.45)] mb-6 max-w-sm mx-auto">
+            PDF export requires a Pro subscription. Upgrade to keep generating CVs and application portfolios.
+          </p>
+          <a
+            href="/settings"
+            className="inline-flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] text-[#0B0B0C] font-semibold rounded-xl px-6 py-2.5 text-sm transition-colors"
+          >
+            Upgrade to Pro — £10/year
+          </a>
+        </div>
+      )}
 
       {/* Step 1 — Specialty */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">

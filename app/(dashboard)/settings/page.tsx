@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { getStorageUsage, FREE_CAP_BYTES } from '@/lib/supabase/storage'
+import { getSubscriptionInfo } from '@/lib/subscription'
 
 function formatStorageBytes(bytes: number) {
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
@@ -40,6 +41,9 @@ export default function SettingsPage() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [storageUsed, setStorageUsed] = useState<number | null>(null)
+  const [subInfo, setSubInfo] = useState<ReturnType<typeof getSubscriptionInfo> | null>(null)
+  const [billingLoading, setBillingLoading] = useState(false)
+  const [upgradedMsg, setUpgradedMsg] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -49,17 +53,32 @@ export default function SettingsPage() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('first_name, last_name, career_stage')
+        .select('first_name, last_name, career_stage, trial_started_at, subscription_status, subscription_period_end')
         .eq('id', user.id)
         .single()
 
-      if (data) setProfile({
-        first_name: data.first_name || '',
-        last_name: data.last_name || '',
-        career_stage: data.career_stage || '',
-      })
+      if (data) {
+        setProfile({
+          first_name: data.first_name || '',
+          last_name: data.last_name || '',
+          career_stage: data.career_stage || '',
+        })
+        setSubInfo(getSubscriptionInfo({
+          trial_started_at: data.trial_started_at,
+          subscription_status: data.subscription_status,
+          subscription_period_end: data.subscription_period_end,
+        }))
+      }
+
       const used = await getStorageUsage(user.id)
       setStorageUsed(used)
+
+      // Show success message if redirected back from Stripe
+      if (window.location.search.includes('upgraded=true')) {
+        setUpgradedMsg(true)
+        window.history.replaceState({}, '', '/settings')
+      }
+
       setLoading(false)
     }
     load()
@@ -111,6 +130,22 @@ export default function SettingsPage() {
       setTimeout(() => setPasswordSaved(false), 3000)
     }
     setPasswordLoading(false)
+  }
+
+  async function handleUpgrade() {
+    setBillingLoading(true)
+    const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+    const json = await res.json()
+    if (json.url) window.location.href = json.url
+    else setBillingLoading(false)
+  }
+
+  async function handleManageBilling() {
+    setBillingLoading(true)
+    const res = await fetch('/api/stripe/portal', { method: 'POST' })
+    const json = await res.json()
+    if (json.url) window.location.href = json.url
+    else setBillingLoading(false)
   }
 
   async function handleDeleteAccount() {
@@ -244,6 +279,87 @@ export default function SettingsPage() {
           <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
           <p>We do not share your data with third parties. <a href="#" className="text-[#1D9E75] hover:underline">See our privacy policy</a> for full details.</p>
         </div>
+      </section>
+
+      {/* Subscription */}
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Plan & billing</h2>
+
+        {upgradedMsg && (
+          <div className="mb-4 bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-4 py-3 text-sm text-[#1D9E75]">
+            ✓ You&apos;re now on Clinidex Pro. Thank you!
+          </div>
+        )}
+
+        {subInfo ? (
+          <div className="space-y-4">
+            {/* Status badge */}
+            <div className="flex items-center gap-3">
+              {subInfo.isPro ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1D9E75]/15 text-[#1D9E75] border border-[#1D9E75]/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75]" />
+                  Pro
+                </span>
+              ) : subInfo.isTrial ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+                  Free trial
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
+                  Trial expired
+                </span>
+              )}
+
+              <span className="text-sm text-[rgba(245,245,242,0.45)]">
+                {subInfo.isPro
+                  ? 'Full access — all features unlocked'
+                  : subInfo.isTrial
+                  ? `${subInfo.daysRemaining} day${subInfo.daysRemaining === 1 ? '' : 's'} remaining in free trial`
+                  : 'Upgrade to continue exporting'}
+              </span>
+            </div>
+
+            {/* Features list */}
+            <div className="grid grid-cols-2 gap-2 text-xs text-[rgba(245,245,242,0.5)]">
+              {[
+                'Unlimited portfolio entries',
+                'Unlimited case logging',
+                subInfo.isPro ? '5 GB evidence storage' : '200 MB evidence storage',
+                subInfo.canExport ? 'PDF export — included' : 'PDF export — Pro only',
+              ].map(f => (
+                <div key={f} className="flex items-center gap-2">
+                  <svg className={subInfo.canExport || !f.includes('export') ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.2)]'} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  {f}
+                </div>
+              ))}
+            </div>
+
+            {/* Action buttons */}
+            {subInfo.isPro ? (
+              <button
+                onClick={handleManageBilling}
+                disabled={billingLoading}
+                className="text-sm text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] underline underline-offset-2 transition-colors disabled:opacity-50"
+              >
+                {billingLoading ? 'Opening portal…' : 'Manage subscription →'}
+              </button>
+            ) : (
+              <button
+                onClick={handleUpgrade}
+                disabled={billingLoading}
+                className="flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors"
+              >
+                {billingLoading ? 'Redirecting…' : 'Upgrade to Pro — £10/year'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="h-16 rounded-xl bg-white/[0.03] animate-pulse" />
+        )}
       </section>
 
       {/* Storage usage */}
