@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { getStorageUsage, FREE_CAP_BYTES } from '@/lib/supabase/storage'
+
+function formatStorageBytes(bytes: number) {
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
 
 const CAREER_STAGES = [
   { value: 'Y1-2', label: 'Medical Student — Year 1–2' },
@@ -33,6 +39,7 @@ export default function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [storageUsed, setStorageUsed] = useState<number | null>(null)
 
   useEffect(() => {
     async function load() {
@@ -51,6 +58,8 @@ export default function SettingsPage() {
         last_name: data.last_name || '',
         career_stage: data.career_stage || '',
       })
+      const used = await getStorageUsage(user.id)
+      setStorageUsed(used)
       setLoading(false)
     }
     load()
@@ -235,6 +244,37 @@ export default function SettingsPage() {
           <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
           <p>We do not share your data with third parties. <a href="#" className="text-[#1D9E75] hover:underline">See our privacy policy</a> for full details.</p>
         </div>
+      </section>
+
+      {/* Storage usage */}
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Storage</h2>
+        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Evidence files attached to portfolio entries and cases.</p>
+        {storageUsed !== null ? (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-[rgba(245,245,242,0.55)]">
+              <span>{formatStorageBytes(storageUsed)} used</span>
+              <span>{formatStorageBytes(FREE_CAP_BYTES)} free plan limit</span>
+            </div>
+            <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+              <div
+                className={`h-full rounded-full transition-all ${
+                  storageUsed / FREE_CAP_BYTES > 0.9
+                    ? 'bg-red-400'
+                    : storageUsed / FREE_CAP_BYTES > 0.7
+                    ? 'bg-amber-400'
+                    : 'bg-[#1D9E75]'
+                }`}
+                style={{ width: `${Math.min(100, (storageUsed / FREE_CAP_BYTES) * 100)}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-[rgba(245,245,242,0.3)]">
+              {Math.round((storageUsed / FREE_CAP_BYTES) * 100)}% of free plan used
+            </p>
+          </div>
+        ) : (
+          <div className="h-2 bg-white/[0.06] rounded-full animate-pulse" />
+        )}
       </section>
 
       {/* Danger zone */}

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
 import SpecialtyTagSelect from './specialty-tag-select'
+import EvidenceUpload from '@/components/shared/evidence-upload'
+import { uploadPendingFiles } from '@/lib/supabase/storage'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -125,6 +127,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   // Custom
   const [customFreeText, setCustomFreeText] = useState(initialData?.custom_free_text ?? '')
 
+  // Evidence files
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
+
   function buildPayload(): Omit<NewPortfolioEntry, 'user_id'> {
     const base = { category, title, date, specialty_tags: specialtyTags, notes: notes || null }
     switch (category) {
@@ -158,6 +163,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .select('id')
         .single()
       if (error) { setError(error.message); setSaving(false); return }
+      if (pendingFiles.length > 0) {
+        const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
+        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+      }
       router.push(`/portfolio/${data.id}`)
     } else {
       const { error } = await supabase
@@ -165,6 +174,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .update(payload)
         .eq('id', initialData!.id!)
       if (error) { setError(error.message); setSaving(false); return }
+      if (pendingFiles.length > 0) {
+        const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'portfolio')
+        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+      }
       router.push(`/portfolio/${initialData!.id}`)
     }
     router.refresh()
@@ -428,6 +441,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             </Field>
           </div>
         )}
+      </div>
+
+      {/* Evidence uploads */}
+      <div className="space-y-3 border-t border-white/[0.06] pt-6">
+        <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">Evidence</h3>
+        <EvidenceUpload files={pendingFiles} onChange={setPendingFiles} />
       </div>
 
       {error && (

@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CLINICAL_DOMAINS, type NewCase } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import EvidenceUpload from '@/components/shared/evidence-upload'
+import { uploadPendingFiles } from '@/lib/supabase/storage'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -26,6 +28,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [clinicalDomain, setClinicalDomain] = useState(initialData?.clinical_domain ?? '')
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
+  const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -51,6 +54,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .select('id')
         .single()
       if (error) { setError(error.message); setSaving(false); return }
+      if (pendingFiles.length > 0) {
+        const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
+        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+      }
       router.push(`/cases/${data.id}`)
     } else {
       const { error } = await supabase
@@ -58,6 +65,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .update(payload)
         .eq('id', initialData!.id!)
       if (error) { setError(error.message); setSaving(false); return }
+      if (pendingFiles.length > 0) {
+        const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
+        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+      }
       router.push(`/cases/${initialData!.id}`)
     }
     router.refresh()
@@ -132,6 +143,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           className={INPUT}
           placeholder="Clinical context, learning points, what happened — anonymised…"
         />
+      </div>
+
+      {/* Evidence uploads */}
+      <div>
+        <label className={LABEL}>Evidence</label>
+        <EvidenceUpload files={pendingFiles} onChange={setPendingFiles} />
       </div>
 
       {error && (

@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
+import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -11,12 +12,19 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: c } = await supabase
-    .from('cases')
-    .select('*')
-    .eq('id', params.id)
-    .eq('user_id', user!.id)
-    .single()
+  const [{ data: c }, { data: evidenceFiles }] = await Promise.all([
+    supabase
+      .from('cases')
+      .select('*')
+      .eq('id', params.id)
+      .eq('user_id', user!.id)
+      .single(),
+    supabase
+      .from('evidence_files')
+      .select('*')
+      .eq('entry_id', params.id)
+      .order('created_at', { ascending: true }),
+  ])
 
   if (!c) notFound()
 
@@ -77,6 +85,13 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">Notes</p>
             <p className="text-sm text-[rgba(245,245,242,0.75)] leading-relaxed whitespace-pre-wrap">{c.notes}</p>
+          </div>
+        )}
+
+        {/* Evidence files */}
+        {evidenceFiles && evidenceFiles.length > 0 && (
+          <div className="border-t border-white/[0.06] pt-5">
+            <EvidenceFiles initialFiles={evidenceFiles} canDelete={true} />
           </div>
         )}
 

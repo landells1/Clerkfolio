@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
+import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -23,12 +24,19 @@ export default async function EntryDetailPage({ params }: { params: { id: string
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: entry } = await supabase
-    .from('portfolio_entries')
-    .select('*')
-    .eq('id', params.id)
-    .eq('user_id', user!.id)
-    .single()
+  const [{ data: entry }, { data: evidenceFiles }] = await Promise.all([
+    supabase
+      .from('portfolio_entries')
+      .select('*')
+      .eq('id', params.id)
+      .eq('user_id', user!.id)
+      .single(),
+    supabase
+      .from('evidence_files')
+      .select('*')
+      .eq('entry_id', params.id)
+      .order('created_at', { ascending: true }),
+  ])
 
   if (!entry) notFound()
 
@@ -174,6 +182,13 @@ export default async function EntryDetailPage({ params }: { params: { id: string
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Notes</p>
             <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.notes}</p>
+          </div>
+        )}
+
+        {/* Evidence files */}
+        {evidenceFiles && evidenceFiles.length > 0 && (
+          <div className="border-t border-white/[0.06] pt-5">
+            <EvidenceFiles initialFiles={evidenceFiles} canDelete={true} />
           </div>
         )}
 
