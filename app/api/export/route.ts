@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { renderToBuffer } from '@react-pdf/renderer'
+import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
-import React from 'react'
+import React, { type ReactElement } from 'react'
 
 export async function POST(request: NextRequest) {
   const supabase = createClient()
@@ -38,14 +38,14 @@ export async function POST(request: NextRequest) {
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  const buffer = await renderToBuffer(
-    React.createElement(PortfolioPDF, {
-      entries,
-      userName,
-      specialty: specialty || 'Portfolio',
-      exportedAt,
-    })
-  )
+  const element = React.createElement(PortfolioPDF, {
+    entries,
+    userName,
+    specialty: specialty || 'Portfolio',
+    exportedAt,
+  }) as unknown as ReactElement<DocumentProps>
+
+  const buffer = await renderToBuffer(element)
 
   const safeSpecialty = specialty.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
   const filename = `clinidex-${safeSpecialty}-${new Date().toISOString().split('T')[0]}.pdf`
