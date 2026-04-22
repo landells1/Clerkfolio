@@ -37,7 +37,7 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('portfolio_entries')
-      .select('category')
+      .select('category, specialty_tags')
       .eq('user_id', user!.id),
     supabase
       .from('deadlines')
@@ -64,9 +64,9 @@ export default async function DashboardPage() {
   const totalCases = allCases?.length ?? 0
   const totalDeadlines = deadlines?.length ?? 0
 
-  // Specialty tag counts across entries + cases
+  // Specialty tag counts across ALL entries + cases (not the limited feed subset)
   const specialtyCounts: Record<string, number> = {}
-  recentEntries?.forEach(e => {
+  allEntries?.forEach(e => {
     e.specialty_tags?.forEach((t: string) => {
       specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1
     })

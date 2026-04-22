@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { entryIds, specialty } = body as { entryIds: string[]; specialty: string }
+  const { entryIds, specialty, format } = body as { entryIds: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json' }
 
   if (!entryIds?.length) {
     return NextResponse.json({ error: 'No entries selected' }, { status: 400 })
@@ -41,6 +41,35 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 })
   }
 
+  const safeSpecialty = (specialty || 'portfolio').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  const dateStr = new Date().toISOString().split('T')[0]
+
+  // ── JSON export ──────────────────────────────────────────────────────────────
+  if (format === 'json') {
+    const filename = `clinidex-${safeSpecialty}-${dateStr}.json`
+    return new NextResponse(JSON.stringify(entries), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    })
+  }
+
+  // ── CSV export ───────────────────────────────────────────────────────────────
+  if (format === 'csv') {
+    const filename = `clinidex-${safeSpecialty}-${dateStr}.csv`
+    const csv = toCsv(entries)
+    return new NextResponse(csv, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    })
+  }
+
+  // ── PDF export (default) ─────────────────────────────────────────────────────
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -53,8 +82,7 @@ export async function POST(request: NextRequest) {
 
   const buffer = await renderToBuffer(element)
 
-  const safeSpecialty = (specialty || 'portfolio').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
-  const filename = `clinidex-${safeSpecialty}-${new Date().toISOString().split('T')[0]}.pdf`
+  const filename = `clinidex-${safeSpecialty}-${dateStr}.pdf`
 
   return new NextResponse(new Uint8Array(buffer), {
     status: 200,
@@ -63,4 +91,19 @@ export async function POST(request: NextRequest) {
       'Content-Disposition': `attachment; filename="${filename}"`,
     },
   })
+}
+
+function toCsv(entries: any[]): string {
+  const FIELDS = ['title', 'category', 'date', 'specialty_tags', 'notes', 'created_at'] as const
+  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`
+  const header = FIELDS.join(',')
+  const rows = entries.map(e => [
+    escape(e.title ?? ''),
+    escape(e.category ?? ''),
+    escape(e.date ?? ''),
+    escape((e.specialty_tags ?? []).join(';')),
+    escape(e.notes ?? ''),
+    escape(e.created_at ?? ''),
+  ].join(','))
+  return [header, ...rows].join('\n')
 }

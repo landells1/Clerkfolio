@@ -9,6 +9,30 @@ import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 
+type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
+
+const TYPES: { id: EntryType; label: string }[] = [
+  { id: 'case', label: 'Case' },
+  { id: 'teaching', label: 'Teaching' },
+  { id: 'reflection', label: 'Reflection' },
+  { id: 'procedure', label: 'Procedure' },
+]
+
+const SUBTITLES: Record<EntryType, string> = {
+  case: 'Anonymised entries only',
+  teaching: 'Log a teaching or presentation',
+  reflection: 'Log a CBD, DOP, or reflection',
+  procedure: 'Log a clinical procedure or skill',
+}
+
+const TEACHING_TYPES = ['Taught session', 'Grand round', 'Poster', 'Oral presentation']
+const TEACHING_AUDIENCES = ['Students', 'Peers', 'Consultants', 'Public']
+const REFLECTION_TYPES = ['CBD', 'DOP', 'Mini-CEX', 'Personal reflection']
+const SUPERVISION_LEVELS: { id: string; label: string }[] = [
+  { id: 'Supervised', label: 'Supervised' },
+  { id: 'Unsupervised', label: 'Unsupervised' },
+]
+
 export default function QuickAddModal({
   onClose,
   userInterests = [],
@@ -21,10 +45,33 @@ export default function QuickAddModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [type, setType] = useState<EntryType>('case')
+
+  // Shared fields
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [domain, setDomain] = useState('')
   const [tags, setTags] = useState<string[]>([])
+
+  // Case-specific
+  const [domain, setDomain] = useState('')
+
+  // Teaching-specific
+  const [teachingType, setTeachingType] = useState(TEACHING_TYPES[0])
+  const [teachingAudience, setTeachingAudience] = useState(TEACHING_AUDIENCES[0])
+
+  // Reflection-specific
+  const [reflType, setReflType] = useState(REFLECTION_TYPES[0])
+  const [reflFreeText, setReflFreeText] = useState('')
+
+  // Procedure-specific
+  const [procName, setProcName] = useState('')
+  const [procSupervision, setProcSupervision] = useState('Supervised')
+  const [procCount, setProcCount] = useState<number>(1)
+
+  function handleTypeChange(t: EntryType) {
+    setType(t)
+    setError(null)
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -33,30 +80,64 @@ export default function QuickAddModal({
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setSaving(false); return }
 
-    const { error } = await supabase.from('cases').insert({
-      user_id: user.id,
-      title: title.trim(),
-      date,
-      clinical_domain: domain.trim() || null,
-      specialty_tags: tags,
-      notes: null,
-    })
+    if (type === 'case') {
+      const { error: err } = await supabase.from('cases').insert({
+        user_id: user.id,
+        title: title.trim(),
+        date,
+        clinical_domain: domain.trim() || null,
+        specialty_tags: tags,
+        notes: null,
+      })
+      if (err) { setError(err.message); setSaving(false); return }
+    } else {
+      const base = {
+        user_id: user.id,
+        category: type,
+        title: title.trim(),
+        date,
+        specialty_tags: tags,
+        notes: null,
+      }
 
-    if (error) { setError(error.message); setSaving(false); return }
+      let extra: Record<string, unknown> = {}
+      if (type === 'teaching') {
+        extra = { teaching_type: teachingType, teaching_audience: teachingAudience }
+      } else if (type === 'reflection') {
+        extra = { refl_type: reflType, refl_free_text: reflFreeText.trim() || null }
+      } else if (type === 'procedure') {
+        extra = {
+          proc_name: procName.trim() || null,
+          proc_supervision: procSupervision,
+          proc_count: procCount,
+        }
+      }
+
+      const { error: err } = await supabase.from('portfolio_entries').insert({ ...base, ...extra })
+      if (err) { setError(err.message); setSaving(false); return }
+    }
 
     router.refresh()
     onClose()
   }
 
+  const SAVE_LABEL: Record<EntryType, string> = {
+    case: 'Save case →',
+    teaching: 'Save teaching →',
+    reflection: 'Save reflection →',
+    procedure: 'Save procedure →',
+  }
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex items-center justify-between mb-5">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Quick log a case</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">Anonymised entries only</p>
+            <h2 className="text-base font-semibold text-[#F5F5F2]">Quick log</h2>
+            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{SUBTITLES[type]}</p>
           </div>
           <button
             onClick={onClose}
@@ -68,9 +149,31 @@ export default function QuickAddModal({
           </button>
         </div>
 
+        {/* Type selector */}
+        <div className="flex gap-1.5 mb-5">
+          {TYPES.map(t => (
+            <button
+              key={t.id}
+              type="button"
+              onClick={() => handleTypeChange(t.id)}
+              className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                type === t.id
+                  ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+                  : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Title — shared */}
           <div>
-            <label className={LABEL}>Case title <span className="text-red-400">*</span></label>
+            <label className={LABEL}>
+              {type === 'case' ? 'Case title' : type === 'procedure' ? 'Entry title' : `${TYPES.find(t => t.id === type)?.label} title`}{' '}
+              <span className="text-red-400">*</span>
+            </label>
             <input
               autoFocus
               type="text"
@@ -78,11 +181,23 @@ export default function QuickAddModal({
               value={title}
               onChange={e => setTitle(e.target.value)}
               className={INPUT}
-              placeholder="Brief description — no patient identifiers"
+              placeholder={
+                type === 'case'
+                  ? 'Brief description — no patient identifiers'
+                  : type === 'teaching'
+                  ? 'e.g. Cardiology teaching session'
+                  : type === 'reflection'
+                  ? 'e.g. Difficult conversation with patient'
+                  : 'e.g. Central line insertion'
+              }
             />
+            {type === 'case' && (
+              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.35)]">Anonymised entries only — no patient identifiers</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          {/* Date — shared */}
+          <div className={type === 'case' ? 'grid grid-cols-2 gap-3' : ''}>
             <div>
               <label className={LABEL}>Date</label>
               <input
@@ -92,22 +207,128 @@ export default function QuickAddModal({
                 className={INPUT}
               />
             </div>
-            <div>
-              <label className={LABEL}>Clinical domain</label>
-              <input
-                type="text"
-                list="quick-add-domains"
-                value={domain}
-                onChange={e => setDomain(e.target.value)}
-                className={INPUT}
-                placeholder="e.g. Cardiology"
-              />
-              <datalist id="quick-add-domains">
-                {CLINICAL_DOMAINS.map(d => <option key={d} value={d} />)}
-              </datalist>
-            </div>
+
+            {/* Case: clinical domain in same row */}
+            {type === 'case' && (
+              <div>
+                <label className={LABEL}>Clinical domain</label>
+                <input
+                  type="text"
+                  list="quick-add-domains"
+                  value={domain}
+                  onChange={e => setDomain(e.target.value)}
+                  className={INPUT}
+                  placeholder="e.g. Cardiology"
+                />
+                <datalist id="quick-add-domains">
+                  {CLINICAL_DOMAINS.map(d => <option key={d} value={d} />)}
+                </datalist>
+              </div>
+            )}
           </div>
 
+          {/* Teaching-specific fields */}
+          {type === 'teaching' && (
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className={LABEL}>Teaching type</label>
+                <select
+                  value={teachingType}
+                  onChange={e => setTeachingType(e.target.value)}
+                  className={INPUT}
+                >
+                  {TEACHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={LABEL}>Audience</label>
+                <select
+                  value={teachingAudience}
+                  onChange={e => setTeachingAudience(e.target.value)}
+                  className={INPUT}
+                >
+                  {TEACHING_AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+                </select>
+              </div>
+            </div>
+          )}
+
+          {/* Reflection-specific fields */}
+          {type === 'reflection' && (
+            <>
+              <div>
+                <label className={LABEL}>Reflection type</label>
+                <select
+                  value={reflType}
+                  onChange={e => setReflType(e.target.value)}
+                  className={INPUT}
+                >
+                  {REFLECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className={LABEL}>Notes</label>
+                <textarea
+                  rows={3}
+                  value={reflFreeText}
+                  onChange={e => setReflFreeText(e.target.value)}
+                  placeholder="What happened, what you learnt…"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors resize-none"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Procedure-specific fields */}
+          {type === 'procedure' && (
+            <div className="space-y-3">
+              <div>
+                <label className={LABEL}>Procedure name</label>
+                <input
+                  type="text"
+                  value={procName}
+                  onChange={e => setProcName(e.target.value)}
+                  className={INPUT}
+                  placeholder="e.g. Arterial blood gas"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={LABEL}>Supervision</label>
+                  <div className="flex rounded-lg overflow-hidden border border-white/[0.08]">
+                    {SUPERVISION_LEVELS.map((s, i) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => setProcSupervision(s.id)}
+                        className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
+                          i > 0 ? 'border-l border-white/[0.08]' : ''
+                        } ${
+                          procSupervision === s.id
+                            ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
+                            : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <div>
+                  <label className={LABEL}>Count</label>
+                  <input
+                    type="number"
+                    min={1}
+                    value={procCount}
+                    onChange={e => setProcCount(Math.max(1, parseInt(e.target.value) || 1))}
+                    className={INPUT}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Specialty tags — shared */}
           <div>
             <label className={LABEL}>Specialty tags</label>
             <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} />
@@ -130,7 +351,7 @@ export default function QuickAddModal({
               disabled={saving}
               className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-2.5 text-sm transition-colors"
             >
-              {saving ? 'Saving…' : 'Save case →'}
+              {saving ? 'Saving…' : SAVE_LABEL[type]}
             </button>
           </div>
         </form>

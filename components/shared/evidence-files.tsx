@@ -19,6 +19,7 @@ export default function EvidenceFiles({
   const [files, setFiles] = useState<EvidenceFile[]>(initialFiles)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
 
   async function handleDownload(file: EvidenceFile) {
     setDownloading(file.id)
@@ -33,10 +34,12 @@ export default function EvidenceFiles({
   }
 
   async function handleDelete(file: EvidenceFile) {
-    if (!confirm(`Delete "${file.file_name}"? This cannot be undone.`)) return
     setDeleting(file.id)
-    await deleteEvidenceFile(file.id, file.file_path)
-    setFiles(prev => prev.filter(f => f.id !== file.id))
+    setConfirmDeleteId(null)
+    const { error } = await deleteEvidenceFile(file.id, file.file_path)
+    if (!error) {
+      setFiles(prev => prev.filter(f => f.id !== file.id))
+    }
     setDeleting(null)
   }
 
@@ -69,18 +72,37 @@ export default function EvidenceFiles({
                 {downloading === file.id ? 'Getting link…' : 'Download'}
               </button>
               {canDelete && (
-                <button
-                  onClick={() => handleDelete(file)}
-                  disabled={deleting === file.id}
-                  className="text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors disabled:opacity-50"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="3 6 5 6 21 6" />
-                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                    <path d="M10 11v6M14 11v6" />
-                    <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                  </svg>
-                </button>
+                confirmDeleteId === file.id ? (
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[10px] text-[rgba(245,245,242,0.4)]">Delete?</span>
+                    <button
+                      onClick={() => handleDelete(file)}
+                      disabled={deleting === file.id}
+                      className="text-[10px] text-red-400 hover:text-red-300 font-medium disabled:opacity-50"
+                    >
+                      {deleting === file.id ? '…' : 'Yes'}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDeleteId(null)}
+                      className="text-[10px] text-[rgba(245,245,242,0.35)] hover:text-[rgba(245,245,242,0.6)]"
+                    >
+                      No
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDeleteId(file.id)}
+                    disabled={deleting === file.id}
+                    className="text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors disabled:opacity-50"
+                  >
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                      <path d="M10 11v6M14 11v6" />
+                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                    </svg>
+                  </button>
+                )
               )}
             </div>
           </li>

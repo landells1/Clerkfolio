@@ -8,6 +8,7 @@ type Deadline = {
   id: string
   title: string
   due_date: string
+  completed: boolean
 }
 
 function urgency(due: string): { label: string; cls: string } {
@@ -30,6 +31,10 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [saving, setSaving] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editTitle, setEditTitle] = useState('')
+  const [editDate, setEditDate] = useState('')
+  const [editSaving, setEditSaving] = useState(false)
   const [, startTransition] = useTransition()
   const router = useRouter()
   const supabase = createClient()
@@ -44,7 +49,7 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
 
     const { data, error } = await supabase
       .from('deadlines')
-      .insert({ user_id: user.id, title: title.trim(), due_date: date })
+      .insert({ user_id: user.id, title: title.trim(), due_date: date, completed: false })
       .select()
       .single()
 
@@ -62,6 +67,46 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
     await supabase.from('deadlines').delete().eq('id', id)
     setDeadlines(prev => prev.filter(d => d.id !== id))
     startTransition(() => router.refresh())
+  }
+
+  async function handleComplete(id: string) {
+    setDeadlines(prev => prev.filter(d => d.id !== id))
+    await supabase.from('deadlines').update({ completed: true }).eq('id', id)
+    startTransition(() => router.refresh())
+  }
+
+  function startEdit(d: Deadline) {
+    setEditingId(d.id)
+    setEditTitle(d.title)
+    setEditDate(d.due_date)
+  }
+
+  function cancelEdit() {
+    setEditingId(null)
+    setEditTitle('')
+    setEditDate('')
+  }
+
+  async function handleEditSave(e: React.FormEvent, id: string) {
+    e.preventDefault()
+    if (!editTitle.trim()) return
+    setEditSaving(true)
+
+    const { error } = await supabase
+      .from('deadlines')
+      .update({ title: editTitle.trim(), due_date: editDate })
+      .eq('id', id)
+
+    if (!error) {
+      setDeadlines(prev =>
+        prev
+          .map(d => d.id === id ? { ...d, title: editTitle.trim(), due_date: editDate } : d)
+          .sort((a, b) => a.due_date.localeCompare(b.due_date))
+      )
+      cancelEdit()
+      startTransition(() => router.refresh())
+    }
+    setEditSaving(false)
   }
 
   return (
@@ -113,16 +158,72 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
           deadlines.map(d => {
             const { label, cls } = urgency(d.due_date)
             const formatted = new Date(d.due_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+
+            if (editingId === d.id) {
+              return (
+                <form
+                  key={d.id}
+                  onSubmit={e => handleEditSave(e, d.id)}
+                  className="px-4 py-3 space-y-2"
+                >
+                  <input
+                    autoFocus
+                    type="text"
+                    value={editTitle}
+                    onChange={e => setEditTitle(e.target.value)}
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                  />
+                  <div className="flex gap-2">
+                    <input
+                      type="date"
+                      value={editDate}
+                      onChange={e => setEditDate(e.target.value)}
+                      className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-1.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                    />
+                    <button
+                      type="submit"
+                      disabled={editSaving || !editTitle.trim()}
+                      className="px-3 py-1.5 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] text-xs font-semibold rounded-lg transition-colors"
+                    >
+                      {editSaving ? '…' : 'Save'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="px-3 py-1.5 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] text-xs rounded-lg transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </form>
+              )
+            }
+
             return (
               <div key={d.id} className="flex items-center gap-3 px-4 py-3 group">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[rgba(245,245,242,0.85)] truncate">{d.title}</p>
+                  <p
+                    className="text-sm text-[rgba(245,245,242,0.85)] truncate cursor-pointer hover:text-[#F5F5F2] transition-colors"
+                    onClick={() => startEdit(d)}
+                  >
+                    {d.title}
+                  </p>
                   <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono">{formatted}</p>
                 </div>
                 <span className={`text-xs font-mono font-medium shrink-0 ${cls}`}>{label}</span>
                 <button
+                  onClick={() => handleComplete(d.id)}
+                  className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.25)] hover:text-[#1D9E75] transition-all"
+                  title="Mark complete"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </button>
+                <button
                   onClick={() => handleDelete(d.id)}
                   className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-all"
+                  title="Delete"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />

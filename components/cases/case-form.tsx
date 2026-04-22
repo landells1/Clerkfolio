@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CLINICAL_DOMAINS, type NewCase } from '@/lib/types/cases'
@@ -30,6 +30,21 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
+  // Dirty state
+  const [isDirty, setIsDirty] = useState(false)
+
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  function markDirty() { setIsDirty(true) }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
@@ -58,6 +73,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      setIsDirty(false)
       router.push(`/cases/${data.id}`)
     } else {
       const { error } = await supabase
@@ -69,6 +85,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      setIsDirty(false)
       router.push(`/cases/${initialData!.id}`)
     }
     router.refresh()
@@ -83,7 +100,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           type="text"
           required
           value={title}
-          onChange={e => setTitle(e.target.value)}
+          onChange={e => { setTitle(e.target.value); markDirty() }}
           className={INPUT}
           placeholder="Brief description — no patient identifiers"
         />
@@ -100,6 +117,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           required
           value={date}
           onChange={e => setDate(e.target.value)}
+          onFocus={() => markDirty()}
           className={INPUT}
         />
       </div>
@@ -112,6 +130,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           list="clinical-domains"
           value={clinicalDomain}
           onChange={e => setClinicalDomain(e.target.value)}
+          onFocus={() => markDirty()}
           className={INPUT}
           placeholder="e.g. Acute Medicine, Cardiology…"
         />
@@ -140,6 +159,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           rows={6}
           value={notes}
           onChange={e => setNotes(e.target.value)}
+          onFocus={() => markDirty()}
           className={INPUT}
           placeholder="Clinical context, learning points, what happened — anonymised…"
         />
@@ -160,7 +180,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       <div className="flex gap-3 pt-2 border-t border-white/[0.06]">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
+            router.back()
+          }}
           className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
         >
           Cancel

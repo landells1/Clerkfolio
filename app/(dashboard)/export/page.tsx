@@ -31,6 +31,7 @@ export default function ExportPage() {
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [specialtyInterests, setSpecialtyInterests] = useState<string[]>([])
   const [specialty, setSpecialty] = useState<string>('')
+  const [format, setFormat] = useState<'pdf' | 'csv' | 'json'>('pdf')
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all')
   const [entries, setEntries] = useState<PortfolioEntry[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -119,7 +120,7 @@ export default function ExportPage() {
       const res = await fetch('/api/export', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entryIds: Array.from(selectedIds), specialty }),
+        body: JSON.stringify({ entryIds: Array.from(selectedIds), specialty, format }),
       })
 
       if (!res.ok) {
@@ -132,7 +133,9 @@ export default function ExportPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `clinidex-${specialty.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`
+      const safeSpecialty = specialty.toLowerCase().replace(/\s+/g, '-')
+      const dateStr = new Date().toISOString().split('T')[0]
+      a.download = `clinidex-${safeSpecialty}-${dateStr}.${format}`
       a.click()
       URL.revokeObjectURL(url)
     } catch {
@@ -179,7 +182,7 @@ export default function ExportPage() {
                 <polyline points="7 10 12 15 17 10" />
                 <line x1="12" y1="15" x2="12" y2="3" />
               </svg>
-              Export PDF {totalSelected > 0 && `(${totalSelected})`}
+              Export {format.toUpperCase()} {totalSelected > 0 && `(${totalSelected})`}
             </>
           )}
         </button>
@@ -209,14 +212,10 @@ export default function ExportPage() {
 
       {/* Step 1 — Specialty */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">
-        <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">Specialty</p>
-        {specialtyInterests.length === 0 ? (
-          <p className="text-sm text-[rgba(245,245,242,0.4)]">
-            No specialty interests set.{' '}
-            <a href="/specialties" className="text-[#1D9E75] hover:underline">Add some →</a>
-          </p>
-        ) : (
-          <div className="flex flex-wrap gap-2">
+        <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-0.5">Target specialty</p>
+        <p className="text-xs text-[rgba(245,245,242,0.35)] mb-3">Select from your interests or type any specialty</p>
+        {specialtyInterests.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-3">
             {specialtyInterests.map(s => (
               <button
                 key={s}
@@ -232,6 +231,33 @@ export default function ExportPage() {
             ))}
           </div>
         )}
+        <input
+          type="text"
+          value={specialty}
+          onChange={e => setSpecialty(e.target.value)}
+          placeholder="Type a specialty…"
+          className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+        />
+      </div>
+
+      {/* Format selector */}
+      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">
+        <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">Export format</p>
+        <div className="flex gap-2">
+          {(['pdf', 'csv', 'json'] as const).map(f => (
+            <button
+              key={f}
+              onClick={() => setFormat(f)}
+              className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                format === f
+                  ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+                  : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
+              }`}
+            >
+              {f.toUpperCase()}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Step 2 — Category filter */}
@@ -349,15 +375,6 @@ export default function ExportPage() {
         </div>
       )}
 
-      {/* Placeholder if no specialty set */}
-      {specialtyInterests.length === 0 && !loadedSpecialty && (
-        <div className="flex items-center justify-center h-48 border border-dashed border-white/[0.08] rounded-2xl">
-          <div className="text-center">
-            <p className="text-sm text-[rgba(245,245,242,0.35)] mb-2">Set specialty interests to begin</p>
-            <a href="/specialties" className="text-sm text-[#1D9E75] hover:underline">Go to Specialties →</a>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

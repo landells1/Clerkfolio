@@ -1,16 +1,43 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import CaseCard from '@/components/cases/case-card'
+import CasesFilters from '@/components/cases/cases-filters'
 
-export default async function CasesPage() {
+export default async function CasesPage({
+  searchParams,
+}: {
+  searchParams: { q?: string; domain?: string; sort?: string }
+}) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: cases } = await supabase
+  const q = searchParams.q ?? ''
+  const domain = searchParams.domain ?? ''
+  const sort = searchParams.sort ?? ''
+
+  let query = supabase
     .from('cases')
     .select('*')
     .eq('user_id', user!.id)
-    .order('date', { ascending: false })
+
+  if (q.trim()) {
+    query = query.ilike('title', `%${q.trim()}%`)
+  }
+
+  if (domain) {
+    query = query.eq('clinical_domain', domain)
+  }
+
+  if (sort === 'date_asc') {
+    query = query.order('date', { ascending: true })
+  } else if (sort === 'title_asc') {
+    query = query.order('title', { ascending: true })
+  } else {
+    query = query.order('date', { ascending: false })
+  }
+
+  const { data: cases } = await query
 
   const total = cases?.length ?? 0
 
@@ -34,6 +61,11 @@ export default async function CasesPage() {
           Log case
         </Link>
       </div>
+
+      {/* Search + sort + domain filters */}
+      <Suspense fallback={<div className="h-10" />}>
+        <CasesFilters defaultQ={q} defaultDomain={domain} defaultSort={sort} />
+      </Suspense>
 
       {/* Anonymisation notice */}
       <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-xl px-4 py-3 mb-6">

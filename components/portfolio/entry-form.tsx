@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
@@ -130,6 +130,21 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   // Evidence files
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
+  // Dirty state
+  const [isDirty, setIsDirty] = useState(false)
+
+  useEffect(() => {
+    if (!isDirty) return
+    const handler = (e: BeforeUnloadEvent) => {
+      e.preventDefault()
+      e.returnValue = ''
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [isDirty])
+
+  function markDirty() { setIsDirty(true) }
+
   function buildPayload(): Omit<NewPortfolioEntry, 'user_id'> {
     const base = { category, title, date, specialty_tags: specialtyTags, notes: notes || null }
     switch (category) {
@@ -167,6 +182,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      setIsDirty(false)
       router.push(`/portfolio/${data.id}`)
     } else {
       const { error } = await supabase
@@ -178,6 +194,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'portfolio')
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      setIsDirty(false)
       router.push(`/portfolio/${initialData!.id}`)
     }
     router.refresh()
@@ -214,18 +231,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       <div className="space-y-4">
         <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">General</h3>
         <Field label="Title">
-          <input type="text" required value={title} onChange={e => setTitle(e.target.value)} className={INPUT} placeholder="Give this entry a clear title" />
+          <input type="text" required value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder="Give this entry a clear title" />
         </Field>
         <div className={GRID2}>
           <Field label="Date">
-            <input type="date" required value={date} onChange={e => setDate(e.target.value)} className={INPUT} />
+            <input type="date" required value={date} onChange={e => setDate(e.target.value)} onFocus={() => markDirty()} className={INPUT} />
           </Field>
         </div>
         <Field label="Specialty tags">
-          <SpecialtyTagSelect value={specialtyTags} onChange={setSpecialtyTags} userInterests={userInterests} />
+          <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} />
         </Field>
         <Field label="Notes / comments">
-          <textarea rows={3} value={notes ?? ''} onChange={e => setNotes(e.target.value)} className={INPUT} placeholder="Any additional context or notes…" />
+          <textarea rows={3} value={notes ?? ''} onChange={e => setNotes(e.target.value)} onFocus={() => markDirty()} className={INPUT} placeholder="Any additional context or notes…" />
         </Field>
       </div>
 
@@ -458,7 +475,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       <div className="flex gap-3 pt-2 border-t border-white/[0.06]">
         <button
           type="button"
-          onClick={() => router.back()}
+          onClick={() => {
+            if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
+            router.back()
+          }}
           className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
         >
           Cancel

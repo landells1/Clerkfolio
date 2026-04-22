@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 
 const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx'
 const MAX_FILE_BYTES = 50 * 1024 * 1024 // 50 MB
@@ -28,19 +28,22 @@ export default function EvidenceUpload({
   disabled?: boolean
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [uploadErrors, setUploadErrors] = useState<string[]>([])
 
   function handleFiles(incoming: FileList | null) {
     if (!incoming) return
     const valid: File[] = []
+    const errs: string[] = []
     for (const f of Array.from(incoming)) {
       if (f.size > MAX_FILE_BYTES) {
-        alert(`${f.name} is too large (max 50 MB per file).`)
+        errs.push(`"${f.name}" is too large (max 50 MB per file).`)
         continue
       }
       if (!files.some(existing => existing.name === f.name && existing.size === f.size)) {
         valid.push(f)
       }
     }
+    if (errs.length > 0) setUploadErrors(errs)
     onChange([...files, ...valid])
   }
 
@@ -56,6 +59,22 @@ export default function EvidenceUpload({
 
   return (
     <div className="space-y-3">
+      {/* Inline upload errors */}
+      {uploadErrors.length > 0 && (
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 space-y-1">
+          {uploadErrors.map((e, i) => (
+            <p key={i} className="text-xs text-red-400">{e}</p>
+          ))}
+          <button
+            type="button"
+            onClick={() => setUploadErrors([])}
+            className="text-[10px] text-red-400/60 hover:text-red-400 underline mt-1"
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
+
       {/* Drop zone */}
       <div
         onDragOver={e => e.preventDefault()}

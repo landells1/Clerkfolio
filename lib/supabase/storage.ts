@@ -93,9 +93,13 @@ export async function getSignedUrl(path: string): Promise<string | null> {
   return data?.signedUrl ?? null
 }
 
-/** Delete a file from storage and remove its evidence_files record */
-export async function deleteEvidenceFile(id: string, path: string) {
+/** Delete a file from storage and remove its evidence_files record.
+ *  Returns { error } — non-null on failure so callers can react without alert(). */
+export async function deleteEvidenceFile(id: string, path: string): Promise<{ error: string | null }> {
   const supabase = createClient()
-  await supabase.storage.from(BUCKET).remove([path])
-  await supabase.from('evidence_files').delete().eq('id', id)
+  const { error: storageError } = await supabase.storage.from(BUCKET).remove([path])
+  if (storageError) return { error: storageError.message }
+  const { error: dbError } = await supabase.from('evidence_files').delete().eq('id', id)
+  if (dbError) return { error: dbError.message }
+  return { error: null }
 }

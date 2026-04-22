@@ -1,26 +1,41 @@
 import Link from 'next/link'
+import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import EntryCard from '@/components/portfolio/entry-card'
+import PortfolioFilters from '@/components/portfolio/portfolio-filters'
 
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: { category?: string }
+  searchParams: { category?: string; q?: string; sort?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const activeCategory = (searchParams.category as Category) ?? null
+  const q = searchParams.q ?? ''
+  const sort = searchParams.sort ?? ''
 
   let query = supabase
     .from('portfolio_entries')
     .select('*')
     .eq('user_id', user!.id)
-    .order('date', { ascending: false })
 
   if (activeCategory) {
     query = query.eq('category', activeCategory)
+  }
+
+  if (q.trim()) {
+    query = query.ilike('title', `%${q.trim()}%`)
+  }
+
+  if (sort === 'date_asc') {
+    query = query.order('date', { ascending: true })
+  } else if (sort === 'title_asc') {
+    query = query.order('title', { ascending: true })
+  } else {
+    query = query.order('date', { ascending: false })
   }
 
   const { data: entries } = await query
@@ -57,6 +72,11 @@ export default async function PortfolioPage({
           Add entry
         </Link>
       </div>
+
+      {/* Search + sort filters */}
+      <Suspense fallback={<div className="h-10" />}>
+        <PortfolioFilters defaultQ={q} defaultSort={sort} />
+      </Suspense>
 
       {/* Category tabs */}
       <div className="flex gap-1.5 flex-wrap mb-6 pb-4 border-b border-white/[0.06]">

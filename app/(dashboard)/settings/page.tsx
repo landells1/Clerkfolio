@@ -40,7 +40,14 @@ export default function SettingsPage() {
   const [passwordSaved, setPasswordSaved] = useState(false)
   const [passwordLoading, setPasswordLoading] = useState(false)
 
+  const [showEmailChange, setShowEmailChange] = useState(false)
+  const [newEmail, setNewEmail] = useState('')
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false)
+  const [emailChangeMsg, setEmailChangeMsg] = useState<string | null>(null)
+  const [emailChangeError, setEmailChangeError] = useState<string | null>(null)
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [storageUsed, setStorageUsed] = useState<number | null>(null)
   const [subInfo, setSubInfo] = useState<ReturnType<typeof getSubscriptionInfo> | null>(null)
   const [billingLoading, setBillingLoading] = useState(false)
@@ -149,6 +156,22 @@ export default function SettingsPage() {
     else setBillingLoading(false)
   }
 
+  async function handleEmailChange(e: React.FormEvent) {
+    e.preventDefault()
+    setEmailChangeLoading(true)
+    setEmailChangeMsg(null)
+    setEmailChangeError(null)
+    const { error } = await supabase.auth.updateUser({ email: newEmail })
+    if (error) {
+      setEmailChangeError(error.message)
+    } else {
+      setEmailChangeMsg(`Confirmation email sent to ${newEmail}. Check your inbox and click the link to complete the change.`)
+      setNewEmail('')
+      setShowEmailChange(false)
+    }
+    setEmailChangeLoading(false)
+  }
+
   async function handleDeleteAccount() {
     try {
       const res = await fetch('/api/account/delete', { method: 'DELETE' })
@@ -227,14 +250,43 @@ export default function SettingsPage() {
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Email address</label>
+            <div className="flex items-center gap-2 mb-1.5">
+              <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Email address</label>
+              <button
+                type="button"
+                onClick={() => { setShowEmailChange(v => !v); setEmailChangeMsg(null); setEmailChangeError(null) }}
+                className="text-xs text-[#1D9E75] hover:underline"
+              >
+                Change email
+              </button>
+            </div>
             <input
               type="email"
               value={email}
               disabled
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.4)] cursor-not-allowed"
             />
-            <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">Email changes coming in a future update.</p>
+            {emailChangeMsg && <p className="text-xs text-[#1D9E75] mt-1">{emailChangeMsg}</p>}
+            {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
+            {showEmailChange && (
+              <form onSubmit={handleEmailChange} className="mt-3 flex gap-2">
+                <input
+                  type="email"
+                  required
+                  value={newEmail}
+                  onChange={e => setNewEmail(e.target.value)}
+                  placeholder="New email address"
+                  className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                />
+                <button
+                  type="submit"
+                  disabled={emailChangeLoading}
+                  className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
+                >
+                  {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
+                </button>
+              </form>
+            )}
           </div>
 
           <div>
@@ -439,19 +491,44 @@ export default function SettingsPage() {
             Delete account
           </button>
         ) : (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleDeleteAccount}
-              className="bg-red-500 hover:bg-red-600 text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
-            >
-              Yes, delete my account
-            </button>
-            <button
-              onClick={() => setShowDeleteConfirm(false)}
-              className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
-            >
-              Cancel
-            </button>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
+              <svg className="shrink-0 mt-0.5 text-red-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+              </svg>
+              <div className="space-y-1">
+                <p className="text-sm font-medium text-red-400">This is permanent and cannot be undone</p>
+                <p className="text-sm text-[rgba(245,245,242,0.45)]">
+                  We recommend exporting your data before deleting.{' '}
+                  <Link href="/export" className="text-[#1D9E75] hover:underline">Export your portfolio →</Link>
+                </p>
+              </div>
+            </div>
+            <div>
+              <input
+                type="text"
+                value={deleteConfirmText}
+                onChange={e => setDeleteConfirmText(e.target.value)}
+                placeholder="Type DELETE to confirm"
+                className="w-full bg-[#0B0B0C] border border-red-500/30 rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-red-500/60 transition-colors"
+              />
+            </div>
+            <div className="flex items-center gap-3">
+              <button
+                onClick={handleDeleteAccount}
+                disabled={deleteConfirmText !== 'DELETE'}
+                className="bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
+              >
+                Yes, delete my account
+              </button>
+              <button
+                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }}
+                className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         )}
       </section>
