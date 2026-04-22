@@ -183,7 +183,7 @@ function ProductVisual() {
               </div>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-              <LinkedCard kind="REFLECTION" title='"Would've started insulin sooner…"' />
+              <LinkedCard kind="REFLECTION" title={`"Would've started insulin sooner…"`} />
               <LinkedCard kind="ATTACHMENT" title="ABG-trend.pdf · clerking.docx" />
             </div>
           </div>
