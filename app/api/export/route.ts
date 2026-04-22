@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   const safeSpecialty = specialty.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
   const filename = `clinidex-${safeSpecialty}-${new Date().toISOString().split('T')[0]}.pdf`
 
-  return new NextResponse(buffer, {
+  return new NextResponse(new Uint8Array(buffer), {
     status: 200,
     headers: {
       'Content-Type': 'application/pdf',
