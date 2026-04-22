@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { stripe } from '@/lib/stripe'
 
-export async function POST(request: NextRequest) {
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://medclinidex.vercel.app'
+
+export async function POST(_request: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
@@ -17,11 +19,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No billing account found' }, { status: 400 })
   }
 
-  const origin = request.headers.get('origin') ?? 'https://medclinidex.vercel.app'
-
   const session = await stripe.billingPortal.sessions.create({
     customer: profile.stripe_customer_id,
-    return_url: `${origin}/settings`,
+    return_url: `${APP_URL}/settings`,
   })
 
   return NextResponse.json({ url: session.url })

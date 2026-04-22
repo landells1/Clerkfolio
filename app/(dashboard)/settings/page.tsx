@@ -149,9 +149,19 @@ export default function SettingsPage() {
   }
 
   async function handleDeleteAccount() {
-    // Sign out and redirect — actual deletion handled server-side in a future stage
-    await supabase.auth.signOut()
-    router.push('/login')
+    try {
+      const res = await fetch('/api/account/delete', { method: 'DELETE' })
+      if (!res.ok) {
+        const data = await res.json()
+        setError(data.error ?? 'Failed to delete account. Please contact hello@clinidex.co.uk.')
+        return
+      }
+      // Auth user is deleted server-side; sign out client session and redirect
+      await supabase.auth.signOut()
+      router.push('/?deleted=true')
+    } catch {
+      setError('Failed to delete account. Please contact hello@clinidex.co.uk.')
+    }
   }
 
   if (loading) {
