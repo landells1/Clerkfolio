@@ -68,6 +68,11 @@ create index if not exists specialty_links_entry_idx
   on public.specialty_entry_links(entry_id, entry_type);
 
 
+-- ── Ensure soft-delete columns exist (idempotent — safe if stage 8 already ran) ──
+alter table public.portfolio_entries add column if not exists deleted_at timestamptz;
+alter table public.cases            add column if not exists deleted_at timestamptz;
+
+
 -- ── Fix soft-delete RLS gap ───────────────────────────────────────────────────
 -- The original SELECT policies don't filter out soft-deleted rows.
 -- Drop and recreate them to include deleted_at IS NULL.
