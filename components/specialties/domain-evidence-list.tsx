@@ -13,8 +13,12 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
   const supabase = createClient()
 
   async function handleRemove(linkId: string) {
-    onRemove(linkId)
-    await supabase.from('specialty_entry_links').delete().eq('id', linkId)
+    const { error } = await supabase.from('specialty_entry_links').delete().eq('id', linkId)
+    if (error) {
+      alert('Failed to remove evidence. Please try again.')
+      return
+    }
+    onRemove(linkId) // update UI only after confirmed DB delete
   }
 
   const sorted =

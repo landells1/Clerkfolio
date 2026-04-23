@@ -21,6 +21,7 @@ type ModalType = 'link' | 'log' | null
 export function DomainTab({ domain, links, applicationId, specialtyName, onLinksChange }: Props) {
   const supabase = createClient()
   const [openModal, setOpenModal] = useState<ModalType>(null)
+  const [checkboxPending, setCheckboxPending] = useState<Set<string>>(new Set())
 
   const score = calculateDomainScore(domain, links)
   const pct = Math.min((score / domain.maxPoints) * 100, 100)
@@ -89,6 +90,8 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
 
   // --- Checkbox domain ---
   async function handleCheckboxToggle(bandLabel: string, bandPoints: number, checked: boolean) {
+    if (checkboxPending.has(bandLabel)) return // debounce: ignore rapid toggling
+    setCheckboxPending(prev => new Set(prev).add(bandLabel))
     if (checked) {
       // Add link
       const optimisticId = `temp-${Date.now()}`
@@ -125,13 +128,17 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
         onLinksChange([...links.filter(l => l.id !== optimisticId), data as SpecialtyEntryLink])
       }
     } else {
-      // Remove link
-      const linkToRemove = links.find(l => l.band_label === bandLabel)
-      if (!linkToRemove) return
+      // Remove link — find real DB row (skip temp IDs)
+      const linkToRemove = links.find(l => l.band_label === bandLabel && !l.id.startsWith('temp-'))
+      if (!linkToRemove) {
+        setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
+        return
+      }
       const newLinks = links.filter(l => l.id !== linkToRemove.id)
       onLinksChange(newLinks)
       await supabase.from('specialty_entry_links').delete().eq('id', linkToRemove.id)
     }
+    setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
   }
 
   function handleLinked(newLink: SpecialtyEntryLink) {
@@ -206,11 +213,12 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
           </div>
           {domain.bands.map(band => {
             const isChecked = links.some(l => l.band_label === band.label)
+            const isPending = checkboxPending.has(band.label)
             return (
               <label
                 key={band.label}
-                className="flex items-start gap-3 cursor-pointer group"
-                onClick={() => handleCheckboxToggle(band.label, band.points, !isChecked)}
+                className={`flex items-start gap-3 group ${isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
+                onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
               >
                 <div
                   className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${

@@ -24,8 +24,11 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
 
   async function handleRemove(e: React.MouseEvent) {
     e.stopPropagation()
-    await supabase.from('specialty_entry_links').delete().eq('application_id', application.id)
-    await supabase.from('specialty_applications').delete().eq('id', application.id)
+    if (!window.confirm(`Remove ${config.name} tracker? This will delete all linked evidence for this specialty.`)) return
+    const { error: linksError } = await supabase.from('specialty_entry_links').delete().eq('application_id', application.id)
+    if (linksError) { alert('Failed to remove specialty. Please try again.'); return }
+    const { error: appError } = await supabase.from('specialty_applications').delete().eq('id', application.id)
+    if (appError) { alert('Failed to remove specialty. Please try again.'); return }
     onRemove()
   }
 
