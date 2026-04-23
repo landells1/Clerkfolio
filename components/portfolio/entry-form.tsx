@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
@@ -27,6 +27,11 @@ const TOGGLE_BTN = (active: boolean) =>
       ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
       : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
   }`
+
+const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
+const DRAFT_KEY = 'clinidex-entry-draft'
+
+const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -64,6 +69,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draftRestored, setDraftRestored] = useState(false)
 
   const [category, setCategory] = useState<Category>(
     initialData?.category ?? defaultCategory ?? 'audit_qip'
@@ -136,6 +142,101 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   // Dirty state
   const [isDirty, setIsDirty] = useState(false)
 
+  // ── Auto-save draft (create mode only) ──────────────────────────────────
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (mode !== 'create') return
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) return
+      const d = JSON.parse(raw)
+      if (d.category) setCategory(d.category)
+      if (d.title !== undefined) setTitle(d.title)
+      if (d.date !== undefined) setDate(d.date)
+      if (d.notes !== undefined) setNotes(d.notes)
+      if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
+      if (d.auditType !== undefined) setAuditType(d.auditType)
+      if (d.auditRole !== undefined) setAuditRole(d.auditRole)
+      if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
+      if (d.auditTrust !== undefined) setAuditTrust(d.auditTrust)
+      if (d.auditOutcome !== undefined) setAuditOutcome(d.auditOutcome)
+      if (d.auditPresented !== undefined) setAuditPresented(d.auditPresented)
+      if (d.teachingType !== undefined) setTeachingType(d.teachingType)
+      if (d.teachingAudience !== undefined) setTeachingAudience(d.teachingAudience)
+      if (d.teachingSetting !== undefined) setTeachingSetting(d.teachingSetting)
+      if (d.teachingEvent !== undefined) setTeachingEvent(d.teachingEvent)
+      if (d.teachingInvited !== undefined) setTeachingInvited(d.teachingInvited)
+      if (d.confType !== undefined) setConfType(d.confType)
+      if (d.confEventName !== undefined) setConfEventName(d.confEventName)
+      if (d.confAttendance !== undefined) setConfAttendance(d.confAttendance)
+      if (d.confLevel !== undefined) setConfLevel(d.confLevel)
+      if (d.confCpdHours !== undefined) setConfCpdHours(d.confCpdHours)
+      if (d.confCertificate !== undefined) setConfCertificate(d.confCertificate)
+      if (d.pubType !== undefined) setPubType(d.pubType)
+      if (d.pubJournal !== undefined) setPubJournal(d.pubJournal)
+      if (d.pubAuthors !== undefined) setPubAuthors(d.pubAuthors)
+      if (d.pubStatus !== undefined) setPubStatus(d.pubStatus)
+      if (d.pubDoi !== undefined) setPubDoi(d.pubDoi)
+      if (d.leaderRole !== undefined) setLeaderRole(d.leaderRole)
+      if (d.leaderOrg !== undefined) setLeaderOrg(d.leaderOrg)
+      if (d.leaderStart !== undefined) setLeaderStart(d.leaderStart)
+      if (d.leaderEnd !== undefined) setLeaderEnd(d.leaderEnd)
+      if (d.leaderOngoing !== undefined) setLeaderOngoing(d.leaderOngoing)
+      if (d.prizeBody !== undefined) setPrizeBody(d.prizeBody)
+      if (d.prizeLevel !== undefined) setPrizeLevel(d.prizeLevel)
+      if (d.prizeDescription !== undefined) setPrizeDescription(d.prizeDescription)
+      if (d.procName !== undefined) setProcName(d.procName)
+      if (d.procSetting !== undefined) setProcSetting(d.procSetting)
+      if (d.procSupervision !== undefined) setProcSupervision(d.procSupervision)
+      if (d.procCount !== undefined) setProcCount(d.procCount)
+      if (d.reflType !== undefined) setReflType(d.reflType)
+      if (d.reflContext !== undefined) setReflContext(d.reflContext)
+      if (d.reflSupervisor !== undefined) setReflSupervisor(d.reflSupervisor)
+      if (d.reflFreeText !== undefined) setReflFreeText(d.reflFreeText)
+      if (d.customFreeText !== undefined) setCustomFreeText(d.customFreeText)
+      setDraftRestored(true)
+    } catch {
+      // ignore parse errors
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Debounced save to localStorage
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (mode !== 'create') return
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
+    draftTimerRef.current = setTimeout(() => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        category, title, date, notes, specialtyTags,
+        auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+        teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
+        confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
+        pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
+        leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
+        prizeBody, prizeLevel, prizeDescription,
+        procName, procSetting, procSupervision, procCount,
+        reflType, reflContext, reflSupervisor, reflFreeText,
+        customFreeText,
+      }))
+    }, 1000)
+    return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
+  }, [
+    mode, category, title, date, notes, specialtyTags,
+    auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+    teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
+    confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
+    pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
+    leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
+    prizeBody, prizeLevel, prizeDescription,
+    procName, procSetting, procSupervision, procCount,
+    reflType, reflContext, reflSupervisor, reflFreeText,
+    customFreeText,
+  ])
+
+  // ── Dirty / beforeunload ────────────────────────────────────────────────
+
   useEffect(() => {
     if (!isDirty) return
     const handler = (e: BeforeUnloadEvent) => {
@@ -187,6 +288,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         setUploading(false)
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      localStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
@@ -213,6 +315,37 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      {/* Draft restored banner */}
+      {draftRestored && (
+        <div className="flex items-center justify-between bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1D9E75] mb-4">
+          <span>Draft restored</span>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(DRAFT_KEY)
+              setDraftRestored(false)
+              setCategory(defaultCategory ?? 'audit_qip')
+              setTitle('')
+              setDate(new Date().toISOString().split('T')[0])
+              setNotes('')
+              setSpecialtyTags([])
+              setAuditType('audit'); setAuditRole(''); setAuditCycleStage(''); setAuditTrust(''); setAuditOutcome(''); setAuditPresented(false)
+              setTeachingType(''); setTeachingAudience(''); setTeachingSetting(''); setTeachingEvent(''); setTeachingInvited(false)
+              setConfType('conference'); setConfEventName(''); setConfAttendance(''); setConfLevel(''); setConfCpdHours(''); setConfCertificate(false)
+              setPubType(''); setPubJournal(''); setPubAuthors(''); setPubStatus(''); setPubDoi('')
+              setLeaderRole(''); setLeaderOrg(''); setLeaderStart(''); setLeaderEnd(''); setLeaderOngoing(false)
+              setPrizeBody(''); setPrizeLevel(''); setPrizeDescription('')
+              setProcName(''); setProcSetting(''); setProcSupervision(''); setProcCount('')
+              setReflType(''); setReflContext(''); setReflSupervisor(''); setReflFreeText('')
+              setCustomFreeText('')
+            }}
+            className="text-xs text-[#1D9E75]/70 hover:text-[#1D9E75]"
+          >
+            Discard
+          </button>
+        </div>
+      )}
+
       {/* Category selector */}
       {mode === 'create' && (
         <div>
@@ -251,7 +384,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} />
         </Field>
         <Field label="Notes / comments">
-          <textarea rows={3} value={notes ?? ''} onChange={e => setNotes(e.target.value)} onFocus={() => markDirty()} className={INPUT} placeholder="Any additional context or notes…" />
+          <textarea rows={3} value={notes ?? ''} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder="Any additional context or notes…" />
+          {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
         </Field>
       </div>
 
@@ -455,6 +589,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <Field label="Clinical context"><input type="text" value={reflContext} onChange={e => setReflContext(e.target.value)} className={INPUT} placeholder="e.g. Acute take, post-take ward round" /></Field>
             <Field label="Free text reflection">
               <textarea rows={6} value={reflFreeText} onChange={e => setReflFreeText(e.target.value)} className={INPUT} placeholder="What happened, what you learnt, what you'd do differently…" />
+              {reflFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(reflFreeText)} words</p>}
             </Field>
           </div>
         )}

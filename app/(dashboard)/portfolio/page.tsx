@@ -21,6 +21,7 @@ export default async function PortfolioPage({
     .from('portfolio_entries')
     .select('*')
     .eq('user_id', user!.id)
+    .is('deleted_at', null)
 
   if (activeCategory) {
     query = query.eq('category', activeCategory)
@@ -31,20 +32,21 @@ export default async function PortfolioPage({
   }
 
   if (sort === 'date_asc') {
-    query = query.order('date', { ascending: true })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: true })
   } else if (sort === 'title_asc') {
-    query = query.order('title', { ascending: true })
+    query = query.order('pinned', { ascending: false }).order('title', { ascending: true })
   } else {
-    query = query.order('date', { ascending: false })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: false })
   }
 
   const { data: entries } = await query
 
-  // Count per category for the tab badges
+  // Count per category for the tab badges (exclude deleted)
   const { data: counts } = await supabase
     .from('portfolio_entries')
     .select('category')
     .eq('user_id', user!.id)
+    .is('deleted_at', null)
 
   const countMap: Record<string, number> = {}
   counts?.forEach(r => {
@@ -55,7 +57,7 @@ export default async function PortfolioPage({
   return (
     <div className="p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Portfolio</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
@@ -71,6 +73,15 @@ export default async function PortfolioPage({
           </svg>
           Add entry
         </Link>
+      </div>
+
+      {/* Count summary bar */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-6 text-xs text-[rgba(245,245,242,0.4)]">
+        {CATEGORIES.filter(c => (countMap[c.value] ?? 0) > 0).map(c => (
+          <span key={c.value}>
+            <span className="text-[rgba(245,245,242,0.65)]">{countMap[c.value]}</span> {c.label}
+          </span>
+        ))}
       </div>
 
       {/* Search + sort filters */}

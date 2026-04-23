@@ -20,6 +20,7 @@ export default async function CasesPage({
     .from('cases')
     .select('*')
     .eq('user_id', user!.id)
+    .is('deleted_at', null)
 
   if (q.trim()) {
     query = query.ilike('title', `%${q.trim()}%`)
@@ -30,11 +31,11 @@ export default async function CasesPage({
   }
 
   if (sort === 'date_asc') {
-    query = query.order('date', { ascending: true })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: true })
   } else if (sort === 'title_asc') {
-    query = query.order('title', { ascending: true })
+    query = query.order('pinned', { ascending: false }).order('title', { ascending: true })
   } else {
-    query = query.order('date', { ascending: false })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: false })
   }
 
   const { data: cases } = await query

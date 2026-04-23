@@ -5,6 +5,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
+import { useSearch } from '@/app/(dashboard)/providers'
 
 type Profile = {
   first_name: string | null
@@ -62,6 +63,15 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: '/insights',
+    label: 'Insights',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar({ profile }: { profile: Profile }) {
@@ -73,6 +83,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const [feedbackSending, setFeedbackSending] = useState(false)
   const { addToast } = useToast()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { openSearch } = useSearch()
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
   const initials = [profile.first_name?.[0], profile.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'

@@ -6,6 +6,8 @@ import QuickAddButton from '@/components/dashboard/quick-add-button'
 import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
 import StreakBadge from '@/components/dashboard/streak-badge'
 import SpecialtyRadar from '@/components/dashboard/specialty-radar'
+import CompletenessWidget from '@/components/dashboard/completeness-widget'
+import GoalsWidget from '@/components/dashboard/goals-widget'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
@@ -62,6 +64,7 @@ export default async function DashboardPage() {
     { data: recentCasesForHeatmap },
     { data: allPortfolioDates },
     { data: allCaseDates },
+    { data: goals },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -72,18 +75,21 @@ export default async function DashboardPage() {
       .from('portfolio_entries')
       .select('*')
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
     supabase
       .from('cases')
       .select('*')
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
     supabase
       .from('portfolio_entries')
       .select('category, specialty_tags')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      .is('deleted_at', null),
     supabase
       .from('deadlines')
       .select('*')
@@ -94,25 +100,35 @@ export default async function DashboardPage() {
     supabase
       .from('cases')
       .select('specialty_tags')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      .is('deleted_at', null),
     supabase
       .from('portfolio_entries')
       .select('created_at')
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .gte('created_at', cutoffStr),
     supabase
       .from('cases')
       .select('created_at')
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .gte('created_at', cutoffStr),
     supabase
       .from('portfolio_entries')
       .select('date')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      .is('deleted_at', null),
     supabase
       .from('cases')
       .select('date')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      .is('deleted_at', null),
+    supabase
+      .from('goals')
+      .select('id, category, target_count')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: true }),
   ])
 
   const firstName = profile?.first_name ?? 'there'
@@ -141,6 +157,7 @@ export default async function DashboardPage() {
   })
 
   const specialtyInterests: string[] = profile?.specialty_interests ?? []
+  const specialtyCount = Object.keys(specialtyCounts).length
 
   // Heatmap dates (last 84 days, from created_at)
   const heatmapDates = [
@@ -196,6 +213,8 @@ export default async function DashboardPage() {
             <DeadlinesWidget initialDeadlines={deadlines ?? []} />
           </div>
           <CoverageWidget counts={coverageCounts} />
+          <CompletenessWidget catMap={catMap} totalCases={totalCases} specialtyCount={specialtyCount} />
+          <GoalsWidget goals={goals ?? []} catMap={catMap} totalCases={totalCases} />
           <SpecialtyRadar counts={specialtyCounts} />
         </div>
       </div>

@@ -7,6 +7,9 @@ import { CLINICAL_DOMAINS } from '@/lib/types/cases'
 const inputClass =
   'bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors'
 
+const SORT_KEY = 'cases-sort'
+const DOMAIN_KEY = 'cases-domain'
+
 type Props = {
   defaultQ?: string
   defaultDomain?: string
@@ -23,6 +26,18 @@ export default function CasesFilters({
 
   const [q, setQ] = useState(defaultQ)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Resolve initial sort: URL param takes priority; fall back to localStorage
+  const [initialSort] = useState<string>(() => {
+    if (defaultSort) return defaultSort
+    try { return localStorage.getItem(SORT_KEY) ?? '' } catch { return '' }
+  })
+
+  // Resolve initial domain: URL param takes priority; fall back to localStorage
+  const [initialDomain] = useState<string>(() => {
+    if (defaultDomain) return defaultDomain
+    try { return localStorage.getItem(DOMAIN_KEY) ?? '' } catch { return '' }
+  })
 
   // Debounce the search query update
   useEffect(() => {
@@ -44,6 +59,7 @@ export default function CasesFilters({
   }, [q])
 
   function handleDomain(value: string) {
+    try { localStorage.setItem(DOMAIN_KEY, value) } catch { /* ignore */ }
     const params = new URLSearchParams(searchParams.toString())
     if (value) {
       params.set('domain', value)
@@ -54,6 +70,7 @@ export default function CasesFilters({
   }
 
   function handleSort(value: string) {
+    try { localStorage.setItem(SORT_KEY, value) } catch { /* ignore */ }
     const params = new URLSearchParams(searchParams.toString())
     if (value) {
       params.set('sort', value)
@@ -93,7 +110,7 @@ export default function CasesFilters({
 
       {/* Domain selector */}
       <select
-        defaultValue={defaultDomain}
+        defaultValue={initialDomain}
         onChange={e => handleDomain(e.target.value)}
         className={`${inputClass} cursor-pointer`}
       >
@@ -107,7 +124,7 @@ export default function CasesFilters({
 
       {/* Sort selector */}
       <select
-        defaultValue={defaultSort}
+        defaultValue={initialSort}
         onChange={e => handleSort(e.target.value)}
         className={`${inputClass} cursor-pointer`}
       >

@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
+import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
+import PinEntryButton from '@/components/portfolio/pin-entry-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatDate(d: string) {
@@ -70,6 +72,8 @@ export default async function EntryDetailPage({ params }: { params: { id: string
             </svg>
             Edit
           </Link>
+          <DuplicateEntryButton entryId={entry.id} />
+          <PinEntryButton entryId={entry.id} initialPinned={entry.pinned ?? false} />
           <DeleteEntryButton id={entry.id} />
         </div>
       </div>

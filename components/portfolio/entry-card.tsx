@@ -1,9 +1,6 @@
 import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-}
+import { relativeDate } from '@/lib/utils/dates'
 
 function entrySubtitle(entry: PortfolioEntry): string | null {
   switch (entry.category) {
@@ -52,7 +49,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
           )}
         </div>
         <div className="text-right flex-shrink-0">
-          <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono">{formatDate(entry.date)}</p>
+          <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono">{relativeDate(entry.date)}</p>
           <svg className="w-4 h-4 text-[rgba(245,245,242,0.2)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors mt-1 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="9 18 15 12 9 6" />
           </svg>

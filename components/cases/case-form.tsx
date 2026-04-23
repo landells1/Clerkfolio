@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CLINICAL_DOMAINS, type NewCase } from '@/lib/types/cases'
@@ -17,6 +17,10 @@ type Props = {
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
+const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
+const DRAFT_KEY = 'clinidex-case-draft'
+
+const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
 export default function CaseForm({ mode, initialData, userInterests = [] }: Props) {
   const router = useRouter()
@@ -25,6 +29,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draftRestored, setDraftRestored] = useState(false)
 
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
@@ -35,6 +40,40 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   // Dirty state
   const [isDirty, setIsDirty] = useState(false)
+
+  // ── Auto-save draft (create mode only) ──────────────────────────────────
+
+  // Restore draft on mount
+  useEffect(() => {
+    if (mode !== 'create') return
+    try {
+      const raw = localStorage.getItem(DRAFT_KEY)
+      if (!raw) return
+      const d = JSON.parse(raw)
+      if (d.title !== undefined) setTitle(d.title)
+      if (d.date !== undefined) setDate(d.date)
+      if (d.clinicalDomain !== undefined) setClinicalDomain(d.clinicalDomain)
+      if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
+      if (d.notes !== undefined) setNotes(d.notes)
+      setDraftRestored(true)
+    } catch {
+      // ignore parse errors
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Debounced save to localStorage
+  const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  useEffect(() => {
+    if (mode !== 'create') return
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
+    draftTimerRef.current = setTimeout(() => {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, date, clinicalDomain, specialtyTags, notes }))
+    }, 1000)
+    return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
+  }, [mode, title, date, clinicalDomain, specialtyTags, notes])
+
+  // ── Dirty / beforeunload ────────────────────────────────────────────────
 
   useEffect(() => {
     if (!isDirty) return
@@ -78,6 +117,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         setUploading(false)
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
+      localStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Case logged', 'success')
       router.push(`/cases/${data.id}`)
@@ -102,6 +142,28 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {/* Draft restored banner */}
+      {draftRestored && (
+        <div className="flex items-center justify-between bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1D9E75] mb-4">
+          <span>Draft restored</span>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(DRAFT_KEY)
+              setDraftRestored(false)
+              setTitle('')
+              setDate(new Date().toISOString().split('T')[0])
+              setClinicalDomain('')
+              setSpecialtyTags([])
+              setNotes('')
+            }}
+            className="text-xs text-[#1D9E75]/70 hover:text-[#1D9E75]"
+          >
+            Discard
+          </button>
+        </div>
+      )}
+
       {/* Title */}
       <div>
         <label className={LABEL}>Case title <span className="text-red-400">*</span></label>
@@ -167,11 +229,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <textarea
           rows={6}
           value={notes}
-          onChange={e => setNotes(e.target.value)}
+          onChange={e => { setNotes(e.target.value); markDirty() }}
           onFocus={() => markDirty()}
           className={INPUT}
           placeholder="Clinical context, learning points, what happened — anonymised…"
         />
+        {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
       </div>
 
       {/* Evidence uploads */}
