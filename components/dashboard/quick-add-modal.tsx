@@ -151,6 +151,7 @@ export default function QuickAddModal({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
+    if (type === 'procedure' && !procName.trim()) { setError('Procedure name is required.'); return }
     setSaving(true)
     setError(null)
 

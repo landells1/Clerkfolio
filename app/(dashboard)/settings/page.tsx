@@ -97,7 +97,7 @@ export default function SettingsPage() {
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) { setSaving(false); return }
 
     const { error } = await supabase
       .from('profiles')

@@ -2,6 +2,7 @@ export const TRIAL_DAYS = 180 // 6 months
 
 export type SubscriptionInfo = {
   isPro: boolean
+  isPastDue: boolean
   isTrial: boolean
   isExpired: boolean
   trialEndsAt: Date | null
@@ -25,7 +26,17 @@ export function getSubscriptionInfo(profile: ProfileSubFields): SubscriptionInfo
     new Date(profile.subscription_period_end) > now
 
   if (isPro) {
-    return { isPro: true, isTrial: false, isExpired: false, trialEndsAt: null, daysRemaining: null, canExport: true }
+    return { isPro: true, isPastDue: false, isTrial: false, isExpired: false, trialEndsAt: null, daysRemaining: null, canExport: true }
+  }
+
+  // Past-due: payment failed but still within the period — grant access during grace period
+  const isPastDue =
+    profile.subscription_status === 'past_due' &&
+    profile.subscription_period_end != null &&
+    new Date(profile.subscription_period_end) > now
+
+  if (isPastDue) {
+    return { isPro: false, isPastDue: true, isTrial: false, isExpired: false, trialEndsAt: null, daysRemaining: null, canExport: true }
   }
 
   // Trial window
@@ -39,6 +50,7 @@ export function getSubscriptionInfo(profile: ProfileSubFields): SubscriptionInfo
 
   return {
     isPro: false,
+    isPastDue: false,
     isTrial,
     isExpired: !isTrial,
     trialEndsAt,

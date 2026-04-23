@@ -88,6 +88,11 @@ create policy "Users can view own cases"
   using (auth.uid() = user_id and deleted_at is null);
 
 
+-- ── Backfill and enforce NOT NULL on trial_started_at ────────────────────────
+update public.profiles set trial_started_at = now() where trial_started_at is null;
+alter table public.profiles alter column trial_started_at set not null;
+
+
 -- ── Auto-update updated_at on specialty_applications ─────────────────────────
 drop trigger if exists on_specialty_application_updated on public.specialty_applications;
 create trigger on_specialty_application_updated
