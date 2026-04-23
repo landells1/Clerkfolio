@@ -17,7 +17,8 @@ create table if not exists public.specialty_applications (
 
 alter table public.specialty_applications enable row level security;
 
-create policy if not exists "Users manage own specialty applications"
+drop policy if exists "Users manage own specialty applications" on public.specialty_applications;
+create policy "Users manage own specialty applications"
   on public.specialty_applications for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
@@ -46,8 +47,8 @@ create table if not exists public.specialty_entry_links (
 
 alter table public.specialty_entry_links enable row level security;
 
--- Users can only see/modify links that belong to their own applications
-create policy if not exists "Users manage own specialty entry links"
+drop policy if exists "Users manage own specialty entry links" on public.specialty_entry_links;
+create policy "Users manage own specialty entry links"
   on public.specialty_entry_links for all
   using (
     application_id in (
@@ -83,6 +84,7 @@ create policy "Users can view own cases"
 
 
 -- ── Auto-update updated_at on specialty_applications ─────────────────────────
+drop trigger if exists on_specialty_application_updated on public.specialty_applications;
 create trigger on_specialty_application_updated
   before update on public.specialty_applications
   for each row execute procedure public.handle_updated_at();
