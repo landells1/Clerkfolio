@@ -109,6 +109,17 @@ export default function ImportForm() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setErrors(['Not authenticated']); setImporting(false); return }
 
+    // Build all records first, collecting row-level validation errors
+    type EntryRecord = {
+      user_id: string
+      title: string
+      category: PortfolioCategory
+      date: string
+      notes: string | null
+      specialty_tags: string[]
+    }
+    const validRecords: Array<{ record: EntryRecord; rowIndex: number }> = []
+
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
       const title = getCellValue(row, mapping.title!)
@@ -129,22 +140,28 @@ export default function ImportForm() {
         ? specialtyTagsRaw.split(';').map(t => t.trim()).filter(Boolean)
         : []
 
-      const { error } = await supabase.from('portfolio_entries').insert({
-        user_id: user.id,
-        title,
-        category,
-        date,
-        notes: notes || null,
-        specialty_tags,
+      validRecords.push({
+        record: { user_id: user.id, title, category, date, notes: notes || null, specialty_tags },
+        rowIndex: i,
       })
+    }
+
+    // Batch insert in chunks of 100 to avoid N+1 query overhead
+    const CHUNK_SIZE = 100
+    for (let c = 0; c < validRecords.length; c += CHUNK_SIZE) {
+      const chunk = validRecords.slice(c, c + CHUNK_SIZE)
+      const { error } = await supabase
+        .from('portfolio_entries')
+        .insert(chunk.map(r => r.record))
 
       if (error) {
-        errs.push(`Row ${i + 2}: ${error.message}`)
+        // On batch error, record which rows were affected
+        chunk.forEach(r => errs.push(`Row ${r.rowIndex + 2}: ${error.message}`))
       } else {
-        successCount++
+        successCount += chunk.length
       }
 
-      setProgress(Math.round(((i + 1) / rows.length) * 100))
+      setProgress(Math.round(((c + Math.min(CHUNK_SIZE, validRecords.length - c)) / validRecords.length) * 100))
     }
 
     setImporting(false)

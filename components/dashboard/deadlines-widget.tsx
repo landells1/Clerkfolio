@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Deadline = {
   id: string
@@ -38,6 +39,7 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
   const [, startTransition] = useTransition()
   const router = useRouter()
   const supabase = createClient()
+  const { addToast } = useToast()
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault()
@@ -53,7 +55,9 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
       .select()
       .single()
 
-    if (!error && data) {
+    if (error) {
+      addToast('Failed to add deadline', 'error')
+    } else if (data) {
       setDeadlines(prev => [...prev, data].sort((a, b) => a.due_date.localeCompare(b.due_date)))
       setTitle('')
       setDate(new Date().toISOString().split('T')[0])
@@ -64,14 +68,30 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
   }
 
   async function handleDelete(id: string) {
-    await supabase.from('deadlines').delete().eq('id', id)
+    // Optimistically remove
+    const previous = deadlines
     setDeadlines(prev => prev.filter(d => d.id !== id))
+
+    const { error } = await supabase.from('deadlines').delete().eq('id', id)
+    if (error) {
+      setDeadlines(previous)
+      addToast('Failed to delete deadline', 'error')
+      return
+    }
     startTransition(() => router.refresh())
   }
 
   async function handleComplete(id: string) {
+    // Optimistically remove from view
+    const previous = deadlines
     setDeadlines(prev => prev.filter(d => d.id !== id))
-    await supabase.from('deadlines').update({ completed: true }).eq('id', id)
+
+    const { error } = await supabase.from('deadlines').update({ completed: true }).eq('id', id)
+    if (error) {
+      setDeadlines(previous)
+      addToast('Failed to mark deadline complete', 'error')
+      return
+    }
     startTransition(() => router.refresh())
   }
 
@@ -97,7 +117,9 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
       .update({ title: editTitle.trim(), due_date: editDate })
       .eq('id', id)
 
-    if (!error) {
+    if (error) {
+      addToast('Failed to update deadline', 'error')
+    } else {
       setDeadlines(prev =>
         prev
           .map(d => d.id === id ? { ...d, title: editTitle.trim(), due_date: editDate } : d)

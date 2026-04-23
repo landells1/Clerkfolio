@@ -2,37 +2,50 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
 export default function DuplicateEntryButton({ entryId }: { entryId: string }) {
   const supabase = createClient()
   const router = useRouter()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
 
   async function handleDuplicate() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
 
-    // Fetch original
-    const { data: original } = await supabase
-      .from('portfolio_entries')
-      .select('*')
-      .eq('id', entryId)
-      .single()
+      const { data: original, error: fetchError } = await supabase
+        .from('portfolio_entries')
+        .select('*')
+        .eq('id', entryId)
+        .single()
 
-    if (!original) { setLoading(false); return }
+      if (fetchError || !original) {
+        addToast('Could not load entry to duplicate', 'error')
+        return
+      }
 
-    // Strip fields that shouldn't be copied
-    const { id: _, created_at: __, updated_at: ___, deleted_at: ____, pinned: _____, ...rest } = original
+      const { id: _, created_at: __, updated_at: ___, deleted_at: ____, pinned: _____, ...rest } = original
 
-    const { data: newEntry } = await supabase
-      .from('portfolio_entries')
-      .insert({ ...rest, title: `${rest.title} (copy)`, user_id: user.id })
-      .select('id')
-      .single()
+      const { data: newEntry, error: insertError } = await supabase
+        .from('portfolio_entries')
+        .insert({ ...rest, title: `${rest.title} (copy)`, user_id: user.id })
+        .select('id')
+        .single()
 
-    if (newEntry) router.push(`/portfolio/${newEntry.id}/edit`)
-    setLoading(false)
+      if (insertError || !newEntry) {
+        addToast('Failed to duplicate entry', 'error')
+        return
+      }
+
+      router.push(`/portfolio/${newEntry.id}/edit`)
+    } catch {
+      addToast('Something went wrong', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

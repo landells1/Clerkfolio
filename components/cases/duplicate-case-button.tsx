@@ -2,30 +2,50 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
 export default function DuplicateCaseButton({ caseId }: { caseId: string }) {
   const supabase = createClient()
   const router = useRouter()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
 
   async function handleDuplicate() {
     setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLoading(false); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/login'); return }
 
-    const { data: original } = await supabase.from('cases').select('*').eq('id', caseId).single()
-    if (!original) { setLoading(false); return }
+      const { data: original, error: fetchError } = await supabase
+        .from('cases')
+        .select('*')
+        .eq('id', caseId)
+        .single()
 
-    const { id: _, created_at: __, updated_at: ___, deleted_at: ____, pinned: _____, ...rest } = original
+      if (fetchError || !original) {
+        addToast('Could not load case to duplicate', 'error')
+        return
+      }
 
-    const { data: newCase } = await supabase
-      .from('cases')
-      .insert({ ...rest, title: `${rest.title} (copy)`, user_id: user.id })
-      .select('id')
-      .single()
+      const { id: _, created_at: __, updated_at: ___, deleted_at: ____, pinned: _____, ...rest } = original
 
-    if (newCase) router.push(`/cases/${newCase.id}/edit`)
-    setLoading(false)
+      const { data: newCase, error: insertError } = await supabase
+        .from('cases')
+        .insert({ ...rest, title: `${rest.title} (copy)`, user_id: user.id })
+        .select('id')
+        .single()
+
+      if (insertError || !newCase) {
+        addToast('Failed to duplicate case', 'error')
+        return
+      }
+
+      router.push(`/cases/${newCase.id}/edit`)
+    } catch {
+      addToast('Something went wrong', 'error')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

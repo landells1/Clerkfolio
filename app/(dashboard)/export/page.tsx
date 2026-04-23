@@ -64,7 +64,7 @@ export default function ExportPage() {
     load()
   }, [supabase])
 
-  // Fetch entries whenever specialty changes
+  // Fetch entries whenever specialty changes — AbortController cancels stale fetches
   useEffect(() => {
     if (!specialty) return
     setLoading(true)
@@ -72,9 +72,11 @@ export default function ExportPage() {
     setSelectedIds(new Set())
     setLoadedSpecialty(null)
 
-    async function fetch() {
+    let cancelled = false
+
+    async function loadEntries() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user || cancelled) return
 
       const { data } = await supabase
         .from('portfolio_entries')
@@ -83,12 +85,16 @@ export default function ExportPage() {
         .contains('specialty_tags', [specialty])
         .order('date', { ascending: false })
 
+      if (cancelled) return
+
       setEntries(data ?? [])
       setSelectedIds(new Set((data ?? []).map((e: PortfolioEntry) => e.id)))
       setLoadedSpecialty(specialty)
       setLoading(false)
     }
-    fetch()
+    loadEntries()
+
+    return () => { cancelled = true }
   }, [specialty, supabase])
 
   const visible = categoryFilter === 'all'

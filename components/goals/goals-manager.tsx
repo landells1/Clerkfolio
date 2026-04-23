@@ -62,9 +62,15 @@ export default function GoalsManager({ initialGoals }: Props) {
   }
 
   async function handleDelete(id: string) {
+    const goal = goals.find(g => g.id === id)
+    const label = CATEGORY_OPTIONS.find(o => o.value === goal?.category)?.label ?? 'this goal'
+    if (!window.confirm(`Remove "${label}"? This cannot be undone.`)) return
+
     setDeletingId(id)
     const { error: deleteError } = await supabase.from('goals').delete().eq('id', id)
-    if (!deleteError) {
+    if (deleteError) {
+      setError('Failed to remove goal. Please try again.')
+    } else {
       setGoals(prev => prev.filter(g => g.id !== id))
     }
     setDeletingId(null)

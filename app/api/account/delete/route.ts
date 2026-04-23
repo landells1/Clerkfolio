@@ -1,11 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 
-export async function DELETE(_request: NextRequest) {
+export async function POST(request: NextRequest) {
   // Verify the user is authenticated via their session
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  // Require explicit confirmation text in the request body
+  let body: { confirm?: string } = {}
+  try {
+    body = await request.json()
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
+
+  if (body.confirm !== 'DELETE') {
+    return NextResponse.json({ error: 'Confirmation text required' }, { status: 400 })
+  }
 
   // Use service role for all deletion operations (bypasses RLS)
   const service = createServiceClient()

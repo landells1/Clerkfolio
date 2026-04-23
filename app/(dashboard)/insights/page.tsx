@@ -3,6 +3,7 @@ import InsightsCharts from '@/components/insights/insights-charts'
 
 type EntryRow = {
   id: string
+  title: string
   category: string | null
   date: string | null
   specialty_tags: string[] | null
@@ -11,6 +12,7 @@ type EntryRow = {
 
 type CaseRow = {
   id: string
+  title: string
   date: string | null
   specialty_tags: string[] | null
   created_at: string
@@ -44,11 +46,11 @@ export default async function InsightsPage() {
   const [{ data: rawEntries }, { data: rawCases }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('id, category, date, specialty_tags, created_at')
+      .select('id, title, category, date, specialty_tags, created_at')
       .is('deleted_at', null),
     supabase
       .from('cases')
-      .select('id, date, specialty_tags, created_at')
+      .select('id, title, date, specialty_tags, created_at')
       .is('deleted_at', null),
   ])
 
@@ -103,10 +105,10 @@ export default async function InsightsPage() {
     .map(m => {
       const monthEntries = entries
         .filter(e => formatMonth(e.date ?? e.created_at) === m)
-        .map(e => ({ title: (e as { title?: string }).title ?? 'Untitled', type: 'entry' as const, category: e.category ?? undefined }))
+        .map(e => ({ title: e.title ?? 'Untitled', type: 'entry' as const, category: e.category ?? undefined }))
       const monthCases = cases
         .filter(c => formatMonth(c.date ?? c.created_at) === m)
-        .map(c => ({ title: (c as { title?: string }).title ?? 'Untitled', type: 'case' as const }))
+        .map(c => ({ title: c.title ?? 'Untitled', type: 'case' as const }))
       return {
         month: monthLabel(m),
         items: [...monthEntries, ...monthCases],

@@ -176,7 +176,11 @@ export default function SettingsPage() {
 
   async function handleDeleteAccount() {
     try {
-      const res = await fetch('/api/account/delete', { method: 'DELETE' })
+      const res = await fetch('/api/account/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirm: 'DELETE' }),
+      })
       if (!res.ok) {
         const data = await res.json()
         setError(data.error ?? 'Failed to delete account. Please contact hello@clinidex.co.uk.')

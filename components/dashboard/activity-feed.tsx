@@ -136,7 +136,7 @@ export default function ActivityFeed({
                       <div className="w-24 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
                           className="h-full bg-[#1D9E75] rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (count / Math.max(1, ...Object.values(specialtyCounts))) * 100)}%` }}
+                          style={{ width: `${Math.min(100, (count / (Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(...Object.values(specialtyCounts)))) * 100)}%` }}
                         />
                       </div>
                       <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono w-6 text-right">{count}</span>
