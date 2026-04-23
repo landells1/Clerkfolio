@@ -27,7 +27,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
 
       const { data, error: insertError } = await supabase
         .from('specialty_applications')
-        .insert({ specialty_key: key, cycle_year: cycleYear, bonus_claimed: false })
+        .insert({ user_id: user.id, specialty_key: key, cycle_year: cycleYear, bonus_claimed: false })
         .select()
         .single()
 
