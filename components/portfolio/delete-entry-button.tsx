@@ -12,7 +12,20 @@ export default function DeleteEntryButton({ id }: { id: string }) {
 
   async function handleDelete() {
     setDeleting(true)
-    await supabase.from('portfolio_entries').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+
+    const { error } = await supabase
+      .from('portfolio_entries')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      setDeleting(false)
+      setConfirm(false)
+      return
+    }
     router.push('/portfolio')
     router.refresh()
   }

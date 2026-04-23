@@ -3,6 +3,16 @@ import { createClient } from './client'
 const BUCKET = 'evidence'
 export const FREE_CAP_BYTES = 200 * 1024 * 1024 // 200 MB
 
+const ALLOWED_MIME_TYPES = new Set([
+  'application/pdf',
+  'image/jpeg',
+  'image/png',
+  'image/gif',
+  'image/webp',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+])
+
 export type EvidenceFile = {
   id: string
   file_name: string
@@ -30,6 +40,11 @@ export async function uploadEvidence(
   entryType: 'portfolio' | 'case',
 ): Promise<{ path: string; error?: string }> {
   const supabase = createClient()
+
+  // Server-side MIME type validation
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return { path: '', error: 'File type not allowed. Accepted: PDF, images (JPG/PNG/GIF/WEBP), Word documents.' }
+  }
 
   // Enforce 200 MB free cap
   const used = await getStorageUsage(userId)
@@ -94,9 +109,24 @@ export async function getSignedUrl(path: string): Promise<string | null> {
 }
 
 /** Delete a file from storage and remove its evidence_files record.
+ *  Verifies ownership before deleting to prevent IDOR.
  *  Returns { error } — non-null on failure so callers can react without alert(). */
 export async function deleteEvidenceFile(id: string, path: string): Promise<{ error: string | null }> {
   const supabase = createClient()
+
+  // Verify the file belongs to the authenticated user before deleting
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Not authenticated' }
+
+  const { data: file, error: fetchError } = await supabase
+    .from('evidence_files')
+    .select('user_id')
+    .eq('id', id)
+    .single()
+
+  if (fetchError || !file) return { error: 'File not found' }
+  if (file.user_id !== user.id) return { error: 'Unauthorised' }
+
   const { error: storageError } = await supabase.storage.from(BUCKET).remove([path])
   if (storageError) return { error: storageError.message }
   const { error: dbError } = await supabase.from('evidence_files').delete().eq('id', id)

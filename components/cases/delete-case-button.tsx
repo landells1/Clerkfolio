@@ -12,7 +12,20 @@ export default function DeleteCaseButton({ id }: { id: string }) {
 
   async function handleDelete() {
     setDeleting(true)
-    await supabase.from('cases').update({ deleted_at: new Date().toISOString() }).eq('id', id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { router.push('/login'); return }
+
+    const { error } = await supabase
+      .from('cases')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      setDeleting(false)
+      setConfirm(false)
+      return
+    }
     router.push('/cases')
     router.refresh()
   }

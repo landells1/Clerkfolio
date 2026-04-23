@@ -35,6 +35,21 @@ export async function POST(request: NextRequest) {
       const userId = session.metadata?.supabase_user_id
       if (!userId) break
 
+      // Verify the Stripe customer matches what we have on record (or is being set for the first time)
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('stripe_customer_id')
+        .eq('id', userId)
+        .single()
+
+      if (
+        existingProfile?.stripe_customer_id &&
+        existingProfile.stripe_customer_id !== (session.customer as string)
+      ) {
+        console.error(`Webhook customer mismatch for user ${userId}`)
+        break
+      }
+
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
 
       await supabase.from('profiles').update({
