@@ -3,6 +3,8 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
 import LogSimilarButton from '@/components/cases/log-similar-button'
+import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
+import PinCaseButton from '@/components/cases/pin-case-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatDate(d: string) {
@@ -57,6 +59,8 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
             </svg>
             Edit
           </Link>
+          <DuplicateCaseButton caseId={c.id} />
+          <PinCaseButton caseId={c.id} initialPinned={c.pinned ?? false} />
           <DeleteCaseButton id={c.id} />
         </div>
       </div>

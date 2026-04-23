@@ -5,17 +5,7 @@ import Link from 'next/link'
 import { CATEGORY_COLOURS, CATEGORIES } from '@/lib/types/portfolio'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
-
-function timeAgo(dateStr: string) {
-  const d = new Date(dateStr)
-  const now = new Date()
-  const diff = Math.floor((now.getTime() - d.getTime()) / 1000)
-  if (diff < 60) return 'just now'
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`
-  if (diff < 604800) return `${Math.floor(diff / 86400)}d ago`
-  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
-}
+import { relativeDate } from '@/lib/utils/dates'
 
 function entrySubtitle(e: PortfolioEntry): string {
   if (e.category === 'audit_qip')   return [e.audit_type?.toUpperCase(), e.audit_trust].filter(Boolean).join(' · ')
@@ -91,7 +81,7 @@ export default function ActivityFeed({
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${colour.bg} ${colour.text}`}>{label}</span>
-                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{timeAgo(e.created_at)}</span>
+                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(e.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -119,7 +109,7 @@ export default function ActivityFeed({
                   )}
                 </div>
                 <div className="shrink-0 flex flex-col items-end gap-1">
-                  <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{timeAgo(c.created_at)}</span>
+                  <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.created_at)}</span>
                 </div>
               </Link>
             ))

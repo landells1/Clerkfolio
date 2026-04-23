@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
     .select('*')
     .in('id', entryIds)
     .eq('user_id', user.id)
+    .is('deleted_at', null)
     .order('date', { ascending: false })
 
   if (error || !entries?.length) {
