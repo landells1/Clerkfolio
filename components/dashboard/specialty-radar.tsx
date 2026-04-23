@@ -50,7 +50,7 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
   const dataPolygon = dataPoints.map(p => `${p.x},${p.y}`).join(' ')
 
   // Label positioning
-  function labelAnchor(i: number): string {
+  function labelAnchor(i: number): 'start' | 'middle' | 'end' {
     const angle = (2 * Math.PI / N) * i - Math.PI / 2
     const x = Math.cos(angle)
     if (Math.abs(x) < 0.2) return 'middle'
