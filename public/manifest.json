@@ -1,0 +1,26 @@
+{
+  "name": "Clinidex",
+  "short_name": "Clinidex",
+  "description": "Medical portfolio tracker for UK doctors and students",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0B0B0C",
+  "theme_color": "#1D9E75",
+  "orientation": "portrait-primary",
+  "lang": "en-GB",
+  "categories": ["medical", "productivity"],
+  "icons": [
+    {
+      "src": "/icon-192",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
