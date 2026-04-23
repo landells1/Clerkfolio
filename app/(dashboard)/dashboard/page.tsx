@@ -3,12 +3,53 @@ import ActivityFeed from '@/components/dashboard/activity-feed'
 import DeadlinesWidget from '@/components/dashboard/deadlines-widget'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
 import QuickAddButton from '@/components/dashboard/quick-add-button'
+import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
+import StreakBadge from '@/components/dashboard/streak-badge'
+import SpecialtyRadar from '@/components/dashboard/specialty-radar'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
+
+function computeWeeklyStreak(allDates: string[]): number {
+  function getWeekStart(dateStr: string): string {
+    const d = new Date(dateStr + 'T12:00:00Z')
+    const day = d.getUTCDay() // 0=Sun
+    const diff = day === 0 ? -6 : 1 - day // shift to Monday
+    const mon = new Date(d)
+    mon.setUTCDate(d.getUTCDate() + diff)
+    return mon.toISOString().split('T')[0]
+  }
+
+  const weekSet = new Set(allDates.map(getWeekStart))
+  const today = new Date()
+  const todayStr = today.toISOString().split('T')[0]
+
+  let streak = 0
+  let cursor = new Date(todayStr + 'T12:00:00Z')
+
+  // Start checking from current week; if current week is empty, start from last week
+  let ws = getWeekStart(todayStr)
+  if (!weekSet.has(ws)) {
+    cursor.setUTCDate(cursor.getUTCDate() - 7)
+    ws = getWeekStart(cursor.toISOString().split('T')[0])
+  }
+
+  while (weekSet.has(ws)) {
+    streak++
+    cursor.setUTCDate(cursor.getUTCDate() - 7)
+    ws = getWeekStart(cursor.toISOString().split('T')[0])
+  }
+
+  return streak
+}
 
 export default async function DashboardPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  // Cutoff for heatmap: last 84 days
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 84)
+  const cutoffStr = cutoff.toISOString()
 
   const [
     { data: profile },
@@ -17,6 +58,10 @@ export default async function DashboardPage() {
     { data: allEntries },
     { data: deadlines },
     { data: allCases },
+    { data: recentPortfolioForHeatmap },
+    { data: recentCasesForHeatmap },
+    { data: allPortfolioDates },
+    { data: allCaseDates },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -50,6 +95,24 @@ export default async function DashboardPage() {
       .from('cases')
       .select('specialty_tags')
       .eq('user_id', user!.id),
+    supabase
+      .from('portfolio_entries')
+      .select('created_at')
+      .eq('user_id', user!.id)
+      .gte('created_at', cutoffStr),
+    supabase
+      .from('cases')
+      .select('created_at')
+      .eq('user_id', user!.id)
+      .gte('created_at', cutoffStr),
+    supabase
+      .from('portfolio_entries')
+      .select('date')
+      .eq('user_id', user!.id),
+    supabase
+      .from('cases')
+      .select('date')
+      .eq('user_id', user!.id),
   ])
 
   const firstName = profile?.first_name ?? 'there'
@@ -79,6 +142,19 @@ export default async function DashboardPage() {
 
   const specialtyInterests: string[] = profile?.specialty_interests ?? []
 
+  // Heatmap dates (last 84 days, from created_at)
+  const heatmapDates = [
+    ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
+    ...(recentCasesForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
+  ]
+
+  // Streak dates (all time, from date field)
+  const streakDates = [
+    ...(allPortfolioDates ?? []).map((e: { date: string }) => e.date).filter(Boolean),
+    ...(allCaseDates ?? []).map((e: { date: string }) => e.date).filter(Boolean),
+  ]
+  const streak = computeWeeklyStreak(streakDates)
+
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
       {/* Header */}
@@ -91,7 +167,10 @@ export default async function DashboardPage() {
             {profile?.career_stage ? `${stageLabel(profile.career_stage)} · ` : ''}Here&apos;s your portfolio at a glance
           </p>
         </div>
-        <QuickAddButton userInterests={specialtyInterests} />
+        <div className="flex items-center gap-4 shrink-0">
+          <StreakBadge streak={streak} />
+          <QuickAddButton userInterests={specialtyInterests} />
+        </div>
       </div>
 
       {/* Stat row */}
@@ -117,7 +196,13 @@ export default async function DashboardPage() {
             <DeadlinesWidget initialDeadlines={deadlines ?? []} />
           </div>
           <CoverageWidget counts={coverageCounts} />
+          <SpecialtyRadar counts={specialtyCounts} />
         </div>
+      </div>
+
+      {/* Activity heatmap — full width */}
+      <div className="mt-6">
+        <ActivityHeatmap dates={heatmapDates} />
       </div>
     </div>
   )
