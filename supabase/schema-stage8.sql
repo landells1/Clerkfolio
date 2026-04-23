@@ -20,7 +20,8 @@ create table if not exists public.goals (
   created_at timestamptz not null default now()
 );
 alter table public.goals enable row level security;
-create policy if not exists "Users manage their own goals"
+drop policy if exists "Users manage their own goals" on public.goals;
+create policy "Users manage their own goals"
   on public.goals for all using (auth.uid() = user_id);
 
 -- Indexes
