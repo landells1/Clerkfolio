@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
+import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatDate(d: string) {
@@ -58,6 +59,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
           </span>
         </div>
         <div className="flex items-center gap-2">
+          <LogSimilarButton category={entry.category} tags={entry.specialty_tags} />
           <Link
             href={`/portfolio/${entry.id}/edit`}
             className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"

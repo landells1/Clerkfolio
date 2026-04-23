@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CLINICAL_DOMAINS } from '@/lib/types/cases'
@@ -33,27 +33,68 @@ const SUPERVISION_LEVELS: { id: string; label: string }[] = [
   { id: 'Unsupervised', label: 'Unsupervised' },
 ]
 
+const CASE_TEMPLATES = [
+  { label: 'Chest pain', domain: 'Cardiology', tags: ['Cardiology', 'Acute Medicine'] },
+  { label: 'SOB', domain: 'Respiratory Medicine', tags: ['Respiratory Medicine', 'Acute Medicine'] },
+  { label: 'Acute abdomen', domain: 'General Surgery', tags: ['General Surgery', 'Acute Medicine'] },
+  { label: 'Sepsis', domain: 'Acute Medicine', tags: ['Acute Medicine', 'Infectious Diseases'] },
+  { label: 'Stroke / TIA', domain: 'Neurology', tags: ['Neurology', 'Acute Medicine'] },
+  { label: 'DKA', domain: 'Endocrinology & Diabetes', tags: ['Endocrinology & Diabetes', 'Acute Medicine'] },
+  { label: 'AKI', domain: 'Nephrology', tags: ['Nephrology', 'Acute Medicine'] },
+  { label: 'Cardiac arrest', domain: 'Acute Medicine', tags: ['Acute Medicine', 'Cardiology'] },
+]
+
+const KEYWORD_TAG_MAP: [string[], string][] = [
+  [['cardio', 'cardiac', 'heart', 'mi ', 'stemi', 'nstemi', 'af ', 'atrial', 'chest pain', 'angina'], 'Cardiology'],
+  [['resp', 'lung', 'pneum', 'asthma', 'copd', 'pleural', 'breathless', 'sob', 'shortness', 'haemoptysis'], 'Respiratory Medicine'],
+  [['neuro', 'stroke', 'tia', 'seizure', 'epilep', 'headache', ' ms ', 'parkinson', 'neuropath'], 'Neurology'],
+  [['gastro', 'bowel', 'abdomen', 'abdo', 'liver', 'hepat', 'colonoscopy', 'endoscopy', 'ibd', 'crohn', 'colitis'], 'Gastroenterology'],
+  [['surg', 'appendix', 'hernia', 'laparoscop', 'laparotomy', 'cholecyst', 'bowel obstruct'], 'General Surgery'],
+  [['paeds', 'paediatric', 'pediatric', 'child', 'neonatal', 'infant'], 'Paediatrics'],
+  [['psych', 'mental health', 'depression', 'anxiety', 'schizophrenia', 'bipolar', 'psychos'], 'Psychiatry'],
+  [['ortho', 'fracture', 'bone', 'joint', 'knee', 'hip', 'shoulder', 'spine'], 'Orthopaedics'],
+  [['derm', 'skin', 'rash', 'eczema', 'psoriasis', 'cellulitis', 'wound'], 'Dermatology'],
+  [['renal', 'kidney', 'aki', 'ckd', 'dialysis', 'nephr'], 'Nephrology'],
+  [['diabet', 'dka', 'thyroid', 'adrenal', 'endocrin', 'insulin', 'hba1c'], 'Endocrinology & Diabetes'],
+  [['haem', 'anaemia', 'anemia', 'lymphoma', 'leukaemia', 'transfusion', 'coagulat'], 'Clinical Haematology'],
+  [['rheuma', 'arthritis', 'lupus', 'vasculitis', 'gout', 'fibromyalg'], 'Rheumatology'],
+  [['itu', 'icu', 'critical care', 'ventilat', 'intubat', 'septic shock'], 'Critical Care / ITU'],
+  [['a&e', 'trauma', 'resus', 'triage'], 'Emergency Medicine'],
+  [['obstet', 'gynae', 'obstetric', 'gynaecol', 'pregnancy', 'maternal', 'antenatal'], 'Obstetrics & Gynaecology'],
+  [['oncol', 'cancer', 'chemotherapy', 'radiotherapy', 'tumour', 'metastas'], 'Oncology'],
+  [['palliative', 'end of life', 'eol', 'hospice', 'syringe driver'], 'Palliative Care'],
+  [['urol', 'bladder', 'prostate', 'renal calcul'], 'Urology'],
+  [['ophthal', 'retina', 'glaucoma', 'cataract', 'visual'], 'Ophthalmology'],
+  [['radiol', 'mri', 'ct scan', 'ultrasound', 'x-ray', 'imaging', 'angio'], 'Radiology'],
+  [['geriat', 'elderly', 'frailty', 'dementia', 'falls', 'delirium'], 'Geriatric Medicine'],
+  [['infect', 'antibiotic', 'hiv', 'tuberculosis', 'septicaemia', 'bacteraemia'], 'Infectious Diseases'],
+  [['anaesth', 'intubat', 'airway', 'sedation', 'regional block'], 'Anaesthetics'],
+  [['vasc', 'aorta', 'aaa', 'pvd', 'dvt', 'pe ', 'pulmonary embol'], 'Vascular Surgery'],
+]
+
 export default function QuickAddModal({
   onClose,
   userInterests = [],
+  initialValues,
 }: {
   onClose: () => void
   userInterests?: string[]
+  initialValues?: { type?: EntryType; domain?: string; tags?: string[] }
 }) {
   const router = useRouter()
   const supabase = createClient()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const [type, setType] = useState<EntryType>('case')
+  const [type, setType] = useState<EntryType>(initialValues?.type ?? 'case')
 
   // Shared fields
   const [title, setTitle] = useState('')
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
-  const [tags, setTags] = useState<string[]>([])
+  const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
   // Case-specific
-  const [domain, setDomain] = useState('')
+  const [domain, setDomain] = useState(initialValues?.domain ?? '')
 
   // Teaching-specific
   const [teachingType, setTeachingType] = useState(TEACHING_TYPES[0])
@@ -67,6 +108,40 @@ export default function QuickAddModal({
   const [procName, setProcName] = useState('')
   const [procSupervision, setProcSupervision] = useState('Supervised')
   const [procCount, setProcCount] = useState<number>(1)
+
+  // Auto-tag suggestions
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
+
+  // Duplicate detection
+  const [duplicateWarning, setDuplicateWarning] = useState<{ title: string; date: string } | null>(null)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (title.trim().length < 3) { setSuggestedTags([]); return }
+      const lower = title.toLowerCase()
+      const found: string[] = []
+      for (const [keywords, tag] of KEYWORD_TAG_MAP) {
+        if (tags.includes(tag)) continue
+        if (keywords.some(k => lower.includes(k))) {
+          found.push(tag)
+          if (found.length >= 3) break
+        }
+      }
+      setSuggestedTags(found)
+    }, 400)
+    return () => clearTimeout(timer)
+  }, [title, tags])
+
+  async function checkDuplicate(val: string) {
+    if (val.trim().length < 4) return
+    const { data } = await supabase
+      .from('cases')
+      .select('title, date')
+      .ilike('title', `%${val.trim()}%`)
+      .order('created_at', { ascending: false })
+      .limit(1)
+    if (data && data.length > 0) setDuplicateWarning({ title: data[0].title, date: data[0].date })
+  }
 
   function handleTypeChange(t: EntryType) {
     setType(t)
@@ -168,6 +243,25 @@ export default function QuickAddModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Case templates */}
+          {type === 'case' && (
+            <div>
+              <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Templates</p>
+              <div className="overflow-x-auto flex gap-1.5 pb-1 mb-3">
+                {CASE_TEMPLATES.map(tpl => (
+                  <button
+                    key={tpl.label}
+                    type="button"
+                    onClick={() => { setTitle(tpl.label); setDomain(tpl.domain); setTags(tpl.tags) }}
+                    className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-[#1D9E75]/40 hover:text-[#1D9E75] transition-colors cursor-pointer whitespace-nowrap"
+                  >
+                    {tpl.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Title — shared */}
           <div>
             <label className={LABEL}>
@@ -179,7 +273,8 @@ export default function QuickAddModal({
               type="text"
               required
               value={title}
-              onChange={e => setTitle(e.target.value)}
+              onChange={e => { setTitle(e.target.value); setDuplicateWarning(null) }}
+              onBlur={() => type === 'case' && checkDuplicate(title)}
               className={INPUT}
               placeholder={
                 type === 'case'
@@ -193,6 +288,36 @@ export default function QuickAddModal({
             />
             {type === 'case' && (
               <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.35)]">Anonymised entries only — no patient identifiers</p>
+            )}
+
+            {/* Auto-tag suggestions */}
+            {suggestedTags.length > 0 && (
+              <div className="flex flex-wrap gap-1.5 mt-2">
+                <span className="text-[10px] text-[rgba(245,245,242,0.35)] self-center">Suggested:</span>
+                {suggestedTags.map(t => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
+                    className="px-2 py-0.5 rounded text-[10px] bg-[#1D9E75]/10 border border-[#1D9E75]/25 text-[#1D9E75] hover:bg-[#1D9E75]/20 transition-colors"
+                  >
+                    + {t}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Duplicate warning */}
+            {duplicateWarning && (
+              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 text-xs text-amber-400 mt-1.5">
+                <svg className="shrink-0 mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                  <line x1="12" y1="9" x2="12" y2="13"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span className="flex-1">Similar case already logged: &ldquo;{duplicateWarning.title}&rdquo;</span>
+                <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-400/60 hover:text-amber-400 ml-1">✕</button>
+              </div>
             )}
           </div>
 
