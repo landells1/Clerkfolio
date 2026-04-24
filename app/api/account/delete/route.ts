@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { validateOrigin } from '@/lib/csrf'
 
 export async function POST(request: NextRequest) {
+  const originError = validateOrigin(request)
+  if (originError) return originError
+
   // Verify the user is authenticated via their session
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()

@@ -3,9 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
 import { getSubscriptionInfo } from '@/lib/subscription'
+import { validateOrigin } from '@/lib/csrf'
 import React, { type ReactElement } from 'react'
 
 export async function POST(request: NextRequest) {
+  const originError = validateOrigin(request)
+  if (originError) return originError
+
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
