@@ -1,0 +1,80 @@
+import type { SpecialtyConfig } from './types'
+
+export const CST_2026: SpecialtyConfig = {
+  key: 'cst_2026',
+  name: 'Core Surgical Training (CST)',
+  cycleYear: 2026,
+  totalMax: 20,
+  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/surgery/core-surgery/core-surgical-training-portfolio-guidance-for-candidates',
+  sourceLabel: 'NHS England — CST Portfolio Guidance for Candidates',
+  isOfficial: true,
+  domains: [
+    {
+      key: 'surgical_experience_operative',
+      label: 'Surgical Experience — Operative (eLogbook)',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Grade A: 40+ cases (verified eLogbook consolidation report, consultant-signed)', points: 4 },
+        { label: 'Grade B: 30–39 cases', points: 3 },
+        { label: 'Grade C: 20–29 cases', points: 2 },
+        { label: 'Grade D: 11–19 cases', points: 1 },
+        { label: 'Grade E: ≤10 cases or no evidence', points: 0 },
+      ],
+      notes: 'Requires eLogbook consolidation report signed by a consultant. All cases must be verified.',
+    },
+    {
+      key: 'surgical_experience_elective',
+      label: 'Surgical Experience — Elective / Taster',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Grade A: 4+ week surgical elective OR surgical taster (min. 5 days) with supervisor letter on official letterhead', points: 4 },
+        { label: 'Grade E: No surgical experience outside training posts', points: 0 },
+      ],
+      notes: 'Supervisor letter must be on official institution letterhead.',
+    },
+    {
+      key: 'quality_improvement',
+      label: 'Quality Improvement / Clinical Audit',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Grade A: Led ALL aspects of surgically-themed QI/audit — protocol, data, analysis, change implementation, re-audit (closed loop)', points: 4 },
+        { label: 'Grade B: Led most aspects of a QI/audit cycle with partial completion', points: 3 },
+        { label: 'Grade C: Participated with a clear defined role (e.g., data collection and analysis)', points: 2 },
+        { label: 'Grade D: Minor participation only', points: 1 },
+        { label: 'Grade E: No involvement', points: 0 },
+      ],
+      notes: 'Grade A requires: protocol, data sheets, run charts, implementation notes, re-audit, and presentation slides.',
+    },
+    {
+      key: 'presentations_publications',
+      label: 'Presentations & Publications',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Grade A: National/international oral presentation (peer-reviewed, not pay-to-present) OR first-author publication in PubMed-indexed journal', points: 4 },
+        { label: 'Grade B: National/international poster OR co-author publication in PubMed-indexed journal OR book chapter (ISBN medical book)', points: 3 },
+        { label: 'Grade C: Regional oral or poster presentation', points: 2 },
+        { label: 'Grade D: Local presentation or published abstract', points: 1 },
+        { label: 'Grade E: No presentations or publications', points: 0 },
+      ],
+      notes: 'Presentations must be peer-reviewed medical meetings — pay-to-present meetings are excluded. Publications must be PubMed-catalogued; in-press accepted with acceptance letter.',
+    },
+    {
+      key: 'teaching_experience',
+      label: 'Teaching Experience',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Grade A: Organised and delivered 4+ formal teaching sessions with full evidence pack (programme outline, timetable, sign-off letters, feedback forms, attendance logs)', points: 4 },
+        { label: 'Grade B: Organised 2–3 formal sessions with evidence', points: 3 },
+        { label: 'Grade C: Delivered formal teaching with some evidence', points: 2 },
+        { label: 'Grade D: Teach the Teacher course only, or informal teaching', points: 1 },
+        { label: 'Grade E: No teaching experience', points: 0 },
+      ],
+      notes: 'Portfolio reviewed at interview (10-min portfolio station + 15-min domain discussion). No Oriel self-assessment for CST 2026 — scores assigned by interview panel.',
+    },
+  ],
+}
