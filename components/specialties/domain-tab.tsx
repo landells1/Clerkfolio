@@ -109,6 +109,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
       }
       onLinksChange([...links, optimistic])
 
+      console.log('[specialty] inserting link', { applicationId, domainKey: domain.key, bandLabel, bandPoints })
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
         .insert({
@@ -123,8 +124,8 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
         .select()
 
       if (error) {
-        console.error('Failed to save claimed band:', error)
-        alert('Failed to save. Please check you are signed in and try again.')
+        console.error('[specialty] insert failed:', error)
+        alert(`Failed to save: ${error.message} (code: ${error.code})`)
         onLinksChange(links) // revert optimistic update
       } else {
         const inserted = rows?.[0]
