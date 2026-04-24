@@ -1,0 +1,101 @@
+import type { SpecialtyConfig } from './types'
+
+export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
+  key: 'anaesthetics_ct1_2026',
+  name: 'Anaesthetics CT1',
+  cycleYear: 2026,
+  totalMax: 30,
+  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
+  sourceLabel: 'NHS England — Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
+  isOfficial: false,
+  domains: [
+    {
+      key: 'qualifications',
+      label: 'Postgraduate Degrees & Qualifications',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'PhD/MD by research', points: 4 },
+        { label: 'Masters (MSc/MA/MRes, 8+ months)', points: 3 },
+        { label: 'PG diploma/certificate', points: 1 },
+      ],
+      notes: '⚠️ Anaesthetics CT1 2026 uses MSRA + two 15-min interview stations; no specialty-specific questions on the application form. No published domain-level self-assessment score. This config is for portfolio-building reference only — verify with person spec.',
+    },
+    {
+      key: 'publications',
+      label: 'Publications',
+      maxPoints: 6,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'First/joint-first author original research (PubMed-indexed or in press)', points: 6 },
+        { label: 'Co-author original research (PubMed-indexed)', points: 4 },
+        { label: 'Book chapter or multiple other publications (2+)', points: 4 },
+        { label: 'Single publication (editorial/review/case report/letter)', points: 2 },
+        { label: 'Published abstract or non-peer-reviewed article', points: 1 },
+      ],
+    },
+    {
+      key: 'presentations',
+      label: 'Presentations & Posters',
+      maxPoints: 5,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Oral 1st/2nd author national/international', points: 5 },
+        { label: 'Poster 1st/2nd author national/international', points: 4 },
+        { label: 'Oral or poster regional', points: 2 },
+        { label: 'Oral or poster local', points: 1 },
+      ],
+    },
+    {
+      key: 'quality_improvement',
+      label: 'Quality Improvement / Audit',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'All stages of 2 complete QI/audit cycles', points: 4 },
+        { label: 'Some stages of 2 cycles OR all stages of 1 complete cycle', points: 3 },
+        { label: 'Some stages of a single cycle', points: 1 },
+      ],
+    },
+    {
+      key: 'teaching',
+      label: 'Teaching Experience',
+      maxPoints: 4,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Organised teaching programme 3+ months with formal feedback', points: 4 },
+        { label: 'Regular teaching in defined programme with formal feedback', points: 3 },
+        { label: 'Occasional formal teaching (min. 3 sessions) with feedback', points: 1 },
+      ],
+    },
+    {
+      key: 'training_in_teaching',
+      label: 'Training in Teaching',
+      maxPoints: 2,
+      scoringRule: 'highest',
+      bands: [
+        { label: 'Higher qualification in teaching (PG Cert/Diploma, 60+ credits)', points: 2 },
+        { label: 'Teaching training course (6+ synchronous hours)', points: 1 },
+      ],
+    },
+    {
+      key: 'commitment_anaesthetics',
+      label: 'Commitment to Anaesthetics',
+      maxPoints: 5,
+      scoringRule: 'cumulative_capped',
+      isCheckbox: true,
+      bands: [
+        { label: 'Primary FRCA pass', points: 2 },
+        { label: 'Primary FRCA attempt (no pass)', points: 1 },
+        { label: 'Anaesthetics taster week or attachment (outside normal rotations)', points: 1 },
+        { label: 'ALS provider course', points: 1 },
+        { label: 'ATLS provider course', points: 1 },
+        { label: 'APLS / PALS provider course', points: 1 },
+        { label: 'National anaesthetics or critical care conference attended (1st)', points: 1 },
+        { label: 'National anaesthetics or critical care conference attended (2nd)', points: 1 },
+        { label: 'Member of AAGBI / RCoA trainee group / AnaesthesiaUK', points: 1 },
+      ],
+      notes: 'Points capped at 5.',
+    },
+  ],
+}
