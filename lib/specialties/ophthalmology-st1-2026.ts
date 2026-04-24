@@ -5,9 +5,9 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   name: 'Ophthalmology ST1',
   cycleYear: 2026,
   totalMax: 50,
-  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/ophthalmology-st1-2026',
-  sourceLabel: 'NHS England — Ophthalmology ST1 2026 Person Specification',
-  isOfficial: true,
+  source: 'https://www.prepsurg.co.uk/st-application-self-assessment-tools/ophthalmology-st1-evidence-folder-self-assessment-2026/',
+  sourceLabel: 'PrepSurg — Ophthalmology ST1 2026 Self-Assessment',
+  isOfficial: false,
   domains: [
     {
       key: 'qualifications',
