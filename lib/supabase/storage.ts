@@ -1,14 +1,16 @@
 import { createClient } from './client'
 
 const BUCKET = 'evidence'
-export const FREE_CAP_BYTES = 200 * 1024 * 1024 // 200 MB
+export const FREE_CAP_BYTES = 200 * 1024 * 1024        // 200 MB
+export const PRO_CAP_BYTES  = 5 * 1024 * 1024 * 1024  // 5 GB
+export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 
-const ALLOWED_MIME_TYPES = new Set([
+// Must stay in sync with the Supabase evidence bucket's allowed MIME types.
+// GIF and WEBP are intentionally excluded — they are not in the bucket config.
+export const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'image/jpeg',
   'image/png',
-  'image/gif',
-  'image/webp',
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ])
@@ -32,7 +34,11 @@ export async function getStorageUsage(userId: string): Promise<number> {
   return data?.reduce((sum, f) => sum + (f.file_size ?? 0), 0) ?? 0
 }
 
-/** Upload a file, returns { path } on success or { error } on failure */
+/**
+ * Upload a file after server-side quota/MIME authorization.
+ * Callers MUST call /api/upload/authorize first and surface any errors.
+ * This function performs a final client-side MIME check as a UX guard only.
+ */
 export async function uploadEvidence(
   file: File,
   userId: string,
@@ -41,15 +47,12 @@ export async function uploadEvidence(
 ): Promise<{ path: string; error?: string }> {
   const supabase = createClient()
 
-  // Server-side MIME type validation
+  // Client-side MIME guard (UX only — server enforce via /api/upload/authorize)
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    return { path: '', error: 'File type not allowed. Accepted: PDF, images (JPG/PNG/GIF/WEBP), Word documents.' }
+    return { path: '', error: 'File type not allowed. Accepted: PDF, JPEG, PNG, Word documents.' }
   }
-
-  // Enforce 200 MB free cap
-  const used = await getStorageUsage(userId)
-  if (used + file.size > FREE_CAP_BYTES) {
-    return { path: '', error: 'Storage limit reached (200 MB). You cannot upload more files on the free plan.' }
+  if (file.size > MAX_FILE_BYTES) {
+    return { path: '', error: 'File too large. Maximum size is 50 MB.' }
   }
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -83,7 +86,11 @@ export async function insertEvidenceRecord(
   })
 }
 
-/** Upload all pending files after an entry is saved. Returns any errors. */
+/**
+ * Upload all pending files after an entry is saved.
+ * Calls the server-side authorize endpoint for each file before uploading.
+ * Returns any errors encountered.
+ */
 export async function uploadPendingFiles(
   files: File[],
   userId: string,
@@ -91,11 +98,25 @@ export async function uploadPendingFiles(
   entryType: 'portfolio' | 'case',
 ): Promise<string[]> {
   const errors: string[] = []
+
   for (const file of files) {
+    // Server-side authorization: quota + MIME + plan limit enforced here
+    const authRes = await fetch('/api/upload/authorize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileSize: file.size, mimeType: file.type, entryType }),
+    })
+    if (!authRes.ok) {
+      const body = await authRes.json().catch(() => ({}))
+      errors.push(`${file.name}: ${body.error ?? 'Upload not authorized'}`)
+      continue
+    }
+
     const { path, error } = await uploadEvidence(file, userId, entryId, entryType)
     if (error) { errors.push(`${file.name}: ${error}`); continue }
     await insertEvidenceRecord(userId, entryId, entryType, file, path)
   }
+
   return errors
 }
 
@@ -108,13 +129,13 @@ export async function getSignedUrl(path: string): Promise<string | null> {
   return data?.signedUrl ?? null
 }
 
-/** Delete a file from storage and remove its evidence_files record.
- *  Verifies ownership before deleting to prevent IDOR.
- *  Returns { error } — non-null on failure so callers can react without alert(). */
+/**
+ * Delete a file from storage and remove its evidence_files record.
+ * Verifies ownership before deleting to prevent IDOR.
+ */
 export async function deleteEvidenceFile(id: string, path: string): Promise<{ error: string | null }> {
   const supabase = createClient()
 
-  // Verify the file belongs to the authenticated user before deleting
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Not authenticated' }
 

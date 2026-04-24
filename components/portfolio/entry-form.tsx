@@ -194,8 +194,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.procSupervision !== undefined) setProcSupervision(d.procSupervision)
       if (d.procCount !== undefined) setProcCount(d.procCount)
       if (d.reflType !== undefined) setReflType(d.reflType)
-      if (d.reflContext !== undefined) setReflContext(d.reflContext)
-      if (d.reflSupervisor !== undefined) setReflSupervisor(d.reflSupervisor)
+      // reflContext and reflSupervisor are intentionally not restored (clinical text / person name)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -209,8 +208,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
-      // Clinical free-text fields are intentionally omitted (notes, auditOutcome,
-      // reflFreeText, customFreeText, prizeDescription).
+      // Clinical free-text fields are intentionally omitted:
+      //   notes, auditOutcome, reflFreeText, customFreeText, prizeDescription,
+      //   reflContext (clinical context text), reflSupervisor (person's name).
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
         category, title, date, specialtyTags,
         auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
@@ -220,7 +220,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
         prizeBody, prizeLevel,
         procName, procSetting, procSupervision, procCount,
-        reflType, reflContext, reflSupervisor,
+        reflType,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
@@ -234,7 +234,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
     prizeBody, prizeLevel,
     procName, procSetting, procSupervision, procCount,
-    reflType, reflContext, reflSupervisor,
+    reflType,
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
