@@ -65,6 +65,7 @@ export default function ImportForm() {
   const [progress, setProgress] = useState(0)
   const [done, setDone] = useState<number | null>(null)
   const [errors, setErrors] = useState<string[]>([])
+  const [warnings, setWarnings] = useState<string[]>([])
 
   const handleFile = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -72,6 +73,7 @@ export default function ImportForm() {
     setFileName(file.name)
     setDone(null)
     setErrors([])
+    setWarnings([])
     const reader = new FileReader()
     reader.onload = ev => {
       const text = ev.target?.result as string
@@ -104,6 +106,7 @@ export default function ImportForm() {
     setErrors([])
 
     const errs: string[] = []
+    const warns: string[] = []
     let successCount = 0
 
     const { data: { user } } = await supabase.auth.getUser()
@@ -125,9 +128,14 @@ export default function ImportForm() {
       const title = getCellValue(row, mapping.title!)
       if (!title) { errs.push(`Row ${i + 2}: missing title`); continue }
 
-      const category = mapping.category
-        ? normaliseCategory(getCellValue(row, mapping.category))
-        : 'custom'
+      let category: PortfolioCategory = 'custom'
+      if (mapping.category) {
+        const rawCategory = getCellValue(row, mapping.category)
+        category = normaliseCategory(rawCategory)
+        if (rawCategory && category === 'custom' && !['custom'].includes(rawCategory.toLowerCase())) {
+          warns.push(`Row ${i + 2}: unrecognised category "${rawCategory}" — imported as "custom"`)
+        }
+      }
 
       const date = mapping.date
         ? normaliseDate(getCellValue(row, mapping.date))
@@ -167,6 +175,7 @@ export default function ImportForm() {
     setImporting(false)
     setDone(successCount)
     setErrors(errs)
+    setWarnings(warns)
   }
 
   const previewRows = rows.slice(0, 5)
@@ -270,6 +279,18 @@ export default function ImportForm() {
                 <polyline points="20 6 9 17 4 12" />
               </svg>
               <p className="text-sm text-[#1D9E75] font-medium">{done} {done === 1 ? 'entry' : 'entries'} imported successfully.</p>
+            </div>
+          )}
+
+          {warnings.length > 0 && (
+            <div className="px-4 py-3 bg-amber-500/10 border border-amber-500/20 rounded-xl">
+              <p className="text-xs font-medium text-amber-400 mb-1">{warnings.length} {warnings.length === 1 ? 'warning' : 'warnings'}:</p>
+              <ul className="space-y-0.5">
+                {warnings.slice(0, 5).map((w, i) => (
+                  <li key={i} className="text-xs text-amber-300/80">{w}</li>
+                ))}
+                {warnings.length > 5 && <li className="text-xs text-amber-300/60">…and {warnings.length - 5} more</li>}
+              </ul>
             </div>
           )}
 

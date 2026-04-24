@@ -34,12 +34,17 @@ export async function POST(request: NextRequest) {
       await service.storage.from('evidence').remove(paths)
     }
 
-    // 2. Delete all user data rows
-    await service.from('evidence_files').delete().eq('user_id', user.id)
-    await service.from('portfolio_entries').delete().eq('user_id', user.id)
-    await service.from('cases').delete().eq('user_id', user.id)
-    await service.from('deadlines').delete().eq('user_id', user.id)
-    await service.from('profiles').delete().eq('id', user.id)
+    // 2. Delete all user data rows — check each individually before touching auth
+    const deleteOps = [
+      service.from('evidence_files').delete().eq('user_id', user.id),
+      service.from('portfolio_entries').delete().eq('user_id', user.id),
+      service.from('cases').delete().eq('user_id', user.id),
+      service.from('deadlines').delete().eq('user_id', user.id),
+      service.from('profiles').delete().eq('id', user.id),
+    ]
+    const deleteResults = await Promise.all(deleteOps)
+    const deleteError = deleteResults.find(r => r.error)?.error
+    if (deleteError) throw deleteError
 
     // 3. Delete the auth user (irrecoverable — do this last)
     const { error: authDeleteError } = await service.auth.admin.deleteUser(user.id)
@@ -47,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Account deletion error:', err)
+    console.error('Account deletion error:', err instanceof Error ? err.message : 'unknown error')
     return NextResponse.json({ error: 'Deletion failed. Please contact hello@clinidex.co.uk.' }, { status: 500 })
   }
 }

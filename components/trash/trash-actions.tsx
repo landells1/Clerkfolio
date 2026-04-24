@@ -2,26 +2,36 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
 export default function TrashActions({ id, type }: { id: string; type: 'entry' | 'case' }) {
   const supabase = createClient()
   const router = useRouter()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState<'restore' | 'delete' | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
 
   async function handleRestore() {
     setLoading('restore')
     const table = type === 'entry' ? 'portfolio_entries' : 'cases'
-    await supabase.from(table).update({ deleted_at: null }).eq('id', id)
-    router.refresh()
+    const { error } = await supabase.from(table).update({ deleted_at: null }).eq('id', id)
+    if (error) {
+      addToast('Failed to restore. Please try again.', 'error')
+    } else {
+      router.refresh()
+    }
     setLoading(null)
   }
 
   async function handlePermanentDelete() {
     setLoading('delete')
     const table = type === 'entry' ? 'portfolio_entries' : 'cases'
-    await supabase.from(table).delete().eq('id', id)
-    router.refresh()
+    const { error } = await supabase.from(table).delete().eq('id', id)
+    if (error) {
+      addToast('Failed to delete. Please try again.', 'error')
+    } else {
+      router.refresh()
+    }
     setLoading(null)
     setConfirmDelete(false)
   }

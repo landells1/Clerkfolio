@@ -286,7 +286,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
         setUploading(false)
-        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+        if (uploadErrors.length > 0) {
+          setError(`Entry saved, but some files failed to upload: ${uploadErrors.join('; ')}`)
+          return
+        }
       }
       localStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
@@ -302,7 +305,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'portfolio')
         setUploading(false)
-        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+        if (uploadErrors.length > 0) {
+          setError(`Changes saved, but some files failed to upload: ${uploadErrors.join('; ')}`)
+          return
+        }
       }
       setIsDirty(false)
       addToast('Changes saved', 'success')

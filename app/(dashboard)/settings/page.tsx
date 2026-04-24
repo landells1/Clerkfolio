@@ -139,10 +139,16 @@ export default function SettingsPage() {
 
   async function handleUpgrade() {
     setBillingLoading(true)
-    const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-    const json = await res.json()
-    if (json.url) window.location.href = json.url
-    else {
+    try {
+      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
+      const json = await res.json()
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        addToast('Could not open billing page. Please try again.', 'error')
+        setBillingLoading(false)
+      }
+    } catch {
       addToast('Could not open billing page. Please try again.', 'error')
       setBillingLoading(false)
     }
@@ -150,10 +156,16 @@ export default function SettingsPage() {
 
   async function handleManageBilling() {
     setBillingLoading(true)
-    const res = await fetch('/api/stripe/portal', { method: 'POST' })
-    const json = await res.json()
-    if (json.url) window.location.href = json.url
-    else {
+    try {
+      const res = await fetch('/api/stripe/portal', { method: 'POST' })
+      const json = await res.json()
+      if (json.url) {
+        window.location.href = json.url
+      } else {
+        addToast('Could not open billing page. Please try again.', 'error')
+        setBillingLoading(false)
+      }
+    } catch {
       addToast('Could not open billing page. Please try again.', 'error')
       setBillingLoading(false)
     }
@@ -280,8 +292,9 @@ export default function SettingsPage() {
                   required
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
+                  disabled={emailChangeLoading}
                   placeholder="New email address"
-                  className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                  className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors disabled:opacity-50"
                 />
                 <button
                   type="submit"

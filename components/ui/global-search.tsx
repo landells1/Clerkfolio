@@ -17,24 +17,36 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Result[]>([])
   const [loading, setLoading] = useState(false)
+  const [searchError, setSearchError] = useState(false)
   const [selected, setSelected] = useState(0)
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
   useEffect(() => {
-    if (q.trim().length < 2) { setResults([]); return }
+    if (q.trim().length < 2) { setResults([]); setSearchError(false); return }
     const timer = setTimeout(async () => {
       setLoading(true)
-      const [{ data: entries }, { data: cases }] = await Promise.all([
-        supabase.from('portfolio_entries').select('id, title, category').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-        supabase.from('cases').select('id, title, clinical_domain').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-      ])
-      const r: Result[] = [
-        ...(entries ?? []).map(e => ({ id: e.id, title: e.title, type: 'entry' as const, subtitle: e.category?.replace(/_/g, ' ') ?? 'Portfolio entry' })),
-        ...(cases ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
-      ]
-      setResults(r)
-      setSelected(0)
+      setSearchError(false)
+      try {
+        const [entriesResult, casesResult] = await Promise.all([
+          supabase.from('portfolio_entries').select('id, title, category').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+          supabase.from('cases').select('id, title, clinical_domain').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+        ])
+        if (entriesResult.error || casesResult.error) {
+          setSearchError(true)
+          setResults([])
+        } else {
+          const r: Result[] = [
+            ...(entriesResult.data ?? []).map(e => ({ id: e.id, title: e.title, type: 'entry' as const, subtitle: e.category?.replace(/_/g, ' ') ?? 'Portfolio entry' })),
+            ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
+          ]
+          setResults(r)
+          setSelected(0)
+        }
+      } catch {
+        setSearchError(true)
+        setResults([])
+      }
       setLoading(false)
     }, 250)
     return () => clearTimeout(timer)
@@ -80,7 +92,8 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         {q.trim().length >= 2 && (
           <div className="py-2 max-h-80 overflow-y-auto">
             {loading && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">Searching…</p>}
-            {!loading && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No results for &ldquo;{q}&rdquo;</p>}
+            {!loading && searchError && <p className="text-xs text-red-400 px-4 py-3">Search failed. Please try again.</p>}
+            {!loading && !searchError && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No active results for &ldquo;{q}&rdquo; — deleted items won&apos;t appear here</p>}
             {results.map((r, i) => (
               <button
                 key={r.id}

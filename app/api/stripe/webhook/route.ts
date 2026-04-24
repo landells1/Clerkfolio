@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
         existingProfile?.stripe_customer_id &&
         existingProfile.stripe_customer_id !== (session.customer as string)
       ) {
-        console.error(`Webhook customer mismatch for user ${userId}`)
+        console.error('Webhook customer mismatch: stored customer does not match session customer')
         break
       }
 
