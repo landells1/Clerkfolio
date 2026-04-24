@@ -5,9 +5,9 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   name: 'Ophthalmology ST1',
   cycleYear: 2026,
   totalMax: 50,
-  source: 'https://www.prepsurg.co.uk/st-application-self-assessment-tools/ophthalmology-st1-evidence-folder-self-assessment-2026/',
-  sourceLabel: 'PrepSurg — Ophthalmology ST1 2026 Self-Assessment',
-  isOfficial: false,
+  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/ophthalmology-st1-2026',
+  sourceLabel: 'NHS England — Ophthalmology ST1 2026 Person Specification',
+  isOfficial: true,
   domains: [
     {
       key: 'qualifications',
@@ -50,7 +50,7 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       key: 'quality_improvement',
       label: 'Quality Improvement / Audit',
       maxPoints: 5,
-      scoringRule: 'highest',
+      scoringRule: 'cumulative_capped',
       bands: [
         { label: 'Published audit or supra-regional QI guideline', points: 5 },
         { label: 'Initiated, designed, wrote up, implemented change/closed loop', points: 3 },
@@ -65,14 +65,14 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 6,
       scoringRule: 'cumulative_capped',
       bands: [
-        { label: 'International oral (1st/2nd author, presenter)', points: 3 },
-        { label: 'National oral', points: 2 },
-        { label: 'Regional oral', points: 1 },
-        { label: 'International poster (1st author)', points: 1.5 },
-        { label: 'National poster (1st author)', points: 1 },
-        { label: 'Regional poster (1st author)', points: 0.5 },
+        { label: 'International oral, 1st author (presenter)', points: 3 },
+        { label: 'National oral, 1st author', points: 2 },
+        { label: 'Regional oral, 1st author', points: 1 },
+        { label: 'International poster, 1st author', points: 1.5 },
+        { label: 'National poster, 1st author', points: 1 },
+        { label: 'Regional poster, 1st author', points: 0.5 },
       ],
-      notes: 'Second-author oral counts half only if presented. One meeting per piece of work.',
+      notes: '2026 rule: 2nd author presentations and posters score 0. One meeting per piece of work. Each achievement can only be claimed once across all domains.',
     },
     {
       key: 'publications',

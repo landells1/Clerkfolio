@@ -21,7 +21,7 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
         { label: 'Grade D: Limited — single activity showing specific interest in radiology', points: 2 },
         { label: 'Grade E: No evidence of commitment to radiology', points: 0 },
       ],
-      notes: 'Double-weighted domain (max 8 pts vs 4 for others). Portfolio accounts for 30% of final ranking; interview 70%.',
+      notes: 'Double-weighted domain (max 8 pts vs 4 for others). Portfolio accounts for 40% of final ranking; interview 60%. 2026 cycle reduced portfolio from 7 domains to 5.',
     },
     {
       key: 'leadership_management',

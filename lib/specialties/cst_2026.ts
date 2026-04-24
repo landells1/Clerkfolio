@@ -21,7 +21,7 @@ export const CST_2026: SpecialtyConfig = {
         { label: 'Grade D: 11–19 cases', points: 1 },
         { label: 'Grade E: ≤10 cases or no evidence', points: 0 },
       ],
-      notes: 'Requires eLogbook consolidation report signed by a consultant. All cases must be verified.',
+      notes: 'Requires eLogbook consolidation report signed by a consultant. All cases must be verified. 2026 rule: ITU placements do NOT count as surgical specialty for operative experience.',
     },
     {
       key: 'surgical_experience_elective',
@@ -32,7 +32,7 @@ export const CST_2026: SpecialtyConfig = {
         { label: 'Grade A: 4+ week surgical elective OR surgical taster (min. 5 days) with supervisor letter on official letterhead', points: 4 },
         { label: 'Grade E: No surgical experience outside training posts', points: 0 },
       ],
-      notes: 'Supervisor letter must be on official institution letterhead.',
+      notes: 'Supervisor letter must be on official institution letterhead. 2026 rule: Foundation placements are EXCLUDED — only electives and taster weeks outside training count.',
     },
     {
       key: 'quality_improvement',
@@ -46,7 +46,7 @@ export const CST_2026: SpecialtyConfig = {
         { label: 'Grade D: Minor participation only', points: 1 },
         { label: 'Grade E: No involvement', points: 0 },
       ],
-      notes: 'Grade A requires: protocol, data sheets, run charts, implementation notes, re-audit, and presentation slides.',
+      notes: 'Grade A requires: protocol, data sheets, run charts, implementation notes, re-audit, and presentation slides. 2026 rule: evidence must include presentation of findings in the department where change was implemented.',
     },
     {
       key: 'presentations_publications',
@@ -74,7 +74,7 @@ export const CST_2026: SpecialtyConfig = {
         { label: 'Grade D: Teach the Teacher course only, or informal teaching', points: 1 },
         { label: 'Grade E: No teaching experience', points: 0 },
       ],
-      notes: 'Portfolio reviewed at interview (10-min portfolio station + 15-min domain discussion). No Oriel self-assessment for CST 2026 — scores assigned by interview panel.',
+      notes: 'Portfolio reviewed at interview (10-min portfolio station + 15-min domain discussion). No Oriel self-assessment for CST 2026 — scores assigned by interview panel. Mandatory index page for all evidence — submissions without an index page score 0.',
     },
   ],
 }
