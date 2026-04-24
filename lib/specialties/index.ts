@@ -1,8 +1,23 @@
 import { IMT_2026 } from './imt-2026'
 import { OPHTHALMOLOGY_ST1_2026 } from './ophthalmology-st1-2026'
+import { ACCS_EM_2026 } from './accs_em_2026'
+import { CST_2026 } from './cst_2026'
+import { CORE_PSYCH_2026 } from './core_psych_2026'
+import { GP_ST1_2026 } from './gp_st1_2026'
+import { PAEDIATRICS_ST1_2026 } from './paediatrics_st1_2026'
+import { RADIOLOGY_ST1_2026 } from './radiology_st1_2026'
 import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink } from './types'
 
-export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [IMT_2026, OPHTHALMOLOGY_ST1_2026]
+export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
+  IMT_2026,
+  OPHTHALMOLOGY_ST1_2026,
+  ACCS_EM_2026,
+  CST_2026,
+  CORE_PSYCH_2026,
+  GP_ST1_2026,
+  PAEDIATRICS_ST1_2026,
+  RADIOLOGY_ST1_2026,
+]
 
 export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
   return SPECIALTY_CONFIGS.find(s => s.key === key)
