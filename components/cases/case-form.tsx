@@ -43,18 +43,21 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
 
-  // Restore draft on mount
+  // Restore draft on mount — notes are intentionally excluded from storage (clinical free text).
   useEffect(() => {
     if (mode !== 'create') return
     try {
       const raw = localStorage.getItem(DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw)
+      if (d._expires && Date.now() > d._expires) {
+        localStorage.removeItem(DRAFT_KEY)
+        return
+      }
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
       if (d.clinicalDomain !== undefined) setClinicalDomain(d.clinicalDomain)
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
-      if (d.notes !== undefined) setNotes(d.notes)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -68,10 +71,14 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, date, clinicalDomain, specialtyTags, notes }))
+      // Do not persist clinical free text (notes) — only structural metadata.
+      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+        title, date, clinicalDomain, specialtyTags,
+        _expires: Date.now() + 24 * 60 * 60 * 1000,
+      }))
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
-  }, [mode, title, date, clinicalDomain, specialtyTags, notes])
+  }, [mode, title, date, clinicalDomain, specialtyTags])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
 

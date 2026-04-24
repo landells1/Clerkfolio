@@ -22,21 +22,58 @@ const VALID_CATEGORIES: PortfolioCategory[] = [
 const IMPORTABLE_FIELDS = ['title', 'category', 'date', 'notes', 'specialty_tags'] as const
 type ImportField = typeof IMPORTABLE_FIELDS[number]
 
+// RFC 4180-compliant CSV parser.
+// Handles: quoted fields, escaped quotes (""), embedded commas, multiline cells,
+// CRLF and LF line endings.
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
-  const lines = text.split('\n').filter(l => l.trim())
-  for (const line of lines) {
-    const cells: string[] = []
-    let cur = '', inQuote = false
-    for (let i = 0; i < line.length; i++) {
-      const ch = line[i]
-      if (ch === '"') { inQuote = !inQuote }
-      else if (ch === ',' && !inQuote) { cells.push(cur.trim()); cur = '' }
-      else { cur += ch }
+  let i = 0
+  const n = text.length
+
+  while (i < n) {
+    const row: string[] = []
+
+    while (i < n) {
+      let cell = ''
+
+      if (text[i] === '"') {
+        i++ // consume opening quote
+        while (i < n) {
+          if (text[i] === '"') {
+            if (text[i + 1] === '"') {
+              cell += '"'
+              i += 2
+            } else {
+              i++ // consume closing quote
+              break
+            }
+          } else {
+            cell += text[i++]
+          }
+        }
+        // Skip any trailing whitespace after closing quote before delimiter
+        while (i < n && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') i++
+      } else {
+        while (i < n && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
+          cell += text[i++]
+        }
+      }
+
+      row.push(cell)
+      if (i >= n || text[i] === '\n' || text[i] === '\r') break
+      i++ // consume comma
     }
-    cells.push(cur.trim())
-    rows.push(cells)
+
+    // Consume line ending (CRLF or LF)
+    if (i < n && text[i] === '\r') i++
+    if (i < n && text[i] === '\n') i++
+
+    // Drop rows that are entirely blank
+    if (row.length > 0 && !(row.length === 1 && row[0] === '')) {
+      rows.push(row)
+    }
   }
+
   return rows
 }
 

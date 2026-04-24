@@ -171,8 +171,7 @@ export default function SettingsPage() {
     }
   }
 
-  async function handleEmailChange(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleEmailChange() {
     setEmailChangeLoading(true)
     setEmailChangeError(null)
     const { error } = await supabase.auth.updateUser({ email: newEmail })
@@ -286,10 +285,9 @@ export default function SettingsPage() {
             />
             {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
             {showEmailChange && (
-              <form onSubmit={handleEmailChange} className="mt-3 flex gap-2">
+              <div className="mt-3 flex gap-2">
                 <input
                   type="email"
-                  required
                   value={newEmail}
                   onChange={e => setNewEmail(e.target.value)}
                   disabled={emailChangeLoading}
@@ -297,13 +295,14 @@ export default function SettingsPage() {
                   className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors disabled:opacity-50"
                 />
                 <button
-                  type="submit"
-                  disabled={emailChangeLoading}
+                  type="button"
+                  onClick={handleEmailChange}
+                  disabled={emailChangeLoading || !newEmail}
                   className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
                 >
                   {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
                 </button>
-              </form>
+              </div>
             )}
           </div>
 

@@ -1,6 +1,32 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+function applySecurityHeaders(response: NextResponse): NextResponse {
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set(
+    'Content-Security-Policy',
+    [
+      "default-src 'self'",
+      // Next.js requires unsafe-inline/unsafe-eval; nonce-based CSP would require
+      // per-request nonce injection across every page — adopt that separately.
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.stripe.com https://va.vercel-insights.com",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: blob: https:",
+      "font-src 'self'",
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://va.vercel-insights.com",
+      "frame-src https://js.stripe.com https://hooks.stripe.com",
+      "object-src 'none'",
+      "base-uri 'self'",
+      "form-action 'self'",
+    ].join('; ')
+  )
+  return response
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -28,21 +54,18 @@ export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // ── Always accessible — bypass auth logic entirely ──────────────────────────
-  // Legal pages, Stripe webhook, auth callbacks. Use exact or prefix matching
-  // intentionally (not startsWith('/') which would match everything).
   const alwaysAccessible =
     pathname === '/privacy' ||
     pathname === '/terms' ||
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/auth/')
 
-  if (alwaysAccessible) return supabaseResponse
+  if (alwaysAccessible) return applySecurityHeaders(supabaseResponse)
 
   // ── Refresh session — required for Supabase SSR ─────────────────────────────
   const { data: { user } } = await supabase.auth.getUser()
 
   // ── Routes where unauthenticated access is permitted ────────────────────────
-  // Exact matches only — startsWith('/') would match every path.
   const unauthAllowed = new Set([
     '/',
     '/login',
@@ -56,7 +79,7 @@ export async function middleware(request: NextRequest) {
   if (!user && !isUnauthRoute) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return NextResponse.redirect(url)
+    return applySecurityHeaders(NextResponse.redirect(url))
   }
 
   // Logged in on an unauth-only route → dashboard or onboarding
@@ -69,7 +92,7 @@ export async function middleware(request: NextRequest) {
 
     const url = request.nextUrl.clone()
     url.pathname = profile?.onboarding_complete ? '/dashboard' : '/onboarding'
-    return NextResponse.redirect(url)
+    return applySecurityHeaders(NextResponse.redirect(url))
   }
 
   // Logged in on a protected route — enforce onboarding
@@ -83,23 +106,11 @@ export async function middleware(request: NextRequest) {
     if (!profile?.onboarding_complete) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
-      return NextResponse.redirect(url)
+      return applySecurityHeaders(NextResponse.redirect(url))
     }
   }
 
-  supabaseResponse.headers.set('X-Frame-Options', 'DENY')
-  supabaseResponse.headers.set('X-Content-Type-Options', 'nosniff')
-  supabaseResponse.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  supabaseResponse.headers.set(
-    'Strict-Transport-Security',
-    'max-age=31536000; includeSubDomains'
-  )
-  supabaseResponse.headers.set(
-    'Permissions-Policy',
-    'camera=(), microphone=(), geolocation=()'
-  )
-
-  return supabaseResponse
+  return applySecurityHeaders(supabaseResponse)
 }
 
 export const config = {

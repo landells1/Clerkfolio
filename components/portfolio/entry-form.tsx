@@ -144,23 +144,27 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
 
-  // Restore draft on mount
+  // Restore draft on mount.
+  // Clinical free-text fields (notes, auditOutcome, reflFreeText, customFreeText,
+  // prizeDescription) are intentionally excluded from storage.
   useEffect(() => {
     if (mode !== 'create') return
     try {
       const raw = sessionStorage.getItem(DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw)
+      if (d._expires && Date.now() > d._expires) {
+        sessionStorage.removeItem(DRAFT_KEY)
+        return
+      }
       if (d.category) setCategory(d.category)
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
-      if (d.notes !== undefined) setNotes(d.notes)
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.auditType !== undefined) setAuditType(d.auditType)
       if (d.auditRole !== undefined) setAuditRole(d.auditRole)
       if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
       if (d.auditTrust !== undefined) setAuditTrust(d.auditTrust)
-      if (d.auditOutcome !== undefined) setAuditOutcome(d.auditOutcome)
       if (d.auditPresented !== undefined) setAuditPresented(d.auditPresented)
       if (d.teachingType !== undefined) setTeachingType(d.teachingType)
       if (d.teachingAudience !== undefined) setTeachingAudience(d.teachingAudience)
@@ -185,7 +189,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.leaderOngoing !== undefined) setLeaderOngoing(d.leaderOngoing)
       if (d.prizeBody !== undefined) setPrizeBody(d.prizeBody)
       if (d.prizeLevel !== undefined) setPrizeLevel(d.prizeLevel)
-      if (d.prizeDescription !== undefined) setPrizeDescription(d.prizeDescription)
       if (d.procName !== undefined) setProcName(d.procName)
       if (d.procSetting !== undefined) setProcSetting(d.procSetting)
       if (d.procSupervision !== undefined) setProcSupervision(d.procSupervision)
@@ -193,8 +196,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.reflType !== undefined) setReflType(d.reflType)
       if (d.reflContext !== undefined) setReflContext(d.reflContext)
       if (d.reflSupervisor !== undefined) setReflSupervisor(d.reflSupervisor)
-      if (d.reflFreeText !== undefined) setReflFreeText(d.reflFreeText)
-      if (d.customFreeText !== undefined) setCustomFreeText(d.customFreeText)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -208,31 +209,32 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
+      // Clinical free-text fields are intentionally omitted (notes, auditOutcome,
+      // reflFreeText, customFreeText, prizeDescription).
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-        category, title, date, notes, specialtyTags,
-        auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+        category, title, date, specialtyTags,
+        auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
         confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
         pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
         leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-        prizeBody, prizeLevel, prizeDescription,
+        prizeBody, prizeLevel,
         procName, procSetting, procSupervision, procCount,
-        reflType, reflContext, reflSupervisor, reflFreeText,
-        customFreeText,
+        reflType, reflContext, reflSupervisor,
+        _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
   }, [
-    mode, category, title, date, notes, specialtyTags,
-    auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+    mode, category, title, date, specialtyTags,
+    auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
     confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
     pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
     leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-    prizeBody, prizeLevel, prizeDescription,
+    prizeBody, prizeLevel,
     procName, procSetting, procSupervision, procCount,
-    reflType, reflContext, reflSupervisor, reflFreeText,
-    customFreeText,
+    reflType, reflContext, reflSupervisor,
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
