@@ -1,17 +1,23 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
 export default function PinCaseButton({ caseId, initialPinned }: { caseId: string; initialPinned: boolean }) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [pinned, setPinned] = useState(initialPinned)
   const [loading, setLoading] = useState(false)
 
   async function handleToggle() {
     setLoading(true)
     const newVal = !pinned
-    await supabase.from('cases').update({ pinned: newVal }).eq('id', caseId)
-    setPinned(newVal)
+    const { error } = await supabase.from('cases').update({ pinned: newVal }).eq('id', caseId)
+    if (error) {
+      addToast('Failed to update pin status', 'error')
+    } else {
+      setPinned(newVal)
+    }
     setLoading(false)
   }
 

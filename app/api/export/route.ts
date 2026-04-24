@@ -78,24 +78,28 @@ export async function POST(request: NextRequest) {
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
-  const element = React.createElement(PortfolioPDF, {
-    entries,
-    userName,
-    specialty: specialty || 'Portfolio',
-    exportedAt,
-  }) as unknown as ReactElement<DocumentProps>
+  try {
+    const element = React.createElement(PortfolioPDF, {
+      entries,
+      userName,
+      specialty: specialty || 'Portfolio',
+      exportedAt,
+    }) as unknown as ReactElement<DocumentProps>
 
-  const buffer = await renderToBuffer(element)
+    const buffer = await renderToBuffer(element)
+    const filename = `clinidex-${safeSpecialty}-${dateStr}.pdf`
 
-  const filename = `clinidex-${safeSpecialty}-${dateStr}.pdf`
-
-  return new NextResponse(new Uint8Array(buffer), {
-    status: 200,
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="${filename}"`,
-    },
-  })
+    return new NextResponse(new Uint8Array(buffer), {
+      status: 200,
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="${filename}"`,
+      },
+    })
+  } catch (err) {
+    console.error('PDF generation error:', err instanceof Error ? err.message : 'unknown error')
+    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
+  }
 }
 
 function toCsv(entries: any[]): string {

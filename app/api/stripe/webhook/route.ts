@@ -52,12 +52,17 @@ export async function POST(request: NextRequest) {
 
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
 
-      await supabase.from('profiles').update({
+      const { error: activateError } = await supabase.from('profiles').update({
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: subscription.id,
         subscription_status: 'active',
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('id', userId)
+
+      if (activateError) {
+        console.error('Webhook: failed to activate subscription:', activateError.message)
+        return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
 
       break
     }
@@ -69,10 +74,15 @@ export async function POST(request: NextRequest) {
         : subscription.status === 'past_due' ? 'past_due'
         : 'cancelled'
 
-      await supabase.from('profiles').update({
+      const { error: updateError } = await supabase.from('profiles').update({
         subscription_status: status,
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id)
+
+      if (updateError) {
+        console.error('Webhook: failed to update subscription:', updateError.message)
+        return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
 
       break
     }
@@ -80,11 +90,16 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
 
-      await supabase.from('profiles').update({
+      const { error: deleteError } = await supabase.from('profiles').update({
         subscription_status: 'cancelled',
         stripe_subscription_id: null,
         subscription_period_end: null,
       }).eq('stripe_subscription_id', subscription.id)
+
+      if (deleteError) {
+        console.error('Webhook: failed to cancel subscription:', deleteError.message)
+        return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
 
       break
     }
