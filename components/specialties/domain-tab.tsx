@@ -66,7 +66,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
       }
       onLinksChange([optimistic])
 
-      const { data, error } = await supabase
+      const { data: rows, error } = await supabase
         .from('specialty_entry_links')
         .insert({
           application_id: applicationId,
@@ -78,12 +78,13 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
           is_checkbox: false,
         })
         .select()
-        .single()
 
       if (error) {
+        console.error('Failed to save self-assessment:', error)
         onLinksChange([])
-      } else if (data) {
-        onLinksChange([data as SpecialtyEntryLink])
+      } else {
+        const inserted = rows?.[0]
+        if (inserted) onLinksChange([inserted as SpecialtyEntryLink])
       }
     }
   }
@@ -108,7 +109,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
       }
       onLinksChange([...links, optimistic])
 
-      const { data, error } = await supabase
+      const { data: rows, error } = await supabase
         .from('specialty_entry_links')
         .insert({
           application_id: applicationId,
@@ -120,16 +121,19 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
           is_checkbox: true,
         })
         .select()
-        .single()
 
       if (error) {
         console.error('Failed to save claimed band:', error)
+        alert('Failed to save. Please check you are signed in and try again.')
         onLinksChange(links) // revert optimistic update
-      } else if (data) {
-        // replace temp id with real db row
-        onLinksChange([...links.filter(l => l.id !== optimisticId), data as SpecialtyEntryLink])
+      } else {
+        const inserted = rows?.[0]
+        if (inserted) {
+          // replace temp id with real db row
+          onLinksChange([...links.filter(l => l.id !== optimisticId), inserted as SpecialtyEntryLink])
+        }
+        // if rows is empty (shouldn't happen after RLS fix) — keep optimistic item in place
       }
-      // if !error && !data: insert worked but select returned nothing — keep optimistic item in place
     } else {
       // Remove link — find real DB quick-claim row (is_checkbox, skip temp IDs)
       const linkToRemove = links.find(l => l.band_label === bandLabel && l.is_checkbox && !l.id.startsWith('temp-'))

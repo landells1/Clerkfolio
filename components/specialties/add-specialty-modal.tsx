@@ -52,16 +52,16 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      const { data, error: insertError } = await supabase
+      const { data: rows, error: insertError } = await supabase
         .from('specialty_applications')
         .insert({ user_id: user.id, specialty_key: key, cycle_year: cycleYear, bonus_claimed: false })
         .select()
-        .single()
 
       if (insertError) throw insertError
-      if (!data) throw new Error('No data returned')
+      const inserted = rows?.[0]
+      if (!inserted) throw new Error('No data returned — check your session and try again.')
 
-      onAdd(data as SpecialtyApplication)
+      onAdd(inserted as SpecialtyApplication)
       onClose()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add specialty')
