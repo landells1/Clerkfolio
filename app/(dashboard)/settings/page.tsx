@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { getStorageUsage, FREE_CAP_BYTES } from '@/lib/supabase/storage'
+import { getStorageUsage, FREE_CAP_BYTES, PRO_CAP_BYTES } from '@/lib/supabase/storage'
 import { getSubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
 
@@ -244,6 +244,9 @@ export default function SettingsPage() {
       {/* Profile */}
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Profile</h2>
+
+        {/* Name + career stage form — email change is intentionally a separate sibling form
+            below to avoid nested-form behaviour when pressing Enter in the email input. */}
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -264,46 +267,6 @@ export default function SettingsPage() {
                 className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
               />
             </div>
-          </div>
-
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Email address</label>
-              <button
-                type="button"
-                onClick={() => { setShowEmailChange(v => !v); setEmailChangeError(null) }}
-                className="text-xs text-[#1D9E75] hover:underline"
-              >
-                Change email
-              </button>
-            </div>
-            <input
-              type="email"
-              value={email}
-              disabled
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.4)] cursor-not-allowed"
-            />
-            {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
-            {showEmailChange && (
-              <div className="mt-3 flex gap-2">
-                <input
-                  type="email"
-                  value={newEmail}
-                  onChange={e => setNewEmail(e.target.value)}
-                  disabled={emailChangeLoading}
-                  placeholder="New email address"
-                  className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors disabled:opacity-50"
-                />
-                <button
-                  type="button"
-                  onClick={handleEmailChange}
-                  disabled={emailChangeLoading || !newEmail}
-                  className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
-                >
-                  {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
-                </button>
-              </div>
-            )}
           </div>
 
           <div>
@@ -331,6 +294,49 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
+
+        {/* Email change — separate form so Enter in the email input doesn't trigger profile save */}
+        <div className="mt-5 pt-5 border-t border-white/[0.06]">
+          <div className="flex items-center gap-2 mb-1.5">
+            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Email address</label>
+            <button
+              type="button"
+              onClick={() => { setShowEmailChange(v => !v); setEmailChangeError(null) }}
+              className="text-xs text-[#1D9E75] hover:underline"
+            >
+              Change email
+            </button>
+          </div>
+          <input
+            type="email"
+            value={email}
+            disabled
+            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.4)] cursor-not-allowed"
+          />
+          {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
+          {showEmailChange && (
+            <form
+              onSubmit={e => { e.preventDefault(); handleEmailChange() }}
+              className="mt-3 flex gap-2"
+            >
+              <input
+                type="email"
+                value={newEmail}
+                onChange={e => setNewEmail(e.target.value)}
+                disabled={emailChangeLoading}
+                placeholder="New email address"
+                className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors disabled:opacity-50"
+              />
+              <button
+                type="submit"
+                disabled={emailChangeLoading || !newEmail}
+                className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
+              >
+                {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
+              </button>
+            </form>
+          )}
+        </div>
       </section>
 
       {/* Password */}
@@ -465,29 +471,31 @@ export default function SettingsPage() {
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Storage</h2>
         <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Evidence files attached to portfolio entries and cases.</p>
-        {storageUsed !== null ? (
-          <div className="space-y-2">
-            <div className="flex justify-between text-xs text-[rgba(245,245,242,0.55)]">
-              <span>{formatStorageBytes(storageUsed)} used</span>
-              <span>{formatStorageBytes(FREE_CAP_BYTES)} free plan limit</span>
+        {storageUsed !== null && subInfo ? (() => {
+          const capBytes   = subInfo.isPro ? PRO_CAP_BYTES : FREE_CAP_BYTES
+          const capLabel   = subInfo.isPro ? '5 GB' : '200 MB'
+          const planLabel  = subInfo.isPro ? 'Pro' : 'free plan'
+          const pct        = Math.min(100, (storageUsed / capBytes) * 100)
+          return (
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-[rgba(245,245,242,0.55)]">
+                <span>{formatStorageBytes(storageUsed)} used</span>
+                <span>{capLabel} {planLabel} limit</span>
+              </div>
+              <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full transition-all ${
+                    pct > 90 ? 'bg-red-400' : pct > 70 ? 'bg-amber-400' : 'bg-[#1D9E75]'
+                  }`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+              <p className="text-[10px] text-[rgba(245,245,242,0.3)]">
+                {Math.round(pct)}% of {planLabel} used
+              </p>
             </div>
-            <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  storageUsed / FREE_CAP_BYTES > 0.9
-                    ? 'bg-red-400'
-                    : storageUsed / FREE_CAP_BYTES > 0.7
-                    ? 'bg-amber-400'
-                    : 'bg-[#1D9E75]'
-                }`}
-                style={{ width: `${Math.min(100, (storageUsed / FREE_CAP_BYTES) * 100)}%` }}
-              />
-            </div>
-            <p className="text-[10px] text-[rgba(245,245,242,0.3)]">
-              {Math.round((storageUsed / FREE_CAP_BYTES) * 100)}% of free plan used
-            </p>
-          </div>
-        ) : (
+          )
+        })() : (
           <div className="h-2 bg-white/[0.06] rounded-full animate-pulse" />
         )}
       </section>

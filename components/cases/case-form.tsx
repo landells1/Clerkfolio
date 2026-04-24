@@ -42,16 +42,19 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [isDirty, setIsDirty] = useState(false)
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
+  // sessionStorage is used deliberately: it is scoped to the browser tab and is
+  // cleared when the tab closes or the user logs out. Unlike localStorage it
+  // cannot bleed between different users who share a device.
 
-  // Restore draft on mount — notes are intentionally excluded from storage (clinical free text).
+  // Restore draft on mount — notes are intentionally excluded (clinical free text).
   useEffect(() => {
     if (mode !== 'create') return
     try {
-      const raw = localStorage.getItem(DRAFT_KEY)
+      const raw = sessionStorage.getItem(DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw)
       if (d._expires && Date.now() > d._expires) {
-        localStorage.removeItem(DRAFT_KEY)
+        sessionStorage.removeItem(DRAFT_KEY)
         return
       }
       if (d.title !== undefined) setTitle(d.title)
@@ -65,14 +68,14 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Debounced save to localStorage
+  // Debounced save to sessionStorage
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) — only structural metadata.
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
         title, date, clinicalDomain, specialtyTags,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
@@ -124,7 +127,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         setUploading(false)
         if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
       }
-      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Case logged', 'success')
       router.push(`/cases/${data.id}`)
@@ -156,7 +159,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           <button
             type="button"
             onClick={() => {
-              localStorage.removeItem(DRAFT_KEY)
+              sessionStorage.removeItem(DRAFT_KEY)
               setDraftRestored(false)
               setTitle('')
               setDate(new Date().toISOString().split('T')[0])
