@@ -5,7 +5,7 @@ import { useEffect } from 'react'
 
 export default function DashboardError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error(error)
+    console.error('Dashboard error:', error.digest ?? error.message)
   }, [error])
 
   return (
