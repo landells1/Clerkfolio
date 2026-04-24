@@ -48,7 +48,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         setResults([])
       }
       setLoading(false)
-    }, 250)
+    }, 400)
     return () => clearTimeout(timer)
   }, [q])
 

@@ -148,7 +148,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   useEffect(() => {
     if (mode !== 'create') return
     try {
-      const raw = localStorage.getItem(DRAFT_KEY)
+      const raw = sessionStorage.getItem(DRAFT_KEY)
       if (!raw) return
       const d = JSON.parse(raw)
       if (d.category) setCategory(d.category)
@@ -202,13 +202,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Debounced save to localStorage
+  // Debounced save to sessionStorage
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
-      localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
         category, title, date, notes, specialtyTags,
         auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
@@ -291,7 +291,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           return
         }
       }
-      localStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
@@ -328,7 +328,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <button
             type="button"
             onClick={() => {
-              localStorage.removeItem(DRAFT_KEY)
+              sessionStorage.removeItem(DRAFT_KEY)
               setDraftRestored(false)
               setCategory(defaultCategory ?? 'audit_qip')
               setTitle('')
