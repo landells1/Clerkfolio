@@ -123,10 +123,13 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
         .single()
 
       if (error) {
-        onLinksChange(links)
+        console.error('Failed to save claimed band:', error)
+        onLinksChange(links) // revert optimistic update
       } else if (data) {
+        // replace temp id with real db row
         onLinksChange([...links.filter(l => l.id !== optimisticId), data as SpecialtyEntryLink])
       }
+      // if !error && !data: insert worked but select returned nothing — keep optimistic item in place
     } else {
       // Remove link — find real DB quick-claim row (is_checkbox, skip temp IDs)
       const linkToRemove = links.find(l => l.band_label === bandLabel && l.is_checkbox && !l.id.startsWith('temp-'))
