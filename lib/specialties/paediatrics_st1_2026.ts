@@ -7,7 +7,7 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   totalMax: 30,
   source: 'https://www.rcpch.ac.uk/education-careers/apply-paediatrics/ST1',
   sourceLabel: 'RCPCH — Apply for Paediatrics ST1',
-  isOfficial: true,
+  isOfficial: false,
   domains: [
     {
       key: 'clinical_capabilities',
