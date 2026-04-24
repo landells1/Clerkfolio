@@ -30,6 +30,7 @@ CREATE POLICY "sel_own_specialty_entry_links"
     -- unless this is a checkbox claim (is_checkbox = true)
     AND (
       is_checkbox = true
+      OR entry_id IS NULL   -- nullable in production schema; treat as unlinked / safe
       OR (
         entry_type = 'portfolio'
         AND entry_id IN (
@@ -57,6 +58,7 @@ CREATE POLICY "ins_own_specialty_entry_links"
     )
     AND (
       is_checkbox = true
+      OR entry_id IS NULL
       OR (
         entry_type = 'portfolio'
         AND entry_id IN (
@@ -89,6 +91,7 @@ CREATE POLICY "upd_own_specialty_entry_links"
     )
     AND (
       is_checkbox = true
+      OR entry_id IS NULL
       OR (
         entry_type = 'portfolio'
         AND entry_id IN (
