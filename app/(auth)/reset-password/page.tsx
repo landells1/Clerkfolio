@@ -65,6 +65,7 @@ export default function ResetPasswordPage() {
           <input
             type="email"
             required
+            autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
             className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
