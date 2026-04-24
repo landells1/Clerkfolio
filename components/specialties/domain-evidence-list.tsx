@@ -35,10 +35,11 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">Linked evidence</p>
+      <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">Claimed &amp; linked evidence</p>
       <div className="space-y-2">
         {sorted.map(link => {
           const isCounting = domain.scoringRule === 'highest' && link.points_claimed === highestPoints
+          const isClaimed = link.is_checkbox && !link.entry_type
           const entryIcon = link.entry_type === 'case' ? '💼' : '📄'
 
           return (
@@ -50,9 +51,13 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   : 'border-white/[0.06] bg-white/[0.02]'
               }`}
             >
-              {link.entry_type && (
-                <span className="shrink-0 text-base leading-none mt-0.5">{entryIcon}</span>
-              )}
+              <span className="shrink-0 text-base leading-none mt-0.5">
+                {isClaimed ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1D9E75' : 'rgba(245,245,242,0.3)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : link.entry_type ? entryIcon : null}
+              </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className={`text-sm font-medium leading-snug ${isCounting && domain.scoringRule === 'highest' ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.55)]'}`}>
@@ -67,11 +72,15 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   >
                     {link.points_claimed} pts
                   </span>
-                  {link.entry_type && (
+                  {isClaimed ? (
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.3)] text-xs">
+                      Self-claimed
+                    </span>
+                  ) : link.entry_type ? (
                     <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.35)] text-xs capitalize">
                       {link.entry_type}
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 {domain.scoringRule === 'highest' && (
                   <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.3)]'}`}>

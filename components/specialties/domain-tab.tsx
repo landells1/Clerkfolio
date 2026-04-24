@@ -128,8 +128,8 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
         onLinksChange([...links.filter(l => l.id !== optimisticId), data as SpecialtyEntryLink])
       }
     } else {
-      // Remove link — find real DB row (skip temp IDs)
-      const linkToRemove = links.find(l => l.band_label === bandLabel && !l.id.startsWith('temp-'))
+      // Remove link — find real DB quick-claim row (is_checkbox, skip temp IDs)
+      const linkToRemove = links.find(l => l.band_label === bandLabel && l.is_checkbox && !l.id.startsWith('temp-'))
       if (!linkToRemove) {
         setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
         return
@@ -250,17 +250,50 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
       {/* Normal evidence linking */}
       {!domain.isSelfAssessed && !domain.isCheckbox && (
         <div>
-          {/* Bands reference */}
+          {/* Scoring bands — tick to quick-claim, or link evidence below */}
           <div className="mb-4">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">Scoring bands</p>
-            <div className="space-y-1">
-              {domain.bands.map(band => (
-                <div key={band.label} className="flex items-center justify-between py-1 border-b border-white/[0.04] last:border-0">
-                  <span className="text-xs text-[rgba(245,245,242,0.55)] pr-4">{band.label}</span>
-                  <span className="shrink-0 text-xs font-semibold text-[rgba(245,245,242,0.5)]">{band.points} pts</span>
-                </div>
-              ))}
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Scoring bands</p>
+              <p className="text-xs text-[rgba(245,245,242,0.3)]">Tick to claim</p>
             </div>
+            <div className="space-y-1">
+              {domain.bands.map(band => {
+                const isChecked = links.some(l => l.band_label === band.label && l.is_checkbox)
+                const isPending = checkboxPending.has(band.label)
+                return (
+                  <div
+                    key={band.label}
+                    onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
+                    className={`flex items-center gap-3 py-1.5 px-2 rounded-lg border border-transparent transition-all ${
+                      isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-white/[0.06]'
+                    } ${isChecked ? 'bg-[#1D9E75]/[0.05] border-[#1D9E75]/20' : ''}`}
+                  >
+                    <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all ${
+                      isChecked ? 'bg-[#1D9E75] border-[#1D9E75]' : 'bg-transparent border-white/[0.2]'
+                    }`}>
+                      {isChecked && (
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                      )}
+                    </div>
+                    <span className={`text-xs flex-1 leading-snug ${isChecked ? 'text-[rgba(245,245,242,0.8)]' : 'text-[rgba(245,245,242,0.5)]'}`}>
+                      {band.label}
+                    </span>
+                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.35)]'}`}>
+                      {band.points} pts
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Separator */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-xs text-[rgba(245,245,242,0.25)]">or link evidence</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
           {/* Action buttons */}
