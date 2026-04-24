@@ -1,5 +1,6 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
+import { validateOrigin } from '@/lib/csrf'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
@@ -38,6 +39,9 @@ function isRateLimited(ip: string): boolean {
 
 export async function POST(req: NextRequest) {
   try {
+    const originError = validateOrigin(req)
+    if (originError) return originError
+
     // Rate limit by IP
     const ip =
       req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??

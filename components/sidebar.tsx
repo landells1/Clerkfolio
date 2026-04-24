@@ -92,6 +92,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
   async function handleLogout() {
     setLoggingOut(true)
+    // Clear client-side draft storage so clinical notes don't linger after logout.
+    localStorage.removeItem('clinidex-case-draft')
+    sessionStorage.removeItem('clinidex-entry-draft')
+    // Tell the service worker to drop its cache so authenticated pages aren't
+    // served offline after the user logs out.
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' })
+    }
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()

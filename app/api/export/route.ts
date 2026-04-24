@@ -104,7 +104,12 @@ export async function POST(request: NextRequest) {
 
 function toCsv(entries: any[]): string {
   const FIELDS = ['title', 'category', 'date', 'specialty_tags', 'notes', 'created_at'] as const
-  const escape = (v: string) => `"${v.replace(/"/g, '""')}"`
+  // Prefix leading formula characters so Excel/Sheets cannot execute them.
+  const FORMULA_CHARS = /^[=+\-@\t\r]/
+  const escape = (v: string) => {
+    const safe = FORMULA_CHARS.test(v) ? `'${v}` : v
+    return `"${safe.replace(/"/g, '""')}"`
+  }
   const header = FIELDS.join(',')
   const rows = entries.map(e => [
     escape(e.title ?? ''),
