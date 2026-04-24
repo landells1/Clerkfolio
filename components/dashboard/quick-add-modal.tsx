@@ -274,6 +274,7 @@ export default function QuickAddModal({
               type="text"
               required
               value={title}
+              maxLength={200}
               onChange={e => { setTitle(e.target.value); setDuplicateWarning(null) }}
               onBlur={() => type === 'case' && checkDuplicate(title)}
               className={INPUT}
@@ -413,6 +414,7 @@ export default function QuickAddModal({
                 <input
                   type="text"
                   value={procName}
+                  maxLength={200}
                   onChange={e => setProcName(e.target.value)}
                   className={INPUT}
                   placeholder="e.g. Arterial blood gas"

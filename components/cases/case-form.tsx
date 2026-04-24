@@ -171,6 +171,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           type="text"
           required
           value={title}
+          maxLength={200}
           onChange={e => { setTitle(e.target.value); markDirty() }}
           className={INPUT}
           placeholder="Brief description — no patient identifiers"
@@ -229,6 +230,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <textarea
           rows={6}
           value={notes}
+          maxLength={10000}
           onChange={e => { setNotes(e.target.value); markDirty() }}
           onFocus={() => markDirty()}
           className={INPUT}

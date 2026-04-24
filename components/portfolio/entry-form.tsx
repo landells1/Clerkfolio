@@ -373,7 +373,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       <div className="space-y-4">
         <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">General</h3>
         <Field label="Title">
-          <input type="text" required value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder="Give this entry a clear title" />
+          <input type="text" required maxLength={200} value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder="Give this entry a clear title" />
         </Field>
         <div className={GRID2}>
           <Field label="Date">
