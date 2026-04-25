@@ -10,17 +10,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   if (!user) redirect('/login')
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, last_name, onboarding_complete, specialty_interests')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, { data: trackedSpecialties }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('first_name, last_name, onboarding_complete')
+      .eq('id', user.id)
+      .single(),
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user.id),
+  ])
 
   if (!profile) redirect('/onboarding')
   if (!profile.onboarding_complete) redirect('/onboarding')
 
+  const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
+
   return (
-    <DashboardProviders userInterests={profile?.specialty_interests ?? []}>
+    <DashboardProviders userInterests={specialtyKeys}>
       <div className="flex h-screen bg-[#0B0B0C] overflow-hidden">
         <Sidebar profile={profile} />
         <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0">

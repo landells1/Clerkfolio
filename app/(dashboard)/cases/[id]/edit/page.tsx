@@ -7,7 +7,7 @@ export default async function EditCasePage({ params }: { params: { id: string } 
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: c }, { data: profile }] = await Promise.all([
+  const [{ data: c }, { data: trackedSpecialties }] = await Promise.all([
     supabase
       .from('cases')
       .select('*')
@@ -15,13 +15,14 @@ export default async function EditCasePage({ params }: { params: { id: string } 
       .eq('user_id', user!.id)
       .single(),
     supabase
-      .from('profiles')
-      .select('specialty_interests')
-      .eq('id', user!.id)
-      .single(),
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
   ])
 
   if (!c) notFound()
+
+  const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
 
   return (
     <div className="p-8 max-w-2xl">
@@ -41,7 +42,7 @@ export default async function EditCasePage({ params }: { params: { id: string } 
         <CaseForm
           mode="edit"
           initialData={c}
-          userInterests={profile?.specialty_interests ?? []}
+          userInterests={specialtyKeys}
         />
       </div>
     </div>

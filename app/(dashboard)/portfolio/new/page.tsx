@@ -11,12 +11,12 @@ export default async function NewEntryPage({
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('specialty_interests')
-    .eq('id', user!.id)
-    .single()
+  const { data: trackedSpecialties } = await supabase
+    .from('specialty_applications')
+    .select('specialty_key')
+    .eq('user_id', user!.id)
 
+  const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
   const defaultCategory = (searchParams.category as Category) ?? undefined
 
   return (
@@ -40,7 +40,7 @@ export default async function NewEntryPage({
         <EntryForm
           mode="create"
           defaultCategory={defaultCategory}
-          userInterests={profile?.specialty_interests ?? []}
+          userInterests={specialtyKeys}
         />
       </div>
     </div>

@@ -3,8 +3,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { CLINICAL_DOMAINS, type NewCase } from '@/lib/types/cases'
+import { type NewCase } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
@@ -207,18 +208,11 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       {/* Clinical area */}
       <div>
         <label className={LABEL}>Clinical area</label>
-        <input
-          type="text"
-          list="clinical-domains"
+        <ClinicalAreaSelect
           value={clinicalDomain}
-          onChange={e => setClinicalDomain(e.target.value)}
+          onChange={v => { setClinicalDomain(v); markDirty() }}
           onFocus={() => markDirty()}
-          className={INPUT}
-          placeholder="e.g. Acute Medicine, Cardiology…"
         />
-        <datalist id="clinical-domains">
-          {CLINICAL_DOMAINS.map(d => <option key={d} value={d} />)}
-        </datalist>
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
           The medical setting of this encounter — used to filter and organise your cases.
         </p>
@@ -231,9 +225,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           value={specialtyTags}
           onChange={setSpecialtyTags}
           userInterests={userInterests}
+          trackedOnly
         />
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
-          Which training programmes can you use this case for? Drives your portfolio export and checklists.
+          Which of your tracked programmes can you use this case for?
         </p>
       </div>
 

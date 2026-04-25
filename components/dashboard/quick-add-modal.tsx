@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { CLINICAL_DOMAINS } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
@@ -342,17 +342,7 @@ export default function QuickAddModal({
             {type === 'case' && (
               <div>
                 <label className={LABEL}>Clinical area</label>
-                <input
-                  type="text"
-                  list="quick-add-domains"
-                  value={domain}
-                  onChange={e => setDomain(e.target.value)}
-                  className={INPUT}
-                  placeholder="e.g. Cardiology"
-                />
-                <datalist id="quick-add-domains">
-                  {CLINICAL_DOMAINS.map(d => <option key={d} value={d} />)}
-                </datalist>
+                <ClinicalAreaSelect value={domain} onChange={setDomain} />
               </div>
             )}
           </div>
@@ -462,7 +452,7 @@ export default function QuickAddModal({
           {/* Application tags — shared */}
           <div>
             <label className={LABEL}>Application tags</label>
-            <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} />
+            <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
           </div>
 
           {/* Comments / notes — shared */}

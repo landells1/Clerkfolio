@@ -388,8 +388,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <input type="date" required value={date} onChange={e => setDate(e.target.value)} onFocus={() => markDirty()} className={INPUT} />
           </Field>
         </div>
-        <Field label="Specialty tags">
-          <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} />
+        <Field label="Application tags">
+          <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
         </Field>
         <Field label="Notes / comments">
           <textarea rows={3} value={notes ?? ''} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder="Any additional context or notes…" />

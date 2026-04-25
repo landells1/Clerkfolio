@@ -7,7 +7,7 @@ export default async function EditEntryPage({ params }: { params: { id: string }
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, { data: profile }] = await Promise.all([
+  const [{ data: entry }, { data: trackedSpecialties }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -15,13 +15,14 @@ export default async function EditEntryPage({ params }: { params: { id: string }
       .eq('user_id', user!.id)
       .single(),
     supabase
-      .from('profiles')
-      .select('specialty_interests')
-      .eq('id', user!.id)
-      .single(),
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
   ])
 
   if (!entry) notFound()
+
+  const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
 
   return (
     <div className="p-8 max-w-2xl">
@@ -44,7 +45,7 @@ export default async function EditEntryPage({ params }: { params: { id: string }
         <EntryForm
           mode="edit"
           initialData={entry}
-          userInterests={profile?.specialty_interests ?? []}
+          userInterests={specialtyKeys}
         />
       </div>
     </div>

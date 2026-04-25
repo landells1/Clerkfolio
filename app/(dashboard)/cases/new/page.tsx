@@ -6,11 +6,12 @@ export default async function NewCasePage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('specialty_interests')
-    .eq('id', user!.id)
-    .single()
+  const { data: trackedSpecialties } = await supabase
+    .from('specialty_applications')
+    .select('specialty_key')
+    .eq('user_id', user!.id)
+
+  const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
 
   return (
     <div className="p-8 max-w-2xl">
@@ -29,7 +30,7 @@ export default async function NewCasePage() {
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6">
         <CaseForm
           mode="create"
-          userInterests={profile?.specialty_interests ?? []}
+          userInterests={specialtyKeys}
         />
       </div>
     </div>

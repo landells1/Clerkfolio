@@ -7,9 +7,12 @@ type Props = {
   value: string[]
   onChange: (tags: string[]) => void
   userInterests?: string[]
+  /** When true, only show userInterests as options (no PREDEFINED fallback).
+   *  Use for Application tags where options = the user's tracked programmes. */
+  trackedOnly?: boolean
 }
 
-export default function SpecialtyTagSelect({ value, onChange, userInterests = [] }: Props) {
+export default function SpecialtyTagSelect({ value, onChange, userInterests = [], trackedOnly = false }: Props) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const ref = useRef<HTMLDivElement>(null)
@@ -22,19 +25,23 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
     return () => document.removeEventListener('mousedown', handleClick)
   }, [])
 
-  const allOptions = [
-    ...userInterests.filter(s => !(PREDEFINED_SPECIALTIES as readonly string[]).includes(s)),
-    ...PREDEFINED_SPECIALTIES,
-  ]
+  // When trackedOnly: show only the user's tracked programmes
+  // Otherwise: show user interests first, then the full predefined list
+  const allOptions = trackedOnly
+    ? userInterests
+    : [
+        ...userInterests.filter(s => !(PREDEFINED_SPECIALTIES as readonly string[]).includes(s)),
+        ...PREDEFINED_SPECIALTIES,
+      ]
 
   const filtered = allOptions.filter(s =>
     s.toLowerCase().includes(search.toLowerCase())
   )
 
-  // Put user interests first in the filtered list
-  const interests = filtered.filter(s => userInterests.includes(s))
-  const rest = filtered.filter(s => !userInterests.includes(s))
-  const sorted = [...interests, ...rest]
+  // In non-tracked mode: put user interests first
+  const sorted = trackedOnly
+    ? filtered
+    : [...filtered.filter(s => userInterests.includes(s)), ...filtered.filter(s => !userInterests.includes(s))]
 
   function toggle(s: string) {
     if (value.includes(s)) {
@@ -66,7 +73,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
               onClick={e => { e.stopPropagation(); removeTag(tag) }}
               className="hover:text-white transition-colors ml-0.5"
             >
-              ×
+              &times;
             </button>
           </span>
         ))}
@@ -75,7 +82,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
           value={search}
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
-          placeholder={value.length === 0 ? 'Search specialties…' : ''}
+          placeholder={value.length === 0 ? (trackedOnly ? 'Select programmes…' : 'Search specialties…') : ''}
           className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] outline-none"
         />
       </div>
@@ -83,19 +90,26 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
       {/* Dropdown */}
       {open && (
         <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
-          {userInterests.length > 0 && (
+          {/* Section header — only in non-tracked mode when there are user interests */}
+          {!trackedOnly && userInterests.length > 0 && (
             <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties
             </div>
           )}
           <div className="max-h-52 overflow-y-auto">
-            {sorted.length === 0 ? (
+            {trackedOnly && userInterests.length === 0 ? (
+              /* Empty state when no programmes tracked */
+              <div className="px-3 py-4 text-center">
+                <p className="text-sm text-[rgba(245,245,242,0.35)] mb-1">No tracked programmes</p>
+                <p className="text-xs text-[rgba(245,245,242,0.25)]">Add specialties in the Specialties tab first.</p>
+              </div>
+            ) : sorted.length === 0 ? (
               <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.35)]">No matches</div>
             ) : (
               sorted.map((s, i) => {
-                const isInterest = userInterests.includes(s)
+                const isInterest = !trackedOnly && userInterests.includes(s)
                 const isSelected = value.includes(s)
-                const showDivider = i > 0 && isInterest !== userInterests.includes(sorted[i - 1])
+                const showDivider = !trackedOnly && i > 0 && isInterest !== userInterests.includes(sorted[i - 1])
 
                 return (
                   <div key={s}>
