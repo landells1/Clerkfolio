@@ -365,7 +365,7 @@ export default function ExportPage() {
             })}
             {trackedNotInPortfolio.length > 0 && (
               <p className="w-full text-[11px] text-[rgba(245,245,242,0.25)] mt-1">
-                Specialties marked "no entries" have no tagged portfolio items yet.
+                Specialties marked &quot;no entries&quot; have no tagged portfolio items yet.
               </p>
             )}
           </div>
