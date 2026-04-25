@@ -1,4 +1,11 @@
 ﻿// Server component — no 'use client'
+import { SPECIALTY_CONFIGS } from '@/lib/specialties'
+
+function formatSpecialtyKey(key: string): string {
+  const config = SPECIALTY_CONFIGS.find(c => c.key === key)
+  if (config) return config.name
+  return key.replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
+}
 
 interface SpecialtyRadarProps {
   counts: Record<string, number>
@@ -65,8 +72,8 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
     }
   }
 
-  function truncate(name: string, max = 12): string {
-    return name.length > max ? name.slice(0, max) : name
+  function truncate(name: string, max = 14): string {
+    return name.length > max ? name.slice(0, max) + '…' : name
   }
 
   return (
@@ -123,7 +130,7 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
           ))}
 
           {/* Labels */}
-          {sorted.map(([name], i) => {
+          {sorted.map(([key], i) => {
             const pos = labelPosition(i)
             return (
               <text
@@ -135,7 +142,7 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
                 fill="rgba(245,245,242,0.6)"
                 fontSize="8"
               >
-                {truncate(name)}
+                {truncate(formatSpecialtyKey(key))}
               </text>
             )
           })}

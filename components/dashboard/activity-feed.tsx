@@ -38,12 +38,12 @@ type Tab = typeof TABS[number]
 export default function ActivityFeed({
   entries,
   cases,
-  specialtyInterests,
+  trackedSpecialties,
   specialtyCounts,
 }: {
   entries: PortfolioEntry[]
   cases: Case[]
-  specialtyInterests: string[]
+  trackedSpecialties: { key: string; label: string }[]
   specialtyCounts: Record<string, number>
 }) {
   const [tab, setTab] = useState<Tab>('Portfolio')
@@ -146,21 +146,21 @@ export default function ActivityFeed({
 
         {/* Specialty */}
         {tab === 'Specialty' && (
-          specialtyInterests.length === 0 ? (
+          trackedSpecialties.length === 0 ? (
             <EmptyState
               icon={<SpecialtyIcon />}
-              text="No specialty interests set"
+              text="No programmes being tracked"
               href="/specialties"
-              cta="Add your interests"
+              cta="Add a specialty tracker"
             />
           ) : (
             <div className="p-4 space-y-2">
-              {specialtyInterests.map(s => {
-                const count = specialtyCounts[s] ?? 0
-                const maxCount = Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(...Object.values(specialtyCounts))
+              {trackedSpecialties.map(s => {
+                const count = specialtyCounts[s.key] ?? 0
+                const maxCount = Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(1, ...Object.values(specialtyCounts))
                 return (
-                  <div key={s} className="flex items-center justify-between py-2">
-                    <span className="text-sm text-[rgba(245,245,242,0.8)]">{s}</span>
+                  <div key={s.key} className="flex items-center justify-between py-2">
+                    <span className="text-sm text-[rgba(245,245,242,0.8)]">{s.label}</span>
                     <div className="flex items-center gap-3">
                       <div className="w-24 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
@@ -175,7 +175,7 @@ export default function ActivityFeed({
               })}
               <div className="pt-2 border-t border-white/[0.06]">
                 <Link href="/specialties" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
-                  Manage interests →
+                  Manage programmes →
                 </Link>
               </div>
             </div>

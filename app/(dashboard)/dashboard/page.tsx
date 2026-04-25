@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getSpecialtyConfig } from '@/lib/specialties'
 import ActivityFeed from '@/components/dashboard/activity-feed'
 import DeadlinesWidget from '@/components/dashboard/deadlines-widget'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
@@ -55,6 +56,7 @@ export default async function DashboardPage() {
 
   const [
     { data: profile },
+    { data: trackedSpecialtyRows },
     { data: recentEntries },
     { data: recentCases },
     { data: allEntries },
@@ -68,9 +70,13 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('first_name, career_stage, specialty_interests')
+      .select('first_name, career_stage')
       .eq('id', user!.id)
       .single(),
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -159,7 +165,12 @@ export default async function DashboardPage() {
     })
   })
 
-  const specialtyInterests: string[] = profile?.specialty_interests ?? []
+  // Build tracked specialty list with formatted display names
+  const trackedSpecialties = (trackedSpecialtyRows ?? []).map(row => ({
+    key: row.specialty_key,
+    label: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key.replace(/[_-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
+  }))
+  const trackedSpecialtyKeys = trackedSpecialties.map(s => s.key)
   const specialtyCount = Object.keys(specialtyCounts).length
 
   // Heatmap dates (last 84 days, from created_at)
@@ -189,7 +200,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-4 shrink-0">
           <StreakBadge streak={streak} />
-          <QuickAddButton userInterests={specialtyInterests} />
+          <QuickAddButton userInterests={trackedSpecialtyKeys} />
         </div>
       </div>
 
@@ -206,7 +217,7 @@ export default async function DashboardPage() {
         <ActivityFeed
           entries={(recentEntries ?? []) as PortfolioEntry[]}
           cases={(recentCases ?? []) as Case[]}
-          specialtyInterests={specialtyInterests}
+          trackedSpecialties={trackedSpecialties}
           specialtyCounts={specialtyCounts}
         />
 
