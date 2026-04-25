@@ -3,6 +3,7 @@ import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import CaseCard from '@/components/cases/case-card'
 import CasesFilters from '@/components/cases/cases-filters'
+import DraftResumeBanner from '@/components/cases/draft-resume-banner'
 
 export default async function CasesPage({
   searchParams,
@@ -67,6 +68,9 @@ export default async function CasesPage({
       <Suspense fallback={<div className="h-10" />}>
         <CasesFilters defaultQ={q} defaultDomain={domain} defaultSort={sort} />
       </Suspense>
+
+      {/* Draft resume banner — shown if user has an unsaved draft in sessionStorage */}
+      <DraftResumeBanner />
 
       {/* Anonymisation notice */}
       <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-xl px-4 py-3 mb-6">

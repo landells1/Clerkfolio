@@ -23,6 +23,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
   const [openModal, setOpenModal] = useState<ModalType>(null)
   const [checkboxPending, setCheckboxPending] = useState<Set<string>>(new Set())
   const [essentialPending, setEssentialPending] = useState(false)
+  const [desirablePending, setDesirablePending] = useState(false)
 
   const score = calculateDomainScore(domain, links)
   const pct = domain.maxPoints > 0 ? Math.min((score / domain.maxPoints) * 100, 100) : 0
@@ -208,6 +209,68 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
     setEssentialPending(false)
   }
 
+  // --- Desirable evidence-only "Mark as evidenced" toggle ---
+  async function handleDesirableCheck() {
+    if (desirablePending) return
+    setDesirablePending(true)
+
+    const existingEvidenced = links.find(
+      l => l.is_checkbox && l.band_label === 'Evidenced' && !l.id.startsWith('temp-')
+    )
+
+    if (existingEvidenced) {
+      const newLinks = links.filter(l => l.id !== existingEvidenced.id)
+      onLinksChange(newLinks)
+      const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingEvidenced.id)
+      if (error) {
+        alert(`Failed to remove: ${error.message}`)
+        onLinksChange(links)
+      }
+    } else {
+      const optimisticId = `temp-${Date.now()}`
+      const optimistic: SpecialtyEntryLink = {
+        id: optimisticId,
+        application_id: applicationId,
+        domain_key: domain.key,
+        entry_id: null,
+        entry_type: null,
+        band_label: 'Evidenced',
+        points_claimed: 0,
+        is_checkbox: true,
+        created_at: new Date().toISOString(),
+      }
+      onLinksChange([...links, optimistic])
+
+      const { data: rows, error } = await supabase
+        .from('specialty_entry_links')
+        .insert({
+          application_id: applicationId,
+          domain_key: domain.key,
+          entry_id: null,
+          entry_type: null,
+          band_label: 'Evidenced',
+          points_claimed: 0,
+          is_checkbox: true,
+        })
+        .select()
+
+      if (error) {
+        alert(`Failed to save: ${error.message}`)
+        onLinksChange(links)
+      } else {
+        const inserted = rows?.[0]
+        if (inserted) {
+          onLinksChange([
+            ...links.filter(l => l.id !== optimisticId),
+            inserted as SpecialtyEntryLink,
+          ])
+        }
+      }
+    }
+
+    setDesirablePending(false)
+  }
+
   function handleLinked(newLink: SpecialtyEntryLink) {
     onLinksChange([...links, newLink])
   }
@@ -222,6 +285,10 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
   const isMet = links.some(l => l.is_checkbox && l.band_label === 'Met')
   // Linked supporting evidence (excluding the "Met" checkbox link itself)
   const supportingEvidence = links.filter(l => !(l.is_checkbox && l.band_label === 'Met'))
+  // The "Evidenced" checkbox link, if any (for desirable evidence-only domains)
+  const isEvidenced = links.some(l => l.is_checkbox && l.band_label === 'Evidenced')
+  // Linked evidence for desirable (excluding the "Evidenced" checkbox link itself)
+  const desirableEvidence = links.filter(l => !(l.is_checkbox && l.band_label === 'Evidenced'))
 
   // ---------- Essential mode ----------
   if (isEssential) {
@@ -364,10 +431,19 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
               Desirable
             </span>
           </div>
-          <span className={`shrink-0 text-xs font-medium ${
-            links.length > 0 ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'
+          <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
+            isEvidenced ? 'text-[#1B6FD9]' : desirableEvidence.length > 0 ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'
           }`}>
-            {links.length} {links.length === 1 ? 'entry' : 'entries'}
+            {isEvidenced ? (
+              <>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                Evidenced
+              </>
+            ) : (
+              `${desirableEvidence.length} ${desirableEvidence.length === 1 ? 'entry' : 'entries'}`
+            )}
           </span>
         </div>
 
@@ -381,37 +457,72 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
           </div>
         )}
 
-        {/* Action buttons */}
-        <div className="flex gap-2 mb-4">
-          <button
-            onClick={() => setOpenModal('link')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] hover:border-white/[0.2] text-sm font-medium transition-all"
+        {/* Mark as evidenced checkbox */}
+        <label
+          className={`flex items-start gap-3 p-4 rounded-xl border transition-all mb-4 ${
+            desirablePending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+          } ${
+            isEvidenced
+              ? 'bg-[#1B6FD9]/[0.06] border-[#1B6FD9]/25'
+              : 'bg-[#0B0B0C] border-white/[0.08] hover:border-white/[0.16]'
+          }`}
+          onClick={() => !desirablePending && handleDesirableCheck()}
+        >
+          <div
+            className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
+              isEvidenced ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-transparent border-white/[0.25]'
+            }`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-              <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-            </svg>
-            Link existing evidence
-          </button>
-          <button
-            onClick={() => setOpenModal('log')}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] text-sm font-semibold transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Log &amp; link here
-          </button>
-        </div>
+            {isEvidenced && (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            )}
+          </div>
+          <span className={`text-sm leading-snug ${isEvidenced ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.7)]'}`}>
+            I have evidence for this criterion.
+          </span>
+        </label>
 
-        {/* Evidence list */}
-        {links.length > 0 ? (
-          <DomainEvidenceList domain={domain} links={links} onRemove={handleRemoveLink} />
-        ) : (
-          <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-4">
-            No evidence linked yet. Link existing entries or log new evidence above.
-          </p>
-        )}
+        {/* Supporting evidence — optional upload */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
+              Supporting evidence
+            </p>
+            <p className="text-xs text-[rgba(245,245,242,0.3)]">Optional</p>
+          </div>
+
+          <div className="flex gap-2 mb-3">
+            <button
+              onClick={() => setOpenModal('link')}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] hover:border-white/[0.2] text-xs font-medium transition-all"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+              </svg>
+              Link existing entry
+            </button>
+            <button
+              onClick={() => setOpenModal('log')}
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] text-xs font-medium transition-all"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Log new entry
+            </button>
+          </div>
+
+          {desirableEvidence.length > 0 ? (
+            <DomainEvidenceList domain={domain} links={desirableEvidence} onRemove={handleRemoveLink} />
+          ) : (
+            <p className="text-xs text-[rgba(245,245,242,0.3)] italic">
+              Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
+            </p>
+          )}
+        </div>
 
         {/* Modals */}
         {openModal === 'link' && (
