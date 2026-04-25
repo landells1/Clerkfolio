@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { getSpecialtyConfig } from '@/lib/specialties'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -25,11 +26,15 @@ function entrySubtitle(e: PortfolioEntry): string | null {
   }
 }
 
+type TagCount = { tag: string; count: number }
+type TrackedApp = { id: string; specialty_key: string }
+
 export default function ExportPage() {
   const supabase = createClient()
 
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
-  const [specialtyInterests, setSpecialtyInterests] = useState<string[]>([])
+  const [portfolioTags, setPortfolioTags] = useState<TagCount[]>([])
+  const [trackedApps, setTrackedApps] = useState<TrackedApp[]>([])
   const [specialty, setSpecialty] = useState<string>('')
   const [format, setFormat] = useState<'pdf' | 'csv' | 'json'>('pdf')
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all')
@@ -40,31 +45,68 @@ export default function ExportPage() {
   const [error, setError] = useState<string | null>(null)
   const [loadedSpecialty, setLoadedSpecialty] = useState<string | null>(null)
 
-  // Load user profile on mount
+  // Load user data on mount
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const { data } = await supabase
-        .from('profiles')
-        .select('specialty_interests, trial_started_at, subscription_status, subscription_period_end')
-        .eq('id', user.id)
-        .single()
-      const interests: string[] = data?.specialty_interests ?? []
-      setSpecialtyInterests(interests)
-      if (interests.length > 0) setSpecialty(interests[0])
-      if (data) {
+
+      const [
+        { data: profile },
+        { data: tagRows },
+        { data: apps },
+      ] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('trial_started_at, subscription_status, subscription_period_end')
+          .eq('id', user.id)
+          .single(),
+        supabase
+          .from('portfolio_entries')
+          .select('specialty_tags')
+          .eq('user_id', user.id)
+          .is('deleted_at', null),
+        supabase
+          .from('specialty_applications')
+          .select('id, specialty_key')
+          .eq('user_id', user.id),
+      ])
+
+      if (profile) {
         setSubInfo(getSubscriptionInfo({
-          trial_started_at: data.trial_started_at,
-          subscription_status: data.subscription_status,
-          subscription_period_end: data.subscription_period_end,
+          trial_started_at: profile.trial_started_at,
+          subscription_status: profile.subscription_status,
+          subscription_period_end: profile.subscription_period_end,
         }))
+      }
+
+      // Count entries per tag, sorted by count desc
+      const tagCounts: Record<string, number> = {}
+      tagRows?.forEach(row => {
+        row.specialty_tags?.forEach((tag: string) => {
+          tagCounts[tag] = (tagCounts[tag] ?? 0) + 1
+        })
+      })
+      const sorted = Object.entries(tagCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([tag, count]) => ({ tag, count }))
+
+      setPortfolioTags(sorted)
+      setTrackedApps(apps ?? [])
+
+      // Default to highest-count tag, or first tracked specialty
+      if (sorted.length > 0) {
+        setSpecialty(sorted[0].tag)
+      } else if ((apps ?? []).length > 0) {
+        const firstKey = apps![0].specialty_key
+        const cfg = getSpecialtyConfig(firstKey)
+        setSpecialty(cfg?.name ?? firstKey)
       }
     }
     load()
   }, [supabase])
 
-  // Fetch entries whenever specialty changes — AbortController cancels stale fetches
+  // Fetch entries whenever specialty changes
   useEffect(() => {
     if (!specialty) return
     setLoading(true)
@@ -151,6 +193,14 @@ export default function ExportPage() {
     }
   }
 
+  // Tracked specialty names not already in portfolio tags (no entries yet)
+  const portfolioTagSet = new Set(portfolioTags.map(t => t.tag.toLowerCase()))
+  const trackedNotInPortfolio = trackedApps.filter(app => {
+    const cfg = getSpecialtyConfig(app.specialty_key)
+    const name = cfg?.name ?? app.specialty_key
+    return !portfolioTagSet.has(name.toLowerCase())
+  })
+
   return (
     <div className="p-6 lg:p-8 max-w-4xl">
       {/* Breadcrumb */}
@@ -194,7 +244,7 @@ export default function ExportPage() {
         </button>
       </div>
 
-      {/* Pro gate — show if subscription loaded and not allowed to export */}
+      {/* Pro gate */}
       {subInfo && !subInfo.canExport && (
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 mb-6 text-center">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 mb-4">
@@ -218,32 +268,108 @@ export default function ExportPage() {
 
       {/* Step 1 — Specialty */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">
-        <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-0.5">Target specialty</p>
-        <p className="text-xs text-[rgba(245,245,242,0.35)] mb-3">Select from your interests or type any specialty</p>
-        {specialtyInterests.length > 0 && (
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-0.5">Target specialty</p>
+            <p className="text-xs text-[rgba(245,245,242,0.35)]">Specialties with tagged entries in your portfolio</p>
+          </div>
+        </div>
+
+        {/* Portfolio tag chips — sorted by entry count */}
+        {portfolioTags.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-3">
-            {specialtyInterests.map(s => (
+            {portfolioTags.map(({ tag, count }) => (
               <button
-                key={s}
-                onClick={() => setSpecialty(s)}
-                className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-                  specialty === s
+                key={tag}
+                onClick={() => setSpecialty(tag)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  specialty === tag
                     ? 'bg-[#1B6FD9]/20 text-[#1B6FD9] border border-[#1B6FD9]/40'
                     : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
                 }`}
               >
-                {s}
+                {tag}
+                <span className={`text-[10px] font-semibold px-1 py-0.5 rounded ${
+                  specialty === tag ? 'bg-[#1B6FD9]/30 text-[#1B6FD9]' : 'bg-white/[0.07] text-[rgba(245,245,242,0.4)]'
+                }`}>
+                  {count}
+                </span>
               </button>
             ))}
           </div>
+        ) : (
+          <p className="text-xs text-[rgba(245,245,242,0.3)] mb-3">
+            No specialty tags found. Tag your portfolio entries with a specialty to see them here.
+          </p>
         )}
+
+        {/* Free text input */}
         <input
           type="text"
           value={specialty}
           onChange={e => setSpecialty(e.target.value)}
-          placeholder="Type a specialty…"
+          placeholder="Or type any specialty…"
           className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
         />
+      </div>
+
+      {/* Specialty tracker panel */}
+      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-0.5">Specialty tracker</p>
+            <p className="text-xs text-[rgba(245,245,242,0.35)]">Specialties you&apos;re actively scoring — tag your entries to see them above</p>
+          </div>
+          <Link
+            href="/specialties"
+            className="flex items-center gap-1.5 text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium shrink-0"
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            Add specialty
+          </Link>
+        </div>
+
+        {trackedApps.length === 0 ? (
+          <div className="flex items-center gap-3 py-2">
+            <p className="text-xs text-[rgba(245,245,242,0.3)]">No specialties tracked yet.</p>
+            <Link href="/specialties" className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">
+              Start tracking →
+            </Link>
+          </div>
+        ) : (
+          <div className="flex flex-wrap gap-2">
+            {trackedApps.map(app => {
+              const cfg = getSpecialtyConfig(app.specialty_key)
+              const name = cfg?.name ?? app.specialty_key
+              const hasEntries = portfolioTagSet.has(name.toLowerCase())
+              return (
+                <button
+                  key={app.id}
+                  onClick={() => setSpecialty(name)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
+                    specialty === name
+                      ? 'bg-[#1B6FD9]/20 text-[#1B6FD9] border-[#1B6FD9]/40'
+                      : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
+                  }`}
+                >
+                  {name}
+                  {hasEntries ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-[#1B6FD9]/70 flex-shrink-0" />
+                  ) : (
+                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-normal">no entries</span>
+                  )}
+                </button>
+              )
+            })}
+            {trackedNotInPortfolio.length > 0 && (
+              <p className="w-full text-[11px] text-[rgba(245,245,242,0.25)] mt-1">
+                Specialties marked "no entries" have no tagged portfolio items yet.
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Format selector */}
@@ -266,7 +392,7 @@ export default function ExportPage() {
         </div>
       </div>
 
-      {/* Step 2 — Category filter */}
+      {/* Category filter */}
       {loadedSpecialty && (
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mb-4">
           <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">
@@ -303,10 +429,9 @@ export default function ExportPage() {
         </div>
       )}
 
-      {/* Step 3 — Entry list */}
+      {/* Entry list */}
       {loadedSpecialty && (
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
-          {/* List header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.06]">
             <p className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">
               {loading ? 'Loading…' : `${visible.length} ${visible.length === 1 ? 'entry' : 'entries'} · ${visibleSelected} selected`}
@@ -324,9 +449,12 @@ export default function ExportPage() {
               <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : visible.length === 0 ? (
-            <div className="py-16 text-center">
-              <p className="text-sm text-[rgba(245,245,242,0.35)]">
-                No entries tagged to {loadedSpecialty}{categoryFilter !== 'all' ? ` in this category` : ''}.
+            <div className="py-12 text-center px-6">
+              <p className="text-sm text-[rgba(245,245,242,0.35)] mb-3">
+                No entries tagged to &ldquo;{loadedSpecialty}&rdquo;{categoryFilter !== 'all' ? ' in this category' : ''}.
+              </p>
+              <p className="text-xs text-[rgba(245,245,242,0.25)]">
+                Tag your portfolio or case entries with this specialty to include them here.
               </p>
             </div>
           ) : (
@@ -343,7 +471,6 @@ export default function ExportPage() {
                       checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'
                     }`}
                   >
-                    {/* Checkbox */}
                     <div
                       className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
                         checked ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'border-white/[0.2] bg-transparent'
@@ -356,8 +483,6 @@ export default function ExportPage() {
                       )}
                     </div>
                     <input type="checkbox" className="hidden" checked={checked} onChange={() => toggleEntry(e.id)} />
-
-                    {/* Entry info */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-0.5 flex-wrap">
                         <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${colour.bg} ${colour.text}`}>{catLabel}</span>
@@ -365,7 +490,6 @@ export default function ExportPage() {
                       </div>
                       {sub && <p className="text-xs text-[rgba(245,245,242,0.4)] truncate capitalize">{sub}</p>}
                     </div>
-
                     <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)] font-mono">{formatDate(e.date)}</span>
                   </label>
                 )
@@ -380,7 +504,6 @@ export default function ExportPage() {
           {error}
         </div>
       )}
-
     </div>
   )
 }
