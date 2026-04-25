@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { LegalContactButton } from '@/components/legal/contact-modal'
 
 export const metadata: Metadata = {
   title: 'Terms & Conditions — Clinidex',
@@ -67,7 +68,7 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
           <div style={{ display: 'flex', gap: 24 }}>
             <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
             <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-            <Link href="/dashboard?feedback=1" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</Link>
+            <LegalContactButton />
           </div>
         </div>
       </div>

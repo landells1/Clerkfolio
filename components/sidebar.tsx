@@ -98,19 +98,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
     setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform))
   }, [])
 
-  // Auto-open feedback form when navigated from terms/privacy CONTACT link (?feedback=1)
-  useEffect(() => {
-    if (typeof window === 'undefined') return
-    const params = new URLSearchParams(window.location.search)
-    if (params.get('feedback') === '1') {
-      setFeedbackOpen(true)
-      params.delete('feedback')
-      const qs = params.toString()
-      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''))
-    }
-  }, [])
-
-  const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
+const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
   const initials = [profile.first_name?.[0], profile.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
 
   const [loggingOut, setLoggingOut] = useState(false)

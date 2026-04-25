@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { LegalContactButton } from '@/components/legal/contact-modal'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy — Clinidex',
@@ -67,7 +68,7 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
           <div style={{ display: 'flex', gap: 24 }}>
             <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
             <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-            <Link href="/dashboard?feedback=1" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</Link>
+            <LegalContactButton />
           </div>
         </div>
       </div>
@@ -140,14 +141,14 @@ const sections: Section[] = [
       '<strong>Supabase Inc</strong> (United Kingdom) — database hosting and file storage. Data is stored in the EU West 2 region (AWS London). Data is encrypted at rest (AES-256) and in transit (TLS). Data does not leave the United Kingdom.',
       '<strong>Stripe Inc</strong> (United States) — payment processing. Stripe processes payment card data under its own PCI DSS certification. UK–US Data Bridge applies.',
       '<strong>Resend Inc</strong> (United States) — transactional email delivery (account confirmation, password reset). UK–US Data Bridge applies.',
-      '<strong>Vercel Inc</strong> (United States) — application hosting and edge delivery. UK–US Data Bridge applies.',
+      '<strong>Vercel Inc</strong> (United States) — application hosting. Serverless functions execute in the EU West 2 region (AWS London) — request data is processed in the United Kingdom. Static assets are served via Vercel\'s global CDN. UK–US Data Bridge applies for the corporate relationship.',
       'We may also disclose data where required by law, court order, or to protect the rights and safety of users or third parties.',
     ],
   },
   {
     heading: 'International data transfers',
     body: [
-      'Some of our third-party processors operate outside the United Kingdom. Where data is transferred to countries not deemed adequate by the UK Government, we rely on the UK–US Data Bridge (where applicable) or the UK International Data Transfer Agreement (UK IDTA), which provides safeguards equivalent to those under UK GDPR. Your database and file storage data is hosted by Supabase in the EU West 2 region (AWS London) and does not leave the United Kingdom.',
+      'Your database, file storage (Supabase), and server-side request processing (Vercel) all operate in the EU West 2 region (AWS London) and do not leave the United Kingdom. Some third-party processors (Stripe, Resend) are US-based companies; where data is transferred to them, we rely on the UK–US Data Bridge or the UK International Data Transfer Agreement (UK IDTA), which provides safeguards equivalent to those under UK GDPR.',
       'You may request details of the specific safeguards in place for any transfer by contacting us at hello@clinidex.co.uk.',
     ],
   },
