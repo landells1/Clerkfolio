@@ -134,8 +134,11 @@ export function CompareView({ applications, links }: Props) {
           const leftMetric = leftDomain ? domainMetric(leftDomain, leftLinks) : null
           const rightMetric = rightDomain ? domainMetric(rightDomain, rightLinks) : null
 
-          const leftHigher = leftMetric !== null && rightMetric !== null && leftMetric.value > rightMetric.value
-          const rightHigher = leftMetric !== null && rightMetric !== null && rightMetric.value > leftMetric.value
+          // Only highlight a "winner" when both sides are the same kind — comparing
+          // 4 pts against "evidenced" is apples and oranges.
+          const sameKind = leftMetric !== null && rightMetric !== null && leftMetric.kind === rightMetric.kind
+          const leftHigher = sameKind && leftMetric!.value > rightMetric!.value
+          const rightHigher = sameKind && rightMetric!.value > leftMetric!.value
 
           const domainLabel = leftDomain?.label ?? rightDomain?.label ?? domainKey
 
