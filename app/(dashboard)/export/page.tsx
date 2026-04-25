@@ -278,7 +278,9 @@ export default function ExportPage() {
         {/* Portfolio tag chips — sorted by entry count */}
         {portfolioTags.length > 0 ? (
           <div className="flex flex-wrap gap-2 mb-3">
-            {portfolioTags.map(({ tag, count }) => (
+            {portfolioTags.map(({ tag, count }) => {
+              const tagLabel = getSpecialtyConfig(tag)?.name ?? tag
+              return (
               <button
                 key={tag}
                 onClick={() => setSpecialty(tag)}
@@ -288,14 +290,14 @@ export default function ExportPage() {
                     : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
                 }`}
               >
-                {tag}
+                {tagLabel}
                 <span className={`text-[10px] font-semibold px-1 py-0.5 rounded ${
                   specialty === tag ? 'bg-[#1B6FD9]/30 text-[#1B6FD9]' : 'bg-white/[0.07] text-[rgba(245,245,242,0.4)]'
                 }`}>
                   {count}
                 </span>
               </button>
-            ))}
+            )})}
           </div>
         ) : (
           <p className="text-xs text-[rgba(245,245,242,0.3)] mb-3">

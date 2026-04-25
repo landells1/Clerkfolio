@@ -40,7 +40,7 @@ export default async function PortfolioPage({
   } else if (sort === 'title_asc') {
     query = query.order('pinned', { ascending: false }).order('title', { ascending: true })
   } else {
-    query = query.order('pinned', { ascending: false }).order('date', { ascending: false })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: false }).order('created_at', { ascending: false })
   }
 
   const { data: entries, count } = await query.range(offset, offset + PAGE_SIZE - 1)

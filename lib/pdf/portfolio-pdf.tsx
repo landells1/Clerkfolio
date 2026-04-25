@@ -1,5 +1,11 @@
 ﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
+import { getSpecialtyConfig } from '@/lib/specialties'
+
+function formatTag(tag: string): string {
+  const config = getSpecialtyConfig(tag)
+  return config ? config.name : tag
+}
 
 // ── Styles ──────────────────────────────────────────────────────────────────
 
@@ -197,7 +203,7 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt 
                 {e.specialty_tags?.length > 0 && (
                   <View style={s.tags}>
                     {e.specialty_tags.map(t => (
-                      <Text key={t} style={s.tag}>{t}</Text>
+                      <Text key={t} style={s.tag}>{formatTag(t)}</Text>
                     ))}
                   </View>
                 )}

@@ -4,7 +4,13 @@ import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
 import { getSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
+import { getSpecialtyConfig } from '@/lib/specialties'
 import React, { type ReactElement } from 'react'
+
+function formatTag(tag: string): string {
+  const config = getSpecialtyConfig(tag)
+  return config ? config.name : tag
+}
 
 export async function POST(request: NextRequest) {
   const originError = validateOrigin(request)
@@ -46,6 +52,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 })
   }
 
+  const specialtyDisplay = formatTag(specialty || 'Portfolio')
   const safeSpecialty = (specialty || 'portfolio').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
   const dateStr = new Date().toISOString().split('T')[0]
 
@@ -82,7 +89,7 @@ export async function POST(request: NextRequest) {
     const element = React.createElement(PortfolioPDF, {
       entries,
       userName,
-      specialty: specialty || 'Portfolio',
+      specialty: specialtyDisplay,
       exportedAt,
     }) as unknown as ReactElement<DocumentProps>
 
@@ -115,7 +122,7 @@ function toCsv(entries: any[]): string {
     escape(e.title ?? ''),
     escape(e.category ?? ''),
     escape(e.date ?? ''),
-    escape((e.specialty_tags ?? []).join(';')),
+    escape((e.specialty_tags ?? []).map(formatTag).join(';')),
     escape(e.notes ?? ''),
     escape(e.created_at ?? ''),
   ].join(','))

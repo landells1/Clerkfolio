@@ -2,6 +2,12 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
+import { getSpecialtyConfig } from '@/lib/specialties'
+
+function formatTag(tag: string): string {
+  const config = getSpecialtyConfig(tag)
+  return config ? config.name : tag
+}
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
@@ -86,14 +92,14 @@ export default async function EntryDetailPage({ params }: { params: { id: string
           <p className="text-sm text-[rgba(245,245,242,0.4)] font-mono">{formatDate(entry.date)}</p>
         </div>
 
-        {/* Specialty tags */}
+        {/* Application tags */}
         {entry.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Specialty tags</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Application tags</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
-                  {tag}
+                  {formatTag(tag)}
                 </span>
               ))}
             </div>
