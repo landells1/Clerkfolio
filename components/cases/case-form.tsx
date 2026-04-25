@@ -131,7 +131,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Case logged', 'success')
-      router.push(`/cases/${data.id}`)
+      router.push('/cases')
     } else {
       const { error } = await supabase
         .from('cases')

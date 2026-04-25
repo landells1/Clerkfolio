@@ -36,6 +36,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
       } else {
         params.delete('q')
       }
+      params.delete('page')
       router.replace(`/portfolio?${params.toString()}`)
     }, 300)
 
@@ -53,6 +54,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
     } else {
       params.delete('sort')
     }
+    params.delete('page')
     router.replace(`/portfolio?${params.toString()}`)
   }
 

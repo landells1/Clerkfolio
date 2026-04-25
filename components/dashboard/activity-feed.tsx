@@ -159,8 +159,8 @@ export default function ActivityFeed({
                 const count = specialtyCounts[s.key] ?? 0
                 const maxCount = Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(1, ...Object.values(specialtyCounts))
                 return (
-                  <div key={s.key} className="flex items-center justify-between py-2">
-                    <span className="text-sm text-[rgba(245,245,242,0.8)]">{s.label}</span>
+                  <Link key={s.key} href="/specialties" className="flex items-center justify-between py-2 group hover:bg-white/[0.02] -mx-2 px-2 rounded-lg transition-colors">
+                    <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
                     <div className="flex items-center gap-3">
                       <div className="w-24 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
@@ -170,7 +170,7 @@ export default function ActivityFeed({
                       </div>
                       <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono w-6 text-right">{count}</span>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
               <div className="pt-2 border-t border-white/[0.06]">
