@@ -2,7 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { SPECIALTY_CONFIGS } from '@/lib/specialties'
+import {
+  SPECIALTY_CONFIGS,
+  isEvidenceBased,
+  getEssentialDomains,
+  getDesirableDomains,
+} from '@/lib/specialties'
 import type { SpecialtyApplication } from '@/lib/specialties'
 
 type Props = {
@@ -105,7 +110,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
               <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">
                 Select a specialty to begin tracking your application score.
               </p>
-              {available.map(config => (
+              {available.map(config => {
+                const evidenceBased = isEvidenceBased(config)
+                const essentialsCount = getEssentialDomains(config).length
+                const desirablesCount = getDesirableDomains(config).length
+                return (
                 <button
                   key={config.key}
                   onClick={() => handleSelect(config.key, config.cycleYear)}
@@ -113,7 +122,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
                   className="w-full flex items-start justify-between p-4 bg-[#0B0B0C] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
                 >
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <span className="font-semibold text-[#F5F5F2] text-sm">{config.name}</span>
                       <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
                         {config.cycleYear}
@@ -127,9 +136,16 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
                           Unofficial
                         </span>
                       )}
+                      {evidenceBased && (
+                        <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
+                          Evidence-based
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs text-[rgba(245,245,242,0.4)]">
-                      Up to {config.totalMax} pts &middot; {config.domains.length} domains
+                      {evidenceBased
+                        ? `${essentialsCount} essentials · ${desirablesCount} desirables`
+                        : `Up to ${config.totalMax} pts · ${config.domains.length} domains`}
                     </p>
                     {!config.isOfficial && (
                       <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
@@ -149,7 +165,8 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
                     <polyline points="9 18 15 12 9 6" />
                   </svg>
                 </button>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>

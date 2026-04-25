@@ -21,12 +21,15 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
     onRemove(linkId) // update UI only after confirmed DB delete
   }
 
+  // Evidence-only domains have no scoring — suppress points labels and counting indicators.
+  const isEvidenceOnly = !!domain.isEvidenceOnly || domain.maxPoints === 0
+
   const sorted =
-    domain.scoringRule === 'highest'
+    !isEvidenceOnly && domain.scoringRule === 'highest'
       ? [...links].sort((a, b) => b.points_claimed - a.points_claimed)
       : links
 
-  const highestPoints = domain.scoringRule === 'highest' && sorted.length > 0
+  const highestPoints = !isEvidenceOnly && domain.scoringRule === 'highest' && sorted.length > 0
     ? sorted[0].points_claimed
     : -Infinity
 
@@ -35,10 +38,12 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">Claimed &amp; linked evidence</p>
+      <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">
+        {isEvidenceOnly ? 'Linked evidence' : 'Claimed & linked evidence'}
+      </p>
       <div className="space-y-2">
         {sorted.map(link => {
-          const isCounting = domain.scoringRule === 'highest' && link.points_claimed === highestPoints
+          const isCounting = !isEvidenceOnly && domain.scoringRule === 'highest' && link.points_claimed === highestPoints
           const isClaimed = link.is_checkbox && !link.entry_type
           const entryIcon = link.entry_type === 'case' ? '💼' : '📄'
 
@@ -46,7 +51,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
             <div
               key={link.id}
               className={`relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
-                isCounting && domain.scoringRule === 'highest'
+                isCounting
                   ? 'border-l-2 border-l-[#1B6FD9] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[#1B6FD9]/[0.05]'
                   : 'border-white/[0.06] bg-white/[0.02]'
               }`}
@@ -60,18 +65,20 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-sm font-medium leading-snug ${isCounting && domain.scoringRule === 'highest' ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.55)]'}`}>
+                  <span className={`text-sm font-medium leading-snug ${isCounting ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.6)]'}`}>
                     {link.band_label}
                   </span>
-                  <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                      isCounting && domain.scoringRule === 'highest'
-                        ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]'
-                        : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
-                    }`}
-                  >
-                    {link.points_claimed} pts
-                  </span>
+                  {!isEvidenceOnly && (
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        isCounting
+                          ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]'
+                          : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
+                      }`}
+                    >
+                      {link.points_claimed} pts
+                    </span>
+                  )}
                   {isClaimed ? (
                     <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.3)] text-xs">
                       Self-claimed
@@ -82,7 +89,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                     </span>
                   ) : null}
                 </div>
-                {domain.scoringRule === 'highest' && (
+                {!isEvidenceOnly && domain.scoringRule === 'highest' && (
                   <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)]'}`}>
                     {isCounting ? '✓ Counting' : 'Not counting (lower score)'}
                   </p>
@@ -102,7 +109,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
         })}
       </div>
 
-      {domain.scoringRule === 'cumulative_capped' && links.length > 0 && (
+      {!isEvidenceOnly && domain.scoringRule === 'cumulative_capped' && links.length > 0 && (
         <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
           <span className="text-xs text-[rgba(245,245,242,0.4)]">Total (capped at {domain.maxPoints} pts)</span>
           <span className="text-sm font-semibold text-[#F5F5F2]">

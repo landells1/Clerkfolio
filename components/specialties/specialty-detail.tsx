@@ -1,9 +1,21 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { calculateDomainScore, calculateTotalScore } from '@/lib/specialties'
-import type { SpecialtyConfig, SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
+import {
+  calculateDomainScore,
+  calculateTotalScore,
+  isEvidenceBased,
+  getEssentialDomains,
+  getDesirableDomains,
+  getEvidenceProgress,
+} from '@/lib/specialties'
+import type {
+  SpecialtyConfig,
+  SpecialtyDomain,
+  SpecialtyApplication,
+  SpecialtyEntryLink,
+} from '@/lib/specialties'
 import { DomainTab } from './domain-tab'
 
 type Props = {
@@ -26,14 +38,12 @@ export function SpecialtyDetail({
   onBack,
 }: Props) {
   const supabase = createClient()
+  const evidenceBased = isEvidenceBased(config)
   const [activeDomainKey, setActiveDomainKey] = useState(config.domains[0]?.key ?? '')
   const [bonusClaimed, setBonusClaimed] = useState(application.bonus_claimed)
   const [togglingBonus, setTogglingBonus] = useState(false)
 
-  const total = calculateTotalScore(config, { ...application, bonus_claimed: bonusClaimed }, links)
-  const pct = Math.min((total / config.totalMax) * 100, 100)
-
-  async function handleBonusToggle(optionKey: string) {
+  async function handleBonusToggle(_optionKey: string) {
     if (togglingBonus) return
     setTogglingBonus(true)
     const newValue = !bonusClaimed
@@ -82,8 +92,8 @@ export function SpecialtyDetail({
       {/* Header */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-5">
         <div className="flex items-start justify-between mb-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h1 className="text-xl font-semibold text-[#F5F5F2]">{config.name}</h1>
               <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
                 {config.cycleYear}
@@ -93,24 +103,27 @@ export function SpecialtyDetail({
                   Unofficial
                 </span>
               )}
+              {evidenceBased && (
+                <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
+                  Evidence-based
+                </span>
+              )}
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-4xl font-bold text-[#F5F5F2]">{total}</span>
-              <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
-            </div>
+
+            {evidenceBased ? (
+              <EvidenceHeader config={config} links={links} />
+            ) : (
+              <PointsHeader
+                config={config}
+                application={{ ...application, bonus_claimed: bonusClaimed }}
+                links={links}
+              />
+            )}
           </div>
         </div>
 
-        {/* Overall progress bar */}
-        <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden mb-5">
-          <div
-            className="h-full bg-[#1B6FD9] rounded-full transition-all"
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-
-        {/* Bonus options */}
-        {config.bonusOptions && config.bonusOptions.length > 0 && (
+        {/* Bonus options — only for points-based with bonuses */}
+        {!evidenceBased && config.bonusOptions && config.bonusOptions.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Bonus Points</p>
             {config.bonusOptions.map(opt => (
@@ -145,34 +158,21 @@ export function SpecialtyDetail({
       </div>
 
       {/* Domain tabs */}
-      <div className="overflow-x-auto pb-1 mb-1">
-        <div className="flex gap-1 min-w-max">
-          {config.domains.map(domain => {
-            const score = calculateDomainScore(domain, links)
-            const isActive = domain.key === activeDomainKey
-            return (
-              <button
-                key={domain.key}
-                onClick={() => setActiveDomainKey(domain.key)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
-                  isActive
-                    ? 'bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25'
-                    : 'bg-[#141416] text-[rgba(245,245,242,0.45)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[rgba(245,245,242,0.7)]'
-                }`}
-              >
-                <span>{domain.label}</span>
-                <span
-                  className={`px-1.5 py-0.5 rounded-md text-xs font-semibold ${
-                    isActive ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
-                  }`}
-                >
-                  {score}
-                </span>
-              </button>
-            )
-          })}
-        </div>
-      </div>
+      {evidenceBased ? (
+        <GroupedDomainTabs
+          config={config}
+          links={links}
+          activeDomainKey={activeDomainKey}
+          onSelect={setActiveDomainKey}
+        />
+      ) : (
+        <FlatDomainTabs
+          config={config}
+          links={links}
+          activeDomainKey={activeDomainKey}
+          onSelect={setActiveDomainKey}
+        />
+      )}
 
       {/* Active domain content */}
       {activeDomain && (
@@ -189,7 +189,7 @@ export function SpecialtyDetail({
       <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2">
         {!config.isOfficial && <span className="text-amber-400">⚠️</span>}
         <p className="text-xs text-[rgba(245,245,242,0.35)]">
-          Scoring criteria:{' '}
+          {evidenceBased ? 'Person specification: ' : 'Scoring criteria: '}
           <a
             href={config.source}
             target="_blank"
@@ -204,5 +204,288 @@ export function SpecialtyDetail({
         </p>
       </div>
     </div>
+  )
+}
+
+// ---------- Header variants ----------
+
+function PointsHeader({
+  config,
+  application,
+  links,
+}: {
+  config: SpecialtyConfig
+  application: SpecialtyApplication
+  links: SpecialtyEntryLink[]
+}) {
+  const total = calculateTotalScore(config, application, links)
+  const pct = config.totalMax > 0 ? Math.min((total / config.totalMax) * 100, 100) : 0
+  return (
+    <>
+      <div className="flex items-baseline gap-1.5 mb-3">
+        <span className="text-4xl font-bold text-[#F5F5F2]">{total}</span>
+        <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+      </div>
+      <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </>
+  )
+}
+
+function EvidenceHeader({
+  config,
+  links,
+}: {
+  config: SpecialtyConfig
+  links: SpecialtyEntryLink[]
+}) {
+  const { essentialsTotal, essentialsMet, desirablesTotal, desirablesEvidenced } =
+    getEvidenceProgress(config, links)
+
+  const essentialsPct = essentialsTotal > 0 ? (essentialsMet / essentialsTotal) * 100 : 0
+  const desirablesPct = desirablesTotal > 0 ? (desirablesEvidenced / desirablesTotal) * 100 : 0
+
+  return (
+    <div className="grid grid-cols-2 gap-6 mt-2">
+      <HeaderProgressBlock
+        label="Essentials"
+        sublabel="met"
+        current={essentialsMet}
+        total={essentialsTotal}
+        pct={essentialsPct}
+      />
+      <HeaderProgressBlock
+        label="Desirables"
+        sublabel="evidenced"
+        current={desirablesEvidenced}
+        total={desirablesTotal}
+        pct={desirablesPct}
+      />
+    </div>
+  )
+}
+
+function HeaderProgressBlock({
+  label,
+  sublabel,
+  current,
+  total,
+  pct,
+}: {
+  label: string
+  sublabel: string
+  current: number
+  total: number
+  pct: number
+}) {
+  return (
+    <div>
+      <p className="text-[10px] text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide mb-1">
+        {label}
+      </p>
+      <div className="flex items-baseline gap-1.5 mb-2">
+        <span className="text-3xl font-bold text-[#F5F5F2]">{current}</span>
+        <span className="text-xs text-[rgba(245,245,242,0.4)]">
+          / {total} {sublabel}
+        </span>
+      </div>
+      <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+        <div
+          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          style={{ width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  )
+}
+
+// ---------- Domain tab variants ----------
+
+function FlatDomainTabs({
+  config,
+  links,
+  activeDomainKey,
+  onSelect,
+}: {
+  config: SpecialtyConfig
+  links: SpecialtyEntryLink[]
+  activeDomainKey: string
+  onSelect: (key: string) => void
+}) {
+  return (
+    <div className="overflow-x-auto pb-1 mb-1">
+      <div className="flex gap-1 min-w-max">
+        {config.domains.map(domain => (
+          <DomainTabButton
+            key={domain.key}
+            domain={domain}
+            score={calculateDomainScore(domain, links)}
+            isActive={domain.key === activeDomainKey}
+            onSelect={() => onSelect(domain.key)}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function GroupedDomainTabs({
+  config,
+  links,
+  activeDomainKey,
+  onSelect,
+}: {
+  config: SpecialtyConfig
+  links: SpecialtyEntryLink[]
+  activeDomainKey: string
+  onSelect: (key: string) => void
+}) {
+  const essentials = getEssentialDomains(config)
+  const desirables = getDesirableDomains(config)
+
+  return (
+    <div className="space-y-3 mb-1">
+      {essentials.length > 0 && (
+        <DomainGroup
+          title="Essentials"
+          subtitle="Entry requirements — must be met by start date"
+          domains={essentials}
+          links={links}
+          activeDomainKey={activeDomainKey}
+          onSelect={onSelect}
+          isEvidenceMode
+        />
+      )}
+      {desirables.length > 0 && (
+        <DomainGroup
+          title="Desirables"
+          subtitle="Application & interview criteria — build evidence over time"
+          domains={desirables}
+          links={links}
+          activeDomainKey={activeDomainKey}
+          onSelect={onSelect}
+          isEvidenceMode
+        />
+      )}
+    </div>
+  )
+}
+
+function DomainGroup({
+  title,
+  subtitle,
+  domains,
+  links,
+  activeDomainKey,
+  onSelect,
+  isEvidenceMode,
+}: {
+  title: string
+  subtitle: string
+  domains: SpecialtyDomain[]
+  links: SpecialtyEntryLink[]
+  activeDomainKey: string
+  onSelect: (key: string) => void
+  isEvidenceMode: boolean
+}) {
+  return (
+    <div>
+      <div className="flex items-baseline gap-2 mb-2 px-1">
+        <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide">
+          {title}
+        </span>
+        <span className="text-xs text-[rgba(245,245,242,0.35)]">{subtitle}</span>
+      </div>
+      <div className="overflow-x-auto pb-1">
+        <div className="flex gap-1 min-w-max">
+          {domains.map(domain => {
+            const hasLink = links.some(l => l.domain_key === domain.key)
+            return (
+              <DomainTabButton
+                key={domain.key}
+                domain={domain}
+                isActive={domain.key === activeDomainKey}
+                onSelect={() => onSelect(domain.key)}
+                evidenceState={
+                  isEvidenceMode
+                    ? hasLink
+                      ? domain.criteriaType === 'essential'
+                        ? 'met'
+                        : 'evidenced'
+                      : 'empty'
+                    : undefined
+                }
+              />
+            )
+          })}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DomainTabButton({
+  domain,
+  score,
+  isActive,
+  onSelect,
+  evidenceState,
+}: {
+  domain: SpecialtyDomain
+  score?: number
+  isActive: boolean
+  onSelect: () => void
+  evidenceState?: 'empty' | 'met' | 'evidenced'
+}) {
+  return (
+    <button
+      onClick={onSelect}
+      className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
+        isActive
+          ? 'bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25'
+          : 'bg-[#141416] text-[rgba(245,245,242,0.45)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[rgba(245,245,242,0.7)]'
+      }`}
+    >
+      <span>{domain.label}</span>
+      {evidenceState !== undefined ? (
+        <EvidenceStateBadge state={evidenceState} isActive={isActive} />
+      ) : (
+        <span
+          className={`px-1.5 py-0.5 rounded-md text-xs font-semibold ${
+            isActive ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
+          }`}
+        >
+          {score ?? 0}
+        </span>
+      )}
+    </button>
+  )
+}
+
+function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evidenced'; isActive: boolean }) {
+  if (state === 'empty') {
+    return (
+      <span
+        className={`w-3.5 h-3.5 rounded-full border ${
+          isActive ? 'border-[#1B6FD9]/40' : 'border-white/[0.15]'
+        }`}
+      />
+    )
+  }
+  // met or evidenced — show check
+  return (
+    <span
+      className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
+        isActive ? 'bg-[#1B6FD9]' : 'bg-[#1B6FD9]/80'
+      }`}
+    >
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+    </span>
   )
 }

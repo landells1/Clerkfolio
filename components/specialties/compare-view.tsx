@@ -1,8 +1,19 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
-import { getSpecialtyConfig, calculateDomainScore, calculateTotalScore } from '@/lib/specialties'
-import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
+import {
+  getSpecialtyConfig,
+  calculateDomainScore,
+  calculateTotalScore,
+  isEvidenceBased,
+  getEvidenceProgress,
+} from '@/lib/specialties'
+import type {
+  SpecialtyApplication,
+  SpecialtyConfig,
+  SpecialtyDomain,
+  SpecialtyEntryLink,
+} from '@/lib/specialties'
 
 type Props = {
   applications: SpecialtyApplication[]
@@ -46,9 +57,6 @@ export function CompareView({ applications, links }: Props) {
       }
     }
   }
-
-  const leftTotal = leftApp && leftConfig ? calculateTotalScore(leftConfig, leftApp, leftLinks) : 0
-  const rightTotal = rightApp && rightConfig ? calculateTotalScore(rightConfig, rightApp, rightLinks) : 0
 
   return (
     <div>
@@ -100,14 +108,20 @@ export function CompareView({ applications, links }: Props) {
         <div className="grid grid-cols-3 border-b border-white/[0.08]">
           <div className="p-4 text-center">
             <p className="font-semibold text-[#F5F5F2] text-sm">{leftConfig?.name ?? '—'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">{leftConfig?.cycleYear}</p>
+            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">
+              {leftConfig?.cycleYear}
+              {leftConfig && isEvidenceBased(leftConfig) && ' · Evidence-based'}
+            </p>
           </div>
           <div className="p-4 text-center border-x border-white/[0.06]">
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Domain</p>
           </div>
           <div className="p-4 text-center">
             <p className="font-semibold text-[#F5F5F2] text-sm">{rightConfig?.name ?? '—'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">{rightConfig?.cycleYear}</p>
+            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">
+              {rightConfig?.cycleYear}
+              {rightConfig && isEvidenceBased(rightConfig) && ' · Evidence-based'}
+            </p>
           </div>
         </div>
 
@@ -116,11 +130,12 @@ export function CompareView({ applications, links }: Props) {
           const leftDomain = leftConfig?.domains.find(d => d.key === domainKey)
           const rightDomain = rightConfig?.domains.find(d => d.key === domainKey)
 
-          const leftScore = leftDomain ? calculateDomainScore(leftDomain, leftLinks) : null
-          const rightScore = rightDomain ? calculateDomainScore(rightDomain, rightLinks) : null
+          // For points-based domains: numeric score; for evidence-only: link count
+          const leftMetric = leftDomain ? domainMetric(leftDomain, leftLinks) : null
+          const rightMetric = rightDomain ? domainMetric(rightDomain, rightLinks) : null
 
-          const leftHigher = leftScore !== null && rightScore !== null && leftScore > rightScore
-          const rightHigher = leftScore !== null && rightScore !== null && rightScore > leftScore
+          const leftHigher = leftMetric !== null && rightMetric !== null && leftMetric.value > rightMetric.value
+          const rightHigher = leftMetric !== null && rightMetric !== null && rightMetric.value > leftMetric.value
 
           const domainLabel = leftDomain?.label ?? rightDomain?.label ?? domainKey
 
@@ -130,25 +145,13 @@ export function CompareView({ applications, links }: Props) {
               className={`grid grid-cols-3 border-b border-white/[0.04] last:border-0 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
             >
               <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
-                {leftScore !== null ? (
-                  <span className={`text-sm font-semibold ${leftHigher ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
-                    {leftScore} pts
-                  </span>
-                ) : (
-                  <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
-                )}
+                <DomainCell metric={leftMetric} highlight={leftHigher} />
               </div>
               <div className="p-3.5 flex items-center justify-center border-x border-white/[0.04]">
                 <span className="text-xs text-[rgba(245,245,242,0.45)] text-center leading-snug">{domainLabel}</span>
               </div>
               <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
-                {rightScore !== null ? (
-                  <span className={`text-sm font-semibold ${rightHigher ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
-                    {rightScore} pts
-                  </span>
-                ) : (
-                  <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
-                )}
+                <DomainCell metric={rightMetric} highlight={rightHigher} />
               </div>
             </div>
           )
@@ -156,27 +159,95 @@ export function CompareView({ applications, links }: Props) {
 
         {/* Total row */}
         <div className="grid grid-cols-3 border-t border-white/[0.1] bg-white/[0.02]">
-          <div className={`p-4 flex items-center justify-center ${leftTotal > rightTotal ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
-            <span className={`text-base font-bold ${leftTotal > rightTotal ? 'text-[#1B6FD9]' : 'text-[#F5F5F2]'}`}>
-              {leftTotal}
-              {leftConfig && (
-                <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {leftConfig.totalMax}</span>
-              )}
-            </span>
+          <div className="p-4 flex items-center justify-center">
+            <TotalCell config={leftConfig} app={leftApp} links={leftLinks} />
           </div>
           <div className="p-4 flex items-center justify-center border-x border-white/[0.06]">
             <span className="text-xs text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide">Total</span>
           </div>
-          <div className={`p-4 flex items-center justify-center ${rightTotal > leftTotal ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
-            <span className={`text-base font-bold ${rightTotal > leftTotal ? 'text-[#1B6FD9]' : 'text-[#F5F5F2]'}`}>
-              {rightTotal}
-              {rightConfig && (
-                <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {rightConfig.totalMax}</span>
-              )}
-            </span>
+          <div className="p-4 flex items-center justify-center">
+            <TotalCell config={rightConfig} app={rightApp} links={rightLinks} />
           </div>
         </div>
       </div>
     </div>
+  )
+}
+
+// ---------- Per-cell helpers ----------
+
+type DomainMetric =
+  | { kind: 'points'; value: number; max: number }
+  | { kind: 'evidence'; value: number; hasEvidence: boolean }
+
+function domainMetric(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): DomainMetric {
+  if (domain.isEvidenceOnly || domain.maxPoints === 0) {
+    const hasEvidence = links.some(l => l.domain_key === domain.key)
+    return { kind: 'evidence', value: hasEvidence ? 1 : 0, hasEvidence }
+  }
+  return {
+    kind: 'points',
+    value: calculateDomainScore(domain, links),
+    max: domain.maxPoints,
+  }
+}
+
+function DomainCell({ metric, highlight }: { metric: DomainMetric | null; highlight: boolean }) {
+  if (metric === null) {
+    return <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
+  }
+  if (metric.kind === 'points') {
+    return (
+      <span className={`text-sm font-semibold ${highlight ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+        {metric.value} pts
+      </span>
+    )
+  }
+  // evidence
+  if (!metric.hasEvidence) {
+    return <span className="text-xs text-[rgba(245,245,242,0.3)]">Not yet</span>
+  }
+  return (
+    <span className={`text-xs font-semibold flex items-center gap-1 ${highlight ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="20 6 9 17 4 12" />
+      </svg>
+      Evidenced
+    </span>
+  )
+}
+
+function TotalCell({
+  config,
+  app,
+  links,
+}: {
+  config: SpecialtyConfig | undefined
+  app: SpecialtyApplication | undefined
+  links: SpecialtyEntryLink[]
+}) {
+  if (!config || !app) {
+    return <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
+  }
+  if (isEvidenceBased(config)) {
+    const { essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal } = getEvidenceProgress(config, links)
+    return (
+      <div className="text-center">
+        <p className="text-sm font-semibold text-[#F5F5F2]">
+          {essentialsMet}/{essentialsTotal}
+          <span className="text-xs font-normal text-[rgba(245,245,242,0.45)] ml-1">essentials</span>
+        </p>
+        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
+          {desirablesEvidenced}/{desirablesTotal} desirables
+        </p>
+      </div>
+    )
+  }
+  const total = calculateTotalScore(config, app, links)
+  return (
+    <span className="text-base font-bold text-[#F5F5F2]">
+      {total}
+      <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {config.totalMax}</span>
+    </span>
   )
 }

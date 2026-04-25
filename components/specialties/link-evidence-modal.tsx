@@ -80,13 +80,25 @@ export function LinkEvidenceModal({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query])
 
+  const noBands = domain.bands.length === 0
+  const canLink = !!selectedResult && (noBands || !!selectedBand)
+
   async function handleLink() {
-    if (!selectedResult || !selectedBand) return
+    if (!selectedResult || !canLink) return
     setLinking(true)
     setError(null)
     try {
-      const band = domain.bands.find(b => b.label === selectedBand)
-      if (!band) throw new Error('Band not found')
+      let bandLabel: string
+      let bandPoints: number
+      if (noBands) {
+        bandLabel = 'Evidence linked'
+        bandPoints = 0
+      } else {
+        const band = domain.bands.find(b => b.label === selectedBand)
+        if (!band) throw new Error('Band not found')
+        bandLabel = band.label
+        bandPoints = band.points
+      }
 
       const { data, error: insertError } = await supabase
         .from('specialty_entry_links')
@@ -95,8 +107,8 @@ export function LinkEvidenceModal({
           domain_key: domain.key,
           entry_id: selectedResult.id,
           entry_type: selectedResult.type,
-          band_label: band.label,
-          points_claimed: band.points,
+          band_label: bandLabel,
+          points_claimed: bandPoints,
           is_checkbox: false,
         })
         .select()
@@ -217,23 +229,32 @@ export function LinkEvidenceModal({
                 </div>
               </div>
 
-              <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2 block">
-                  Which scoring band does this evidence qualify for?
-                </label>
-                <select
-                  value={selectedBand}
-                  onChange={e => setSelectedBand(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
-                >
-                  <option value="">Select a band…</option>
-                  {domain.bands.map(band => (
-                    <option key={band.label} value={band.label}>
-                      {band.label} ({band.points} pts)
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {noBands ? (
+                <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+                  <p className="text-xs text-[rgba(245,245,242,0.55)] leading-relaxed">
+                    This domain is evidence-only — no scoring bands. Linking this entry will
+                    mark the domain as evidenced.
+                  </p>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2 block">
+                    Which scoring band does this evidence qualify for?
+                  </label>
+                  <select
+                    value={selectedBand}
+                    onChange={e => setSelectedBand(e.target.value)}
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+                  >
+                    <option value="">Select a band…</option>
+                    {domain.bands.map(band => (
+                      <option key={band.label} value={band.label}>
+                        {band.label} ({band.points} pts)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </>
           )}
         </div>
@@ -243,7 +264,7 @@ export function LinkEvidenceModal({
           <div className="p-6 border-t border-white/[0.08] shrink-0">
             <button
               onClick={handleLink}
-              disabled={!selectedBand || linking}
+              disabled={!canLink || linking}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
               {linking ? 'Linking…' : 'Link evidence'}

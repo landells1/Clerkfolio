@@ -42,15 +42,27 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
 
+  const noBands = domain.bands.length === 0
+  const canSubmit = title.trim() !== '' && (noBands || selectedBand !== '')
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!title.trim() || !selectedBand) return
+    if (!canSubmit) return
     setSubmitting(true)
     setError(null)
 
     try {
-      const band = domain.bands.find(b => b.label === selectedBand)
-      if (!band) throw new Error('Band not found')
+      let bandLabel: string
+      let bandPoints: number
+      if (noBands) {
+        bandLabel = 'Evidence linked'
+        bandPoints = 0
+      } else {
+        const band = domain.bands.find(b => b.label === selectedBand)
+        if (!band) throw new Error('Band not found')
+        bandLabel = band.label
+        bandPoints = band.points
+      }
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
@@ -100,8 +112,8 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
           domain_key: domain.key,
           entry_id: entryId,
           entry_type: entryType,
-          band_label: band.label,
-          points_claimed: band.points,
+          band_label: bandLabel,
+          points_claimed: bandPoints,
           is_checkbox: false,
         })
         .select()
@@ -256,25 +268,27 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
                 />
               </div>
 
-              {/* Band selection */}
-              <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
-                  Scoring band <span className="text-red-400">*</span>
-                </label>
-                <select
-                  value={selectedBand}
-                  onChange={e => setSelectedBand(e.target.value)}
-                  required
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
-                >
-                  <option value="">Select the scoring band this evidence qualifies for…</option>
-                  {domain.bands.map(band => (
-                    <option key={band.label} value={band.label}>
-                      {band.label} ({band.points} pts)
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Band selection — hidden for evidence-only domains */}
+              {!noBands && (
+                <div>
+                  <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                    Scoring band <span className="text-red-400">*</span>
+                  </label>
+                  <select
+                    value={selectedBand}
+                    onChange={e => setSelectedBand(e.target.value)}
+                    required
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+                  >
+                    <option value="">Select the scoring band this evidence qualifies for…</option>
+                    {domain.bands.map(band => (
+                      <option key={band.label} value={band.label}>
+                        {band.label} ({band.points} pts)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </form>
           )}
         </div>
@@ -285,7 +299,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
             <button
               type="submit"
               form="log-link-form"
-              disabled={!title.trim() || !selectedBand || submitting}
+              disabled={!canSubmit || submitting}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
               {submitting ? 'Saving…' : 'Log & link evidence'}
