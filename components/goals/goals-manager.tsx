@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -116,7 +116,7 @@ export default function GoalsManager({ initialGoals }: Props) {
             <select
               value={category}
               onChange={e => setCategory(e.target.value)}
-              className="w-full bg-[#0B0B0C] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+              className="w-full bg-[#0B0B0C] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             >
               {CATEGORY_OPTIONS.map(o => (
                 <option key={o.value} value={o.value}>{o.label}</option>
@@ -132,7 +132,7 @@ export default function GoalsManager({ initialGoals }: Props) {
               max={500}
               value={targetCount}
               onChange={e => setTargetCount(Math.max(1, Math.min(500, Number(e.target.value))))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+              className="w-full bg-[#0B0B0C] border border-white/[0.1] rounded-lg px-3 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             />
           </div>
 
@@ -142,7 +142,7 @@ export default function GoalsManager({ initialGoals }: Props) {
             <button
               onClick={handleAdd}
               disabled={saving}
-              className="flex-1 bg-[#1D9E75] hover:bg-[#22c693] disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors"
+              className="flex-1 bg-[#1B6FD9] hover:bg-[#3884DD] disabled:opacity-50 text-white text-sm font-medium rounded-lg px-4 py-2 transition-colors"
             >
               {saving ? 'Saving…' : 'Add goal'}
             </button>

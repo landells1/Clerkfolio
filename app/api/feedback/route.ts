@@ -1,4 +1,4 @@
-import { Resend } from 'resend'
+﻿import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
       // HTML version uses escaped values throughout
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #1D9E75;">New feedback from Clinidex</h2>
+          <h2 style="color: #1B6FD9;">New feedback from Clinidex</h2>
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
               <td style="padding: 8px 0; color: #666; width: 80px;"><strong>Name</strong></td>

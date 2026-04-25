@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supabase/storage'
@@ -93,7 +93,7 @@ export default function EvidenceFiles({
               <button
                 onClick={() => handleDownload(file)}
                 disabled={downloading === file.id}
-                className="text-xs text-[#1D9E75] hover:text-[#22c693] transition-colors disabled:opacity-50"
+                className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors disabled:opacity-50"
               >
                 {downloading === file.id ? 'Getting link…' : 'Download'}
               </button>

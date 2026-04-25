@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import { calculateDomainScore, calculateTotalScore } from '@/lib/specialties'
@@ -68,7 +68,7 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
         <span className="text-3xl font-bold text-[#F5F5F2]">{total}</span>
         <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
         {application.bonus_claimed && bonusPoints > 0 && (
-          <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1D9E75]/15 text-[#1D9E75] text-xs font-semibold border border-[#1D9E75]/20">
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
             +{bonusPoints} bonus
           </span>
         )}
@@ -77,7 +77,7 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
       {/* Progress bar */}
       <div className="h-1.5 w-full bg-white/[0.06] rounded-full mb-4 overflow-hidden">
         <div
-          className="h-full bg-[#1D9E75] rounded-full transition-all"
+          className="h-full bg-[#1B6FD9] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>

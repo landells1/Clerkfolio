@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import { relativeDate } from '@/lib/utils/dates'
 
@@ -33,7 +33,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
               {catMeta?.short}
             </span>
             {entry.specialty_tags.slice(0, 2).map(tag => (
-              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#1D9E75]/10 text-[#1D9E75] border border-[#1D9E75]/20">
+              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
                 {tag}
               </span>
             ))}

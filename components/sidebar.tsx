@@ -141,8 +141,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           </svg>
         </button>
         <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-md bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono flex-shrink-0">
-            C
+          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)' }}>
+            <svg viewBox="0 0 64 64" width="18" height="18" fill="none">
+              <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
+              <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
+              <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="rgba(255,255,255,0.92)" />
+              <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
         </div>
@@ -161,8 +167,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
         {/* Logo */}
         <div className="flex items-center justify-between border-b border-white/[0.06]">
         <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">
-          <div className="w-7 h-7 rounded-md bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono flex-shrink-0">
-            C
+          <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)' }}>
+            <svg viewBox="0 0 64 64" width="18" height="18" fill="none">
+              <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
+              <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
+              <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="rgba(255,255,255,0.92)" />
+              <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
           </div>
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
         </Link>
@@ -187,13 +199,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                   key={item.href}
                   href={item.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                     active
-                      ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
-                      : 'text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                      ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
+                      : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
                   }`}
+                  style={active ? { background: 'rgba(27,111,217,0.12)' } : undefined}
                 >
-                  <span className={active ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.4)]'}>
+                  <span className={active ? 'text-blue-300' : 'text-[rgba(245,245,242,0.4)]'}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -252,11 +265,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           <Link
             href="/import"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/import'
-                ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
-                : 'text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
+                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
             }`}
+            style={pathname === '/import' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -270,11 +284,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           <Link
             href="/trash"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/trash'
-                ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
-                : 'text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
+                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
             }`}
+            style={pathname === '/trash' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6" />
@@ -289,11 +304,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
           <Link
             href="/settings"
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/settings'
-                ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
-                : 'text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
+                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
             }`}
+            style={pathname === '/settings' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3" />
@@ -304,7 +320,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
 
           {/* User name */}
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-7 h-7 rounded-full bg-[#1D9E75]/20 flex items-center justify-center text-[#1D9E75] text-xs font-semibold flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
             <span className="text-sm text-[rgba(245,245,242,0.6)] truncate font-medium">{fullName}</span>
@@ -335,7 +351,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                     required
                     value={feedback.name}
                     onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="Dr Jane Smith"
                   />
                 </div>
@@ -346,7 +362,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                     required
                     value={feedback.email}
                     onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -357,14 +373,14 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                     rows={4}
                     value={feedback.comment}
                     onChange={e => setFeedback(f => ({ ...f, comment: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors resize-none"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
                     placeholder="Tell us what's working, what isn't, or what you'd love to see…"
                   />
                 </div>
                 <button
                   type="submit"
                   disabled={feedbackSending}
-                  className="w-full bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg py-2.5 text-sm transition-colors"
+                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
                 >
                   {feedbackSending ? 'Sending…' : 'Send feedback'}
                 </button>

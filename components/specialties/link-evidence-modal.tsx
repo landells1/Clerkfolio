@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -153,10 +153,10 @@ export function LinkEvidenceModal({
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search portfolio entries and cases…"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                 />
                 {searching && (
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[#1D9E75] border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
                 )}
               </div>
 
@@ -224,7 +224,7 @@ export function LinkEvidenceModal({
                 <select
                   value={selectedBand}
                   onChange={e => setSelectedBand(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors appearance-none"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
                 >
                   <option value="">Select a band…</option>
                   {domain.bands.map(band => (
@@ -244,7 +244,7 @@ export function LinkEvidenceModal({
             <button
               onClick={handleLink}
               disabled={!selectedBand || linking}
-              className="w-full py-2.5 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+              className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
               {linking ? 'Linking…' : 'Link evidence'}
             </button>

@@ -30,7 +30,7 @@ export const CATEGORY_COLOURS: Record<Category, ColourSet> = {
   publication: { badge: 'bg-orange-500/15 text-orange-400 border-orange-500/20', dot: 'bg-orange-400', bg: 'bg-orange-500/15', text: 'text-orange-400', bar: 'bg-orange-400' },
   leadership:  { badge: 'bg-pink-500/15 text-pink-400 border-pink-500/20',   dot: 'bg-pink-400',   bg: 'bg-pink-500/15',   text: 'text-pink-400',   bar: 'bg-pink-400' },
   prize:       { badge: 'bg-amber-500/15 text-amber-400 border-amber-500/20', dot: 'bg-amber-400',  bg: 'bg-amber-500/15',  text: 'text-amber-400',  bar: 'bg-amber-400' },
-  procedure:   { badge: 'bg-cyan-500/15 text-cyan-400 border-cyan-500/20',   dot: 'bg-cyan-400',   bg: 'bg-cyan-500/15',   text: 'text-cyan-400',   bar: 'bg-cyan-400' },
+  procedure:   { badge: 'bg-blue-500/15 text-blue-400 border-blue-500/20',   dot: 'bg-blue-400',   bg: 'bg-blue-500/15',   text: 'text-blue-400',   bar: 'bg-blue-400' },
   reflection:  { badge: 'bg-green-500/15 text-green-400 border-green-500/20', dot: 'bg-green-400',  bg: 'bg-green-500/15',  text: 'text-green-400',  bar: 'bg-green-400' },
   custom:      { badge: 'bg-[rgba(245,245,242,0.08)] text-[rgba(245,245,242,0.55)] border-white/[0.08]', dot: 'bg-[rgba(245,245,242,0.4)]', bg: 'bg-[rgba(245,245,242,0.08)]', text: 'text-[rgba(245,245,242,0.55)]', bar: 'bg-[rgba(245,245,242,0.4)]' },
 }

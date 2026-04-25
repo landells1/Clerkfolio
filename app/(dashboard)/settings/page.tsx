@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -255,7 +255,7 @@ export default function SettingsPage() {
                 type="text"
                 value={profile.first_name}
                 onChange={e => setProfile(p => ({ ...p, first_name: e.target.value }))}
-                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
               />
             </div>
             <div>
@@ -264,7 +264,7 @@ export default function SettingsPage() {
                 type="text"
                 value={profile.last_name}
                 onChange={e => setProfile(p => ({ ...p, last_name: e.target.value }))}
-                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
               />
             </div>
           </div>
@@ -274,7 +274,7 @@ export default function SettingsPage() {
             <select
               value={profile.career_stage}
               onChange={e => setProfile(p => ({ ...p, career_stage: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             >
               {CAREER_STAGES.map(s => (
                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -288,7 +288,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={saving}
-              className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
+              className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
             >
               {saving ? 'Saving…' : 'Save changes'}
             </button>
@@ -302,7 +302,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => { setShowEmailChange(v => !v); setEmailChangeError(null) }}
-              className="text-xs text-[#1D9E75] hover:underline"
+              className="text-xs text-[#1B6FD9] hover:underline"
             >
               Change email
             </button>
@@ -325,12 +325,12 @@ export default function SettingsPage() {
                 onChange={e => setNewEmail(e.target.value)}
                 disabled={emailChangeLoading}
                 placeholder="New email address"
-                className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors disabled:opacity-50"
+                className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors disabled:opacity-50"
               />
               <button
                 type="submit"
                 disabled={emailChangeLoading || !newEmail}
-                className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
+                className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
               >
                 {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
               </button>
@@ -349,7 +349,7 @@ export default function SettingsPage() {
               type="password"
               value={passwordForm.next}
               onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
               placeholder="At least 8 characters"
             />
           </div>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
               type="password"
               value={passwordForm.confirm}
               onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
               placeholder="••••••••"
             />
           </div>
@@ -368,7 +368,7 @@ export default function SettingsPage() {
             <button
               type="submit"
               disabled={passwordLoading}
-              className="bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
+              className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
             >
               {passwordLoading ? 'Updating…' : 'Update password'}
             </button>
@@ -382,7 +382,7 @@ export default function SettingsPage() {
         <div className="space-y-3 text-sm text-[rgba(245,245,242,0.55)] leading-relaxed">
           <p>Your data is stored securely on UK servers (London region) with AES-256 encryption at rest and TLS 1.3 in transit.</p>
           <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
-          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1D9E75] hover:underline">See our privacy policy</a> and <a href="/terms" className="text-[#1D9E75] hover:underline">terms of service</a> for full details.</p>
+          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1B6FD9] hover:underline">See our privacy policy</a> and <a href="/terms" className="text-[#1B6FD9] hover:underline">terms of service</a> for full details.</p>
         </div>
       </section>
 
@@ -391,7 +391,7 @@ export default function SettingsPage() {
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Plan & billing</h2>
 
         {upgradedMsg && (
-          <div className="mb-4 bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-4 py-3 text-sm text-[#1D9E75]">
+          <div className="mb-4 bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-4 py-3 text-sm text-[#1B6FD9]">
             ✓ You&apos;re now on Clinidex Pro. Thank you!
           </div>
         )}
@@ -401,8 +401,8 @@ export default function SettingsPage() {
             {/* Status badge */}
             <div className="flex items-center gap-3">
               {subInfo.isPro ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1D9E75]/15 text-[#1D9E75] border border-[#1D9E75]/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1D9E75]" />
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/30">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B6FD9]" />
                   Pro
                 </span>
               ) : subInfo.isTrial ? (
@@ -435,7 +435,7 @@ export default function SettingsPage() {
                 subInfo.canExport ? 'PDF export — included' : 'PDF export — Pro only',
               ].map(f => (
                 <div key={f} className="flex items-center gap-2">
-                  <svg className={subInfo.canExport || !f.includes('export') ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.2)]'} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className={subInfo.canExport || !f.includes('export') ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.2)]'} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                   {f}
@@ -456,7 +456,7 @@ export default function SettingsPage() {
               <button
                 onClick={handleUpgrade}
                 disabled={billingLoading}
-                className="flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors"
+                className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors"
               >
                 {billingLoading ? 'Redirecting…' : 'Upgrade to Pro — £10/year'}
               </button>
@@ -485,7 +485,7 @@ export default function SettingsPage() {
               <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
                 <div
                   className={`h-full rounded-full transition-all ${
-                    pct > 90 ? 'bg-red-400' : pct > 70 ? 'bg-amber-400' : 'bg-[#1D9E75]'
+                    pct > 90 ? 'bg-red-400' : pct > 70 ? 'bg-amber-400' : 'bg-[#1B6FD9]'
                   }`}
                   style={{ width: `${pct}%` }}
                 />
@@ -524,7 +524,7 @@ export default function SettingsPage() {
                 <p className="text-sm font-medium text-red-400">This is permanent and cannot be undone</p>
                 <p className="text-sm text-[rgba(245,245,242,0.45)]">
                   We recommend exporting your data before deleting.{' '}
-                  <Link href="/export" className="text-[#1D9E75] hover:underline">Export your portfolio →</Link>
+                  <Link href="/export" className="text-[#1B6FD9] hover:underline">Export your portfolio →</Link>
                 </p>
               </div>
             </div>

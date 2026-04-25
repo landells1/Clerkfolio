@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -16,15 +16,15 @@ type Props = {
   defaultCategory?: Category
 }
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors'
-const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
+const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 const FIELD = 'flex flex-col gap-1'
 const GRID2 = 'grid grid-cols-2 gap-4'
 const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
-      ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+      ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
       : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
   }`
 
@@ -47,7 +47,7 @@ function CheckboxField({ label, checked, onChange }: { label: string; checked: b
     <label className="flex items-center gap-3 cursor-pointer py-1">
       <div
         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-          checked ? 'bg-[#1D9E75] border-[#1D9E75]' : 'bg-[#0B0B0C] border-white/[0.15]'
+          checked ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-[#0B0B0C] border-white/[0.15]'
         }`}
         onClick={() => onChange(!checked)}
       >
@@ -325,7 +325,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Draft restored banner */}
       {draftRestored && (
-        <div className="flex items-center justify-between bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1D9E75] mb-4">
+        <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
           <span>Draft restored</span>
           <button
             type="button"
@@ -347,7 +347,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               setReflType(''); setReflContext(''); setReflSupervisor(''); setReflFreeText('')
               setCustomFreeText('')
             }}
-            className="text-xs text-[#1D9E75]/70 hover:text-[#1D9E75]"
+            className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]"
           >
             Discard
           </button>
@@ -366,7 +366,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 onClick={() => setCategory(c.value)}
                 className={`py-2.5 px-3 text-sm rounded-xl border text-left transition-colors ${
                   category === c.value
-                    ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+                    ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
                     : 'bg-[#141416] border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-white/[0.15]'
                 }`}
               >
@@ -638,7 +638,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         <button
           type="submit"
           disabled={saving || uploading}
-          className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+          className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
         >
           {saving ? 'Saving…' : mode === 'create' ? 'Save entry' : 'Save changes'}
         </button>
@@ -648,7 +648,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       {uploading && (
         <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
           <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1D9E75] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+            <div className="h-full bg-[#1B6FD9] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
           </div>
           <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
         </div>

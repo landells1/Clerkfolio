@@ -19,7 +19,20 @@ function entrySubtitle(e: PortfolioEntry): string {
   return ''
 }
 
-const TABS = ['Achievements', 'Cases', 'Specialty'] as const
+// Dot glow colour map (hex values for box-shadow)
+const DOT_HEX: Record<string, string> = {
+  audit_qip:   '#60A5FA',
+  teaching:    '#A78BFA',
+  conference:  '#F472B6',
+  publication: '#FB923C',
+  leadership:  '#F472B6',
+  prize:       '#FBBF24',
+  procedure:   '#1B6FD9',
+  reflection:  '#94A3B8',
+  custom:      'rgba(245,245,242,0.4)',
+}
+
+const TABS = ['Portfolio', 'Cases', 'Specialty'] as const
 type Tab = typeof TABS[number]
 
 export default function ActivityFeed({
@@ -33,33 +46,41 @@ export default function ActivityFeed({
   specialtyInterests: string[]
   specialtyCounts: Record<string, number>
 }) {
-  const [tab, setTab] = useState<Tab>('Achievements')
+  const [tab, setTab] = useState<Tab>('Portfolio')
+
+  const tabCounts: Record<Tab, number | null> = {
+    Portfolio: entries.length,
+    Cases: cases.length,
+    Specialty: null,
+  }
 
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl flex flex-col min-h-0">
-      {/* Tab bar */}
-      <div className="flex border-b border-white/[0.06] px-4 pt-4 gap-1">
-        {TABS.map(t => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-3 py-2 text-xs font-medium rounded-t-lg transition-colors relative ${
-              tab === t
-                ? 'text-[#F5F5F2]'
-                : 'text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)]'
-            }`}
-          >
-            {t}
-            {tab === t && (
-              <span className="absolute bottom-0 left-0 right-0 h-px bg-[#1D9E75] rounded-full" />
-            )}
-          </button>
-        ))}
+      {/* Widget header with segmented tab control */}
+      <div className="flex items-center justify-between px-4 pt-4 pb-0 border-b border-white/[0.06]">
+        <div className="flex gap-0.5">
+          {TABS.map(t => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-3 py-2 text-xs font-medium transition-colors relative whitespace-nowrap ${
+                tab === t
+                  ? 'text-[#F5F5F2]'
+                  : 'text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)]'
+              }`}
+            >
+              {tabCounts[t] !== null ? `${t} · ${tabCounts[t]}` : t}
+              {tab === t && (
+                <span className="absolute bottom-0 left-0 right-0 h-px bg-blue-400 rounded-full" />
+              )}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto divide-y divide-white/[0.04] max-h-[420px]">
-        {/* Achievements */}
-        {tab === 'Achievements' && (
+        {/* Portfolio */}
+        {tab === 'Portfolio' && (
           entries.length === 0 ? (
             <EmptyState
               icon={<AchievIcon />}
@@ -72,9 +93,13 @@ export default function ActivityFeed({
               const colour = CATEGORY_COLOURS[e.category]
               const label = CATEGORIES.find(c => c.value === e.category)?.short ?? e.category
               const sub = entrySubtitle(e)
+              const dotHex = DOT_HEX[e.category] ?? 'rgba(245,245,242,0.4)'
               return (
                 <Link key={e.id} href={`/portfolio/${e.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
-                  <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${colour.dot}`} />
+                  <span
+                    className={`shrink-0 w-1.5 h-1.5 rounded-full ${colour.dot}`}
+                    style={{ boxShadow: `0 0 0 3px ${dotHex}22` }}
+                  />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{e.title}</p>
                     {sub && <p className="text-xs text-[rgba(245,245,242,0.4)] truncate">{sub}</p>}
@@ -101,7 +126,10 @@ export default function ActivityFeed({
           ) : (
             cases.slice(0, 20).map(c => (
               <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
-                <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-cyan-400" />
+                <span
+                  className="shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
+                  style={{ boxShadow: '0 0 0 3px #3884DD22' }}
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{c.title}</p>
                   {c.clinical_domain && (
@@ -129,14 +157,15 @@ export default function ActivityFeed({
             <div className="p-4 space-y-2">
               {specialtyInterests.map(s => {
                 const count = specialtyCounts[s] ?? 0
+                const maxCount = Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(...Object.values(specialtyCounts))
                 return (
                   <div key={s} className="flex items-center justify-between py-2">
                     <span className="text-sm text-[rgba(245,245,242,0.8)]">{s}</span>
                     <div className="flex items-center gap-3">
                       <div className="w-24 h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
-                          className="h-full bg-[#1D9E75] rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (count / (Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(...Object.values(specialtyCounts)))) * 100)}%` }}
+                          className="h-full bg-blue-500 rounded-full transition-all"
+                          style={{ width: `${Math.min(100, (count / maxCount) * 100)}%` }}
                         />
                       </div>
                       <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono w-6 text-right">{count}</span>
@@ -145,7 +174,7 @@ export default function ActivityFeed({
                 )
               })}
               <div className="pt-2 border-t border-white/[0.06]">
-                <Link href="/specialties" className="text-xs text-[#1D9E75] hover:text-[#22c693] transition-colors">
+                <Link href="/specialties" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
                   Manage interests →
                 </Link>
               </div>
@@ -162,7 +191,7 @@ function EmptyState({ icon, text, href, cta }: { icon: React.ReactNode; text: st
     <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
       <div className="text-[rgba(245,245,242,0.15)]">{icon}</div>
       <p className="text-sm text-[rgba(245,245,242,0.35)]">{text}</p>
-      <Link href={href} className="text-xs text-[#1D9E75] hover:text-[#22c693] transition-colors">{cta}</Link>
+      <Link href={href} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">{cta}</Link>
     </div>
   )
 }

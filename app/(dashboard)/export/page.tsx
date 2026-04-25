@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
@@ -174,7 +174,7 @@ export default function ExportPage() {
         <button
           onClick={handleGenerate}
           disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.canExport)}
-          className="flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-40 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors shrink-0"
+          className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors shrink-0"
         >
           {generating ? (
             <>
@@ -209,7 +209,7 @@ export default function ExportPage() {
           </p>
           <a
             href="/settings"
-            className="inline-flex items-center gap-2 bg-[#1D9E75] hover:bg-[#178060] text-[#0B0B0C] font-semibold rounded-xl px-6 py-2.5 text-sm transition-colors"
+            className="inline-flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-6 py-2.5 text-sm transition-colors"
           >
             Upgrade to Pro — £10/year
           </a>
@@ -228,7 +228,7 @@ export default function ExportPage() {
                 onClick={() => setSpecialty(s)}
                 className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   specialty === s
-                    ? 'bg-[#1D9E75]/20 text-[#1D9E75] border border-[#1D9E75]/40'
+                    ? 'bg-[#1B6FD9]/20 text-[#1B6FD9] border border-[#1B6FD9]/40'
                     : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
                 }`}
               >
@@ -242,7 +242,7 @@ export default function ExportPage() {
           value={specialty}
           onChange={e => setSpecialty(e.target.value)}
           placeholder="Type a specialty…"
-          className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+          className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
         />
       </div>
 
@@ -256,7 +256,7 @@ export default function ExportPage() {
               onClick={() => setFormat(f)}
               className={`px-4 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                 format === f
-                  ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+                  ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
                   : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
               }`}
             >
@@ -313,7 +313,7 @@ export default function ExportPage() {
             </p>
             {!loading && visible.length > 0 && (
               <div className="flex items-center gap-3">
-                <button onClick={selectAll} className="text-xs text-[#1D9E75] hover:text-[#22c693] transition-colors">Select all</button>
+                <button onClick={selectAll} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">Select all</button>
                 <button onClick={deselectAll} className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">Deselect all</button>
               </div>
             )}
@@ -321,7 +321,7 @@ export default function ExportPage() {
 
           {loading ? (
             <div className="flex items-center justify-center py-16">
-              <div className="w-5 h-5 border-2 border-[#1D9E75] border-t-transparent rounded-full animate-spin" />
+              <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
             </div>
           ) : visible.length === 0 ? (
             <div className="py-16 text-center">
@@ -340,13 +340,13 @@ export default function ExportPage() {
                   <label
                     key={e.id}
                     className={`flex items-center gap-4 px-5 py-3.5 cursor-pointer transition-colors ${
-                      checked ? 'bg-[#1D9E75]/5' : 'hover:bg-white/[0.02]'
+                      checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'
                     }`}
                   >
                     {/* Checkbox */}
                     <div
                       className={`shrink-0 w-4 h-4 rounded border flex items-center justify-center transition-colors ${
-                        checked ? 'bg-[#1D9E75] border-[#1D9E75]' : 'border-white/[0.2] bg-transparent'
+                        checked ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'border-white/[0.2] bg-transparent'
                       }`}
                     >
                       {checked && (

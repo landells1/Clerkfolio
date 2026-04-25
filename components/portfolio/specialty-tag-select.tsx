@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/specialties'
@@ -52,13 +52,13 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
     <div ref={ref} className="relative">
       {/* Selected tags */}
       <div
-        className="min-h-[42px] w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap gap-1.5 cursor-text focus-within:border-[#1D9E75] transition-colors"
+        className="min-h-[42px] w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap gap-1.5 cursor-text focus-within:border-[#1B6FD9] transition-colors"
         onClick={() => setOpen(true)}
       >
         {value.map(tag => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 bg-[#1D9E75]/15 text-[#1D9E75] border border-[#1D9E75]/25 rounded px-2 py-0.5 text-xs font-medium"
+            className="inline-flex items-center gap-1 bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25 rounded px-2 py-0.5 text-xs font-medium"
           >
             {tag}
             <button
@@ -109,7 +109,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
                       onClick={() => toggle(s)}
                       className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
                         isSelected
-                          ? 'bg-[#1D9E75]/10 text-[#1D9E75]'
+                          ? 'bg-[#1B6FD9]/10 text-[#1B6FD9]'
                           : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
                       }`}
                     >

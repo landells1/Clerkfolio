@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useEffect } from 'react'
@@ -19,7 +19,7 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="bg-[#1D9E75] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[#1D9E75]/90 transition-colors"
+          className="bg-[#1B6FD9] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[#1B6FD9]/90 transition-colors"
         >
           Try again
         </button>
