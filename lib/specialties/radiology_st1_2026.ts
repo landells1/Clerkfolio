@@ -8,6 +8,7 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/clinical-radiology/core-clinical-radiology/clinical-radiology-st1-portfolio-review-guidance',
   sourceLabel: 'NHS England — Clinical Radiology ST1 Portfolio Review Guidance',
   isOfficial: true,
+  scoringType: 'points',
   domains: [
     {
       key: 'commitment_radiology',

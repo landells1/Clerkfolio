@@ -1,32 +1,37 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — GP ST1 2026 selection is MSRA-only.
-// No portfolio scoring at application stage; this config is for portfolio-building reference only.
+// GP ST1 2026 — selection is MSRA + Stage 3 selection centre.
+// No portfolio scoring at application stage; competence assessed at Stage 3.
 export const GP_ST1_2026: SpecialtyConfig = {
   key: 'gp_st1_2026',
-  name: 'GP ST1',
+  name: 'General Practice ST1',
   cycleYear: 2026,
   totalMax: 0,
-  source: 'https://gprecruitment.hee.nhs.uk/',
-  sourceLabel: 'NHS England — GP Recruitment',
-  isOfficial: false,
+  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/general-practice-st1-2026',
+  sourceLabel: 'NHS England — General Practice ST1 2026 Person Specification',
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'PhD/MD, Masters, PG Diploma/Certificate.',
     },
     {
       key: 'publications',
-      label: 'Research & Publications',
+      label: 'Publications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications, book chapters, case reports, editorials, abstracts.',
     },
@@ -36,6 +41,7 @@ export const GP_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -45,6 +51,7 @@ export const GP_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
@@ -54,6 +61,7 @@ export const GP_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
     },
@@ -63,8 +71,9 @@ export const GP_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'GP taster/attachment, RCGP membership, GP conferences attended, primary care projects, social prescribing or community health work.',
+      notes: 'GP taster/placement, RCGP Associate-in-Training, GP-related courses, attendance at RCGP / primary care conferences, community/public health work, GP-relevant audits.',
     },
   ],
 }

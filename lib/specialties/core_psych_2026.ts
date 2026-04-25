@@ -1,25 +1,29 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — Core Psychiatry CT1 2026 selection is MSRA-only.
-// No portfolio scoring at application stage; this config is for portfolio-building reference only.
+// Core Psychiatry CT1 2026 — selection is MSRA + interview.
+// No portfolio scoring at application stage; portfolio assessed at interview.
 export const CORE_PSYCH_2026: SpecialtyConfig = {
   key: 'core_psych_2026',
-  name: 'Core Psychiatry Training',
+  name: 'Core Psychiatry CT1',
   cycleYear: 2026,
   totalMax: 0,
-  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/psychiatry/core-psychiatry-training',
-  sourceLabel: 'NHS England — Core Psychiatry Training Recruitment',
-  isOfficial: false,
+  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/core-psychiatry-training-ct1-2026',
+  sourceLabel: 'NHS England — Core Psychiatry Training CT1 2026 Person Specification',
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'PhD/MD, Masters, PG Diploma/Certificate.',
+      notes: 'PhD/MD, Masters (especially in psychiatry, psychology, neuroscience), PG Diploma/Certificate.',
     },
     {
       key: 'publications',
@@ -27,6 +31,7 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications, book chapters, case reports, editorials, abstracts.',
     },
@@ -36,6 +41,7 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -45,6 +51,7 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
@@ -54,17 +61,19 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
     },
     {
-      key: 'commitment_psych',
+      key: 'commitment_psychiatry',
       label: 'Commitment to Psychiatry',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'MRCPsych Paper A, psychiatry taster/elective, RCPsych membership, mental health volunteering, psychiatry conferences attended.',
+      notes: 'Psychiatry taster/elective, RCPsych membership, RCPsych Foundation Fellowship / Psych Star, psychiatry conferences attended, mental health volunteering, MRCPsych Paper A.',
     },
   ],
 }

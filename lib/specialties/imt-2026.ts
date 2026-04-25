@@ -8,6 +8,7 @@ export const IMT_2026: SpecialtyConfig = {
   source: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
   sourceLabel: 'IMT Recruitment — Application Scoring',
   isOfficial: true,
+  scoringType: 'points',
   bonusOptions: [
     {
       key: 'imt_only',

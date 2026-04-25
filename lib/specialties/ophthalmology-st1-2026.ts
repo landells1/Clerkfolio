@@ -1,8 +1,9 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — no points-based scoring claimed.
-// Domains reflect the typical Ophthalmology ST1 portfolio structure but exact band-level
-// scoring is not publicly published in an official RCOphth/HEE document.
+// Ophthalmology ST1 2026 — official NHS person spec exists but per-band points are
+// not publicly published. Configured as evidence-based: NHS entry requirements as
+// essentials, NHS application/interview criteria as desirables for evidence upload.
 export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   key: 'ophthalmology_st1_2026',
   name: 'Ophthalmology ST1',
@@ -10,35 +11,40 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/ophthalmology-st1-2026',
   sourceLabel: 'NHS England — Ophthalmology ST1 2026 Person Specification',
-  isOfficial: false,
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
-      label: 'Qualifications & Degrees',
+      label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Postgraduate degrees (PhD/MD/MSc), intercalated honours, PG diploma/certificate.',
+      notes: 'PhD/MD, Masters (MSc/MA/MRes/MPhil), PG Diploma/Certificate, intercalated honours degrees with classification.',
     },
     {
-      key: 'prizes',
+      key: 'prizes_awards',
       label: 'Prizes & Awards',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'National exam prizes, Crombie Medal, year-firsts, research grants, presentation/poster awards.',
+      notes: 'Distinction/merit at undergraduate level, prizes from medical school or national bodies, scholarships.',
     },
     {
       key: 'msf',
-      label: 'Multi-Source Feedback',
+      label: 'Multi-Source Feedback (MSF)',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Supervisor-signed MSF (GP min 5 respondents, hospital min 7) within 18 months of interview if in clinical posts.',
+      notes: 'Completed MSF/360-degree feedback round (Foundation TAB or equivalent) demonstrating professional behaviours.',
     },
     {
       key: 'quality_improvement',
@@ -46,8 +52,9 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Audit cycles (initiated, designed, implemented, re-audited), published audit, supra-regional QI guideline.',
+      notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
     {
       key: 'presentations',
@@ -55,8 +62,9 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Oral and poster presentations at international/national/regional/local meetings — first author preferred.',
+      notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
     {
       key: 'publications',
@@ -64,26 +72,29 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Peer-reviewed original research, systematic reviews, book chapters.',
+      notes: 'Peer-reviewed publications (PubMed-indexed), book chapters, case reports, editorials, abstracts.',
     },
     {
       key: 'teaching',
-      label: 'Teaching & Education',
+      label: 'Teaching Experience',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Formal teaching sessions with feedback, PG Cert/Diploma in Medical Education, course delivery, examiner roles.',
+      notes: 'Formal teaching programmes, regular teaching with feedback, PG Cert in Medical Education or equivalent.',
     },
     {
-      key: 'specialty_links',
+      key: 'commitment_ophthalmology',
       label: 'Commitment to Ophthalmology',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'FRCOphth Part 1, Refraction Certificate, ophthalmic taster/elective, simulation activity, clinic/theatre attendance, national meetings attended.',
+      notes: 'Ophthalmology taster/elective, FRCOphth Part 1, RCOphth membership, conferences attended, ophthalmology-specific courses (e.g. Eye Foundation), volunteer work.',
     },
   ],
 }

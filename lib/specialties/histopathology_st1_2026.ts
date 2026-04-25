@@ -1,8 +1,10 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — Histopathology ST1 2026 has 10 official scored domains via NHS England
-// self-assessment (total 71 pts), but the per-band point breakdown within each domain is not
-// publicly published. This config uses the official 10 domain headings for evidence upload only.
+// Histopathology ST1 2026 — 10 official scored domains via NHS England self-assessment
+// (total 71 pts), but the per-band point breakdown within each domain is not publicly
+// published. Configured as evidence-based using the official 10 HEE domain headings
+// for evidence upload only.
 export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
   key: 'histopathology_st1_2026',
   name: 'Histopathology ST1',
@@ -10,15 +12,18 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/pathology/histopathology/histopathology-st1-training-self-assessment-scoring-guidance-for-applicants',
   sourceLabel: 'NHS England — Histopathology ST1 Self-Assessment Scoring Guidance',
-  isOfficial: false,
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'undergraduate_degrees',
       label: 'Additional Undergraduate Degrees',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Intercalated honours degrees with classification (1st, 2:1, 2:2, distinction/merit/pass).',
     },
@@ -28,6 +33,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'PhD/MD, Masters (MSc/MA/MRes/MPhil), PG Diploma/Certificate.',
     },
@@ -37,6 +43,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -46,6 +53,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications (PubMed-indexed), book chapters, case reports, abstracts.',
     },
@@ -55,6 +63,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Organised teaching programmes, regular formal teaching sessions with feedback.',
     },
@@ -64,6 +73,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'PG Cert/Diploma/Masters in Medical Education, accredited teaching qualifications, teaching training courses.',
     },
@@ -73,6 +83,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with implementation, re-audit and presentation; partial cycles with defined role.',
     },
@@ -82,6 +93,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal leadership roles, committee/society officer positions, leadership training, evidence of change/impact.',
     },
@@ -91,6 +103,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'FRCPath Part 1, histopathology taster/elective/attachment, national histopathology conferences, histopathology-specific online courses.',
     },
@@ -100,6 +113,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Histopathology-specific publications, audit/QI projects, research, case series, posters.',
     },

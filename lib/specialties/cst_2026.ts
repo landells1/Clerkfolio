@@ -8,6 +8,7 @@ export const CST_2026: SpecialtyConfig = {
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/surgery/core-surgery/core-surgical-training-portfolio-guidance-for-candidates',
   sourceLabel: 'NHS England — CST Portfolio Guidance for Candidates',
   isOfficial: true,
+  scoringType: 'points',
   domains: [
     {
       key: 'surgical_experience_operative',

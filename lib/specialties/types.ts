@@ -1,5 +1,16 @@
 export type ScoringRule = 'highest' | 'cumulative_capped'
 
+// How a specialty is scored at application stage:
+//   'points'   — official points-based scoring (e.g. IMT 35-pt matrix)
+//   'evidence' — official NHS person spec exists but no public per-band points;
+//                users upload evidence against essential / desirable domains
+export type ScoringType = 'points' | 'evidence'
+
+// For evidence-based specialties, each domain is either:
+//   'essential' — entry requirement / gate (binary; must be met to apply)
+//   'desirable' — application/interview criterion (evidence accumulates)
+export type CriteriaType = 'essential' | 'desirable'
+
 export type ScoringBand = {
   label: string
   points: number
@@ -14,6 +25,7 @@ export type SpecialtyDomain = {
   isCheckbox?: boolean       // manual claim items, no portfolio entry needed
   isSelfAssessed?: boolean   // single dropdown, no evidence linking
   isEvidenceOnly?: boolean   // no points-based scoring; users upload evidence to the domain only
+  criteriaType?: CriteriaType // for evidence-based specialties: essential vs desirable
   notes?: string
 }
 
@@ -31,7 +43,8 @@ export type SpecialtyConfig = {
   source: string
   sourceLabel: string
   isOfficial: boolean
-  isEvidenceOnly?: boolean   // entire specialty has no points-based scoring (UI hint)
+  scoringType?: ScoringType  // 'points' (default) or 'evidence'; UI uses this to pick layout
+  isEvidenceOnly?: boolean   // deprecated alias; equivalent to scoringType === 'evidence'
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
 }
