@@ -10,12 +10,15 @@ import { CompareView } from './compare-view'
 
 type Tab = 'my_specialties' | 'compare'
 
+const FREE_SPECIALTY_LIMIT = 3
+
 type Props = {
   applications: SpecialtyApplication[]
   links: SpecialtyEntryLink[]
+  isPro?: boolean
 }
 
-export function SpecialtiesShell({ applications: initialApplications, links: initialLinks }: Props) {
+export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
   const [links, setLinks] = useState<SpecialtyEntryLink[]>(initialLinks)
@@ -75,6 +78,11 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
             Add Specialty
+            {!isPro && (
+              <span className="text-[10px] font-normal text-[#0B0B0C]/60 ml-0.5">
+                {applications.length}/{FREE_SPECIALTY_LIMIT}
+              </span>
+            )}
           </button>
         )}
       </div>
@@ -146,6 +154,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           onClose={() => setShowAddModal(false)}
           onAdd={handleAddApplication}
           existingKeys={applications.map(a => a.specialty_key)}
+          isPro={isPro}
         />
       )}
     </div>

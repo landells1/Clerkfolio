@@ -98,6 +98,18 @@ export default function Sidebar({ profile }: { profile: Profile }) {
     setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform))
   }, [])
 
+  // Auto-open feedback form when navigated from terms/privacy CONTACT link (?feedback=1)
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('feedback') === '1') {
+      setFeedbackOpen(true)
+      params.delete('feedback')
+      const qs = params.toString()
+      window.history.replaceState({}, '', window.location.pathname + (qs ? '?' + qs : ''))
+    }
+  }, [])
+
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
   const initials = [profile.first_name?.[0], profile.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
 
@@ -159,7 +171,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
               <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
               <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
               <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
-              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="rgba(255,255,255,0.92)" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="#EAF2FC" />
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
@@ -185,7 +197,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
               <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
               <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
               <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
-              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="rgba(255,255,255,0.92)" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="#EAF2FC" />
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>

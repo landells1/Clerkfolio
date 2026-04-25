@@ -10,13 +10,16 @@ import {
 } from '@/lib/specialties'
 import type { SpecialtyApplication } from '@/lib/specialties'
 
+const FREE_SPECIALTY_LIMIT = 3
+
 type Props = {
   onClose: () => void
   onAdd: (app: SpecialtyApplication) => void
   existingKeys: string[]
+  isPro?: boolean
 }
 
-export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
+export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false }: Props) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,10 +79,10 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="add-specialty-title" className="bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg">
+    <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[8vh] bg-black/60 backdrop-blur-sm overflow-y-auto">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="add-specialty-title" className="bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[84vh] my-auto">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/[0.08]">
+        <div className="flex items-center justify-between p-6 border-b border-white/[0.08] flex-shrink-0">
           <h2 id="add-specialty-title" className="text-lg font-semibold text-[#F5F5F2]">Add Specialty Tracker</h2>
           <button
             onClick={onClose}
@@ -92,14 +95,34 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
         </div>
 
         {/* Body */}
-        <div className="p-6">
+        <div className="p-6 overflow-y-auto flex-1">
           {error && (
             <div className="mb-4 px-4 py-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm">
               {error}
             </div>
           )}
 
-          {available.length === 0 ? (
+          {!isPro && existingKeys.length >= FREE_SPECIALTY_LIMIT ? (
+            <div className="py-8 text-center space-y-4">
+              <div className="w-12 h-12 rounded-2xl bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 flex items-center justify-center mx-auto">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Upgrade to Pro</p>
+                <p className="text-xs text-[rgba(245,245,242,0.45)] max-w-xs mx-auto leading-relaxed">
+                  Free accounts can track up to {FREE_SPECIALTY_LIMIT} specialties. Upgrade to Pro to add unlimited specialty trackers.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="inline-flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#3884DD] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
+              >
+                Coming soon
+              </button>
+            </div>
+          ) : available.length === 0 ? (
             <div className="py-8 text-center">
               <p className="text-[rgba(245,245,242,0.4)] text-sm">
                 You&apos;ve added all available specialties.
@@ -109,6 +132,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
             <div className="space-y-3">
               <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">
                 Select a specialty to begin tracking your application score.
+                {!isPro && (
+                  <span className="ml-1 text-[rgba(245,245,242,0.3)]">
+                    ({existingKeys.length}/{FREE_SPECIALTY_LIMIT} free slots used)
+                  </span>
+                )}
               </p>
               {available.map(config => {
                 const evidenceBased = isEvidenceBased(config)

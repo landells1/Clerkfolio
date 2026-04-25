@@ -18,13 +18,13 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
       {/* Nav */}
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 56px', borderBottom: '1px solid rgba(245,245,242,0.08)', background: 'rgba(11,11,12,0.9)' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#F5F5F2' }}>
-          <div style={{ width: 24, height: 24, borderRadius: 5, background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <div style={{ width: 24, height: 24, borderRadius: 5, background: 'linear-gradient(to bottom, #3884DD, #155BB0)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
             <svg width="14" height="14" viewBox="0 0 64 64" fill="none">
-              <rect x="8" y="36" width="9" height="20" rx="1.6" fill="rgba(255,255,255,0.5)" />
-              <rect x="20" y="30" width="9" height="26" rx="1.6" fill="rgba(255,255,255,0.65)" />
-              <rect x="32" y="24" width="9" height="32" rx="1.6" fill="rgba(255,255,255,0.8)" />
-              <rect x="44" y="16" width="11" height="40" rx="2" fill="white" />
-              <path d="M47 36 L50.5 39.5 L55 30" stroke="#1B6FD9" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+              <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
+              <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
+              <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="#EAF2FC" />
+              <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
           <span style={{ fontSize: 16, fontWeight: 500 }}>Clinidex</span>
@@ -67,7 +67,7 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
           <div style={{ display: 'flex', gap: 24 }}>
             <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
             <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-            <a href="mailto:hello@clinidex.co.uk" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</a>
+            <Link href="/dashboard?feedback=1" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</Link>
           </div>
         </div>
       </div>
