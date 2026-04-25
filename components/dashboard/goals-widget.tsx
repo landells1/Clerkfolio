@@ -4,6 +4,7 @@ type Goal = {
   id: string
   category: string
   target_count: number
+  due_date?: string | null
 }
 
 type Props = {

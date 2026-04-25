@@ -94,6 +94,7 @@ export default async function DashboardPage() {
       .from('deadlines')
       .select('*')
       .eq('user_id', user!.id)
+      .eq('completed', false)
       .gte('due_date', new Date().toISOString().split('T')[0])
       .order('due_date', { ascending: true })
       .limit(20),
@@ -126,7 +127,7 @@ export default async function DashboardPage() {
       .is('deleted_at', null),
     supabase
       .from('goals')
-      .select('id, category, target_count')
+      .select('id, category, target_count, due_date')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
@@ -135,7 +136,9 @@ export default async function DashboardPage() {
 
   // Coverage counts per category
   const catMap: Record<string, number> = {}
-  allEntries?.forEach(e => { catMap[e.category] = (catMap[e.category] ?? 0) + 1 })
+  allEntries?.forEach(e => {
+    if (e.category) catMap[e.category] = (catMap[e.category] ?? 0) + 1
+  })
   const coverageCounts = Object.entries(catMap).map(([category, count]) => ({ category, count }))
 
   // Total stats

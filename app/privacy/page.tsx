@@ -18,7 +18,15 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
       {/* Nav */}
       <nav style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 56px', borderBottom: '1px solid rgba(245,245,242,0.08)', background: 'rgba(11,11,12,0.9)' }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 9, textDecoration: 'none', color: '#F5F5F2' }}>
-          <div style={{ width: 24, height: 24, borderRadius: 5, background: 'linear-gradient(135deg, oklch(0.82 0.13 195) 0%, oklch(0.7 0.13 210) 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#0B0B0C', fontSize: 14, fontWeight: 700, fontFamily: 'monospace' }}>C</div>
+          <div style={{ width: 24, height: 24, borderRadius: 5, background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <svg width="14" height="14" viewBox="0 0 64 64" fill="none">
+              <rect x="8" y="36" width="9" height="20" rx="1.6" fill="rgba(255,255,255,0.5)" />
+              <rect x="20" y="30" width="9" height="26" rx="1.6" fill="rgba(255,255,255,0.65)" />
+              <rect x="32" y="24" width="9" height="32" rx="1.6" fill="rgba(255,255,255,0.8)" />
+              <rect x="44" y="16" width="11" height="40" rx="2" fill="white" />
+              <path d="M47 36 L50.5 39.5 L55 30" stroke="#1B6FD9" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </div>
           <span style={{ fontSize: 16, fontWeight: 500 }}>Clinidex</span>
         </Link>
         <Link href="/" style={{ fontSize: 13, color: 'rgba(245,245,242,0.55)', textDecoration: 'none' }}>← Back to home</Link>
@@ -33,7 +41,7 @@ function LegalPage({ title, updated, sections }: { title: string; updated: strin
         {sections.map((s, i) => (
           <div key={i} style={{ marginBottom: 52 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-              <span style={{ fontFamily: 'monospace', fontSize: 11, color: 'oklch(0.82 0.13 195)', letterSpacing: 1 }}>{String(i + 1).padStart(2, '0')}</span>
+              <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#1B6FD9', letterSpacing: 1 }}>{String(i + 1).padStart(2, '0')}</span>
               <span style={{ width: 24, height: 1, background: 'rgba(245,245,242,0.08)' }} />
               <h2 style={{ fontSize: 20, fontWeight: 500, margin: 0, letterSpacing: -0.3 }}>{s.heading}</h2>
             </div>
@@ -129,7 +137,7 @@ const sections: Section[] = [
       'We do not sell your personal data. We share data only with the following third-party processors, each bound by data processing agreements:',
     ],
     list: [
-      '<strong>Supabase Inc</strong> (United States) — database hosting and file storage. Data is encrypted at rest (AES-256) and in transit (TLS). UK–US Data Bridge applies.',
+      '<strong>Supabase Inc</strong> (United Kingdom) — database hosting and file storage. Data is stored in the EU West 2 region (AWS London). Data is encrypted at rest (AES-256) and in transit (TLS). Data does not leave the United Kingdom.',
       '<strong>Stripe Inc</strong> (United States) — payment processing. Stripe processes payment card data under its own PCI DSS certification. UK–US Data Bridge applies.',
       '<strong>Resend Inc</strong> (United States) — transactional email delivery (account confirmation, password reset). UK–US Data Bridge applies.',
       '<strong>Vercel Inc</strong> (United States) — application hosting and edge delivery. UK–US Data Bridge applies.',
@@ -139,7 +147,7 @@ const sections: Section[] = [
   {
     heading: 'International data transfers',
     body: [
-      'Some of our third-party processors operate outside the United Kingdom. Where data is transferred to countries not deemed adequate by the UK Government, we rely on the UK–US Data Bridge (where applicable) or the UK International Data Transfer Agreement (UK IDTA), which provides safeguards equivalent to those under UK GDPR.',
+      'Some of our third-party processors operate outside the United Kingdom. Where data is transferred to countries not deemed adequate by the UK Government, we rely on the UK–US Data Bridge (where applicable) or the UK International Data Transfer Agreement (UK IDTA), which provides safeguards equivalent to those under UK GDPR. Your database and file storage data is hosted by Supabase in the EU West 2 region (AWS London) and does not leave the United Kingdom.',
       'You may request details of the specific safeguards in place for any transfer by contacting us at hello@clinidex.co.uk.',
     ],
   },
@@ -186,7 +194,7 @@ const sections: Section[] = [
     body: [
       'To exercise any of your rights, please contact us at <strong>hello@clinidex.co.uk</strong>. We will respond within one calendar month.',
       'You also have the right to lodge a complaint with the Information Commissioner\'s Office (ICO), the UK\'s data protection supervisory authority:',
-      '<strong>ICO website:</strong> <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" style="color: oklch(0.82 0.13 195)">ico.org.uk</a> &nbsp;|&nbsp; <strong>Helpline:</strong> 0303 123 1113',
+      '<strong>ICO website:</strong> <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" style="color: #1B6FD9">ico.org.uk</a> &nbsp;|&nbsp; <strong>Helpline:</strong> 0303 123 1113',
     ],
   },
   {

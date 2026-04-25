@@ -43,8 +43,9 @@ function monthLabel(ym: string): string {
 
 export default async function InsightsPage() {
   const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: rawEntries }, { data: rawCases }] = await Promise.all([
+  const [{ data: rawEntries }, { data: rawCases }, { data: profile }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('id, title, category, date, specialty_tags, created_at')
@@ -53,6 +54,11 @@ export default async function InsightsPage() {
       .from('cases')
       .select('id, title, date, specialty_tags, created_at')
       .is('deleted_at', null),
+    supabase
+      .from('profiles')
+      .select('created_at')
+      .eq('id', user!.id)
+      .single(),
   ])
 
   const entries: EntryRow[] = rawEntries ?? []
@@ -106,10 +112,10 @@ export default async function InsightsPage() {
     .map(m => {
       const monthEntries = entries
         .filter(e => formatMonth(e.date ?? e.created_at) === m)
-        .map(e => ({ title: e.title ?? 'Untitled', type: 'entry' as const, category: e.category ?? undefined }))
+        .map(e => ({ id: e.id, title: e.title ?? 'Untitled', type: 'entry' as const, category: e.category ?? undefined }))
       const monthCases = cases
         .filter(c => formatMonth(c.date ?? c.created_at) === m)
-        .map(c => ({ title: c.title ?? 'Untitled', type: 'case' as const }))
+        .map(c => ({ id: c.id, title: c.title ?? 'Untitled', type: 'case' as const }))
       return {
         month: monthLabel(m),
         items: [...monthEntries, ...monthCases],
@@ -117,6 +123,11 @@ export default async function InsightsPage() {
     })
     .filter(m => m.items.length > 0)
     .reverse()
+
+  // Avg/week since account creation
+  const accountCreatedAt = profile?.created_at ? new Date(profile.created_at).getTime() : Date.now()
+  const weeksActive = Math.max(1, Math.floor((Date.now() - accountCreatedAt) / (7 * 24 * 60 * 60 * 1000)))
+  const avgPerWeek = ((entries.length + cases.length) / weeksActive).toFixed(1)
 
   return (
     <div className="p-6 lg:p-8 max-w-5xl">
@@ -136,6 +147,7 @@ export default async function InsightsPage() {
         totalCases={cases.length}
         topSpecialties={topSpecialties}
         timelineByMonth={timelineByMonth}
+        avgPerWeek={avgPerWeek}
       />
     </div>
   )

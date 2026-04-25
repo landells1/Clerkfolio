@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useSearch } from '@/app/(dashboard)/providers'
 
@@ -72,6 +72,15 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: '/goals',
+    label: 'Goals',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/>
+      </svg>
+    ),
+  },
 ]
 
 export default function Sidebar({ profile }: { profile: Profile }) {
@@ -84,6 +93,10 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const { addToast } = useToast()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { openSearch } = useSearch()
+  const [isMac, setIsMac] = useState(true) // default true to match SSR (most devs on Mac; avoids hydration mismatch)
+  useEffect(() => {
+    setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform))
+  }, [])
 
   const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
   const initials = [profile.first_name?.[0], profile.last_name?.[0]].filter(Boolean).join('').toUpperCase() || '?'
@@ -225,7 +238,7 @@ export default function Sidebar({ profile }: { profile: Profile }) {
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <span className="flex-1 text-left text-xs">Search</span>
-              <kbd className="text-[9px] bg-white/[0.06] px-1 py-0.5 rounded border border-white/[0.08]">⌘K</kbd>
+              <kbd className="text-[9px] bg-white/[0.06] px-1 py-0.5 rounded border border-white/[0.08]">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
             </button>
           </div>
         </nav>

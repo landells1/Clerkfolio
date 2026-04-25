@@ -8,7 +8,7 @@ export default async function GoalsPage() {
 
   const { data: goals } = await supabase
     .from('goals')
-    .select('id, category, target_count')
+    .select('id, category, target_count, due_date')
     .eq('user_id', user!.id)
     .order('created_at', { ascending: true })
 

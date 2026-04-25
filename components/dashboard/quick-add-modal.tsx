@@ -109,6 +109,9 @@ export default function QuickAddModal({
   const [procSupervision, setProcSupervision] = useState('Supervised')
   const [procCount, setProcCount] = useState<number>(1)
 
+  // Shared notes/comments
+  const [notes, setNotes] = useState('')
+
   // Auto-tag suggestions
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
 
@@ -165,7 +168,7 @@ export default function QuickAddModal({
         date,
         clinical_domain: domain.trim() || null,
         specialty_tags: tags,
-        notes: null,
+        notes: notes.trim() || null,
       })
       if (err) { setError(err.message); setSaving(false); return }
     } else {
@@ -175,7 +178,7 @@ export default function QuickAddModal({
         title: title.trim(),
         date,
         specialty_tags: tags,
-        notes: null,
+        notes: notes.trim() || null,
       }
 
       let extra: Record<string, unknown> = {}
@@ -460,6 +463,18 @@ export default function QuickAddModal({
           <div>
             <label className={LABEL}>Specialty tags</label>
             <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} />
+          </div>
+
+          {/* Comments / notes — shared */}
+          <div>
+            <label className={LABEL}>Comments <span className="normal-case font-normal text-[rgba(245,245,242,0.3)]">(optional)</span></label>
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Any notes, learning points, or comments…"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
+            />
           </div>
 
           {error && (

@@ -1,12 +1,15 @@
 ﻿'use client'
 
+import Link from 'next/link'
+
 type Props = {
   entriesByMonth: { month: string; portfolio: number; cases: number }[]
   dayOfWeekCounts: number[]
   totalPortfolio: number
   totalCases: number
   topSpecialties: { name: string; count: number }[]
-  timelineByMonth: { month: string; items: { title: string; type: 'entry' | 'case'; category?: string }[] }[]
+  timelineByMonth: { month: string; items: { id: string; title: string; type: 'entry' | 'case'; category?: string }[] }[]
+  avgPerWeek: string
 }
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
@@ -18,12 +21,9 @@ export default function InsightsCharts({
   totalCases,
   topSpecialties,
   timelineByMonth,
+  avgPerWeek,
 }: Props) {
   const totalItems = totalPortfolio + totalCases
-
-  // Average per week over last 12 weeks
-  const last12Total = entriesByMonth.slice(-3).reduce((acc, m) => acc + m.portfolio + m.cases, 0)
-  const avgPerWeek = last12Total > 0 ? (last12Total / 12).toFixed(1) : '0'
 
   // Bar chart dimensions
   const BAR_W = 10
@@ -45,7 +45,7 @@ export default function InsightsCharts({
           { label: 'Portfolio entries', value: totalPortfolio },
           { label: 'Cases', value: totalCases },
           { label: 'Total items', value: totalItems },
-          { label: 'Avg / week (12mo)', value: avgPerWeek },
+          { label: 'Avg / week (since signup)', value: avgPerWeek },
         ].map(stat => (
           <div key={stat.label} className="bg-[#141416] border border-white/[0.07] rounded-xl px-4 py-4">
             <p className="text-2xl font-semibold text-[#F5F5F2] tabular-nums">{stat.value}</p>
@@ -175,7 +175,11 @@ export default function InsightsCharts({
                 <p className="text-xs font-semibold text-[rgba(245,245,242,0.45)] uppercase tracking-wider mb-2">{month.month}</p>
                 <div className="space-y-1.5 pl-2 border-l border-white/[0.06]">
                   {month.items.map((item, j) => (
-                    <div key={j} className="flex items-start gap-2.5 pl-3">
+                    <Link
+                      key={j}
+                      href={item.type === 'case' ? `/cases/${item.id}` : `/portfolio/${item.id}`}
+                      className="flex items-start gap-2.5 pl-3 group hover:bg-white/[0.03] rounded-lg py-0.5 -mx-1 px-2 transition-colors"
+                    >
                       <span className={`mt-0.5 text-[9px] font-medium px-1.5 py-0.5 rounded border flex-shrink-0 capitalize ${
                         item.type === 'case'
                           ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
@@ -183,8 +187,8 @@ export default function InsightsCharts({
                       }`}>
                         {item.type === 'case' ? 'Case' : (item.category?.replace(/_/g, ' ') ?? 'Entry')}
                       </span>
-                      <span className="text-sm text-[rgba(245,245,242,0.65)] leading-snug">{item.title}</span>
-                    </div>
+                      <span className="text-sm text-[rgba(245,245,242,0.65)] leading-snug group-hover:text-[rgba(245,245,242,0.85)] transition-colors">{item.title}</span>
+                    </Link>
                   ))}
                 </div>
               </div>
