@@ -78,7 +78,7 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Specialty tags</p>
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
-                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1D9E75]/10 text-[#1D9E75] border border-[#1D9E75]/20">
+                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
                   {tag}
                 </span>
               ))}

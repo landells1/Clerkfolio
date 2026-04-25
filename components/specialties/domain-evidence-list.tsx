@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
@@ -47,13 +47,13 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               key={link.id}
               className={`relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 isCounting && domain.scoringRule === 'highest'
-                  ? 'border-l-2 border-l-[#1D9E75] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[#1D9E75]/[0.05]'
+                  ? 'border-l-2 border-l-[#1B6FD9] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[#1B6FD9]/[0.05]'
                   : 'border-white/[0.06] bg-white/[0.02]'
               }`}
             >
               <span className="shrink-0 text-base leading-none mt-0.5">
                 {isClaimed ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1D9E75' : 'rgba(245,245,242,0.3)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1B6FD9' : 'rgba(245,245,242,0.3)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : link.entry_type ? entryIcon : null}
@@ -66,7 +66,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   <span
                     className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                       isCounting && domain.scoringRule === 'highest'
-                        ? 'bg-[#1D9E75]/20 text-[#1D9E75]'
+                        ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]'
                         : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
                     }`}
                   >
@@ -83,7 +83,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   ) : null}
                 </div>
                 {domain.scoringRule === 'highest' && (
-                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.3)]'}`}>
+                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)]'}`}>
                     {isCounting ? '✓ Counting' : 'Not counting (lower score)'}
                   </p>
                 )}

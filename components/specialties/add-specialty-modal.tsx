@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -119,7 +119,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys }: Props) {
                         {config.cycleYear}
                       </span>
                       {config.isOfficial ? (
-                        <span className="px-1.5 py-0.5 rounded bg-[#1D9E75]/10 text-[#1D9E75] text-xs border border-[#1D9E75]/20">
+                        <span className="px-1.5 py-0.5 rounded bg-[#1B6FD9]/10 text-[#1B6FD9] text-xs border border-[#1B6FD9]/20">
                           Official
                         </span>
                       ) : (

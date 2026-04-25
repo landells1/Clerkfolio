@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect } from 'react'
 
@@ -25,7 +25,7 @@ export default function GlobalError({
           </h1>
           <p style={{ fontSize: 16, color: 'rgba(245,245,242,0.55)', maxWidth: 400, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
             A critical error occurred. Your data is safe — please refresh the page or contact{' '}
-            <a href="mailto:hello@clinidex.co.uk" style={{ color: '#1D9E75' }}>hello@clinidex.co.uk</a>{' '}
+            <a href="mailto:hello@clinidex.co.uk" style={{ color: '#1B6FD9' }}>hello@clinidex.co.uk</a>{' '}
             if this keeps happening.
           </p>
           {error.digest && (
@@ -35,7 +35,7 @@ export default function GlobalError({
           )}
           <button
             onClick={reset}
-            style={{ background: '#1D9E75', color: '#0B0B0C', padding: '12px 28px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            style={{ background: '#1B6FD9', color: '#0B0B0C', padding: '12px 28px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
           >
             Try again
           </button>

@@ -1,4 +1,4 @@
-// Server component — no 'use client'
+﻿// Server component — no 'use client'
 
 interface SpecialtyRadarProps {
   counts: Record<string, number>
@@ -112,14 +112,14 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
           <polygon
             points={dataPolygon}
             fill="rgba(29,158,117,0.2)"
-            stroke="#1D9E75"
+            stroke="#1B6FD9"
             strokeWidth="1.5"
             strokeLinejoin="round"
           />
 
           {/* Data point circles */}
           {dataPoints.map((p, i) => (
-            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#1D9E75" />
+            <circle key={i} cx={p.x} cy={p.y} r="3" fill="#1B6FD9" />
           ))}
 
           {/* Labels */}

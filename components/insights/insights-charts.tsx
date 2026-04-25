@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 type Props = {
   entriesByMonth: { month: string; portfolio: number; cases: number }[]
@@ -59,7 +59,7 @@ export default function InsightsCharts({
         <h2 className="text-sm font-medium text-[#F5F5F2] mb-4">Activity — last 12 months</h2>
         <div className="flex gap-4 mb-3">
           <div className="flex items-center gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-sm bg-[#1D9E75]" />
+            <div className="w-2.5 h-2.5 rounded-sm bg-[#1B6FD9]" />
             <span className="text-xs text-[rgba(245,245,242,0.45)]">Portfolio</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -87,7 +87,7 @@ export default function InsightsCharts({
                     width={BAR_W}
                     height={portfolioH || 2}
                     rx={2}
-                    fill="#1D9E75"
+                    fill="#1B6FD9"
                     opacity={portfolioH === 0 ? 0.15 : 0.85}
                   />
                   {/* Cases bar */}
@@ -131,7 +131,7 @@ export default function InsightsCharts({
                   <span className="text-xs text-[rgba(245,245,242,0.4)] w-7 flex-shrink-0">{day}</span>
                   <div className="flex-1 bg-white/[0.05] rounded-full h-2 overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[#1D9E75]"
+                      className="h-full rounded-full bg-[#1B6FD9]"
                       style={{ width: `${pct}%`, transition: 'width 0.4s ease' }}
                     />
                   </div>
@@ -155,7 +155,7 @@ export default function InsightsCharts({
                     <span className="text-xs text-[rgba(245,245,242,0.3)] tabular-nums w-4 flex-shrink-0">{i + 1}</span>
                     <span className="text-sm text-[rgba(245,245,242,0.75)] truncate capitalize">{spec.name.replace(/_/g, ' ')}</span>
                   </div>
-                  <span className="text-xs font-medium text-[#1D9E75] bg-[#1D9E75]/10 px-2 py-0.5 rounded-full tabular-nums flex-shrink-0">
+                  <span className="text-xs font-medium text-[#1B6FD9] bg-[#1B6FD9]/10 px-2 py-0.5 rounded-full tabular-nums flex-shrink-0">
                     {spec.count}
                   </span>
                 </div>

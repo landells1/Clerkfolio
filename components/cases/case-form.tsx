@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
@@ -15,7 +15,7 @@ type Props = {
   userInterests?: string[]
 }
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
 const DRAFT_KEY = 'clinidex-case-draft'
@@ -154,7 +154,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* Draft restored banner */}
       {draftRestored && (
-        <div className="flex items-center justify-between bg-[#1D9E75]/10 border border-[#1D9E75]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1D9E75] mb-4">
+        <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
           <span>Draft restored</span>
           <button
             type="button"
@@ -167,7 +167,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
               setSpecialtyTags([])
               setNotes('')
             }}
-            className="text-xs text-[#1D9E75]/70 hover:text-[#1D9E75]"
+            className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]"
           >
             Discard
           </button>
@@ -275,7 +275,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <button
           type="submit"
           disabled={saving || uploading}
-          className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+          className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
         >
           {saving ? 'Saving…' : mode === 'create' ? 'Save case' : 'Save changes'}
         </button>
@@ -285,7 +285,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       {uploading && (
         <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
           <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1D9E75] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+            <div className="h-full bg-[#1B6FD9] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
           </div>
           <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
         </div>

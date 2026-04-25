@@ -1,4 +1,4 @@
-import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
 
 // ── Styles ──────────────────────────────────────────────────────────────────
@@ -16,14 +16,14 @@ const s = StyleSheet.create({
   // Header
   header: { marginBottom: 24 },
   headerTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 },
-  brand: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1D9E75', letterSpacing: 1 },
+  brand: { fontSize: 14, fontFamily: 'Helvetica-Bold', color: '#1B6FD9', letterSpacing: 1 },
   exportDate: { fontSize: 8, color: '#888888' },
   headerName: { fontSize: 11, fontFamily: 'Helvetica-Bold', color: '#1a1a1a', marginBottom: 2 },
   headerSpecialty: { fontSize: 9, color: '#555555' },
-  headerRule: { borderBottom: '1.5pt solid #1D9E75', marginTop: 10 },
+  headerRule: { borderBottom: '1.5pt solid #1B6FD9', marginTop: 10 },
   // Category heading
   catHeading: { marginTop: 20, marginBottom: 8 },
-  catTitle: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1D9E75', letterSpacing: 1.5, textTransform: 'uppercase' },
+  catTitle: { fontSize: 8, fontFamily: 'Helvetica-Bold', color: '#1B6FD9', letterSpacing: 1.5, textTransform: 'uppercase' },
   catRule: { borderBottom: '0.5pt solid #e0e0e0', marginTop: 4 },
   // Entry
   entry: { marginBottom: 10, paddingBottom: 10, borderBottom: '0.25pt solid #efefef' },
@@ -33,7 +33,7 @@ const s = StyleSheet.create({
   detail: { color: '#444444', marginBottom: 1.5, lineHeight: 1.4 },
   detailLabel: { fontFamily: 'Helvetica-Bold', color: '#222222' },
   tags: { flexDirection: 'row', flexWrap: 'wrap', gap: 3, marginTop: 4 },
-  tag: { backgroundColor: '#f0faf6', color: '#1D9E75', fontSize: 7, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 3 },
+  tag: { backgroundColor: '#f0faf6', color: '#1B6FD9', fontSize: 7, paddingHorizontal: 5, paddingVertical: 2, borderRadius: 3 },
   // Footer
   footer: { position: 'absolute', bottom: 28, left: 52, right: 52, flexDirection: 'row', justifyContent: 'space-between' },
   footerText: { fontSize: 7, color: '#aaaaaa' },

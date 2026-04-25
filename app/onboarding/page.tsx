@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -119,7 +119,7 @@ export default function OnboardingPage() {
       {/* Top bar */}
       <div className="flex items-center justify-between px-8 py-5 border-b border-white/[0.06]">
         <div className="flex items-center gap-2.5">
-          <div className="w-7 h-7 rounded-md bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono">
+          <div className="w-7 h-7 rounded-md bg-[#1B6FD9] flex items-center justify-center text-[#0B0B0C] font-bold text-sm font-mono">
             C
           </div>
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
@@ -128,7 +128,7 @@ export default function OnboardingPage() {
         <div className="flex items-center gap-3">
           <div className="w-32 h-1 bg-white/[0.08] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#1D9E75] rounded-full transition-all duration-500"
+              className="h-full bg-[#1B6FD9] rounded-full transition-all duration-500"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -143,7 +143,7 @@ export default function OnboardingPage() {
           {/* Step: Welcome */}
           {step === 'welcome' && (
             <div className="text-center">
-              <div className="w-16 h-16 rounded-2xl bg-[#1D9E75] flex items-center justify-center text-[#0B0B0C] font-bold text-2xl font-mono mx-auto mb-8">
+              <div className="w-16 h-16 rounded-2xl bg-[#1B6FD9] flex items-center justify-center text-[#0B0B0C] font-bold text-2xl font-mono mx-auto mb-8">
                 C
               </div>
               <h1 className="text-3xl font-semibold text-[#F5F5F2] tracking-tight mb-4">
@@ -154,7 +154,7 @@ export default function OnboardingPage() {
               </p>
               <button
                 onClick={() => setStep('features')}
-                className="bg-[#1D9E75] hover:bg-[#178060] text-[#0B0B0C] font-semibold rounded-xl px-8 py-3.5 text-base transition-colors"
+                className="bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-8 py-3.5 text-base transition-colors"
               >
                 Get started →
               </button>
@@ -188,7 +188,7 @@ export default function OnboardingPage() {
                 </button>
                 <button
                   onClick={() => setStep('career')}
-                  className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+                  className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
                 >
                   Continue →
                 </button>
@@ -212,18 +212,18 @@ export default function OnboardingPage() {
                     onClick={() => setCareerStage(s.value)}
                     className={`flex items-center justify-between px-5 py-4 rounded-xl border text-left transition-all ${
                       careerStage === s.value
-                        ? 'bg-[#1D9E75]/15 border-[#1D9E75]/50 text-[#F5F5F2]'
+                        ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/50 text-[#F5F5F2]'
                         : 'bg-[#141416] border-white/[0.08] text-[rgba(245,245,242,0.7)] hover:border-white/[0.15]'
                     }`}
                   >
                     <div>
                       <div className="text-sm font-medium">{s.label}</div>
-                      <div className={`text-xs mt-0.5 ${careerStage === s.value ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.35)]'}`}>
+                      <div className={`text-xs mt-0.5 ${careerStage === s.value ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'}`}>
                         {s.sub}
                       </div>
                     </div>
                     {careerStage === s.value && (
-                      <div className="w-5 h-5 rounded-full bg-[#1D9E75] flex items-center justify-center flex-shrink-0">
+                      <div className="w-5 h-5 rounded-full bg-[#1B6FD9] flex items-center justify-center flex-shrink-0">
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
@@ -242,7 +242,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => setStep('name')}
                   disabled={!careerStage}
-                  className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-40 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+                  className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
                 >
                   Continue →
                 </button>
@@ -269,7 +269,7 @@ export default function OnboardingPage() {
                     autoFocus
                     value={firstName}
                     onChange={e => setFirstName(e.target.value)}
-                    className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                    className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                     placeholder="Jane"
                   />
                 </div>
@@ -282,7 +282,7 @@ export default function OnboardingPage() {
                     value={lastName}
                     onChange={e => setLastName(e.target.value)}
                     onKeyDown={e => e.key === 'Enter' && firstName.trim() && lastName.trim() && setStep('specialties')}
-                    className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                    className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                     placeholder="Smith"
                   />
                 </div>
@@ -297,7 +297,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => setStep('specialties')}
                   disabled={!firstName.trim() || !lastName.trim()}
-                  className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-40 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+                  className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
                 >
                   Continue →
                 </button>
@@ -325,7 +325,7 @@ export default function OnboardingPage() {
                   value={customSpecialty}
                   onChange={e => setCustomSpecialty(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && addCustomSpecialty()}
-                  className="flex-1 bg-[#141416] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors"
+                  className="flex-1 bg-[#141416] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                   placeholder="Add a custom specialty…"
                 />
                 <button
@@ -347,7 +347,7 @@ export default function OnboardingPage() {
                       onClick={() => toggleSpecialty(s)}
                       className={`px-3 py-1.5 rounded-lg text-sm border transition-all ${
                         selected
-                          ? 'bg-[#1D9E75]/15 border-[#1D9E75]/50 text-[#1D9E75]'
+                          ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/50 text-[#1B6FD9]'
                           : 'bg-[#141416] border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-white/[0.15] hover:text-[#F5F5F2]'
                       }`}
                     >
@@ -370,7 +370,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={handleComplete}
                   disabled={saving}
-                  className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
+                  className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-3 text-sm transition-colors"
                 >
                   {saving ? 'Setting up your account…' : selectedSpecialties.length === 0 ? 'Skip for now →' : `Go to dashboard →`}
                 </button>

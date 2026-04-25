@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { CLINICAL_DOMAINS } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
@@ -234,7 +234,7 @@ export default function QuickAddModal({
               onClick={() => handleTypeChange(t.id)}
               className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
                 type === t.id
-                  ? 'bg-[#1D9E75]/15 border-[#1D9E75]/40 text-[#1D9E75]'
+                  ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
                   : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
               }`}
             >
@@ -254,7 +254,7 @@ export default function QuickAddModal({
                     key={tpl.label}
                     type="button"
                     onClick={() => { setTitle(tpl.label); setDomain(tpl.domain); setTags(tpl.tags) }}
-                    className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-[#1D9E75]/40 hover:text-[#1D9E75] transition-colors cursor-pointer whitespace-nowrap"
+                    className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-[#1B6FD9]/40 hover:text-[#1B6FD9] transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {tpl.label}
                   </button>
@@ -301,7 +301,7 @@ export default function QuickAddModal({
                     key={t}
                     type="button"
                     onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
-                    className="px-2 py-0.5 rounded text-[10px] bg-[#1D9E75]/10 border border-[#1D9E75]/25 text-[#1D9E75] hover:bg-[#1D9E75]/20 transition-colors"
+                    className="px-2 py-0.5 rounded text-[10px] bg-[#1B6FD9]/10 border border-[#1B6FD9]/25 text-[#1B6FD9] hover:bg-[#1B6FD9]/20 transition-colors"
                   >
                     + {t}
                   </button>
@@ -400,7 +400,7 @@ export default function QuickAddModal({
                   value={reflFreeText}
                   onChange={e => setReflFreeText(e.target.value)}
                   placeholder="What happened, what you learnt…"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1D9E75] transition-colors resize-none"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
                 />
               </div>
             </>
@@ -433,7 +433,7 @@ export default function QuickAddModal({
                           i > 0 ? 'border-l border-white/[0.08]' : ''
                         } ${
                           procSupervision === s.id
-                            ? 'bg-[#1D9E75]/15 text-[#1D9E75]'
+                            ? 'bg-[#1B6FD9]/15 text-[#1B6FD9]'
                             : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
                         }`}
                       >
@@ -477,7 +477,7 @@ export default function QuickAddModal({
             <button
               type="submit"
               disabled={saving}
-              className="flex-[2] bg-[#1D9E75] hover:bg-[#178060] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-2.5 text-sm transition-colors"
+              className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-2.5 text-sm transition-colors"
             >
               {saving ? 'Saving…' : SAVE_LABEL[type]}
             </button>

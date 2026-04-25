@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { getSpecialtyConfig, calculateDomainScore, calculateTotalScore } from '@/lib/specialties'
@@ -61,7 +61,7 @@ export function CompareView({ applications, links }: Props) {
           <select
             value={leftId}
             onChange={e => setLeftId(e.target.value)}
-            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors appearance-none"
+            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
           >
             {applications.map(app => {
               const config = getSpecialtyConfig(app.specialty_key)
@@ -80,7 +80,7 @@ export function CompareView({ applications, links }: Props) {
           <select
             value={rightId}
             onChange={e => setRightId(e.target.value)}
-            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1D9E75] transition-colors appearance-none"
+            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
           >
             {applications.map(app => {
               const config = getSpecialtyConfig(app.specialty_key)
@@ -129,9 +129,9 @@ export function CompareView({ applications, links }: Props) {
               key={domainKey}
               className={`grid grid-cols-3 border-b border-white/[0.04] last:border-0 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
             >
-              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[#1D9E75]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
                 {leftScore !== null ? (
-                  <span className={`text-sm font-semibold ${leftHigher ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+                  <span className={`text-sm font-semibold ${leftHigher ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
                     {leftScore} pts
                   </span>
                 ) : (
@@ -141,9 +141,9 @@ export function CompareView({ applications, links }: Props) {
               <div className="p-3.5 flex items-center justify-center border-x border-white/[0.04]">
                 <span className="text-xs text-[rgba(245,245,242,0.45)] text-center leading-snug">{domainLabel}</span>
               </div>
-              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[#1D9E75]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
                 {rightScore !== null ? (
-                  <span className={`text-sm font-semibold ${rightHigher ? 'text-[#1D9E75]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+                  <span className={`text-sm font-semibold ${rightHigher ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
                     {rightScore} pts
                   </span>
                 ) : (
@@ -156,8 +156,8 @@ export function CompareView({ applications, links }: Props) {
 
         {/* Total row */}
         <div className="grid grid-cols-3 border-t border-white/[0.1] bg-white/[0.02]">
-          <div className={`p-4 flex items-center justify-center ${leftTotal > rightTotal ? 'bg-[#1D9E75]/[0.08]' : ''}`}>
-            <span className={`text-base font-bold ${leftTotal > rightTotal ? 'text-[#1D9E75]' : 'text-[#F5F5F2]'}`}>
+          <div className={`p-4 flex items-center justify-center ${leftTotal > rightTotal ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
+            <span className={`text-base font-bold ${leftTotal > rightTotal ? 'text-[#1B6FD9]' : 'text-[#F5F5F2]'}`}>
               {leftTotal}
               {leftConfig && (
                 <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {leftConfig.totalMax}</span>
@@ -167,8 +167,8 @@ export function CompareView({ applications, links }: Props) {
           <div className="p-4 flex items-center justify-center border-x border-white/[0.06]">
             <span className="text-xs text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide">Total</span>
           </div>
-          <div className={`p-4 flex items-center justify-center ${rightTotal > leftTotal ? 'bg-[#1D9E75]/[0.08]' : ''}`}>
-            <span className={`text-base font-bold ${rightTotal > leftTotal ? 'text-[#1D9E75]' : 'text-[#F5F5F2]'}`}>
+          <div className={`p-4 flex items-center justify-center ${rightTotal > leftTotal ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
+            <span className={`text-base font-bold ${rightTotal > leftTotal ? 'text-[#1B6FD9]' : 'text-[#F5F5F2]'}`}>
               {rightTotal}
               {rightConfig && (
                 <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {rightConfig.totalMax}</span>

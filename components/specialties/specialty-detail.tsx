@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -104,7 +104,7 @@ export function SpecialtyDetail({
         {/* Overall progress bar */}
         <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden mb-5">
           <div
-            className="h-full bg-[#1D9E75] rounded-full transition-all"
+            className="h-full bg-[#1B6FD9] rounded-full transition-all"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -122,7 +122,7 @@ export function SpecialtyDetail({
                 <div
                   className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
                     bonusClaimed
-                      ? 'bg-[#1D9E75] border-[#1D9E75]'
+                      ? 'bg-[#1B6FD9] border-[#1B6FD9]'
                       : 'bg-transparent border-white/[0.2] hover:border-white/[0.4]'
                   }`}
                 >
@@ -134,7 +134,7 @@ export function SpecialtyDetail({
                 </div>
                 <span className="text-sm text-[rgba(245,245,242,0.7)]">{opt.label}</span>
                 {bonusClaimed && (
-                  <span className="ml-auto px-2 py-0.5 rounded-full bg-[#1D9E75]/15 text-[#1D9E75] text-xs font-semibold border border-[#1D9E75]/20">
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
                     +{opt.points} pts
                   </span>
                 )}
@@ -156,14 +156,14 @@ export function SpecialtyDetail({
                 onClick={() => setActiveDomainKey(domain.key)}
                 className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
                   isActive
-                    ? 'bg-[#1D9E75]/15 text-[#1D9E75] border border-[#1D9E75]/25'
+                    ? 'bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25'
                     : 'bg-[#141416] text-[rgba(245,245,242,0.45)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[rgba(245,245,242,0.7)]'
                 }`}
               >
                 <span>{domain.label}</span>
                 <span
                   className={`px-1.5 py-0.5 rounded-md text-xs font-semibold ${
-                    isActive ? 'bg-[#1D9E75]/20 text-[#1D9E75]' : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
+                    isActive ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
                   }`}
                 >
                   {score}

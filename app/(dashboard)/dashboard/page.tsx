@@ -251,27 +251,41 @@ function StatCard({
   href,
   icon,
   highlight = false,
+  delta,
 }: {
   label: string
   value: number
   href: string
   icon: React.ReactNode
   highlight?: boolean
+  delta?: string
 }) {
+  const isHighlighted = highlight && value > 0
   return (
     <a
       href={href}
       className="bg-[#141416] border border-white/[0.08] rounded-2xl p-4 hover:border-white/[0.14] transition-colors group block"
     >
-      <div className="flex items-center justify-between mb-3">
-        <span className={`transition-colors ${highlight && value > 0 ? 'text-amber-400' : 'text-[rgba(245,245,242,0.4)] group-hover:text-[rgba(245,245,242,0.6)]'}`}>
+      <div className="flex items-start justify-between mb-3">
+        <p className="text-xs text-[rgba(245,245,242,0.4)]">{label}</p>
+        {/* Icon chip — 28×28, demoted to corner */}
+        <span
+          className={`flex items-center justify-center w-7 h-7 rounded-lg transition-colors flex-shrink-0 ${
+            isHighlighted
+              ? 'bg-amber-400/10 text-amber-400'
+              : 'bg-[rgba(245,245,242,0.04)] text-[rgba(245,245,242,0.4)] group-hover:text-[rgba(245,245,242,0.6)]'
+          }`}
+        >
           {icon}
         </span>
       </div>
-      <p className={`text-3xl font-bold tracking-tight mb-0.5 ${highlight && value > 0 ? 'text-amber-400' : 'text-[#F5F5F2]'}`}>
+      <p className={`font-bold leading-none tracking-[-0.02em] mb-1 ${isHighlighted ? 'text-amber-400' : 'text-[#F5F5F2]'}`}
+        style={{ fontSize: 32 }}>
         {value}
       </p>
-      <p className="text-xs text-[rgba(245,245,242,0.4)]">{label}</p>
+      {delta && (
+        <p className="text-[11px] text-[rgba(245,245,242,0.35)]">{delta}</p>
+      )}
     </a>
   )
 }

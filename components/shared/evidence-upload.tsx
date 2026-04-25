@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -98,7 +98,7 @@ export default function EvidenceUpload({
         className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-6 px-4 transition-colors text-center ${
           disabled
             ? 'border-white/[0.05] cursor-not-allowed opacity-50'
-            : 'border-white/[0.1] hover:border-[#1D9E75]/50 hover:bg-[#1D9E75]/5 cursor-pointer'
+            : 'border-white/[0.1] hover:border-[#1B6FD9]/50 hover:bg-[#1B6FD9]/5 cursor-pointer'
         }`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

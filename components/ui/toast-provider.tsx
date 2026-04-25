@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
@@ -58,12 +58,12 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   }, [])
 
   const accent =
-    toast.type === 'success' ? '#1D9E75' :
+    toast.type === 'success' ? '#1B6FD9' :
     toast.type === 'error'   ? '#f87171' :
                                'rgba(245,245,242,0.4)'
 
   const bg =
-    toast.type === 'success' ? 'bg-[#1D9E75]/10 border-[#1D9E75]/20' :
+    toast.type === 'success' ? 'bg-[#1B6FD9]/10 border-[#1B6FD9]/20' :
     toast.type === 'error'   ? 'bg-red-500/10 border-red-500/20' :
                                'bg-[#141416] border-white/[0.1]'
 
