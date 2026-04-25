@@ -32,7 +32,6 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
               href={`/portfolio?category=${cat.value}`}
               className="flex items-center gap-3 group"
             >
-              <span className={`shrink-0 w-1.5 h-1.5 rounded-full ${colour.dot}`} />
               <span className="text-xs text-[rgba(245,245,242,0.6)] group-hover:text-[rgba(245,245,242,0.9)] transition-colors w-24 shrink-0 truncate">
                 {cat.short}
               </span>
