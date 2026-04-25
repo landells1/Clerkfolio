@@ -1,6 +1,7 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — Anaesthetics CT1 2026 selection is MSRA + interview (two 15-min stations).
+// Anaesthetics CT1 2026 — selection is MSRA + interview (two 15-min stations).
 // No specialty-specific application questions for 2026; portfolio assessed at interview.
 export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   key: 'anaesthetics_ct1_2026',
@@ -9,15 +10,27 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
   sourceLabel: 'NHS England — Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
-  isOfficial: false,
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
+    {
+      key: 'als_certified',
+      label: 'Adult Life Support (ALS) provider',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Current Resuscitation Council UK ALS certification (or equivalent) by post start date.',
+    },
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'PhD/MD, Masters, PG Diploma/Certificate.',
     },
@@ -27,6 +40,7 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications, book chapters, case reports, editorials, abstracts.',
     },
@@ -36,6 +50,7 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -45,6 +60,7 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
@@ -54,6 +70,7 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
     },
@@ -63,8 +80,9 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Primary FRCA, anaesthetics taster/elective, ALS/ATLS/APLS courses, RCoA membership, anaesthetics or critical care conferences attended.',
+      notes: 'Primary FRCA, anaesthetics taster/elective, ATLS/APLS courses, RCoA membership, anaesthetics or critical care conferences attended.',
     },
   ],
 }

@@ -1,25 +1,29 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — ACCS EM CT1 2026 selection is MSRA + interview.
-// No published numerical self-assessment scoring; portfolio reviewed at interview.
+// ACCS Emergency Medicine CT1 2026 — selection is MSRA + interview.
+// No portfolio scoring at application stage; portfolio assessed at interview.
 export const ACCS_EM_2026: SpecialtyConfig = {
   key: 'accs_em_2026',
-  name: 'ACCS (Emergency Medicine)',
+  name: 'ACCS (Emergency Medicine) CT1',
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-emergency-medicine-ct1-2026',
   sourceLabel: 'NHS England — ACCS Emergency Medicine CT1 2026 Person Specification',
-  isOfficial: false,
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'PhD/MD, Masters, PG Diploma/Certificate (intercalated degrees excluded from this section).',
+      notes: 'PhD/MD, Masters, PG Diploma/Certificate.',
     },
     {
       key: 'publications',
@@ -27,6 +31,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications, book chapters, case reports, editorials, abstracts.',
     },
@@ -36,6 +41,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -45,6 +51,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
@@ -54,6 +61,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
     },
@@ -63,8 +71,9 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'MRCEM Primary, EM taster/elective, ALS/ATLS/APLS courses, EM conferences attended, RCEM membership.',
+      notes: 'EM taster/elective, ALS/ATLS/APLS/ETC courses, RCEM membership, EM conferences attended, prehospital experience (BASICS, voluntary ambulance).',
     },
   ],
 }

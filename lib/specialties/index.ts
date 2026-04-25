@@ -54,12 +54,54 @@ export function calculateTotalScore(
   application: SpecialtyApplication,
   links: SpecialtyEntryLink[]
 ): number {
-  if (config.isEvidenceOnly) return 0
+  if (isEvidenceBased(config)) return 0
   const domainTotal = config.domains.reduce((s, d) => s + calculateDomainScore(d, links), 0)
   const bonusTotal = application.bonus_claimed
     ? (config.bonusOptions?.reduce((s, b) => s + b.points, 0) ?? 0)
     : 0
   return domainTotal + bonusTotal
+}
+
+// ---------- Evidence-based specialty helpers ----------
+
+// Single source of truth: a config is evidence-based if scoringType is 'evidence'
+// (or the legacy isEvidenceOnly flag is set).
+export function isEvidenceBased(config: SpecialtyConfig): boolean {
+  return config.scoringType === 'evidence' || !!config.isEvidenceOnly
+}
+
+export function getEssentialDomains(config: SpecialtyConfig): SpecialtyDomain[] {
+  return config.domains.filter(d => d.criteriaType === 'essential')
+}
+
+export function getDesirableDomains(config: SpecialtyConfig): SpecialtyDomain[] {
+  return config.domains.filter(d => d.criteriaType === 'desirable')
+}
+
+// Number of essential domains the user has marked as met (any link counts).
+export function countEssentialsMet(config: SpecialtyConfig, links: SpecialtyEntryLink[]): number {
+  return getEssentialDomains(config).filter(d =>
+    links.some(l => l.domain_key === d.key)
+  ).length
+}
+
+// Number of desirable domains with at least one piece of evidence linked.
+export function countDesirablesEvidenced(config: SpecialtyConfig, links: SpecialtyEntryLink[]): number {
+  return getDesirableDomains(config).filter(d =>
+    links.some(l => l.domain_key === d.key)
+  ).length
+}
+
+// Convenience: completeness summary for evidence-based specialties.
+export function getEvidenceProgress(config: SpecialtyConfig, links: SpecialtyEntryLink[]) {
+  const essentials = getEssentialDomains(config)
+  const desirables = getDesirableDomains(config)
+  return {
+    essentialsTotal: essentials.length,
+    essentialsMet: countEssentialsMet(config, links),
+    desirablesTotal: desirables.length,
+    desirablesEvidenced: countDesirablesEvidenced(config, links),
+  }
 }
 
 export * from './types'

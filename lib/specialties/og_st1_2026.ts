@@ -1,6 +1,7 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Evidence-only config — O&G ST1 2026 uses MSRA + interview only.
+// O&G ST1 2026 — selection is MSRA + interview.
 // Interview added a new Ethical & Governance station for 2026. No portfolio scoring at application.
 export const OG_ST1_2026: SpecialtyConfig = {
   key: 'og_st1_2026',
@@ -9,15 +10,18 @@ export const OG_ST1_2026: SpecialtyConfig = {
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/obstetrics-and-gynaecology-st1-2026',
   sourceLabel: 'NHS England — Obstetrics & Gynaecology ST1 2026 Person Specification',
-  isOfficial: false,
+  isOfficial: true,
+  scoringType: 'evidence',
   isEvidenceOnly: true,
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'PhD/MD, Masters, PG Diploma/Certificate.',
     },
@@ -27,6 +31,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Peer-reviewed publications, book chapters, case reports, editorials, abstracts.',
     },
@@ -36,6 +41,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Oral and poster presentations at international, national, regional and local meetings.',
     },
@@ -45,6 +51,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Complete QI/audit cycles with documented change and re-audit; partial cycles with defined role.',
     },
@@ -54,6 +61,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
     },
@@ -63,6 +71,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
+      criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'MRCOG Part 1, O&G taster/elective, BPSiOG / ultrasound / ALSO / MOET / PROMPT obstetric emergency courses, RCOG membership, O&G conferences attended.',
     },
