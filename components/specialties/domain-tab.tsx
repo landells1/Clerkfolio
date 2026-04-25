@@ -323,7 +323,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
             <DomainEvidenceList domain={domain} links={supportingEvidence} onRemove={handleRemoveLink} />
           ) : (
             <p className="text-xs text-[rgba(245,245,242,0.3)] italic">
-              Attach a certificate, letter, or portfolio entry as proof if you'd like.
+              Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
             </p>
           )}
         </div>
