@@ -34,6 +34,7 @@ export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
 }
 
 export function calculateDomainScore(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): number {
+  if (domain.isEvidenceOnly) return 0
   const domainLinks = links.filter(l => l.domain_key === domain.key)
   if (domainLinks.length === 0) return 0
   if (domain.isSelfAssessed || domain.isCheckbox) {
@@ -53,6 +54,7 @@ export function calculateTotalScore(
   application: SpecialtyApplication,
   links: SpecialtyEntryLink[]
 ): number {
+  if (config.isEvidenceOnly) return 0
   const domainTotal = config.domains.reduce((s, d) => s + calculateDomainScore(d, links), 0)
   const bonusTotal = application.bonus_claimed
     ? (config.bonusOptions?.reduce((s, b) => s + b.points, 0) ?? 0)

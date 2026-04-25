@@ -11,8 +11,9 @@ export type SpecialtyDomain = {
   maxPoints: number
   scoringRule: ScoringRule
   bands: ScoringBand[]
-  isCheckbox?: boolean      // manual claim items, no portfolio entry needed
-  isSelfAssessed?: boolean  // single dropdown, no evidence linking
+  isCheckbox?: boolean       // manual claim items, no portfolio entry needed
+  isSelfAssessed?: boolean   // single dropdown, no evidence linking
+  isEvidenceOnly?: boolean   // no points-based scoring; users upload evidence to the domain only
   notes?: string
 }
 
@@ -30,6 +31,7 @@ export type SpecialtyConfig = {
   source: string
   sourceLabel: string
   isOfficial: boolean
+  isEvidenceOnly?: boolean   // entire specialty has no points-based scoring (UI hint)
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
 }
