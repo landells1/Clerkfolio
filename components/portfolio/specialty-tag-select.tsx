@@ -2,6 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/specialties'
+import { SPECIALTY_CONFIGS } from '@/lib/specialties'
+
+/** Returns a human-readable label for a specialty key or display name. */
+function getOptionLabel(key: string): string {
+  const config = SPECIALTY_CONFIGS.find(c => c.key === key)
+  if (config) return config.name
+  return key // already a display name (e.g. PREDEFINED_SPECIALTIES entries)
+}
 
 type Props = {
   value: string[]
@@ -35,6 +43,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
       ]
 
   const filtered = allOptions.filter(s =>
+    getOptionLabel(s).toLowerCase().includes(search.toLowerCase()) ||
     s.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -67,7 +76,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
             key={tag}
             className="inline-flex items-center gap-1 bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25 rounded px-2 py-0.5 text-xs font-medium"
           >
-            {tag}
+            {getOptionLabel(tag)}
             <button
               type="button"
               onClick={e => { e.stopPropagation(); removeTag(tag) }}
@@ -127,7 +136,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
                           : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
                       }`}
                     >
-                      <span>{s}</span>
+                      <span>{getOptionLabel(s)}</span>
                       {isSelected && (
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />

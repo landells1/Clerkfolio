@@ -49,6 +49,7 @@ export default function CasesFilters({
       } else {
         params.delete('q')
       }
+      params.delete('page')
       router.replace(`/cases?${params.toString()}`)
     }, 300)
 
@@ -66,6 +67,7 @@ export default function CasesFilters({
     } else {
       params.delete('domain')
     }
+    params.delete('page')
     router.replace(`/cases?${params.toString()}`)
   }
 
@@ -77,6 +79,7 @@ export default function CasesFilters({
     } else {
       params.delete('sort')
     }
+    params.delete('page')
     router.replace(`/cases?${params.toString()}`)
   }
 

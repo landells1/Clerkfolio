@@ -21,10 +21,10 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
   if (sorted.length < 3) {
     return (
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-        <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Specialty coverage</p>
-        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Top specialties at a glance</p>
+        <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Clinical area coverage</p>
+        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Top clinical areas at a glance</p>
         <p className="text-xs text-[rgba(245,245,242,0.35)] text-center py-6">
-          Log entries across 3+ specialties to see your radar chart
+          Log cases across 3+ clinical areas to see your radar chart
         </p>
       </div>
     )
@@ -78,8 +78,8 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
 
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-      <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Specialty coverage</p>
-      <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Top specialties at a glance</p>
+      <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Clinical area coverage</p>
+      <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Top clinical areas at a glance</p>
 
       <div className="flex justify-center">
         <svg

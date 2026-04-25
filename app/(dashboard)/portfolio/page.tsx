@@ -5,10 +5,12 @@ import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfol
 import EntryCard from '@/components/portfolio/entry-card'
 import PortfolioFilters from '@/components/portfolio/portfolio-filters'
 
+const PAGE_SIZE = 20
+
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: { category?: string; q?: string; sort?: string }
+  searchParams: { category?: string; q?: string; sort?: string; page?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,10 +18,12 @@ export default async function PortfolioPage({
   const activeCategory = (searchParams.category as Category) ?? null
   const q = searchParams.q ?? ''
   const sort = searchParams.sort ?? ''
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
+  const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
     .from('portfolio_entries')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user!.id)
     .is('deleted_at', null)
 
@@ -39,9 +43,22 @@ export default async function PortfolioPage({
     query = query.order('pinned', { ascending: false }).order('date', { ascending: false })
   }
 
-  const { data: entries } = await query
+  const { data: entries, count } = await query.range(offset, offset + PAGE_SIZE - 1)
 
-  // Count per category for the tab badges (exclude deleted)
+  const pageTotal = count ?? 0
+  const totalPages = Math.ceil(pageTotal / PAGE_SIZE)
+
+  function pageHref(p: number) {
+    const params = new URLSearchParams()
+    if (activeCategory) params.set('category', activeCategory)
+    if (q) params.set('q', q)
+    if (sort) params.set('sort', sort)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return `/portfolio${qs ? `?${qs}` : ''}`
+  }
+
+  // Count per category for the tab badges (exclude deleted, no pagination)
   const { data: counts } = await supabase
     .from('portfolio_entries')
     .select('category')
@@ -126,11 +143,40 @@ export default async function PortfolioPage({
       {!entries || entries.length === 0 ? (
         <EmptyState category={activeCategory} />
       ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {entries.map(entry => (
-            <EntryCard key={entry.id} entry={entry} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-3">
+            {entries.map(entry => (
+              <EntryCard key={entry.id} entry={entry} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-6 mt-2 border-t border-white/[0.06]">
+              <p className="text-xs text-[rgba(245,245,242,0.35)]">
+                Page {page} of {totalPages} · {pageTotal} entries
+              </p>
+              <div className="flex items-center gap-2">
+                {page > 1 && (
+                  <Link
+                    href={pageHref(page - 1)}
+                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
+                  >
+                    ← Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={pageHref(page + 1)}
+                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
+                  >
+                    Next →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

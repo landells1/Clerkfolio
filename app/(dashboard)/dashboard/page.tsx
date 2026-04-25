@@ -106,7 +106,7 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('cases')
-      .select('specialty_tags')
+      .select('specialty_tags, clinical_domain')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -173,6 +173,14 @@ export default async function DashboardPage() {
   const trackedSpecialtyKeys = trackedSpecialties.map(s => s.key)
   const specialtyCount = Object.keys(specialtyCounts).length
 
+  // Clinical area counts (from cases) for the radar chart
+  const clinicalAreaCounts: Record<string, number> = {}
+  allCases?.forEach(c => {
+    if (c.clinical_domain) {
+      clinicalAreaCounts[c.clinical_domain] = (clinicalAreaCounts[c.clinical_domain] ?? 0) + 1
+    }
+  })
+
   // Heatmap dates (last 84 days, from created_at)
   const heatmapDates = [
     ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
@@ -229,7 +237,7 @@ export default async function DashboardPage() {
           <CoverageWidget counts={coverageCounts} />
           <CompletenessWidget catMap={catMap} totalCases={totalCases} specialtyCount={specialtyCount} />
           <GoalsWidget goals={goals ?? []} catMap={catMap} totalCases={totalCases} />
-          <SpecialtyRadar counts={specialtyCounts} />
+          <SpecialtyRadar counts={clinicalAreaCounts} />
         </div>
       </div>
 

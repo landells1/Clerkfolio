@@ -5,10 +5,12 @@ import CaseCard from '@/components/cases/case-card'
 import CasesFilters from '@/components/cases/cases-filters'
 import DraftResumeBanner from '@/components/cases/draft-resume-banner'
 
+const PAGE_SIZE = 20
+
 export default async function CasesPage({
   searchParams,
 }: {
-  searchParams: { q?: string; domain?: string; sort?: string }
+  searchParams: { q?: string; domain?: string; sort?: string; page?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,10 +18,12 @@ export default async function CasesPage({
   const q = searchParams.q ?? ''
   const domain = searchParams.domain ?? ''
   const sort = searchParams.sort ?? ''
+  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
+  const offset = (page - 1) * PAGE_SIZE
 
   let query = supabase
     .from('cases')
-    .select('*')
+    .select('*', { count: 'exact' })
     .eq('user_id', user!.id)
     .is('deleted_at', null)
 
@@ -32,16 +36,27 @@ export default async function CasesPage({
   }
 
   if (sort === 'date_asc') {
-    query = query.order('pinned', { ascending: false }).order('date', { ascending: true })
+    query = query.order('pinned', { ascending: false }).order('date', { ascending: true }).order('created_at', { ascending: true })
   } else if (sort === 'title_asc') {
     query = query.order('pinned', { ascending: false }).order('title', { ascending: true })
   } else {
-    query = query.order('pinned', { ascending: false }).order('date', { ascending: false })
+    query = query.order('pinned', { ascending: false }).order('created_at', { ascending: false })
   }
 
-  const { data: cases } = await query
+  const { data: cases, count } = await query.range(offset, offset + PAGE_SIZE - 1)
 
-  const total = cases?.length ?? 0
+  const total = count ?? 0
+  const totalPages = Math.ceil(total / PAGE_SIZE)
+
+  function pageHref(p: number) {
+    const params = new URLSearchParams()
+    if (q) params.set('q', q)
+    if (domain) params.set('domain', domain)
+    if (sort) params.set('sort', sort)
+    if (p > 1) params.set('page', String(p))
+    const qs = params.toString()
+    return `/cases${qs ? `?${qs}` : ''}`
+  }
 
   return (
     <div className="p-8">
@@ -105,11 +120,40 @@ export default async function CasesPage({
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3">
-          {cases.map(c => (
-            <CaseCard key={c.id} c={c} />
-          ))}
-        </div>
+        <>
+          <div className="grid grid-cols-1 gap-3">
+            {cases.map(c => (
+              <CaseCard key={c.id} c={c} />
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between pt-6 mt-2 border-t border-white/[0.06]">
+              <p className="text-xs text-[rgba(245,245,242,0.35)]">
+                Page {page} of {totalPages} · {total} cases
+              </p>
+              <div className="flex items-center gap-2">
+                {page > 1 && (
+                  <Link
+                    href={pageHref(page - 1)}
+                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
+                  >
+                    ← Previous
+                  </Link>
+                )}
+                {page < totalPages && (
+                  <Link
+                    href={pageHref(page + 1)}
+                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
+                  >
+                    Next →
+                  </Link>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
