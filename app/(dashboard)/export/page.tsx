@@ -451,7 +451,7 @@ export default function ExportPage() {
           ) : visible.length === 0 ? (
             <div className="py-12 text-center px-6">
               <p className="text-sm text-[rgba(245,245,242,0.35)] mb-3">
-                No entries tagged to &ldquo;{loadedSpecialty}&rdquo;{categoryFilter !== 'all' ? ' in this category' : ''}.
+                No entries tagged to &quot;{loadedSpecialty}&quot;{categoryFilter !== 'all' ? ' in this category' : ''}.
               </p>
               <p className="text-xs text-[rgba(245,245,242,0.25)]">
                 Tag your portfolio or case entries with this specialty to include them here.
