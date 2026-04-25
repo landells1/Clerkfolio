@@ -114,7 +114,7 @@ export default function CasesFilters({
         onChange={e => handleDomain(e.target.value)}
         className={`${inputClass} cursor-pointer`}
       >
-        <option value="">All domains</option>
+        <option value="">All clinical areas</option>
         {CLINICAL_DOMAINS.map(domain => (
           <option key={domain} value={domain}>
             {domain}

@@ -204,9 +204,9 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         />
       </div>
 
-      {/* Clinical domain */}
+      {/* Clinical area */}
       <div>
-        <label className={LABEL}>Clinical domain</label>
+        <label className={LABEL}>Clinical area</label>
         <input
           type="text"
           list="clinical-domains"
@@ -219,18 +219,21 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <datalist id="clinical-domains">
           {CLINICAL_DOMAINS.map(d => <option key={d} value={d} />)}
         </datalist>
+        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
+          The medical setting of this encounter — used to filter and organise your cases.
+        </p>
       </div>
 
-      {/* Specialty tags */}
+      {/* Application tags */}
       <div>
-        <label className={LABEL}>Specialty tags</label>
+        <label className={LABEL}>Application tags</label>
         <SpecialtyTagSelect
           value={specialtyTags}
           onChange={setSpecialtyTags}
           userInterests={userInterests}
         />
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
-          Tag the specialties this case would be relevant to in an application.
+          Which training programmes can you use this case for? Drives your portfolio export and checklists.
         </p>
       </div>
 

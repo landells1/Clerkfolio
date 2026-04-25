@@ -338,10 +338,10 @@ export default function QuickAddModal({
               />
             </div>
 
-            {/* Case: clinical domain in same row */}
+            {/* Case: clinical area in same row */}
             {type === 'case' && (
               <div>
-                <label className={LABEL}>Clinical domain</label>
+                <label className={LABEL}>Clinical area</label>
                 <input
                   type="text"
                   list="quick-add-domains"
@@ -459,9 +459,9 @@ export default function QuickAddModal({
             </div>
           )}
 
-          {/* Specialty tags — shared */}
+          {/* Application tags — shared */}
           <div>
-            <label className={LABEL}>Specialty tags</label>
+            <label className={LABEL}>Application tags</label>
             <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} />
           </div>
 
