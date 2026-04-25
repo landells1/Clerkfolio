@@ -345,11 +345,13 @@ export default function ExportPage() {
             {trackedApps.map(app => {
               const cfg = getSpecialtyConfig(app.specialty_key)
               const name = cfg?.name ?? app.specialty_key
-              const hasEntries = portfolioTagSet.has(name.toLowerCase())
+              // Use the raw key for filtering (matches specialty_tags in DB)
+              // but display the formatted name to the user
+              const hasEntries = portfolioTagSet.has(app.specialty_key.toLowerCase()) || portfolioTagSet.has(name.toLowerCase())
               return (
                 <button
                   key={app.id}
-                  onClick={() => setSpecialty(name)}
+                  onClick={() => setSpecialty(app.specialty_key)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
                     specialty === name
                       ? 'bg-[#1B6FD9]/20 text-[#1B6FD9] border-[#1B6FD9]/40'
