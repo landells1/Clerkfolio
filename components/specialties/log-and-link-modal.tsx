@@ -23,11 +23,12 @@ type Props = {
   domain: SpecialtyDomain
   applicationId: string
   specialtyName: string
+  specialtyKey: string
   onClose: () => void
   onLinked: (link: SpecialtyEntryLink) => void
 }
 
-export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose, onLinked }: Props) {
+export function LogAndLinkModal({ domain, applicationId, specialtyName, specialtyKey, onClose, onLinked }: Props) {
   const supabase = createClient()
 
   const today = new Date().toISOString().split('T')[0]
@@ -77,7 +78,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
             category,
             title: title.trim(),
             date,
-            specialty_tags: [specialtyName],
+            specialty_tags: [specialtyKey],
             notes: notes.trim() || null,
           })
           .select('id')
@@ -93,7 +94,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, onClose,
             user_id: user.id,
             title: title.trim(),
             date,
-            specialty_tags: [specialtyName],
+            specialty_tags: [specialtyKey],
             notes: notes.trim() || null,
             clinical_domain: null,
           })

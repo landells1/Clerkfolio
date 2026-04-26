@@ -98,9 +98,7 @@ export default function ExportPage() {
       if (sorted.length > 0) {
         setSpecialty(sorted[0].tag)
       } else if ((apps ?? []).length > 0) {
-        const firstKey = apps![0].specialty_key
-        const cfg = getSpecialtyConfig(firstKey)
-        setSpecialty(cfg?.name ?? firstKey)
+        setSpecialty(apps![0].specialty_key)
       }
     }
     load()
@@ -353,7 +351,7 @@ export default function ExportPage() {
                   key={app.id}
                   onClick={() => setSpecialty(app.specialty_key)}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-                    specialty === name
+                    specialty === app.specialty_key
                       ? 'bg-[#1B6FD9]/20 text-[#1B6FD9] border-[#1B6FD9]/40'
                       : 'bg-white/[0.04] text-[rgba(245,245,242,0.55)] border-white/[0.06] hover:text-[#F5F5F2] hover:border-white/[0.12]'
                   }`}

@@ -116,7 +116,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   async function handleLogout() {
     setLoggingOut(true)
     // Clear client-side draft storage so clinical notes don't linger after logout.
-    localStorage.removeItem('clinidex-case-draft')
+    sessionStorage.removeItem('clinidex-case-draft')
     sessionStorage.removeItem('clinidex-entry-draft')
     // Tell the service worker to drop its cache so authenticated pages aren't
     // served offline after the user logs out.

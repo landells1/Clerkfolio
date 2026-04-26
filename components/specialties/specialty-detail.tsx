@@ -213,6 +213,7 @@ export function SpecialtyDetail({
           links={links.filter(l => l.domain_key === activeDomainKey)}
           applicationId={application.id}
           specialtyName={config.name}
+          specialtyKey={application.specialty_key}
           onLinksChange={handleDomainLinksChange}
         />
       )}

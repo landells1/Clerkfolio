@@ -50,10 +50,12 @@ export default async function InsightsPage() {
     supabase
       .from('portfolio_entries')
       .select('id, title, category, date, specialty_tags, created_at')
+      .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
       .from('cases')
       .select('id, title, date, specialty_tags, created_at')
+      .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
       .from('profiles')

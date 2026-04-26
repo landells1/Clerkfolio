@@ -13,12 +13,13 @@ type Props = {
   links: SpecialtyEntryLink[]
   applicationId: string
   specialtyName: string
+  specialtyKey: string
   onLinksChange: (links: SpecialtyEntryLink[]) => void
 }
 
 type ModalType = 'link' | 'log' | null
 
-export function DomainTab({ domain, links, applicationId, specialtyName, onLinksChange }: Props) {
+export function DomainTab({ domain, links, applicationId, specialtyName, specialtyKey, onLinksChange }: Props) {
   const supabase = createClient()
   const [openModal, setOpenModal] = useState<ModalType>(null)
   const [checkboxPending, setCheckboxPending] = useState<Set<string>>(new Set())
@@ -411,6 +412,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
             domain={domain}
             applicationId={applicationId}
             specialtyName={specialtyName}
+            specialtyKey={specialtyKey}
             onClose={() => setOpenModal(null)}
             onLinked={link => { handleLinked(link); setOpenModal(null) }}
           />
@@ -540,6 +542,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
             domain={domain}
             applicationId={applicationId}
             specialtyName={specialtyName}
+            specialtyKey={specialtyKey}
             onClose={() => setOpenModal(null)}
             onLinked={link => { handleLinked(link); setOpenModal(null) }}
           />
@@ -750,6 +753,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, onLinks
           domain={domain}
           applicationId={applicationId}
           specialtyName={specialtyName}
+          specialtyKey={specialtyKey}
           onClose={() => setOpenModal(null)}
           onLinked={link => { handleLinked(link); setOpenModal(null) }}
         />
