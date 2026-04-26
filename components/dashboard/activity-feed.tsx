@@ -166,7 +166,7 @@ export default function ActivityFeed({
           ) : (
             <div className="p-4 space-y-3">
               {specialtyScores.map(s => (
-                <Link key={s.key} href="/specialties" className="block group hover:bg-white/[0.02] -mx-2 px-2 py-2 rounded-lg transition-colors">
+                <Link key={s.key} href={`/specialties?app=${s.key}`} className="block group hover:bg-white/[0.02] -mx-2 px-2 py-2 rounded-lg transition-colors">
                   {s.isEvidenceBased ? (
                     /* Evidence-based: two mini progress tracks */
                     <div>
@@ -221,7 +221,7 @@ export default function ActivityFeed({
                 </Link>
               ))}
               <div className="pt-1 border-t border-white/[0.06]">
-                <Link href="/specialties" className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">
+                <Link href="/specialties" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)] transition-colors">
                   Manage programmes →
                 </Link>
               </div>

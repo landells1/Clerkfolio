@@ -2,7 +2,11 @@ import { createClient } from '@/lib/supabase/server'
 import { SpecialtiesShell } from '@/components/specialties/specialties-shell'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 
-export default async function SpecialtiesPage() {
+export default async function SpecialtiesPage({
+  searchParams,
+}: {
+  searchParams: { app?: string }
+}) {
   const supabase = createClient()
 
   const {
@@ -36,5 +40,5 @@ export default async function SpecialtiesPage() {
     links = (linkData ?? []) as SpecialtyEntryLink[]
   }
 
-  return <SpecialtiesShell applications={apps} links={links} />
+  return <SpecialtiesShell applications={apps} links={links} initialAppKey={searchParams.app} />
 }

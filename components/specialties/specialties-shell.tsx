@@ -16,13 +16,16 @@ type Props = {
   applications: SpecialtyApplication[]
   links: SpecialtyEntryLink[]
   isPro?: boolean
+  initialAppKey?: string
 }
 
-export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false }: Props) {
+export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false, initialAppKey }: Props) {
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
   const [links, setLinks] = useState<SpecialtyEntryLink[]>(initialLinks)
-  const [selectedAppId, setSelectedAppId] = useState<string | null>(null)
+  const [selectedAppId, setSelectedAppId] = useState<string | null>(
+    initialAppKey ? (initialApplications.find(a => a.specialty_key === initialAppKey)?.id ?? null) : null
+  )
   const [showAddModal, setShowAddModal] = useState(false)
 
   function handleAddApplication(app: SpecialtyApplication) {
