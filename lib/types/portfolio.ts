@@ -43,6 +43,8 @@ export type PortfolioEntry = {
   date: string
   specialty_tags: string[]
   notes: string | null
+  pinned: boolean
+  deleted_at: string | null
   created_at: string
   updated_at: string
 
