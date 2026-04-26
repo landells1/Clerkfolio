@@ -17,9 +17,11 @@ export default function GoalsWidget({ goals, catMap, totalCases }: Props) {
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
-        <p className="text-sm font-semibold text-[#F5F5F2]">Goals</p>
-        <Link href="/goals" className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">
-          Edit →
+        <Link href="/goals" className="text-sm font-semibold text-[#F5F5F2] hover:text-[rgba(245,245,242,0.7)] transition-colors">
+          Goals
+        </Link>
+        <Link href="/goals" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+          View all →
         </Link>
       </div>
 

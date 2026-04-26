@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { useToast } from '@/components/ui/toast-provider'
 
 type Deadline = {
@@ -134,13 +135,20 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl">
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/[0.06]">
-        <h3 className="text-sm font-semibold text-[#F5F5F2]">Upcoming deadlines</h3>
-        <button
-          onClick={() => setAdding(v => !v)}
-          className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium"
-        >
-          {adding ? 'Cancel' : '+ Add'}
-        </button>
+        <Link href="/deadlines" className="text-sm font-semibold text-[#F5F5F2] hover:text-[rgba(245,245,242,0.7)] transition-colors">
+          Upcoming deadlines
+        </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/deadlines" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+            View all →
+          </Link>
+          <button
+            onClick={() => setAdding(v => !v)}
+            className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium"
+          >
+            {adding ? 'Cancel' : '+ Add'}
+          </button>
+        </div>
       </div>
 
       {adding && (

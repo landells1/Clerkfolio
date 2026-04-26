@@ -3,10 +3,18 @@ import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
-  title: 'Clinidex — Medical Portfolio Tracker',
+  title: 'Clinidex - Medical Portfolio Tracker',
   description: 'The centralised portfolio tracker for UK medical students and foundation doctors. Log cases, achievements, and reflections. Export for any specialty application.',
   metadataBase: new URL('https://clinidex.co.uk'),
   manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon', type: 'image/png', sizes: '32x32' },
+    ],
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+  },
   openGraph: {
     title: 'Clinidex',
     description: 'Your medical portfolio, organised.',

@@ -12,6 +12,8 @@ type Goal = {
 
 type Props = {
   initialGoals: Goal[]
+  catMap?: Record<string, number>
+  totalCases?: number
 }
 
 const CATEGORY_OPTIONS: { value: string; label: string }[] = [
@@ -45,7 +47,7 @@ function isOverdue(dateStr: string | null): boolean {
   return new Date(dateStr + 'T12:00:00Z').getTime() < Date.now()
 }
 
-export default function GoalsManager({ initialGoals }: Props) {
+export default function GoalsManager({ initialGoals, catMap = {}, totalCases = 0 }: Props) {
   const [goals, setGoals] = useState<Goal[]>(initialGoals)
   const [showAddForm, setShowAddForm] = useState(false)
   const [category, setCategory] = useState('audit_qip')
@@ -121,26 +123,44 @@ export default function GoalsManager({ initialGoals }: Props) {
             const dueFmt = formatDueDate(goal.due_date)
             const overdue = isOverdue(goal.due_date)
             const soon = isDueSoon(goal.due_date)
+            const current = goal.category === 'case' ? totalCases : (catMap[goal.category] ?? 0)
+            const pct = Math.min(Math.round((current / goal.target_count) * 100), 100)
+            const complete = current >= goal.target_count
             return (
-              <div key={goal.id} className="flex items-center justify-between px-5 py-4">
-                <div>
-                  <p className="text-sm text-[#F5F5F2]">{catLabel}</p>
-                  <div className="flex items-center gap-3 mt-0.5">
-                    <p className="text-xs text-[rgba(245,245,242,0.4)]">Target: {goal.target_count}</p>
-                    {dueFmt && (
-                      <p className={`text-xs ${overdue ? 'text-red-400' : soon ? 'text-amber-400' : 'text-[rgba(245,245,242,0.35)]'}`}>
-                        Due {dueFmt}
+              <div key={goal.id} className="px-5 py-4">
+                <div className="flex items-start justify-between gap-4 mb-2">
+                  <div>
+                    <p className="text-sm text-[#F5F5F2]">{catLabel}</p>
+                    <div className="flex items-center gap-3 mt-0.5">
+                      <p className="text-xs text-[rgba(245,245,242,0.4)]">
+                        {current} / {goal.target_count} entries
                       </p>
-                    )}
+                      {dueFmt && (
+                        <p className={`text-xs ${overdue ? 'text-red-400' : soon ? 'text-amber-400' : 'text-[rgba(245,245,242,0.35)]'}`}>
+                          Due {dueFmt}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <span className={`text-xs font-mono font-semibold ${complete ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.4)]'}`}>
+                      {pct}%
+                    </span>
+                    <button
+                      onClick={() => handleDelete(goal.id)}
+                      disabled={deletingId === goal.id}
+                      className="text-xs text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors disabled:opacity-50"
+                    >
+                      {deletingId === goal.id ? 'Removing…' : 'Remove'}
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDelete(goal.id)}
-                  disabled={deletingId === goal.id}
-                  className="text-xs text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors disabled:opacity-50"
-                >
-                  {deletingId === goal.id ? 'Removing…' : 'Remove'}
-                </button>
+                <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full transition-all ${complete ? 'bg-[#1B6FD9]' : 'bg-[#1B6FD9]/60'}`}
+                    style={{ width: `${pct}%` }}
+                  />
+                </div>
               </div>
             )
           })}

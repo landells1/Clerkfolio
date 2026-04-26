@@ -216,7 +216,7 @@ export default async function DashboardPage() {
       <div className="grid grid-cols-3 gap-4 mb-6">
         <StatCard label="Portfolio entries" value={totalEntries} href="/portfolio" icon={<PortfolioIcon />} />
         <StatCard label="Cases logged" value={totalCases} href="/cases" icon={<CaseIcon />} />
-        <StatCard label="Upcoming deadlines" value={totalDeadlines} href="#deadlines" icon={<DeadlineIcon />} highlight={totalDeadlines > 0} />
+        <StatCard label="Upcoming deadlines" value={totalDeadlines} href="/deadlines" icon={<DeadlineIcon />} highlight={totalDeadlines > 0} />
       </div>
 
       {/* Main grid */}
@@ -231,9 +231,7 @@ export default async function DashboardPage() {
 
         {/* Right column */}
         <div className="flex flex-col gap-6">
-          <div id="deadlines">
-            <DeadlinesWidget initialDeadlines={deadlines ?? []} />
-          </div>
+          <DeadlinesWidget initialDeadlines={deadlines ?? []} />
           <CoverageWidget counts={coverageCounts} />
           <CompletenessWidget catMap={catMap} totalCases={totalCases} specialtyCount={specialtyCount} />
           <GoalsWidget goals={goals ?? []} catMap={catMap} totalCases={totalCases} />
