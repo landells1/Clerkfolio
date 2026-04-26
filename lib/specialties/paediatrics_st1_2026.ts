@@ -17,6 +17,24 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'paeds_experience_cap',
+      label: 'Prior paediatrics experience ≤24 months WTE',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Whole-time-equivalent experience in Paediatrics must not exceed 24 months at point of application. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
+    },
+    {
+      key: 'paeds_safeguarding',
+      label: 'Awareness of Paediatric safeguarding',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Awareness of safeguarding principles, recognition of risk, and knowledge of escalation routes (Level 1/2 safeguarding training expected).',
+    },
+    {
       key: 'clinical_capabilities',
       label: 'Transferable Clinical Capabilities',
       maxPoints: 0,

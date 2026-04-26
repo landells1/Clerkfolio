@@ -19,6 +19,15 @@ export const PUBLIC_HEALTH_ST1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'ph_face_to_face',
+      label: 'Able to attend face-to-face meetings ≥2 days/week',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Public Health training requires ability to attend face-to-face meetings at least two days per week.',
+    },
+    {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,

@@ -1,4 +1,5 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
 export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   key: 'radiology_st1_2026',
@@ -10,6 +11,25 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'points',
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
+    {
+      key: 'radiology_experience_cap',
+      label: 'Prior radiology experience ≤18 months WTE',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Whole-time-equivalent experience in Radiology must not exceed 18 months by post start date, with a maximum of 4 months counted at Foundation level. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
+    },
+    {
+      key: 'radiology_observation',
+      label: 'Time observing in a radiology / nuclear medicine department',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Documented time spent in a radiology or nuclear medicine department observing the work of a radiologist (taster, elective, or shadowing). Required as an essential criterion in the 2026 person spec.',
+    },
     {
       key: 'commitment_radiology',
       label: 'Commitment to Radiology',

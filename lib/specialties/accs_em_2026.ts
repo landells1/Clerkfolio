@@ -73,7 +73,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'EM taster/elective, ALS/ATLS/APLS/ETC courses, RCEM membership, EM conferences attended, prehospital experience (BASICS, voluntary ambulance).',
+      notes: 'EM taster/elective, ALS/ATLS/APLS/ETC courses, RCEM membership, engagement with RCEM examinations (e.g. MCEM/FRCEM Primary), EM conferences attended, prehospital experience (BASICS, voluntary ambulance).',
     },
   ],
 }

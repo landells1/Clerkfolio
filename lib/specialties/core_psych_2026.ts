@@ -16,6 +16,15 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'psych_driving_licence',
+      label: 'Valid driving licence (or alternative transport)',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Current and in-date valid driving licence, or undertaking to provide alternative means of transport (community psychiatry placements often require travel between sites).',
+    },
+    {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,

@@ -1,10 +1,11 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // ACCS Acute Medicine shares the IMT self-assessment framework for 2026.
 // Total 30 points + 5 bonus for candidates applying only to IMT / ACCS-IM.
 export const ACCS_AM_2026: SpecialtyConfig = {
   key: 'accs_am_2026',
-  name: 'ACCS (Acute Medicine)',
+  name: 'ACCS (Acute Medicine) CT1',
   cycleYear: 2026,
   totalMax: 30,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-internal-medicine-ct1-2026',
@@ -19,6 +20,7 @@ export const ACCS_AM_2026: SpecialtyConfig = {
     },
   ],
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',

@@ -16,6 +16,15 @@ export const OG_ST1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'og_experience_cap',
+      label: 'Prior O&G experience ≤24 months WTE',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Whole-time-equivalent experience in Obstetrics & Gynaecology must not exceed 24 months (excluding Foundation modules) by post start date. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
+    },
+    {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,
@@ -73,7 +82,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'MRCOG Part 1, O&G taster/elective, BPSiOG / ultrasound / ALSO / MOET / PROMPT obstetric emergency courses, RCOG membership, O&G conferences attended.',
+      notes: 'Demonstrable interest in O&G as practiced in the UK. MRCOG Part 1, O&G taster/elective, BPSiOG / ultrasound / ALSO / MOET / PROMPT obstetric emergency courses, RCOG membership, O&G conferences attended.',
     },
   ],
 }

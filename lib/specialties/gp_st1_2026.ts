@@ -16,6 +16,15 @@ export const GP_ST1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'gp_performers_list',
+      label: 'Eligible for UK Performers’ Lists',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Eligible for inclusion on the UK Performers’ Lists by post start date (required to deliver NHS GP services).',
+    },
+    {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,

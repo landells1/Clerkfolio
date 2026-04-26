@@ -17,6 +17,15 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
+      key: 'ophthalmology_experience_cap',
+      label: 'Prior ophthalmology experience ≤30 months WTE',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'essential',
+      notes: 'Whole-time-equivalent experience in Ophthalmology (including Medical Ophthalmology) must not exceed 30 months by interview date. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
+    },
+    {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',
       maxPoints: 0,

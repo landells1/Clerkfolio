@@ -198,11 +198,13 @@ export function SpecialtyDetail({
           tickingAll={tickingAll}
         />
       ) : (
-        <FlatDomainTabs
+        <PointsLayoutTabs
           config={config}
           links={links}
           activeDomainKey={activeDomainKey}
           onSelect={setActiveDomainKey}
+          onTickAllEssentials={handleTickAllEssentials}
+          tickingAll={tickingAll}
         />
       )}
 
@@ -253,19 +255,54 @@ function PointsHeader({
 }) {
   const total = calculateTotalScore(config, application, links)
   const pct = config.totalMax > 0 ? Math.min((total / config.totalMax) * 100, 100) : 0
+  const essentials = getEssentialDomains(config)
+  const essentialsMet = essentials.filter(d =>
+    links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
+  ).length
+  const essentialsPct = essentials.length > 0 ? (essentialsMet / essentials.length) * 100 : 0
+
+  if (essentials.length === 0) {
+    return (
+      <>
+        <div className="flex items-baseline gap-1.5 mb-3">
+          <span className="text-4xl font-bold text-[#F5F5F2]">{total}</span>
+          <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+        </div>
+        <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#1B6FD9] rounded-full transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
+      </>
+    )
+  }
+
   return (
-    <>
-      <div className="flex items-baseline gap-1.5 mb-3">
-        <span className="text-4xl font-bold text-[#F5F5F2]">{total}</span>
-        <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+    <div className="grid grid-cols-2 gap-6 mt-2">
+      <div>
+        <p className="text-[10px] text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide mb-1">
+          Score
+        </p>
+        <div className="flex items-baseline gap-1.5 mb-2">
+          <span className="text-3xl font-bold text-[#F5F5F2]">{total}</span>
+          <span className="text-xs text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+        </div>
+        <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+          <div
+            className="h-full bg-[#1B6FD9] rounded-full transition-all"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
       </div>
-      <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
-        <div
-          className="h-full bg-[#1B6FD9] rounded-full transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-    </>
+      <HeaderProgressBlock
+        label="Essentials"
+        sublabel="met"
+        current={essentialsMet}
+        total={essentials.length}
+        pct={essentialsPct}
+      />
+    </div>
   )
 }
 
@@ -361,6 +398,82 @@ function FlatDomainTabs({
             onSelect={() => onSelect(domain.key)}
           />
         ))}
+      </div>
+    </div>
+  )
+}
+
+// Tier 1 (points-based) layout. If the config has essentials, render an
+// Essentials group above the scored tabs; otherwise fall back to the flat layout.
+function PointsLayoutTabs({
+  config,
+  links,
+  activeDomainKey,
+  onSelect,
+  onTickAllEssentials,
+  tickingAll = false,
+}: {
+  config: SpecialtyConfig
+  links: SpecialtyEntryLink[]
+  activeDomainKey: string
+  onSelect: (key: string) => void
+  onTickAllEssentials?: () => Promise<void>
+  tickingAll?: boolean
+}) {
+  const essentials = getEssentialDomains(config)
+  const scored = config.domains.filter(d => d.criteriaType !== 'essential')
+
+  if (essentials.length === 0) {
+    return (
+      <FlatDomainTabs
+        config={config}
+        links={links}
+        activeDomainKey={activeDomainKey}
+        onSelect={onSelect}
+      />
+    )
+  }
+
+  const unmetCount = essentials.filter(
+    d => !links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
+  ).length
+
+  return (
+    <div className="space-y-3 mb-1">
+      <DomainGroup
+        title="Essentials"
+        subtitle="Entry requirements — must be met by start date"
+        domains={essentials}
+        links={links}
+        activeDomainKey={activeDomainKey}
+        onSelect={onSelect}
+        isEvidenceMode
+        onTickAll={unmetCount > 0 ? onTickAllEssentials : undefined}
+        tickingAll={tickingAll}
+        unmetCount={unmetCount}
+      />
+      <div>
+        <div className="flex items-center gap-2 mb-2 px-1">
+          <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
+            Scoring
+          </span>
+          <span className="text-xs text-[rgba(245,245,242,0.35)] flex-1">
+            Self-assessment for shortlisting
+          </span>
+        </div>
+        <div className="overflow-x-auto pb-1">
+          <div className="flex gap-1 min-w-max">
+            {scored.map(domain => (
+              <DomainTabButton
+                key={domain.key}
+                domain={domain}
+                score={calculateDomainScore(domain, links)}
+                isActive={domain.key === activeDomainKey}
+                onSelect={() => onSelect(domain.key)}
+              />
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   )

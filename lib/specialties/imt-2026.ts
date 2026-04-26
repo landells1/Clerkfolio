@@ -1,10 +1,11 @@
 import type { SpecialtyConfig } from './types'
+import { UNIVERSAL_ESSENTIALS } from './shared'
 
 export const IMT_2026: SpecialtyConfig = {
   key: 'imt_2026',
   name: 'IMT',
   cycleYear: 2026,
-  totalMax: 35,
+  totalMax: 30,
   source: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
   sourceLabel: 'IMT Recruitment — Application Scoring',
   isOfficial: true,
@@ -17,6 +18,7 @@ export const IMT_2026: SpecialtyConfig = {
     },
   ],
   domains: [
+    ...UNIVERSAL_ESSENTIALS,
     {
       key: 'qualifications',
       label: 'Postgraduate Degrees & Qualifications',

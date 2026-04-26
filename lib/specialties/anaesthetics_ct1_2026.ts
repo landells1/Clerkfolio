@@ -16,13 +16,13 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
-      key: 'als_certified',
-      label: 'Adult Life Support (ALS) provider',
+      key: 'anaesthetics_experience_cap',
+      label: 'Prior anaesthetics experience ≤24 months WTE',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Current Resuscitation Council UK ALS certification (or equivalent) by post start date.',
+      notes: 'Whole-time-equivalent experience in Anaesthetics must not exceed 24 months by post start date. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
     },
     {
       key: 'qualifications',
@@ -73,6 +73,16 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
+    },
+    {
+      key: 'als_certified',
+      label: 'Advanced life support skills',
+      maxPoints: 0,
+      scoringRule: 'highest',
+      bands: [],
+      criteriaType: 'desirable',
+      isEvidenceOnly: true,
+      notes: 'Up-to-date and demonstrable advanced life support skills (e.g. Resuscitation Council UK ALS). Listed as desirable in the 2026 person spec; many Schools of Anaesthesia require ALS by post start date.',
     },
     {
       key: 'commitment_anaesthetics',
