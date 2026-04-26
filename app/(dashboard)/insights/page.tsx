@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { getSpecialtyConfig } from '@/lib/specialties'
 import InsightsCharts from '@/components/insights/insights-charts'
 
 type EntryRow = {
@@ -104,7 +105,7 @@ export default async function InsightsPage() {
   const topSpecialties = Object.entries(specCount)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 8)
-    .map(([name, count]) => ({ name, count }))
+    .map(([key, count]) => ({ name: getSpecialtyConfig(key)?.name ?? key, count }))
 
   // Timeline (last 6 months)
   const last6 = last12Months().slice(6)
