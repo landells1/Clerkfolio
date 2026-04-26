@@ -106,4 +106,4 @@ export type PortfolioEntry = {
   custom_free_text?: string | null
 }
 
-export type NewPortfolioEntry = Omit<PortfolioEntry, 'id' | 'user_id' | 'created_at' | 'updated_at'>
+export type NewPortfolioEntry = Omit<PortfolioEntry, 'id' | 'user_id' | 'pinned' | 'deleted_at' | 'created_at' | 'updated_at'>
