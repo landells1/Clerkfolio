@@ -82,7 +82,7 @@ export default async function PortfolioPage({
           </p>
         </div>
         <Link
-          href="/portfolio/new"
+          href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'}
           className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors"
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
