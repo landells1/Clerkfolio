@@ -1,19 +1,40 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 
 type Goal = {
   id: string
   category: string
   target_count: number
   due_date?: string | null
+  start_date?: string | null
 }
 
 type Props = {
   goals: Goal[]
-  catMap: Record<string, number>
-  totalCases: number
+  portfolioEntries: { category: string; created_at: string }[]
+  caseEntries: { created_at: string }[]
+  accountCreatedAt: string
 }
 
-export default function GoalsWidget({ goals, catMap, totalCases }: Props) {
+const LABEL: Record<string, string> = {
+  audit_qip: 'Audit & QIP', teaching: 'Teaching', conference: 'Conference',
+  publication: 'Publication', leadership: 'Leadership', prize: 'Prize',
+  procedure: 'Procedure', reflection: 'Reflection', case: 'Cases',
+}
+
+function countForGoal(
+  goal: Goal,
+  entries: { category: string; created_at: string }[],
+  cases: { created_at: string }[],
+  accountCreatedAt: string
+): number {
+  const from = goal.start_date ?? accountCreatedAt.split('T')[0]
+  if (goal.category === 'case') {
+    return cases.filter(c => c.created_at.split('T')[0] >= from).length
+  }
+  return entries.filter(e => e.category === goal.category && e.created_at.split('T')[0] >= from).length
+}
+
+export default function GoalsWidget({ goals, portfolioEntries, caseEntries, accountCreatedAt }: Props) {
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
       <div className="flex items-center justify-between mb-4">
@@ -35,15 +56,15 @@ export default function GoalsWidget({ goals, catMap, totalCases }: Props) {
       ) : (
         <div className="space-y-3">
           {goals.map(goal => {
-            const current = goal.category === 'case' ? totalCases : (catMap[goal.category] ?? 0)
+            const current = countForGoal(goal, portfolioEntries, caseEntries, accountCreatedAt)
             const pct = Math.min(Math.round((current / goal.target_count) * 100), 100)
             const complete = current >= goal.target_count
 
             return (
               <div key={goal.id}>
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs text-[rgba(245,245,242,0.7)] capitalize">
-                    {goal.category === 'case' ? 'Cases' : goal.category.replace('_', ' ')}
+                  <span className="text-xs text-[rgba(245,245,242,0.7)]">
+                    {LABEL[goal.category] ?? goal.category}
                   </span>
                   <span className="text-xs text-[rgba(245,245,242,0.4)]">{current}/{goal.target_count}</span>
                 </div>

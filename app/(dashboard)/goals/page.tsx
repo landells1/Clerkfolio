@@ -8,31 +8,25 @@ export default async function GoalsPage() {
 
   const [
     { data: goals },
-    { data: allEntries },
-    { data: allCases },
+    { data: portfolioEntries },
+    { data: caseEntries },
   ] = await Promise.all([
     supabase
       .from('goals')
-      .select('id, category, target_count, due_date')
+      .select('id, category, target_count, due_date, start_date')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
     supabase
       .from('portfolio_entries')
-      .select('category')
+      .select('category, created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
       .from('cases')
-      .select('id')
+      .select('created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
   ])
-
-  const catMap: Record<string, number> = {}
-  allEntries?.forEach(e => {
-    if (e.category) catMap[e.category] = (catMap[e.category] ?? 0) + 1
-  })
-  const totalCases = allCases?.length ?? 0
 
   return (
     <div className="p-8 max-w-2xl">
@@ -44,9 +38,16 @@ export default async function GoalsPage() {
           ← Dashboard
         </Link>
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mt-2">Goals</h1>
-        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Set targets for each part of your portfolio.</p>
+        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
+          Set targets for each part of your portfolio. Progress only counts entries logged on or after each goal&apos;s start date.
+        </p>
       </div>
-      <GoalsManager initialGoals={goals ?? []} catMap={catMap} totalCases={totalCases} />
+      <GoalsManager
+        initialGoals={goals ?? []}
+        portfolioEntries={portfolioEntries ?? []}
+        caseEntries={caseEntries ?? []}
+        accountCreatedAt={user!.created_at}
+      />
     </div>
   )
 }

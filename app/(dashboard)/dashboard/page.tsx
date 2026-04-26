@@ -93,7 +93,7 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('portfolio_entries')
-      .select('category, specialty_tags')
+      .select('category, specialty_tags, created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -106,7 +106,7 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('cases')
-      .select('specialty_tags, clinical_domain')
+      .select('specialty_tags, clinical_domain, created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
       .is('deleted_at', null),
     supabase
       .from('goals')
-      .select('id, category, target_count, due_date')
+      .select('id, category, target_count, due_date, start_date')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
@@ -234,7 +234,12 @@ export default async function DashboardPage() {
           <DeadlinesWidget initialDeadlines={deadlines ?? []} />
           <CoverageWidget counts={coverageCounts} />
           <CompletenessWidget catMap={catMap} totalCases={totalCases} specialtyCount={specialtyCount} />
-          <GoalsWidget goals={goals ?? []} catMap={catMap} totalCases={totalCases} />
+          <GoalsWidget
+            goals={goals ?? []}
+            portfolioEntries={(allEntries ?? []).map((e: { category: string; created_at: string }) => ({ category: e.category, created_at: e.created_at }))}
+            caseEntries={(allCases ?? []).map((c: { created_at: string }) => ({ created_at: c.created_at }))}
+            accountCreatedAt={user!.created_at}
+          />
           <SpecialtyRadar counts={clinicalAreaCounts} />
         </div>
       </div>

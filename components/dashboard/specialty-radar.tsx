@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface SpecialtyRadarProps {
   counts: Record<string, number>
@@ -33,8 +33,8 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
   const n = sorted.length
   if (n < 3) return <BarView sorted={sorted} max={max} />
 
-  const cx = 130, cy = 115, maxR = 78
-  const labelR = maxR + 22
+  // Generous viewBox so labels never clip
+  const cx = 210, cy = 153, maxR = 88, labelR = 118
 
   const angles = sorted.map((_, i) => (i / n) * 2 * Math.PI - Math.PI / 2)
 
@@ -45,21 +45,18 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
 
   const dataPoints = sorted.map(([, count], i) => {
     const r = (count / max) * maxR
-    return {
-      x: cx + r * Math.cos(angles[i]),
-      y: cy + r * Math.sin(angles[i]),
-    }
+    return { x: cx + r * Math.cos(angles[i]), y: cy + r * Math.sin(angles[i]) }
   })
 
-  const polyPoints = dataPoints.map(p => `${p.x},${p.y}`).join(' ')
-
   return (
-    <svg viewBox="0 0 260 230" className="w-full" aria-label="Clinical area radar chart">
+    <svg viewBox="0 0 420 310" className="w-full" aria-label="Clinical area radar chart">
       {/* Concentric rings */}
       {[0.25, 0.5, 0.75, 1].map(frac => (
         <polygon
           key={frac}
-          points={angles.map(a => `${cx + maxR * frac * Math.cos(a)},${cy + maxR * frac * Math.sin(a)}`).join(' ')}
+          points={angles.map(a =>
+            `${cx + maxR * frac * Math.cos(a)},${cy + maxR * frac * Math.sin(a)}`
+          ).join(' ')}
           fill="none"
           stroke="rgba(245,245,242,0.06)"
           strokeWidth="1"
@@ -68,18 +65,13 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
 
       {/* Axis lines */}
       {axisPoints.map((pt, i) => (
-        <line
-          key={i}
-          x1={cx} y1={cy}
-          x2={pt.x} y2={pt.y}
-          stroke="rgba(245,245,242,0.08)"
-          strokeWidth="1"
-        />
+        <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y}
+          stroke="rgba(245,245,242,0.08)" strokeWidth="1" />
       ))}
 
       {/* Data polygon */}
       <polygon
-        points={polyPoints}
+        points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
         fill="rgba(27,111,217,0.18)"
         stroke="#1B6FD9"
         strokeWidth="1.5"
@@ -91,34 +83,33 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
         <circle key={i} cx={pt.x} cy={pt.y} r="3" fill="#1B6FD9" />
       ))}
 
-      {/* Labels */}
+      {/* Labels — positioned outward from center with angle-aware vertical stacking */}
       {sorted.map(([area, count], i) => {
         const cosA = Math.cos(angles[i])
         const sinA = Math.sin(angles[i])
         const lx = cx + labelR * cosA
         const ly = cy + labelR * sinA
         const anchor = cosA > 0.15 ? 'start' : cosA < -0.15 ? 'end' : 'middle'
-        const label = area.length > 13 ? area.slice(0, 12) + '…' : area
+
+        // Vertical stacking: push text away from chart center
+        let nameY: number, countY: number
+        if (sinA < -0.35) {
+          nameY = ly - 10; countY = ly - 1   // near top → stack upward
+        } else if (sinA > 0.35) {
+          nameY = ly + 9;  countY = ly + 18  // near bottom → stack downward
+        } else {
+          nameY = ly - 5;  countY = ly + 5   // sides → centred
+        }
+
         return (
           <g key={i}>
-            <text
-              x={lx}
-              y={ly - 4}
-              textAnchor={anchor}
-              dominantBaseline="auto"
-              fontSize="7.5"
-              fill="rgba(245,245,242,0.65)"
-            >
-              {label}
+            <title>{area}: {count}</title>
+            <text x={lx} y={nameY} textAnchor={anchor} fontSize="8"
+              fill="rgba(245,245,242,0.7)">
+              {area}
             </text>
-            <text
-              x={lx}
-              y={ly + 6}
-              textAnchor={anchor}
-              dominantBaseline="auto"
-              fontSize="7"
-              fill="rgba(245,245,242,0.35)"
-            >
+            <text x={lx} y={countY} textAnchor={anchor} fontSize="7.5"
+              fill="rgba(245,245,242,0.35)" fontFamily="monospace">
               {count}
             </text>
           </g>
@@ -130,6 +121,17 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
 
 export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
   const [view, setView] = useState<'bar' | 'radar'>('bar')
+
+  // Read persisted preference after hydration (avoids SSR mismatch)
+  useEffect(() => {
+    const stored = localStorage.getItem('clinidex-chart-view')
+    if (stored === 'bar' || stored === 'radar') setView(stored)
+  }, [])
+
+  function handleSetView(v: 'bar' | 'radar') {
+    setView(v)
+    localStorage.setItem('clinidex-chart-view', v)
+  }
 
   const sorted = Object.entries(counts)
     .filter(([, c]) => c >= 1)
@@ -148,7 +150,7 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
         {sorted.length >= 3 && (
           <div className="flex items-center gap-1 shrink-0 ml-2">
             <button
-              onClick={() => setView('bar')}
+              onClick={() => handleSetView('bar')}
               title="Bar view"
               className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)] hover:text-[rgba(245,245,242,0.6)]'}`}
             >
@@ -157,7 +159,7 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
               </svg>
             </button>
             <button
-              onClick={() => setView('radar')}
+              onClick={() => handleSetView('radar')}
               title="Radar view"
               className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)] hover:text-[rgba(245,245,242,0.6)]'}`}
             >
