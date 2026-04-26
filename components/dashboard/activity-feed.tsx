@@ -32,26 +32,36 @@ const DOT_HEX: Record<string, string> = {
   custom:      'rgba(245,245,242,0.4)',
 }
 
+type SpecialtyScore = {
+  key: string
+  label: string
+  isEvidenceBased: boolean
+  score: number
+  maxScore: number
+  essentialsMet: number
+  essentialsTotal: number
+  desirablesEvidenced: number
+  desirablesTotal: number
+}
+
 const TABS = ['Portfolio', 'Cases', 'Specialty'] as const
 type Tab = typeof TABS[number]
 
 export default function ActivityFeed({
   entries,
   cases,
-  trackedSpecialties,
-  specialtyCounts,
+  specialtyScores,
 }: {
   entries: PortfolioEntry[]
   cases: Case[]
-  trackedSpecialties: { key: string; label: string }[]
-  specialtyCounts: Record<string, number>
+  specialtyScores: SpecialtyScore[]
 }) {
   const [tab, setTab] = useState<Tab>('Portfolio')
 
   const tabCounts: Record<Tab, number | null> = {
     Portfolio: entries.length,
     Cases: cases.length,
-    Specialty: null,
+    Specialty: specialtyScores.length || null,
   }
 
   return (
@@ -146,7 +156,7 @@ export default function ActivityFeed({
 
         {/* Specialty */}
         {tab === 'Specialty' && (
-          trackedSpecialties.length === 0 ? (
+          specialtyScores.length === 0 ? (
             <EmptyState
               icon={<SpecialtyIcon />}
               text="No programmes being tracked"
@@ -154,27 +164,64 @@ export default function ActivityFeed({
               cta="Add a specialty tracker"
             />
           ) : (
-            <div className="p-4 space-y-2">
-              {trackedSpecialties.map(s => {
-                const count = specialtyCounts[s.key] ?? 0
-                const maxCount = Object.keys(specialtyCounts).length === 0 ? 1 : Math.max(1, ...Object.values(specialtyCounts))
-                return (
-                  <Link key={s.key} href="/specialties" className="flex items-center justify-between py-2 group hover:bg-white/[0.02] -mx-2 px-2 rounded-lg transition-colors">
-                    <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
-                    <div className="flex items-center gap-3">
-                      <div className="w-24 h-1 rounded-full bg-white/[0.06] overflow-hidden">
+            <div className="p-4 space-y-3">
+              {specialtyScores.map(s => (
+                <Link key={s.key} href="/specialties" className="block group hover:bg-white/[0.02] -mx-2 px-2 py-2 rounded-lg transition-colors">
+                  {s.isEvidenceBased ? (
+                    /* Evidence-based: two mini progress tracks */
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
+                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400 font-medium">Evidence</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-[rgba(245,245,242,0.35)] uppercase tracking-wide">Essentials</span>
+                            <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.essentialsMet}/{s.essentialsTotal}</span>
+                          </div>
+                          <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                            <div
+                              className="h-full bg-amber-400 rounded-full transition-all"
+                              style={{ width: s.essentialsTotal > 0 ? `${Math.round((s.essentialsMet / s.essentialsTotal) * 100)}%` : '0%' }}
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="text-[10px] text-[rgba(245,245,242,0.35)] uppercase tracking-wide">Desirables</span>
+                            <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.desirablesEvidenced}/{s.desirablesTotal}</span>
+                          </div>
+                          <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
+                            <div
+                              className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                              style={{ width: s.desirablesTotal > 0 ? `${Math.round((s.desirablesEvidenced / s.desirablesTotal) * 100)}%` : '0%' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Points-based: single score bar */
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
+                        <span className="text-xs font-mono text-[rgba(245,245,242,0.4)]">
+                          {s.score}<span className="text-[rgba(245,245,242,0.25)]">/{s.maxScore} pts</span>
+                        </span>
+                      </div>
+                      <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
-                          className="h-full bg-blue-500 rounded-full transition-all"
-                          style={{ width: `${Math.min(100, (count / maxCount) * 100)}%` }}
+                          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                          style={{ width: s.maxScore > 0 ? `${Math.round((s.score / s.maxScore) * 100)}%` : '0%' }}
                         />
                       </div>
-                      <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono w-6 text-right">{count}</span>
                     </div>
-                  </Link>
-                )
-              })}
-              <div className="pt-2 border-t border-white/[0.06]">
-                <Link href="/specialties" className="text-xs text-blue-400 hover:text-blue-300 transition-colors">
+                  )}
+                </Link>
+              ))}
+              <div className="pt-1 border-t border-white/[0.06]">
+                <Link href="/specialties" className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">
                   Manage programmes →
                 </Link>
               </div>

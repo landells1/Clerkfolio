@@ -1,5 +1,11 @@
 import { createClient } from '@/lib/supabase/server'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import {
+  getSpecialtyConfig,
+  calculateTotalScore,
+  getEvidenceProgress,
+  isEvidenceBased,
+} from '@/lib/specialties'
+import type { SpecialtyEntryLink } from '@/lib/specialties'
 import ActivityFeed from '@/components/dashboard/activity-feed'
 import DeadlinesWidget from '@/components/dashboard/deadlines-widget'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
@@ -75,7 +81,7 @@ export default async function DashboardPage() {
       .single(),
     supabase
       .from('specialty_applications')
-      .select('specialty_key')
+      .select('id, specialty_key, bonus_claimed')
       .eq('user_id', user!.id),
     supabase
       .from('portfolio_entries')
@@ -152,25 +158,35 @@ export default async function DashboardPage() {
   const totalCases = allCases?.length ?? 0
   const totalDeadlines = deadlines?.length ?? 0
 
-  // Specialty tag counts across ALL entries + cases (not the limited feed subset)
-  const specialtyCounts: Record<string, number> = {}
-  allEntries?.forEach(e => {
-    e.specialty_tags?.forEach((t: string) => {
-      specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1
-    })
-  })
-  allCases?.forEach(c => {
-    c.specialty_tags?.forEach((t: string) => {
-      specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1
-    })
+  // Fetch specialty entry links for all tracked applications (needed for real scores)
+  const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
+  const { data: specialtyLinksRaw } = applicationIds.length > 0
+    ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
+    : { data: [] as SpecialtyEntryLink[] }
+  const specialtyLinks = (specialtyLinksRaw ?? []) as SpecialtyEntryLink[]
+
+  // Build per-specialty score summaries for the ActivityFeed
+  const specialtyScores = (trackedSpecialtyRows ?? []).map(row => {
+    const config = getSpecialtyConfig(row.specialty_key)
+    const label = config?.name ?? row.specialty_key.replace(/[_-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase())
+    const links = specialtyLinks.filter(l => l.application_id === row.id)
+    if (!config) {
+      return { key: row.specialty_key, label, isEvidenceBased: false, score: 0, maxScore: 0, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
+    }
+    if (isEvidenceBased(config)) {
+      const { essentialsTotal, essentialsMet, desirablesTotal, desirablesEvidenced } = getEvidenceProgress(config, links)
+      return { key: row.specialty_key, label, isEvidenceBased: true, score: 0, maxScore: 0, essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal }
+    }
+    const score = calculateTotalScore(config, { id: row.id, user_id: user!.id, specialty_key: row.specialty_key, cycle_year: config.cycleYear, bonus_claimed: row.bonus_claimed, created_at: '' }, links)
+    return { key: row.specialty_key, label, isEvidenceBased: false, score, maxScore: config.totalMax, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
   })
 
-  // Build tracked specialty list with formatted display names
-  const trackedSpecialties = (trackedSpecialtyRows ?? []).map(row => ({
-    key: row.specialty_key,
-    label: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key.replace(/[_-]/g, ' ').replace(/\b\w/g, (c: string) => c.toUpperCase()),
-  }))
-  const trackedSpecialtyKeys = trackedSpecialties.map(s => s.key)
+  const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
+
+  // specialtyCounts still used by CompletenessWidget
+  const specialtyCounts: Record<string, number> = {}
+  allEntries?.forEach(e => { e.specialty_tags?.forEach((t: string) => { specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1 }) })
+  allCases?.forEach(c => { c.specialty_tags?.forEach((t: string) => { specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1 }) })
   const specialtyCount = Object.keys(specialtyCounts).length
 
   // Clinical area counts (from cases) for the radar chart
@@ -225,8 +241,7 @@ export default async function DashboardPage() {
         <ActivityFeed
           entries={(recentEntries ?? []) as PortfolioEntry[]}
           cases={(recentCases ?? []) as Case[]}
-          trackedSpecialties={trackedSpecialties}
-          specialtyCounts={specialtyCounts}
+          specialtyScores={specialtyScores}
         />
 
         {/* Right column */}
