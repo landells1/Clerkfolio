@@ -42,6 +42,7 @@ export function SpecialtyDetail({
   const [activeDomainKey, setActiveDomainKey] = useState(config.domains[0]?.key ?? '')
   const [bonusClaimed, setBonusClaimed] = useState(application.bonus_claimed)
   const [togglingBonus, setTogglingBonus] = useState(false)
+  const [tickingAll, setTickingAll] = useState(false)
 
   async function handleBonusToggle(_optionKey: string) {
     if (togglingBonus) return
@@ -62,6 +63,35 @@ export function SpecialtyDetail({
       onApplicationUpdate({ ...application, bonus_claimed: !newValue })
     }
     setTogglingBonus(false)
+  }
+
+  async function handleTickAllEssentials() {
+    if (tickingAll) return
+    setTickingAll(true)
+    const essentials = getEssentialDomains(config)
+    const unmetDomains = essentials.filter(
+      d => !links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
+    )
+    if (unmetDomains.length > 0) {
+      const { data: rows, error } = await supabase
+        .from('specialty_entry_links')
+        .insert(unmetDomains.map(d => ({
+          application_id: application.id,
+          domain_key: d.key,
+          entry_id: null,
+          entry_type: null,
+          band_label: 'Met',
+          points_claimed: 0,
+          is_checkbox: true,
+        })))
+        .select()
+      if (error) {
+        alert(`Failed to tick all essentials: ${error.message}`)
+      } else if (rows) {
+        onLinksChange([...allLinks, ...(rows as SpecialtyEntryLink[])])
+      }
+    }
+    setTickingAll(false)
   }
 
   function handleDomainLinksChange(newDomainLinks: SpecialtyEntryLink[]) {
@@ -164,6 +194,8 @@ export function SpecialtyDetail({
           links={links}
           activeDomainKey={activeDomainKey}
           onSelect={setActiveDomainKey}
+          onTickAllEssentials={handleTickAllEssentials}
+          tickingAll={tickingAll}
         />
       ) : (
         <FlatDomainTabs
@@ -338,14 +370,21 @@ function GroupedDomainTabs({
   links,
   activeDomainKey,
   onSelect,
+  onTickAllEssentials,
+  tickingAll = false,
 }: {
   config: SpecialtyConfig
   links: SpecialtyEntryLink[]
   activeDomainKey: string
   onSelect: (key: string) => void
+  onTickAllEssentials?: () => Promise<void>
+  tickingAll?: boolean
 }) {
   const essentials = getEssentialDomains(config)
   const desirables = getDesirableDomains(config)
+  const unmetCount = essentials.filter(
+    d => !links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
+  ).length
 
   return (
     <div className="space-y-3 mb-1">
@@ -358,6 +397,9 @@ function GroupedDomainTabs({
           activeDomainKey={activeDomainKey}
           onSelect={onSelect}
           isEvidenceMode
+          onTickAll={unmetCount > 0 ? onTickAllEssentials : undefined}
+          tickingAll={tickingAll}
+          unmetCount={unmetCount}
         />
       )}
       {desirables.length > 0 && (
@@ -383,6 +425,9 @@ function DomainGroup({
   activeDomainKey,
   onSelect,
   isEvidenceMode,
+  onTickAll,
+  tickingAll = false,
+  unmetCount = 0,
 }: {
   title: string
   subtitle: string
@@ -391,14 +436,26 @@ function DomainGroup({
   activeDomainKey: string
   onSelect: (key: string) => void
   isEvidenceMode: boolean
+  onTickAll?: () => Promise<void>
+  tickingAll?: boolean
+  unmetCount?: number
 }) {
   return (
     <div>
-      <div className="flex items-baseline gap-2 mb-2 px-1">
-        <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide">
+      <div className="flex items-center gap-2 mb-2 px-1">
+        <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
           {title}
         </span>
-        <span className="text-xs text-[rgba(245,245,242,0.35)]">{subtitle}</span>
+        <span className="text-xs text-[rgba(245,245,242,0.35)] flex-1">{subtitle}</span>
+        {onTickAll && (
+          <button
+            onClick={onTickAll}
+            disabled={tickingAll}
+            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#1B6FD9] disabled:opacity-50 transition-colors shrink-0"
+          >
+            {tickingAll ? 'Ticking…' : `Tick all (${unmetCount})`}
+          </button>
+        )}
       </div>
       <div className="overflow-x-auto pb-1">
         <div className="flex gap-1 min-w-max">

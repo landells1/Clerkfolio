@@ -240,13 +240,13 @@ export default async function DashboardPage() {
             caseEntries={(allCases ?? []).map((c: { created_at: string }) => ({ created_at: c.created_at }))}
             accountCreatedAt={user!.created_at}
           />
-          <SpecialtyRadar counts={clinicalAreaCounts} />
         </div>
       </div>
 
-      {/* Activity heatmap — full width */}
-      <div className="mt-6">
+      {/* Full-width bottom section */}
+      <div className="mt-6 space-y-6">
         <ActivityHeatmap dates={heatmapDates} />
+        <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
       </div>
     </div>
   )

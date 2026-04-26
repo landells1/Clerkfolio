@@ -4,9 +4,33 @@ import { useState, useEffect } from 'react'
 
 interface SpecialtyRadarProps {
   counts: Record<string, number>
+  fullWidth?: boolean
 }
 
-function BarView({ sorted, max }: { sorted: [string, number][]; max: number }) {
+function BarView({ sorted, max, columns = 1 }: { sorted: [string, number][]; max: number; columns?: number }) {
+  if (columns === 2 && sorted.length >= 3) {
+    return (
+      <div className="grid grid-cols-2 gap-x-10 gap-y-2.5">
+        {sorted.map(([area, count]) => (
+          <div key={area} className="flex items-center gap-3">
+            <span className="text-xs text-[rgba(245,245,242,0.7)] w-40 shrink-0 truncate" title={area}>
+              {area}
+            </span>
+            <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
+              <div
+                className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                style={{ width: `${Math.round((count / max) * 100)}%` }}
+              />
+            </div>
+            <span className="text-xs font-mono text-[rgba(245,245,242,0.35)] w-5 text-right shrink-0">
+              {count}
+            </span>
+          </div>
+        ))}
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-2.5">
       {sorted.map(([area, count]) => (
@@ -29,12 +53,17 @@ function BarView({ sorted, max }: { sorted: [string, number][]; max: number }) {
   )
 }
 
-function RadarView({ sorted, max }: { sorted: [string, number][]; max: number }) {
+function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number][]; max: number; fullWidth?: boolean }) {
   const n = sorted.length
   if (n < 3) return <BarView sorted={sorted} max={max} />
 
-  // Generous viewBox so labels never clip
-  const cx = 210, cy = 153, maxR = 88, labelR = 118
+  // Larger chart when full-width
+  const cx = fullWidth ? 280 : 210
+  const cy = fullWidth ? 200 : 153
+  const maxR = fullWidth ? 130 : 88
+  const labelR = maxR + (fullWidth ? 36 : 18)
+  const vw = fullWidth ? 560 : 420
+  const vh = fullWidth ? 400 : 310
 
   const angles = sorted.map((_, i) => (i / n) * 2 * Math.PI - Math.PI / 2)
 
@@ -49,8 +78,7 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
   })
 
   return (
-    <svg viewBox="0 0 420 310" className="w-full" aria-label="Clinical area radar chart">
-      {/* Concentric rings */}
+    <svg viewBox={`0 0 ${vw} ${vh}`} className="w-full" aria-label="Clinical area radar chart">
       {[0.25, 0.5, 0.75, 1].map(frac => (
         <polygon
           key={frac}
@@ -62,14 +90,10 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
           strokeWidth="1"
         />
       ))}
-
-      {/* Axis lines */}
       {axisPoints.map((pt, i) => (
         <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y}
           stroke="rgba(245,245,242,0.08)" strokeWidth="1" />
       ))}
-
-      {/* Data polygon */}
       <polygon
         points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
         fill="rgba(27,111,217,0.18)"
@@ -77,38 +101,35 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
-
-      {/* Data dots */}
       {dataPoints.map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r="3" fill="#1B6FD9" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={fullWidth ? 4 : 3} fill="#1B6FD9" />
       ))}
-
-      {/* Labels — positioned outward from center with angle-aware vertical stacking */}
       {sorted.map(([area, count], i) => {
         const cosA = Math.cos(angles[i])
         const sinA = Math.sin(angles[i])
         const lx = cx + labelR * cosA
         const ly = cy + labelR * sinA
         const anchor = cosA > 0.15 ? 'start' : cosA < -0.15 ? 'end' : 'middle'
+        const fontSize = fullWidth ? 10 : 8
+        const countSize = fullWidth ? 9.5 : 7.5
 
-        // Vertical stacking: push text away from chart center
         let nameY: number, countY: number
         if (sinA < -0.35) {
-          nameY = ly - 10; countY = ly - 1   // near top → stack upward
+          nameY = ly - (fullWidth ? 13 : 10); countY = ly - (fullWidth ? 2 : 1)
         } else if (sinA > 0.35) {
-          nameY = ly + 9;  countY = ly + 18  // near bottom → stack downward
+          nameY = ly + (fullWidth ? 12 : 9);  countY = ly + (fullWidth ? 23 : 18)
         } else {
-          nameY = ly - 5;  countY = ly + 5   // sides → centred
+          nameY = ly - (fullWidth ? 7 : 5);   countY = ly + (fullWidth ? 7 : 5)
         }
 
         return (
           <g key={i}>
             <title>{area}: {count}</title>
-            <text x={lx} y={nameY} textAnchor={anchor} fontSize="8"
+            <text x={lx} y={nameY} textAnchor={anchor} fontSize={fontSize}
               fill="rgba(245,245,242,0.7)">
               {area}
             </text>
-            <text x={lx} y={countY} textAnchor={anchor} fontSize="7.5"
+            <text x={lx} y={countY} textAnchor={anchor} fontSize={countSize}
               fill="rgba(245,245,242,0.35)" fontFamily="monospace">
               {count}
             </text>
@@ -119,10 +140,9 @@ function RadarView({ sorted, max }: { sorted: [string, number][]; max: number })
   )
 }
 
-export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
+export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyRadarProps) {
   const [view, setView] = useState<'bar' | 'radar'>('bar')
 
-  // Read persisted preference after hydration (avoids SSR mismatch)
   useEffect(() => {
     const stored = localStorage.getItem('clinidex-chart-view')
     if (stored === 'bar' || stored === 'radar') setView(stored)
@@ -177,9 +197,9 @@ export default function SpecialtyRadar({ counts }: SpecialtyRadarProps) {
             Log cases with a clinical area set to see coverage here
           </p>
         ) : view === 'radar' ? (
-          <RadarView sorted={sorted} max={max} />
+          <RadarView sorted={sorted} max={max} fullWidth={fullWidth} />
         ) : (
-          <BarView sorted={sorted} max={max} />
+          <BarView sorted={sorted} max={max} columns={fullWidth ? 2 : 1} />
         )}
       </div>
     </div>

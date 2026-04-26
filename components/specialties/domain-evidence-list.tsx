@@ -88,6 +88,16 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                       {link.entry_type}
                     </span>
                   ) : null}
+                  {!isClaimed && link.entry_id && link.entry_type && (
+                    <a
+                      href={`/${link.entry_type === 'case' ? 'cases' : 'portfolio'}/${link.entry_id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-[#1B6FD9] hover:underline"
+                    >
+                      View →
+                    </a>
+                  )}
                 </div>
                 {!isEvidenceOnly && domain.scoringRule === 'highest' && (
                   <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)]'}`}>
