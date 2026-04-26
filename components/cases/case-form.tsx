@@ -34,7 +34,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
-  const [clinicalDomain, setClinicalDomain] = useState(initialData?.clinical_domain ?? '')
+  const [clinicalDomains, setClinicalDomains] = useState<string[]>(
+    initialData?.clinical_domains?.length
+      ? initialData.clinical_domains
+      : initialData?.clinical_domain
+        ? [initialData.clinical_domain]
+        : []
+  )
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -60,7 +66,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       }
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
-      if (d.clinicalDomain !== undefined) setClinicalDomain(d.clinicalDomain)
+      if (d.clinicalDomains !== undefined) setClinicalDomains(d.clinicalDomains)
+      else if (d.clinicalDomain !== undefined) setClinicalDomains(d.clinicalDomain ? [d.clinicalDomain] : [])
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       setDraftRestored(true)
     } catch {
@@ -77,12 +84,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) — only structural metadata.
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-        title, date, clinicalDomain, specialtyTags,
+        title, date, clinicalDomains, specialtyTags,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
-  }, [mode, title, date, clinicalDomain, specialtyTags])
+  }, [mode, title, date, clinicalDomains, specialtyTags])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
 
@@ -110,7 +117,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     const payload = {
       title: title.trim(),
       date,
-      clinical_domain: clinicalDomain.trim() || null,
+      clinical_domain: clinicalDomains[0] ?? null,
+      clinical_domains: clinicalDomains,
       specialty_tags: specialtyTags,
       notes: notes.trim() || null,
     }
@@ -164,7 +172,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
               setDraftRestored(false)
               setTitle('')
               setDate(new Date().toISOString().split('T')[0])
-              setClinicalDomain('')
+              setClinicalDomains([])
               setSpecialtyTags([])
               setNotes('')
             }}
@@ -209,8 +217,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       <div>
         <label className={LABEL}>Clinical area</label>
         <ClinicalAreaSelect
-          value={clinicalDomain}
-          onChange={v => { setClinicalDomain(v); markDirty() }}
+          value={clinicalDomains}
+          onChange={v => { setClinicalDomains(v); markDirty() }}
           onFocus={() => markDirty()}
         />
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">

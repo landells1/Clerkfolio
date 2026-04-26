@@ -4,6 +4,7 @@ export type Case = {
   title: string
   date: string
   clinical_domain: string | null
+  clinical_domains: string[]
   specialty_tags: string[]
   notes: string | null
   pinned: boolean

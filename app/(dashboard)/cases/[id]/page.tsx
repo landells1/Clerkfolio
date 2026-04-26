@@ -42,11 +42,11 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
               <polyline points="15 18 9 12 15 6" />
             </svg>
           </Link>
-          {c.clinical_domain && (
-            <span className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
-              {c.clinical_domain}
+          {(c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).map((domain: string) => (
+            <span key={domain} className="inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
+              {domain}
             </span>
-          )}
+          ))}
         </div>
         <div className="flex items-center gap-2">
           <LogSimilarButton domain={c.clinical_domain} tags={c.specialty_tags} />

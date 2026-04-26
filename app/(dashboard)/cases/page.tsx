@@ -33,7 +33,7 @@ export default async function CasesPage({
   }
 
   if (domain) {
-    query = query.eq('clinical_domain', domain)
+    query = query.contains('clinical_domains', [domain])
   }
 
   if (specialty) {
@@ -50,17 +50,20 @@ export default async function CasesPage({
 
   const [{ data: cases, count }, { data: allCasesMeta }, { data: trackedSpecialtyRows }] = await Promise.all([
     query.range(offset, offset + PAGE_SIZE - 1),
-    supabase.from('cases').select('clinical_domain, specialty_tags').eq('user_id', user!.id).is('deleted_at', null),
+    supabase.from('cases').select('clinical_domain, clinical_domains, specialty_tags').eq('user_id', user!.id).is('deleted_at', null),
     supabase.from('specialty_applications').select('specialty_key').eq('user_id', user!.id),
   ])
 
   const total = count ?? 0
   const totalPages = Math.ceil(total / PAGE_SIZE)
 
-  // Domain breakdown for stats bar
+  // Domain breakdown for stats bar — prefer clinical_domains array, fall back to clinical_domain
   const domainCountMap: Record<string, number> = {}
   allCasesMeta?.forEach(c => {
-    if (c.clinical_domain) domainCountMap[c.clinical_domain] = (domainCountMap[c.clinical_domain] ?? 0) + 1
+    const domains: string[] = (c as { clinical_domains?: string[] }).clinical_domains?.length
+      ? (c as { clinical_domains: string[] }).clinical_domains
+      : c.clinical_domain ? [c.clinical_domain] : []
+    domains.forEach(d => { domainCountMap[d] = (domainCountMap[d] ?? 0) + 1 })
   })
 
   // Tracked specialty keys for filter dropdown

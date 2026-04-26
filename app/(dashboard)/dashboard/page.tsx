@@ -112,7 +112,7 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('cases')
-      .select('specialty_tags, clinical_domain, created_at')
+      .select('specialty_tags, clinical_domain, clinical_domains, created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -189,12 +189,13 @@ export default async function DashboardPage() {
   allCases?.forEach(c => { c.specialty_tags?.forEach((t: string) => { specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1 }) })
   const specialtyCount = Object.keys(specialtyCounts).length
 
-  // Clinical area counts (from cases) for the radar chart
+  // Clinical area counts (from cases) for the radar chart — prefer clinical_domains array
   const clinicalAreaCounts: Record<string, number> = {}
   allCases?.forEach(c => {
-    if (c.clinical_domain) {
-      clinicalAreaCounts[c.clinical_domain] = (clinicalAreaCounts[c.clinical_domain] ?? 0) + 1
-    }
+    const domains: string[] = (c as { clinical_domains?: string[] }).clinical_domains?.length
+      ? (c as { clinical_domains: string[] }).clinical_domains
+      : c.clinical_domain ? [c.clinical_domain] : []
+    domains.forEach(d => { clinicalAreaCounts[d] = (clinicalAreaCounts[d] ?? 0) + 1 })
   })
 
   // Heatmap dates (last 84 days, from created_at)

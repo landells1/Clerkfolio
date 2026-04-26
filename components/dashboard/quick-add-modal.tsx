@@ -94,7 +94,7 @@ export default function QuickAddModal({
   const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
   // Case-specific
-  const [domain, setDomain] = useState(initialValues?.domain ?? '')
+  const [domains, setDomains] = useState<string[]>(initialValues?.domain ? [initialValues.domain] : [])
 
   // Teaching-specific
   const [teachingType, setTeachingType] = useState(TEACHING_TYPES[0])
@@ -166,7 +166,8 @@ export default function QuickAddModal({
         user_id: user.id,
         title: title.trim(),
         date,
-        clinical_domain: domain.trim() || null,
+        clinical_domain: domains[0] ?? null,
+        clinical_domains: domains,
         specialty_tags: tags,
         notes: notes.trim() || null,
       })
@@ -256,7 +257,7 @@ export default function QuickAddModal({
                   <button
                     key={tpl.label}
                     type="button"
-                    onClick={() => { setTitle(tpl.label); setDomain(tpl.domain); setTags(tpl.tags) }}
+                    onClick={() => { setTitle(tpl.label); setDomains([tpl.domain]); setTags(tpl.tags) }}
                     className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-[#1B6FD9]/40 hover:text-[#1B6FD9] transition-colors cursor-pointer whitespace-nowrap"
                   >
                     {tpl.label}
@@ -342,7 +343,7 @@ export default function QuickAddModal({
             {type === 'case' && (
               <div>
                 <label className={LABEL}>Clinical area</label>
-                <ClinicalAreaSelect value={domain} onChange={setDomain} />
+                <ClinicalAreaSelect value={domains} onChange={setDomains} />
               </div>
             )}
           </div>

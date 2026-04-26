@@ -17,11 +17,11 @@ export default function CaseCard({ c }: { c: Case }) {
                 <path d="M12 2a1 1 0 0 1 .707.293l9 9a1 1 0 0 1-1.414 1.414L19 11.414V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7.586l-1.293 1.293a1 1 0 0 1-1.414-1.414l9-9A1 1 0 0 1 12 2z" />
               </svg>
             )}
-            {c.clinical_domain && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
-                {c.clinical_domain}
+            {(c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).map(domain => (
+              <span key={domain} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-cyan-500/15 text-cyan-400 border border-cyan-500/20">
+                {domain}
               </span>
-            )}
+            ))}
             {c.specialty_tags.slice(0, 2).map(tag => (
               <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
                 {getSpecialtyConfig(tag)?.name ?? tag}
