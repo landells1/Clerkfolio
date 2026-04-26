@@ -79,7 +79,7 @@ export default function QuickAddModal({
 }: {
   onClose: () => void
   userInterests?: string[]
-  initialValues?: { type?: EntryType; domain?: string; tags?: string[] }
+  initialValues?: { type?: EntryType; domain?: string; domains?: string[]; tags?: string[] }
 }) {
   const router = useRouter()
   const supabase = createClient()
@@ -93,8 +93,12 @@ export default function QuickAddModal({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
-  // Case-specific
-  const [domains, setDomains] = useState<string[]>(initialValues?.domain ? [initialValues.domain] : [])
+  // Case-specific — prefer domains[] array, fall back to single domain string
+  const [domains, setDomains] = useState<string[]>(
+    initialValues?.domains?.length
+      ? initialValues.domains
+      : initialValues?.domain ? [initialValues.domain] : []
+  )
 
   // Teaching-specific
   const [teachingType, setTeachingType] = useState(TEACHING_TYPES[0])

@@ -5,7 +5,7 @@ import QuickAddModal from '@/components/dashboard/quick-add-modal'
 import GlobalSearch from '@/components/ui/global-search'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
-type QuickAddInitial = { type?: EntryType; domain?: string; tags?: string[] }
+type QuickAddInitial = { type?: EntryType; domain?: string; domains?: string[]; tags?: string[] }
 type QuickAddCtx = { openQuickAdd: (initial?: QuickAddInitial) => void }
 type SearchCtx = { openSearch: () => void }
 

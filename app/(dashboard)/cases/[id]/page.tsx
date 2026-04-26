@@ -49,7 +49,10 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
           ))}
         </div>
         <div className="flex items-center gap-2">
-          <LogSimilarButton domain={c.clinical_domain} tags={c.specialty_tags} />
+          <LogSimilarButton
+            domains={c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []}
+            tags={c.specialty_tags}
+          />
           <Link
             href={`/cases/${c.id}/edit`}
             className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"

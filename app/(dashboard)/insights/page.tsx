@@ -43,7 +43,7 @@ function monthLabel(ym: string): string {
 }
 
 export default async function InsightsPage() {
-  const supabase = await createClient()
+  const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: rawEntries }, { data: rawCases }, { data: profile }] = await Promise.all([

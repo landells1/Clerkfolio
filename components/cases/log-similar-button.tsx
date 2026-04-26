@@ -1,11 +1,11 @@
 'use client'
 import { useQuickAdd } from '@/app/(dashboard)/providers'
 
-export default function LogSimilarButton({ domain, tags }: { domain?: string | null; tags?: string[] }) {
+export default function LogSimilarButton({ domains, tags }: { domains?: string[]; tags?: string[] }) {
   const { openQuickAdd } = useQuickAdd()
   return (
     <button
-      onClick={() => openQuickAdd({ type: 'case', domain: domain ?? undefined, tags: tags ?? [] })}
+      onClick={() => openQuickAdd({ type: 'case', domains: domains ?? [], tags: tags ?? [] })}
       className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"
     >
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

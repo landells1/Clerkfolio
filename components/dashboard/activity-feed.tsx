@@ -134,23 +134,26 @@ export default function ActivityFeed({
               cta="Log your first case"
             />
           ) : (
-            cases.slice(0, 20).map(c => (
-              <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
-                <span
-                  className="shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
-                  style={{ boxShadow: '0 0 0 3px #3884DD22' }}
-                />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{c.title}</p>
-                  {c.clinical_domain && (
-                    <p className="text-xs text-[rgba(245,245,242,0.4)] truncate">{c.clinical_domain}</p>
-                  )}
-                </div>
-                <div className="shrink-0 flex flex-col items-end gap-1">
-                  <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.created_at)}</span>
-                </div>
-              </Link>
-            ))
+            cases.slice(0, 20).map(c => {
+              const domainStr = (c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(' · ')
+              return (
+                <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
+                  <span
+                    className="shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
+                    style={{ boxShadow: '0 0 0 3px #3884DD22' }}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{c.title}</p>
+                    {domainStr && (
+                      <p className="text-xs text-[rgba(245,245,242,0.4)] truncate">{domainStr}</p>
+                    )}
+                  </div>
+                  <div className="shrink-0 flex flex-col items-end gap-1">
+                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.created_at)}</span>
+                  </div>
+                </Link>
+              )
+            })
           )
         )}
 

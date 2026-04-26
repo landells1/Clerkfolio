@@ -3,16 +3,16 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
-
-function formatTag(tag: string): string {
-  const config = getSpecialtyConfig(tag)
-  return config ? config.name : tag
-}
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
 import PinEntryButton from '@/components/portfolio/pin-entry-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
+
+function formatTag(tag: string): string {
+  const config = getSpecialtyConfig(tag)
+  return config ? config.name : tag
+}
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
