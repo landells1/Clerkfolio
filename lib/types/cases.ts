@@ -6,6 +6,8 @@ export type Case = {
   clinical_domain: string | null
   specialty_tags: string[]
   notes: string | null
+  pinned: boolean
+  deleted_at: string | null
   created_at: string
   updated_at: string
 }
