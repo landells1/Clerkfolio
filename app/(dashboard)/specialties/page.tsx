@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { SpecialtiesShell } from '@/components/specialties/specialties-shell'
+import { getSubscriptionInfo } from '@/lib/subscription'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 
 export default async function SpecialtiesPage({
@@ -21,13 +22,22 @@ export default async function SpecialtiesPage({
     )
   }
 
-  const { data: applications } = await supabase
-    .from('specialty_applications')
-    .select('*')
-    .eq('user_id', user.id)
-    .order('created_at', { ascending: true })
+  const [{ data: applications }, { data: profileData }] = await Promise.all([
+    supabase
+      .from('specialty_applications')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('profiles')
+      .select('trial_started_at, subscription_status, subscription_period_end')
+      .eq('id', user.id)
+      .single(),
+  ])
 
   const apps: SpecialtyApplication[] = (applications ?? []) as SpecialtyApplication[]
+  const subInfo = profileData ? getSubscriptionInfo(profileData) : null
+  const isPro = subInfo?.isPro || subInfo?.isTrial || false
 
   let links: SpecialtyEntryLink[] = []
   if (apps.length > 0) {
@@ -40,5 +50,5 @@ export default async function SpecialtiesPage({
     links = (linkData ?? []) as SpecialtyEntryLink[]
   }
 
-  return <SpecialtiesShell applications={apps} links={links} initialAppKey={searchParams.app} />
+  return <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={searchParams.app} />
 }
