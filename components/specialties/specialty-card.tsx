@@ -135,9 +135,9 @@ function PointsProgress({
         />
       </div>
 
-      {/* Domain chips */}
+      {/* Domain chips — scored domains only, essentials excluded */}
       <div className="flex flex-wrap gap-1.5 mb-4">
-        {config.domains.map(domain => {
+        {config.domains.filter(d => d.criteriaType !== 'essential').map(domain => {
           const score = calculateDomainScore(domain, links)
           return (
             <span
