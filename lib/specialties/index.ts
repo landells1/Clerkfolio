@@ -16,6 +16,11 @@ import { NEUROSURGERY_ST1_2026 } from './neurosurgery_st1_2026'
 import { CARDIOTHORACIC_ST1_2026 } from './cardiothoracic_st1_2026'
 import { OMFS_ST1_2026 } from './omfs_st1_2026'
 import { PLASTIC_SURGERY_ST3_2026 } from './plastic_surgery_st3_2026'
+import { CARDIOLOGY_ST4_2026 } from './cardiology_st4_2026'
+import { TO_ST3_2026 } from './to_st3_2026'
+import { DERMATOLOGY_ST3_2026 } from './dermatology_st3_2026'
+import { EM_ST4_2026 } from './em_st4_2026'
+import { GENERAL_SURGERY_ST3_2026 } from './general_surgery_st3_2026'
 import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink } from './types'
 
 export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
@@ -37,6 +42,11 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   CARDIOTHORACIC_ST1_2026,
   OMFS_ST1_2026,
   PLASTIC_SURGERY_ST3_2026,
+  CARDIOLOGY_ST4_2026,
+  TO_ST3_2026,
+  DERMATOLOGY_ST3_2026,
+  EM_ST4_2026,
+  GENERAL_SURGERY_ST3_2026,
 ]
 
 export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
