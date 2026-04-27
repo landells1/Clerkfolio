@@ -1,5 +1,17 @@
 import { createClient } from '@/lib/supabase/server'
 import TrashActions from '@/components/trash/trash-actions'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+
+type TrashItemType = 'entry' | 'case' | 'logbook'
+
+type TrashItem = {
+  id: string
+  title: string
+  subtitle: string
+  date: string
+  deletedAt: string
+  type: TrashItemType
+}
 
 export default async function TrashPage() {
   const supabase = createClient()
@@ -17,14 +29,63 @@ export default async function TrashPage() {
       .order('deleted_at', { ascending: false }),
   ])
 
-  const totalItems = (deletedEntries?.length ?? 0) + (deletedCases?.length ?? 0) + (deletedLogbookEntries?.length ?? 0)
+  const items: TrashItem[] = [
+    ...(deletedEntries ?? []).map(entry => ({
+      id: entry.id,
+      title: entry.title,
+      subtitle: CATEGORIES.find(c => c.value === entry.category as Category)?.label ?? entry.category?.replace(/_/g, ' ') ?? 'Portfolio entry',
+      date: entry.date,
+      deletedAt: entry.deleted_at,
+      type: 'entry' as const,
+    })),
+    ...(deletedCases ?? []).map(c => ({
+      id: c.id,
+      title: c.title,
+      subtitle: c.clinical_domain ?? 'Case',
+      date: c.date,
+      deletedAt: c.deleted_at,
+      type: 'case' as const,
+    })),
+    ...(deletedLogbookEntries ?? []).map(entry => ({
+      id: entry.id,
+      title: entry.procedure_name,
+      subtitle: entry.surgical_specialty,
+      date: entry.date,
+      deletedAt: entry.deleted_at,
+      type: 'logbook' as const,
+    })),
+  ].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt))
+
+  const totalItems = items.length
+  const totals = {
+    entry: items.filter(item => item.type === 'entry').length,
+    case: items.filter(item => item.type === 'case').length,
+    logbook: items.filter(item => item.type === 'logbook').length,
+  }
 
   return (
-    <div className="p-8 max-w-2xl">
-      <div className="mb-8">
+    <div className="p-8 max-w-4xl">
+      <div className="mb-6">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Trash</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
           {totalItems === 0 ? 'Trash is empty' : `${totalItems} deleted ${totalItems === 1 ? 'item' : 'items'}`}
+        </p>
+      </div>
+
+      {totalItems > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-6">
+          <TrashStat label="Portfolio" value={totals.entry} />
+          <TrashStat label="Cases" value={totals.case} />
+          <TrashStat label="Logbook" value={totals.logbook} />
+        </div>
+      )}
+
+      <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-lg px-4 py-3 mb-6">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <p className="text-xs text-[rgba(245,245,242,0.4)] leading-relaxed">
+          Deleted items are soft-deleted and can be restored. Files linked to restored entries remain available.
         </p>
       </div>
 
@@ -39,14 +100,8 @@ export default async function TrashPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {deletedEntries?.map(entry => (
-            <TrashItem key={entry.id} id={entry.id} title={entry.title} subtitle={entry.category?.replace('_', ' ')} date={entry.date} deletedAt={entry.deleted_at} type="entry" />
-          ))}
-          {deletedCases?.map(c => (
-            <TrashItem key={c.id} id={c.id} title={c.title} subtitle={c.clinical_domain ?? 'Case'} date={c.date} deletedAt={c.deleted_at} type="case" />
-          ))}
-          {deletedLogbookEntries?.map(entry => (
-            <TrashItem key={entry.id} id={entry.id} title={entry.procedure_name} subtitle={entry.surgical_specialty} date={entry.date} deletedAt={entry.deleted_at} type="logbook" />
+          {items.map(item => (
+            <TrashRow key={`${item.type}-${item.id}`} item={item} />
           ))}
         </div>
       )}
@@ -54,15 +109,33 @@ export default async function TrashPage() {
   )
 }
 
-function TrashItem({ id, title, subtitle, date, deletedAt, type }: { id: string; title: string; subtitle: string; date: string; deletedAt: string; type: 'entry' | 'case' | 'logbook' }) {
-  const deletedDate = new Date(deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+function TrashStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3">
+    <div className="bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
+      <p className="text-xs text-[rgba(245,245,242,0.4)] mb-1">{label}</p>
+      <p className="text-xl font-semibold text-[#F5F5F2]">{value}</p>
+    </div>
+  )
+}
+
+function TrashRow({ item }: { item: TrashItem }) {
+  const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const typeLabel = item.type === 'entry' ? 'Portfolio' : item.type === 'case' ? 'Case' : 'Logbook'
+  return (
+    <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
       <div className="flex-1 min-w-0">
-        <p className="text-sm text-[rgba(245,245,242,0.8)] truncate">{title}</p>
-        <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5 capitalize">{subtitle} · Deleted {deletedDate}</p>
+        <div className="flex items-center gap-2 mb-1">
+          <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[rgba(245,245,242,0.5)]">
+            {typeLabel}
+          </span>
+          <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{item.title}</p>
+        </div>
+        <p className="text-xs text-[rgba(245,245,242,0.35)] capitalize">
+          {item.subtitle} · {entryDate} · Deleted {deletedDate}
+        </p>
       </div>
-      <TrashActions id={id} type={type} />
+      <TrashActions id={item.id} type={item.type} />
     </div>
   )
 }

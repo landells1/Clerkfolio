@@ -11,17 +11,31 @@ export default function TrashActions({ id, type }: { id: string; type: 'entry' |
   const [loading, setLoading] = useState<'restore' | null>(null)
 
   async function handleRestore() {
+    if (loading) return
     setLoading('restore')
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      addToast('Please sign in again', 'error')
+      setLoading(null)
+      return
+    }
+
     const table =
       type === 'entry'
         ? 'portfolio_entries'
         : type === 'case'
           ? 'cases'
           : 'logbook_entries'
-    const { error } = await supabase.from(table).update({ deleted_at: null }).eq('id', id)
+    const { error } = await supabase
+      .from(table)
+      .update({ deleted_at: null })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
     if (error) {
       addToast('Failed to restore. Please try again.', 'error')
     } else {
+      addToast('Item restored', 'success')
       router.refresh()
     }
     setLoading(null)
