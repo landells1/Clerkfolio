@@ -2,6 +2,7 @@ import { IMT_2026 } from './imt-2026'
 import { OPHTHALMOLOGY_ST1_2026 } from './ophthalmology-st1-2026'
 import { ACCS_EM_2026 } from './accs_em_2026'
 import { ACCS_AM_2026 } from './accs_am_2026'
+import { ACCS_ANAES_2026 } from './accs_anaes_2026'
 import { CST_2026 } from './cst_2026'
 import { CORE_PSYCH_2026 } from './core_psych_2026'
 import { GP_ST1_2026 } from './gp_st1_2026'
@@ -11,6 +12,10 @@ import { ANAESTHETICS_CT1_2026 } from './anaesthetics_ct1_2026'
 import { OG_ST1_2026 } from './og_st1_2026'
 import { PUBLIC_HEALTH_ST1_2026 } from './public_health_st1_2026'
 import { HISTOPATHOLOGY_ST1_2026 } from './histopathology_st1_2026'
+import { NEUROSURGERY_ST1_2026 } from './neurosurgery_st1_2026'
+import { CARDIOTHORACIC_ST1_2026 } from './cardiothoracic_st1_2026'
+import { OMFS_ST1_2026 } from './omfs_st1_2026'
+import { PLASTIC_SURGERY_ST3_2026 } from './plastic_surgery_st3_2026'
 import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink } from './types'
 
 export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
@@ -18,6 +23,7 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   OPHTHALMOLOGY_ST1_2026,
   ACCS_EM_2026,
   ACCS_AM_2026,
+  ACCS_ANAES_2026,
   CST_2026,
   CORE_PSYCH_2026,
   GP_ST1_2026,
@@ -27,6 +33,10 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   OG_ST1_2026,
   PUBLIC_HEALTH_ST1_2026,
   HISTOPATHOLOGY_ST1_2026,
+  NEUROSURGERY_ST1_2026,
+  CARDIOTHORACIC_ST1_2026,
+  OMFS_ST1_2026,
+  PLASTIC_SURGERY_ST3_2026,
 ]
 
 export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
