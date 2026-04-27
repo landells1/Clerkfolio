@@ -123,6 +123,7 @@ export default function ExportPage() {
         .select('*')
         .eq('user_id', user.id)
         .contains('specialty_tags', [specialty])
+        .is('deleted_at', null)
         .order('date', { ascending: false })
 
       if (cancelled) return

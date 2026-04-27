@@ -39,6 +39,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
       .select('*')
       .eq('id', params.id)
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .single(),
     supabase
       .from('evidence_files')

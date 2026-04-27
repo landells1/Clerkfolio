@@ -13,6 +13,7 @@ export default async function EditEntryPage({ params }: { params: { id: string }
       .select('*')
       .eq('id', params.id)
       .eq('user_id', user!.id)
+      .is('deleted_at', null)
       .single(),
     supabase
       .from('specialty_applications')
