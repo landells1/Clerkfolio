@@ -5,16 +5,19 @@ export default async function TrashPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: deletedEntries }, { data: deletedCases }] = await Promise.all([
+  const [{ data: deletedEntries }, { data: deletedCases }, { data: deletedLogbookEntries }] = await Promise.all([
     supabase.from('portfolio_entries').select('id, title, category, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
     supabase.from('cases').select('id, title, clinical_domain, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
+    supabase.from('logbook_entries').select('id, procedure_name, surgical_specialty, date, deleted_at')
+      .eq('user_id', user!.id).not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false }),
   ])
 
-  const totalItems = (deletedEntries?.length ?? 0) + (deletedCases?.length ?? 0)
+  const totalItems = (deletedEntries?.length ?? 0) + (deletedCases?.length ?? 0) + (deletedLogbookEntries?.length ?? 0)
 
   return (
     <div className="p-8 max-w-2xl">
@@ -42,13 +45,16 @@ export default async function TrashPage() {
           {deletedCases?.map(c => (
             <TrashItem key={c.id} id={c.id} title={c.title} subtitle={c.clinical_domain ?? 'Case'} date={c.date} deletedAt={c.deleted_at} type="case" />
           ))}
+          {deletedLogbookEntries?.map(entry => (
+            <TrashItem key={entry.id} id={entry.id} title={entry.procedure_name} subtitle={entry.surgical_specialty} date={entry.date} deletedAt={entry.deleted_at} type="logbook" />
+          ))}
         </div>
       )}
     </div>
   )
 }
 
-function TrashItem({ id, title, subtitle, date, deletedAt, type }: { id: string; title: string; subtitle: string; date: string; deletedAt: string; type: 'entry' | 'case' }) {
+function TrashItem({ id, title, subtitle, date, deletedAt, type }: { id: string; title: string; subtitle: string; date: string; deletedAt: string; type: 'entry' | 'case' | 'logbook' }) {
   const deletedDate = new Date(deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   return (
     <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3">

@@ -21,6 +21,7 @@ export default async function LogbookPage() {
       .select('*')
       .eq('user_id', user.id)
       .is('deleted_at', null)
+      .order('pinned', { ascending: false })
       .order('date', { ascending: false }),
     supabase
       .from('specialty_applications')

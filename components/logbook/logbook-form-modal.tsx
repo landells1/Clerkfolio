@@ -9,6 +9,7 @@ import {
 } from '@/lib/types/logbook'
 import type { LogbookEntry, LogbookRole, LogbookSupervision } from '@/lib/types/logbook'
 import { getSpecialtyConfig } from '@/lib/specialties'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Props = {
   entry?: LogbookEntry
@@ -19,6 +20,7 @@ type Props = {
 
 export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const panelRef = useRef<HTMLDivElement>(null)
 
   const [date, setDate] = useState(entry?.date ?? new Date().toISOString().slice(0, 10))
@@ -31,6 +33,8 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(entry?.specialty_tags ?? [])
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const learningWordCount = learningPoints.trim() ? learningPoints.trim().split(/\s+/).length : 0
 
   useEffect(() => {
     const panel = panelRef.current
@@ -54,7 +58,10 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    if (!procedureName.trim() || !surgicalSpecialty.trim()) return
+    if (!procedureName.trim() || !surgicalSpecialty.trim()) {
+      setError('Procedure and surgical specialty are required.')
+      return
+    }
     setSaving(true)
     setError(null)
     try {
@@ -78,10 +85,12 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
           .from('logbook_entries')
           .update(payload)
           .eq('id', entry.id)
+          .eq('user_id', user.id)
           .select()
           .single()
         if (err) throw err
         onSave(data as LogbookEntry)
+        addToast('Logbook entry updated', 'success')
       } else {
         const { data, error: err } = await supabase
           .from('logbook_entries')
@@ -90,6 +99,7 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
           .single()
         if (err) throw err
         onSave(data as LogbookEntry)
+        addToast('Procedure logged', 'success')
       }
       onClose()
     } catch (err) {
@@ -160,6 +170,7 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
                 type="text"
                 value={procedureName}
                 onChange={e => setProcedureName(e.target.value)}
+                maxLength={200}
                 placeholder="e.g. Laparoscopic appendicectomy"
                 required
                 className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.2)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
@@ -175,6 +186,7 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
               list="surgical-specialties"
               value={surgicalSpecialty}
               onChange={e => setSurgicalSpecialty(e.target.value)}
+              maxLength={120}
               placeholder="e.g. General Surgery"
               required
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.2)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
@@ -225,6 +237,7 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
               type="text"
               value={supervisorName}
               onChange={e => setSupervisorName(e.target.value)}
+              maxLength={120}
               placeholder="e.g. Mr Smith"
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.2)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             />
@@ -238,8 +251,12 @@ export function LogbookFormModal({ entry, trackedSpecialtyKeys, onClose, onSave 
               onChange={e => setLearningPoints(e.target.value)}
               rows={3}
               placeholder="Key learning, complications encountered, areas to improve…"
+              maxLength={5000}
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.2)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
             />
+            {learningPoints && (
+              <p className="text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right">{learningWordCount} words</p>
+            )}
           </div>
 
           {/* Specialty tags */}
