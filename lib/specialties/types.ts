@@ -6,6 +6,11 @@ export type ScoringRule = 'highest' | 'cumulative_capped'
 //                users upload evidence against essential / desirable domains
 export type ScoringType = 'points' | 'evidence'
 
+// Training stage at which a programme is entered:
+//   'entry'  — F2-direct entry (ST1 / CT1 run-through or core training)
+//   'higher' — higher specialty entry post-IMT / post-CST / post-ACCS (ST3 / ST4)
+export type TrainingLevel = 'entry' | 'higher'
+
 // For evidence-based specialties, each domain is either:
 //   'essential' — entry requirement / gate (binary; must be met to apply)
 //   'desirable' — application/interview criterion (evidence accumulates)
@@ -45,6 +50,7 @@ export type SpecialtyConfig = {
   isOfficial: boolean
   scoringType?: ScoringType  // 'points' (default) or 'evidence'; UI uses this to pick layout
   isEvidenceOnly?: boolean   // deprecated alias; equivalent to scoringType === 'evidence'
+  trainingLevel?: TrainingLevel  // 'entry' (default; ST1/CT1) or 'higher' (ST3/ST4)
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
 }

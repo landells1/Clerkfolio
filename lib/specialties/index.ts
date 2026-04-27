@@ -21,6 +21,10 @@ import { TO_ST3_2026 } from './to_st3_2026'
 import { DERMATOLOGY_ST3_2026 } from './dermatology_st3_2026'
 import { EM_ST4_2026 } from './em_st4_2026'
 import { GENERAL_SURGERY_ST3_2026 } from './general_surgery_st3_2026'
+import { CHILD_ADOLESCENT_PSYCH_ST1_2026 } from './child_adolescent_psych_st1_2026'
+import { CSRH_ST1_2026 } from './csrh_st1_2026'
+import { PSYCH_LEARNING_DISABILITY_ST1_2026 } from './psych_learning_disability_st1_2026'
+import { PH_GP_DUAL_ST1_2026 } from './ph_gp_dual_st1_2026'
 import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink } from './types'
 
 export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
@@ -41,6 +45,10 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   NEUROSURGERY_ST1_2026,
   CARDIOTHORACIC_ST1_2026,
   OMFS_ST1_2026,
+  CHILD_ADOLESCENT_PSYCH_ST1_2026,
+  CSRH_ST1_2026,
+  PSYCH_LEARNING_DISABILITY_ST1_2026,
+  PH_GP_DUAL_ST1_2026,
   PLASTIC_SURGERY_ST3_2026,
   CARDIOLOGY_ST4_2026,
   TO_ST3_2026,
@@ -51,6 +59,11 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
 
 export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
   return SPECIALTY_CONFIGS.find(s => s.key === key)
+}
+
+// Defaults to 'entry' when not set on the config.
+export function getTrainingLevel(config: SpecialtyConfig): 'entry' | 'higher' {
+  return config.trainingLevel ?? 'entry'
 }
 
 export function calculateDomainScore(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): number {

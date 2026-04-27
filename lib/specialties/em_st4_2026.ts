@@ -14,6 +14,7 @@ export const EM_ST4_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  trainingLevel: 'higher',
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

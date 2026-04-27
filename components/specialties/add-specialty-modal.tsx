@@ -7,8 +7,9 @@ import {
   isEvidenceBased,
   getEssentialDomains,
   getDesirableDomains,
+  getTrainingLevel,
 } from '@/lib/specialties'
-import type { SpecialtyApplication } from '@/lib/specialties'
+import type { SpecialtyApplication, SpecialtyConfig } from '@/lib/specialties'
 
 const FREE_SPECIALTY_LIMIT = 3
 
@@ -52,6 +53,8 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
   }, [onClose])
 
   const available = SPECIALTY_CONFIGS.filter(c => !existingKeys.includes(c.key))
+  const entryLevel = available.filter(c => getTrainingLevel(c) === 'entry')
+  const higherLevel = available.filter(c => getTrainingLevel(c) === 'higher')
 
   async function handleSelect(key: string, cycleYear: number) {
     setLoading(true)
@@ -129,8 +132,8 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">
+            <div className="space-y-5">
+              <p className="text-xs text-[rgba(245,245,242,0.4)]">
                 Select a specialty to begin tracking your application score.
                 {!isPro && (
                   <span className="ml-1 text-[rgba(245,245,242,0.3)]">
@@ -138,67 +141,130 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
                   </span>
                 )}
               </p>
-              {available.map(config => {
-                const evidenceBased = isEvidenceBased(config)
-                const essentialsCount = getEssentialDomains(config).length
-                const desirablesCount = getDesirableDomains(config).length
-                return (
-                <button
-                  key={config.key}
-                  onClick={() => handleSelect(config.key, config.cycleYear)}
-                  disabled={loading}
-                  className="w-full flex items-start justify-between p-4 bg-[#0B0B0C] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
-                >
-                  <div>
-                    <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="font-semibold text-[#F5F5F2] text-sm">{config.name}</span>
-                      <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
-                        {config.cycleYear}
-                      </span>
-                      {config.isOfficial ? (
-                        <span className="px-1.5 py-0.5 rounded bg-[#1B6FD9]/10 text-[#1B6FD9] text-xs border border-[#1B6FD9]/20">
-                          Official
-                        </span>
-                      ) : (
-                        <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">
-                          Unofficial
-                        </span>
-                      )}
-                      {evidenceBased && (
-                        <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
-                          Evidence-based
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-[rgba(245,245,242,0.4)]">
-                      {evidenceBased
-                        ? `${essentialsCount} essentials · ${desirablesCount} desirables`
-                        : `Up to ${config.totalMax} pts · ${config.domains.length} domains`}
-                    </p>
-                    {!config.isOfficial && (
-                      <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
-                    )}
-                  </div>
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="rgba(245,245,242,0.3)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="shrink-0 mt-0.5 group-hover:stroke-[rgba(245,245,242,0.6)] transition-colors"
-                  >
-                    <polyline points="9 18 15 12 9 6" />
-                  </svg>
-                </button>
-                )
-              })}
+              {entryLevel.length > 0 && (
+                <SpecialtyGroup
+                  title="Entry training (ST1 / CT1)"
+                  subtitle="Direct from Foundation"
+                  configs={entryLevel}
+                  loading={loading}
+                  onSelect={handleSelect}
+                />
+              )}
+              {higherLevel.length > 0 && (
+                <SpecialtyGroup
+                  title="Higher specialty (ST3 / ST4)"
+                  subtitle="Post-IMT, post-CST or post-ACCS"
+                  configs={higherLevel}
+                  loading={loading}
+                  onSelect={handleSelect}
+                />
+              )}
             </div>
           )}
         </div>
       </div>
     </div>
+  )
+}
+
+function SpecialtyGroup({
+  title,
+  subtitle,
+  configs,
+  loading,
+  onSelect,
+}: {
+  title: string
+  subtitle: string
+  configs: SpecialtyConfig[]
+  loading: boolean
+  onSelect: (key: string, cycleYear: number) => void
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline justify-between px-1">
+        <span className="text-[10px] font-semibold text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
+          {title}
+        </span>
+        <span className="text-[10px] text-[rgba(245,245,242,0.3)]">
+          {subtitle}
+        </span>
+      </div>
+      <div className="space-y-2">
+        {configs.map(config => (
+          <SpecialtyCard
+            key={config.key}
+            config={config}
+            loading={loading}
+            onSelect={onSelect}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function SpecialtyCard({
+  config,
+  loading,
+  onSelect,
+}: {
+  config: SpecialtyConfig
+  loading: boolean
+  onSelect: (key: string, cycleYear: number) => void
+}) {
+  const evidenceBased = isEvidenceBased(config)
+  const essentialsCount = getEssentialDomains(config).length
+  const desirablesCount = getDesirableDomains(config).length
+  return (
+    <button
+      onClick={() => onSelect(config.key, config.cycleYear)}
+      disabled={loading}
+      className="w-full flex items-start justify-between p-4 bg-[#0B0B0C] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
+    >
+      <div>
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
+          <span className="font-semibold text-[#F5F5F2] text-sm">{config.name}</span>
+          <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
+            {config.cycleYear}
+          </span>
+          {config.isOfficial ? (
+            <span className="px-1.5 py-0.5 rounded bg-[#1B6FD9]/10 text-[#1B6FD9] text-xs border border-[#1B6FD9]/20">
+              Official
+            </span>
+          ) : (
+            <span className="px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs border border-amber-500/20">
+              Unofficial
+            </span>
+          )}
+          {evidenceBased && (
+            <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
+              Evidence-based
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-[rgba(245,245,242,0.4)]">
+          {evidenceBased
+            ? `${essentialsCount} essentials · ${desirablesCount} desirables`
+            : `Up to ${config.totalMax} pts · ${config.domains.length} domains`}
+        </p>
+        {!config.isOfficial && (
+          <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
+        )}
+      </div>
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="rgba(245,245,242,0.3)"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="shrink-0 mt-0.5 group-hover:stroke-[rgba(245,245,242,0.6)] transition-colors"
+      >
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
   )
 }

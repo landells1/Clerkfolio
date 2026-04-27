@@ -15,6 +15,7 @@ export const PLASTIC_SURGERY_ST3_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  trainingLevel: 'higher',
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
