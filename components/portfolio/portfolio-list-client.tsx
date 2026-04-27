@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import EntryCard from './entry-card'
@@ -25,7 +25,6 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   const [applyingTag, setApplyingTag] = useState(false)
   const [trashing, setTrashing] = useState(false)
 
-  // Close select mode on Escape
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') { setSelectMode(false); setSelected(new Set()) }
@@ -34,16 +33,23 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  // Exit select mode automatically when nothing is selected
+  useEffect(() => {
+    if (selected.size === 0) setSelectMode(false)
+  }, [selected.size])
+
   function toggleEntry(id: string) {
     setSelected(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
+    setSelectMode(true)
   }
 
-  function selectAll() { setSelected(new Set(entries.map(e => e.id))) }
+  function selectAll() { setSelected(new Set(entries.map(e => e.id))); setSelectMode(true) }
   function deselectAll() { setSelected(new Set()) }
+  function cancelSelect() { setSelected(new Set()); setSelectMode(false) }
 
   async function handleBulkTrash() {
     if (!confirm(`Move ${selected.size} entr${selected.size === 1 ? 'y' : 'ies'} to trash?`)) return
@@ -62,25 +68,16 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   async function handleBulkAddTag() {
     if (bulkTags.length === 0) return
     setApplyingTag(true)
-    // Fetch current tags for all selected entries, then merge
     const { data: rows } = await supabase
       .from('portfolio_entries')
       .select('id, specialty_tags')
       .in('id', Array.from(selected))
 
-    const updates = (rows ?? []).map(r => ({
-      id: r.id,
-      specialty_tags: Array.from(new Set([...(r.specialty_tags ?? []), ...bulkTags])),
-    }))
-
-    // Update each entry (Supabase doesn't support bulk update with different values per row)
     const errors: string[] = []
-    for (const u of updates) {
-      const { error } = await supabase
-        .from('portfolio_entries')
-        .update({ specialty_tags: u.specialty_tags })
-        .eq('id', u.id)
-      if (error) errors.push(u.id)
+    for (const r of (rows ?? [])) {
+      const merged = Array.from(new Set([...(r.specialty_tags ?? []), ...bulkTags]))
+      const { error } = await supabase.from('portfolio_entries').update({ specialty_tags: merged }).eq('id', r.id)
+      if (error) errors.push(r.id)
     }
     setApplyingTag(false)
     if (errors.length > 0) {
@@ -100,52 +97,59 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
   return (
     <>
-      {/* Select mode toggle */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => { setSelectMode(v => !v); setSelected(new Set()) }}
-          className={`text-xs font-medium transition-colors ${
-            selectMode
-              ? 'text-[#1B6FD9] hover:text-[#3884DD]'
-              : 'text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2]'
-          }`}
-        >
-          {selectMode ? 'Cancel selection' : 'Select'}
-        </button>
-        {selectMode && entries.length > 0 && (
+      {/* Select mode controls — only shown when active */}
+      {selectMode && (
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={cancelSelect}
+            className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD] transition-colors"
+          >
+            Cancel selection
+          </button>
           <div className="flex items-center gap-3">
             <button onClick={selectAll} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">Select all</button>
             <button onClick={deselectAll} className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">Deselect all</button>
             <span className="text-xs text-[rgba(245,245,242,0.35)]">{selected.size} selected</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Entry list */}
-      <div className="grid grid-cols-1 gap-3">
+      <div className="flex flex-col gap-3">
         {entries.map(entry => (
-          <div key={entry.id} className="relative group/row">
-            {selectMode && (
-              <div
-                className="absolute left-0 top-0 bottom-0 flex items-center pl-3 z-10 cursor-pointer"
-                onClick={() => toggleEntry(entry.id)}
-              >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
-                  selected.has(entry.id) ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'border-white/[0.3] bg-[#141416] group-hover/row:border-white/[0.5]'
-                }`}>
-                  {selected.has(entry.id) && (
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-            )}
+          <div key={entry.id} className="relative group/row flex items-stretch">
+            {/* Checkbox column — always reserves space, fades in on hover */}
             <div
-              className={selectMode ? 'pl-9 cursor-pointer' : ''}
-              onClick={selectMode ? () => toggleEntry(entry.id) : undefined}
+              className={`flex-shrink-0 w-10 flex items-center justify-center cursor-pointer z-20 transition-opacity ${
+                selectMode || selected.has(entry.id)
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover/row:opacity-100'
+              }`}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleEntry(entry.id) }}
             >
+              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                selected.has(entry.id)
+                  ? 'bg-[#1B6FD9] border-[#1B6FD9]'
+                  : 'border-white/[0.3] bg-[#141416] group-hover/row:border-white/[0.5]'
+              }`}>
+                {selected.has(entry.id) && (
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            {/* Card — takes remaining width */}
+            <div className="flex-1 min-w-0 relative">
               <EntryCard entry={entry} />
+              {/* Transparent overlay in select mode to block navigation and capture clicks */}
+              {selectMode && (
+                <div
+                  className="absolute inset-0 z-10 cursor-pointer"
+                  onClick={() => toggleEntry(entry.id)}
+                />
+              )}
             </div>
           </div>
         ))}
@@ -184,7 +188,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
             {trashing ? 'Moving…' : 'Move to trash'}
           </button>
           <button
-            onClick={() => { setSelected(new Set()); setSelectMode(false) }}
+            onClick={cancelSelect}
             className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors ml-1"
           >
             ×
