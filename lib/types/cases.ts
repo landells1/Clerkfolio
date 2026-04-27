@@ -11,6 +11,7 @@ export type Case = {
   deleted_at: string | null
   created_at: string
   updated_at: string
+  interview_themes?: string[]
 }
 
 export type NewCase = Omit<Case, 'id' | 'user_id' | 'created_at' | 'updated_at'>

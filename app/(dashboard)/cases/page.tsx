@@ -1,9 +1,10 @@
 ﻿import Link from 'next/link'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import CaseCard from '@/components/cases/case-card'
+import CasesListClient from '@/components/cases/cases-list-client'
 import CasesFilters from '@/components/cases/cases-filters'
 import DraftResumeBanner from '@/components/cases/draft-resume-banner'
+import type { Case } from '@/lib/types/cases'
 
 const PAGE_SIZE = 20
 
@@ -168,11 +169,7 @@ export default async function CasesPage({
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3">
-            {cases.map(c => (
-              <CaseCard key={c.id} c={c} />
-            ))}
-          </div>
+          <CasesListClient cases={cases as Case[]} userInterests={trackedSpecialtyKeys} />
 
           {/* Pagination */}
           {totalPages > 1 && (

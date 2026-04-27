@@ -104,6 +104,9 @@ export type PortfolioEntry = {
 
   // Custom
   custom_free_text?: string | null
+
+  // Interview themes
+  interview_themes?: string[]
 }
 
 export type NewPortfolioEntry = Omit<PortfolioEntry, 'id' | 'user_id' | 'pinned' | 'deleted_at' | 'created_at' | 'updated_at'>

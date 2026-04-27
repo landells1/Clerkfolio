@@ -1,9 +1,10 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
-import EntryCard from '@/components/portfolio/entry-card'
+import type { PortfolioEntry } from '@/lib/types/portfolio'
 import PortfolioFilters from '@/components/portfolio/portfolio-filters'
+import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
 
 const PAGE_SIZE = 20
 
@@ -43,10 +44,48 @@ export default async function PortfolioPage({
     query = query.order('pinned', { ascending: false }).order('date', { ascending: false }).order('created_at', { ascending: false })
   }
 
-  const { data: entries, count } = await query.range(offset, offset + PAGE_SIZE - 1)
+  const [{ data: entries, count }, { data: counts }, { data: trackedSpecialtyRows }] = await Promise.all([
+    query.range(offset, offset + PAGE_SIZE - 1),
+    supabase
+      .from('portfolio_entries')
+      .select('category')
+      .eq('user_id', user!.id)
+      .is('deleted_at', null),
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
+  ])
 
+  const countMap: Record<string, number> = {}
+  counts?.forEach(r => {
+    countMap[r.category] = (countMap[r.category] ?? 0) + 1
+  })
+  const total = counts?.length ?? 0
   const pageTotal = count ?? 0
   const totalPages = Math.ceil(pageTotal / PAGE_SIZE)
+
+  const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
+
+  // Procedure summary data (when filtered to procedures)
+  type ProcSummary = { name: string; count: number; lastDate: string }
+  let procSummary: ProcSummary[] = []
+  if (activeCategory === 'procedure' && entries) {
+    const procMap: Record<string, { count: number; lastDate: string }> = {}
+    entries.forEach((e: PortfolioEntry) => {
+      const name = e.proc_name ?? 'Unknown procedure'
+      const count = e.proc_count ?? 1
+      if (!procMap[name]) {
+        procMap[name] = { count, lastDate: e.date }
+      } else {
+        procMap[name].count += count
+        if (e.date > procMap[name].lastDate) procMap[name].lastDate = e.date
+      }
+    })
+    procSummary = Object.entries(procMap)
+      .sort((a, b) => b[1].count - a[1].count)
+      .map(([name, v]) => ({ name, ...v }))
+  }
 
   function pageHref(p: number) {
     const params = new URLSearchParams()
@@ -57,19 +96,6 @@ export default async function PortfolioPage({
     const qs = params.toString()
     return `/portfolio${qs ? `?${qs}` : ''}`
   }
-
-  // Count per category for the tab badges (exclude deleted, no pagination)
-  const { data: counts } = await supabase
-    .from('portfolio_entries')
-    .select('category')
-    .eq('user_id', user!.id)
-    .is('deleted_at', null)
-
-  const countMap: Record<string, number> = {}
-  counts?.forEach(r => {
-    countMap[r.category] = (countMap[r.category] ?? 0) + 1
-  })
-  const total = counts?.length ?? 0
 
   return (
     <div className="p-8">
@@ -139,16 +165,17 @@ export default async function PortfolioPage({
         ))}
       </div>
 
+      {/* Procedure summary panel */}
+      {activeCategory === 'procedure' && procSummary.length > 0 && (
+        <ProcedureSummaryPanel summary={procSummary} />
+      )}
+
       {/* Entry list */}
       {!entries || entries.length === 0 ? (
         <EmptyState category={activeCategory} />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-3">
-            {entries.map(entry => (
-              <EntryCard key={entry.id} entry={entry} />
-            ))}
-          </div>
+          <PortfolioListClient entries={entries as PortfolioEntry[]} userInterests={trackedSpecialtyKeys} />
 
           {/* Pagination */}
           {totalPages > 1 && (
@@ -178,6 +205,37 @@ export default async function PortfolioPage({
           )}
         </>
       )}
+    </div>
+  )
+}
+
+function ProcedureSummaryPanel({ summary }: { summary: { name: string; count: number; lastDate: string }[] }) {
+  const colours = CATEGORY_COLOURS['procedure']
+  return (
+    <div className="mb-5 bg-[#141416] border border-white/[0.06] rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
+        <p className="text-xs font-medium text-[rgba(245,245,242,0.45)] uppercase tracking-wider">Procedure summary</p>
+        <span className="text-[10px] text-[rgba(245,245,242,0.3)]">{summary.length} type{summary.length !== 1 ? 's' : ''}</span>
+      </div>
+      <div className="divide-y divide-white/[0.04]">
+        {summary.map(({ name, count, lastDate }) => (
+          <Link
+            key={name}
+            href={`/portfolio?category=procedure&q=${encodeURIComponent(name)}`}
+            className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.02] transition-colors group"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${colours.badge}`}>
+                {count}×
+              </span>
+              <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{name}</span>
+            </div>
+            <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono">
+              last {new Date(lastDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
+            </span>
+          </Link>
+        ))}
+      </div>
     </div>
   )
 }

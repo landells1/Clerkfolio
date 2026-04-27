@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
+import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
@@ -42,6 +43,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         : []
   )
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
+  const [interviewThemes, setInterviewThemes] = useState<string[]>((initialData as { interview_themes?: string[] })?.interview_themes ?? [])
+  const [themesOpen, setThemesOpen] = useState(false)
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
@@ -120,6 +123,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       clinical_domain: clinicalDomains[0] ?? null,
       clinical_domains: clinicalDomains,
       specialty_tags: specialtyTags,
+      interview_themes: interviewThemes,
       notes: notes.trim() || null,
     }
 
@@ -238,6 +242,61 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
           Which of your tracked programmes can you use this case for?
         </p>
+      </div>
+
+      {/* Interview themes */}
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
+            Interview themes <span className="normal-case font-normal text-[rgba(245,245,242,0.35)]">(optional)</span>
+          </label>
+          <button
+            type="button"
+            onClick={() => setThemesOpen(o => !o)}
+            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+          >
+            {themesOpen ? '−' : '+'}
+          </button>
+        </div>
+        {interviewThemes.length > 0 && !themesOpen && (
+          <div className="flex flex-wrap gap-1.5 mb-1">
+            {interviewThemes.map(t => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setInterviewThemes(prev => prev.filter(x => x !== t))}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-violet-300 border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
+              >
+                {t} ×
+              </button>
+            ))}
+            <button type="button" onClick={() => setThemesOpen(true)} className="text-[11px] text-[rgba(245,245,242,0.35)] hover:text-[#F5F5F2] px-1">edit</button>
+          </div>
+        )}
+        {themesOpen && (
+          <div className="flex flex-wrap gap-1.5 mt-1">
+            {INTERVIEW_THEMES.map(t => {
+              const active = interviewThemes.includes(t)
+              return (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setInterviewThemes(prev => active ? prev.filter(x => x !== t) : [...prev, t])
+                    markDirty()
+                  }}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
+                    active
+                      ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                      : 'bg-white/[0.04] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15]'
+                  }`}
+                >
+                  {t}
+                </button>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {/* Notes */}

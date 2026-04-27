@@ -7,6 +7,7 @@ import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
 import PinEntryButton from '@/components/portfolio/pin-entry-button'
+import SaveTemplateButton from '@/components/portfolio/save-template-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 
 function formatTag(tag: string): string {
@@ -79,6 +80,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
             </svg>
             Edit
           </Link>
+          <SaveTemplateButton entry={entry} />
           <DuplicateEntryButton entryId={entry.id} />
           <PinEntryButton entryId={entry.id} initialPinned={entry.pinned ?? false} />
           <DeleteEntryButton id={entry.id} />

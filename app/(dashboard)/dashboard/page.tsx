@@ -13,7 +13,6 @@ import QuickAddButton from '@/components/dashboard/quick-add-button'
 import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
 import StreakBadge from '@/components/dashboard/streak-badge'
 import SpecialtyRadar from '@/components/dashboard/specialty-radar'
-import CompletenessWidget from '@/components/dashboard/completeness-widget'
 import GoalsWidget from '@/components/dashboard/goals-widget'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
@@ -183,11 +182,6 @@ export default async function DashboardPage() {
 
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
 
-  // specialtyCounts still used by CompletenessWidget
-  const specialtyCounts: Record<string, number> = {}
-  allEntries?.forEach(e => { e.specialty_tags?.forEach((t: string) => { specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1 }) })
-  allCases?.forEach(c => { c.specialty_tags?.forEach((t: string) => { specialtyCounts[t] = (specialtyCounts[t] ?? 0) + 1 }) })
-  const specialtyCount = Object.keys(specialtyCounts).length
 
   // Clinical area counts (from cases) for the radar chart — prefer clinical_domains array
   const clinicalAreaCounts: Record<string, number> = {}
@@ -249,7 +243,6 @@ export default async function DashboardPage() {
         <div className="flex flex-col gap-6">
           <DeadlinesWidget initialDeadlines={deadlines ?? []} />
           <CoverageWidget counts={coverageCounts} />
-          <CompletenessWidget catMap={catMap} totalCases={totalCases} specialtyCount={specialtyCount} />
           <GoalsWidget
             goals={goals ?? []}
             portfolioEntries={(allEntries ?? []).map((e: { category: string; created_at: string }) => ({ category: e.category, created_at: e.created_at }))}

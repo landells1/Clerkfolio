@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import EntryForm from '@/components/portfolio/entry-form'
 import { type Category } from '@/lib/types/portfolio'
+import type { Template } from '@/lib/types/templates'
 import Link from 'next/link'
 
 export default async function NewEntryPage({
@@ -11,12 +12,21 @@ export default async function NewEntryPage({
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: trackedSpecialties } = await supabase
-    .from('specialty_applications')
-    .select('specialty_key')
-    .eq('user_id', user!.id)
+  const [{ data: trackedSpecialties }, { data: rawTemplates }] = await Promise.all([
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
+    supabase
+      .from('templates')
+      .select('*')
+      .or(`user_id.eq.${user!.id},user_id.is.null`)
+      .order('is_curated', { ascending: false })
+      .order('created_at', { ascending: true }),
+  ])
 
   const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
+  const templates = (rawTemplates ?? []) as Template[]
   const defaultCategory = (searchParams.category as Category) ?? undefined
 
   return (
@@ -41,6 +51,7 @@ export default async function NewEntryPage({
           mode="create"
           defaultCategory={defaultCategory}
           userInterests={specialtyKeys}
+          templates={templates}
         />
       </div>
     </div>

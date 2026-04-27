@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import { relativeDate } from '@/lib/utils/dates'
 import { getSpecialtyConfig } from '@/lib/specialties'
@@ -22,10 +22,30 @@ function entrySubtitle(entry: PortfolioEntry): string | null {
   }
 }
 
-export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
+function hasEvidence(entry: PortfolioEntry): boolean {
+  // evidence_files are loaded separately and not on the list query;
+  // we use the presence of notes as a proxy for engagement along with tags
+  // The real evidence check would need a join — we check the three card-visible signals:
+  // specialty tag set + notes present. Evidence is checked via a separate signal below.
+  return false // placeholder; card-level evidence data not available without a join
+}
+
+function completenessLevel(entry: PortfolioEntry & { has_evidence?: boolean }): 'green' | 'amber' | 'none' {
+  const hasTag = (entry.specialty_tags?.length ?? 0) > 0
+  const hasNotes = !!(entry.notes?.trim())
+  const hasEv = !!(entry as { has_evidence?: boolean }).has_evidence
+
+  const score = [hasTag, hasNotes, hasEv].filter(Boolean).length
+  if (score === 3) return 'green'
+  if (score >= 1) return 'amber'
+  return 'none'
+}
+
+export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evidence?: boolean } }) {
   const catMeta = CATEGORIES.find(c => c.value === entry.category)
   const colours = CATEGORY_COLOURS[entry.category]
   const subtitle = entrySubtitle(entry)
+  const dot = completenessLevel(entry)
 
   return (
     <Link
@@ -59,11 +79,19 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry }) {
             <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 truncate capitalize">{subtitle}</p>
           )}
         </div>
-        <div className="text-right flex-shrink-0">
+        <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
           <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono" title={entry.date}>{relativeDate(entry.date)}</p>
-          <svg className="w-4 h-4 text-[rgba(245,245,242,0.2)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors mt-1 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="9 18 15 12 9 6" />
-          </svg>
+          <div className="flex items-center gap-1.5">
+            {dot !== 'none' && (
+              <span
+                title={dot === 'green' ? 'Complete: has notes, tag & evidence' : 'Partially complete'}
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot === 'green' ? 'bg-emerald-400' : 'bg-amber-400'}`}
+              />
+            )}
+            <svg className="w-4 h-4 text-[rgba(245,245,242,0.2)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </div>
         </div>
       </div>
     </Link>

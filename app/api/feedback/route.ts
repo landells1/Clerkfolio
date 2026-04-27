@@ -2,8 +2,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 
-const resend = new Resend(process.env.RESEND_API_KEY)
-
 // Simple HTML escaper — prevents injection into email body
 function esc(str: string): string {
   return str
@@ -38,6 +36,7 @@ function isRateLimited(ip: string): boolean {
 }
 
 export async function POST(req: NextRequest) {
+  const resend = new Resend(process.env.RESEND_API_KEY)
   try {
     const originError = validateOrigin(req)
     if (originError) return originError
