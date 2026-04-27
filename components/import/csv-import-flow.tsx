@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { LOGBOOK_ROLES, LOGBOOK_SUPERVISION, type LogbookRole, type LogbookSupervision } from '@/lib/types/logbook'
+import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 import { useToast } from '@/components/ui/toast-provider'
 
 type ImportTarget = 'portfolio' | 'cases' | 'logbook'
@@ -57,6 +58,103 @@ const FIELD_CONFIGS: Record<ImportTarget, FieldConfig[]> = {
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 
+const TEMPLATE_ROWS: Record<ImportTarget, string[][]> = {
+  portfolio: [
+    ['title', 'category', 'date', 'notes', 'specialty_tags'],
+    ['Presented QIP at governance meeting', 'audit_qip', '2026-03-12', 'Reduced missed VTE assessments after checklist intervention.', 'imt_2026;gp_st1_2026'],
+    ['Small-group bedside teaching', 'teaching', '2026-02-05', 'Abdominal examination teaching for Year 4 students.', 'cst_2026'],
+  ],
+  cases: [
+    ['case title', 'date', 'clinical areas', 'notes', 'application tags'],
+    ['Acute abdomen clerking', '2026-04-01', 'General Surgery; Emergency Medicine', 'Anonymised reflection on assessment, escalation, and safety-netting.', 'cst_2026;accs_em_2026'],
+    ['Paediatric wheeze', '20/03/2026', 'Paediatrics; Emergency Medicine', 'Learning around severity assessment and discharge advice.', 'paediatrics_st1_2026'],
+  ],
+  logbook: [
+    ['procedure', 'surgical specialty', 'date', 'role', 'supervision', 'supervisor', 'learning points', 'application tags'],
+    ['Laparoscopic appendicectomy', 'General Surgery', '2026-03-14', 'First Assist', 'Supervised', 'Mr Smith', 'Port placement, camera handling, and safe dissection planes.', 'cst_2026;general_surgery_st3_2026'],
+    ['Flexible cystoscopy', 'Urology', '22/02/2026', 'Watched', 'Observed', '', 'Reviewed indications, consent, and documentation standards.', ''],
+  ],
+}
+
+const CATEGORY_VARIANTS: Record<string, Category> = {
+  audit: 'audit_qip',
+  qip: 'audit_qip',
+  qualityimprovement: 'audit_qip',
+  qualityimprovementproject: 'audit_qip',
+  teaching: 'teaching',
+  presentation: 'teaching',
+  presentations: 'teaching',
+  conference: 'conference',
+  course: 'conference',
+  courses: 'conference',
+  publication: 'publication',
+  research: 'publication',
+  paper: 'publication',
+  poster: 'conference',
+  leadership: 'leadership',
+  management: 'leadership',
+  society: 'leadership',
+  prize: 'prize',
+  award: 'prize',
+  awards: 'prize',
+  procedure: 'procedure',
+  procedures: 'procedure',
+  skill: 'procedure',
+  skills: 'procedure',
+  reflection: 'reflection',
+  cbd: 'reflection',
+  cex: 'reflection',
+  minicex: 'reflection',
+  dops: 'reflection',
+  custom: 'custom',
+  other: 'custom',
+}
+
+const ROLE_VARIANTS: Record<string, LogbookRole> = {
+  surgeon: 'Surgeon',
+  primaryoperator: 'Surgeon',
+  operator: 'Surgeon',
+  performed: 'Surgeon',
+  did: 'Surgeon',
+  assisted: 'First Assist',
+  assist: 'First Assist',
+  assistant: 'First Assist',
+  firstassist: 'First Assist',
+  firstassistant: 'First Assist',
+  secondassist: 'Second Assist',
+  secondassistant: 'Second Assist',
+  scrubbed: 'Scrubbed',
+  scrub: 'Scrubbed',
+  observed: 'Observed',
+  observer: 'Observed',
+  watched: 'Observed',
+  watch: 'Observed',
+  saw: 'Observed',
+  viewing: 'Observed',
+  present: 'Observed',
+}
+
+const SUPERVISION_VARIANTS: Record<string, LogbookSupervision | null> = {
+  independent: 'Independent',
+  unsupervised: 'Independent',
+  solo: 'Independent',
+  supervised: 'Supervised',
+  available: 'Supervised',
+  supervisoravailable: 'Supervised',
+  assisted: 'Assisted',
+  helpavailable: 'Assisted',
+  whenneeded: 'Assisted',
+  directed: 'Directed',
+  talkedthrough: 'Directed',
+  throughout: 'Directed',
+  observed: 'Observed',
+  watched: 'Observed',
+  watch: 'Observed',
+  none: null,
+  na: null,
+  notspecified: null,
+}
+
 function parseCSV(text: string): string[][] {
   const rows: string[][] = []
   let i = text.charCodeAt(0) === 0xfeff ? 1 : 0
@@ -106,6 +204,28 @@ function splitList(value: string) {
   return value.split(/[;,]/).map(item => item.trim()).filter(Boolean)
 }
 
+function csvEscape(value: string) {
+  if (/[",\n\r]/.test(value)) return `"${value.replace(/"/g, '""')}"`
+  return value
+}
+
+function rowsToCSV(rows: string[][]) {
+  return rows.map(row => row.map(csvEscape).join(',')).join('\r\n')
+}
+
+function downloadTemplate(target: ImportTarget) {
+  const csv = rowsToCSV(TEMPLATE_ROWS[target])
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `clinidex-${target}-template.csv`
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(url)
+}
+
 function normaliseDate(value: string) {
   if (!value.trim()) return new Date().toISOString().slice(0, 10)
   const parsed = new Date(value)
@@ -130,24 +250,39 @@ function normaliseCategory(value: string): Category {
   const byLabel = CATEGORIES.find(category =>
     [category.label, category.short].some(label => normaliseHeader(label) === normaliseHeader(value))
   )
-  return byLabel?.value ?? 'custom'
+  return byLabel?.value ?? CATEGORY_VARIANTS[normaliseHeader(value)] ?? 'custom'
 }
 
-function normaliseRole(value: string): LogbookRole {
+function normaliseRole(value: string): { value: LogbookRole; matched: boolean } {
+  if (!value.trim()) return { value: 'Observed', matched: true }
   const compact = normaliseHeader(value)
   const role = LOGBOOK_ROLES.find(option =>
     normaliseHeader(option.value) === compact || normaliseHeader(option.label) === compact
   )
-  return role?.value ?? 'Observed'
+  const mapped = role?.value ?? ROLE_VARIANTS[compact]
+  return { value: mapped ?? 'Observed', matched: !!mapped }
 }
 
-function normaliseSupervision(value: string): LogbookSupervision | null {
-  if (!value.trim()) return null
+function normaliseSupervision(value: string): { value: LogbookSupervision | null; matched: boolean } {
+  if (!value.trim()) return { value: null, matched: true }
   const compact = normaliseHeader(value)
   const match = LOGBOOK_SUPERVISION.find(option =>
     normaliseHeader(option.value) === compact || normaliseHeader(option.label) === compact
   )
-  return match?.value ?? null
+  if (match) return { value: match.value, matched: true }
+  if (compact in SUPERVISION_VARIANTS) return { value: SUPERVISION_VARIANTS[compact], matched: true }
+  return { value: null, matched: false }
+}
+
+function normaliseSpecialtyTags(value: string) {
+  return splitList(value).map(tag => {
+    const compact = normaliseHeader(tag)
+    const match = SPECIALTY_CONFIGS.find(config =>
+      normaliseHeader(config.key) === compact ||
+      normaliseHeader(config.name) === compact
+    )
+    return match?.key ?? tag
+  })
 }
 
 function hasPatientIdentifier(value: string) {
@@ -255,7 +390,7 @@ export default function CsvImportFlow() {
           category,
           date: normaliseDate(readCell(row, mapping.date)),
           notes: readCell(row, mapping.notes).trim() || null,
-          specialty_tags: splitList(readCell(row, mapping.specialty_tags)),
+          specialty_tags: normaliseSpecialtyTags(readCell(row, mapping.specialty_tags)),
         })
         return
       }
@@ -280,7 +415,7 @@ export default function CsvImportFlow() {
           clinical_domain: clinicalDomains[0] ?? null,
           clinical_domains: clinicalDomains,
           notes: notes || null,
-          specialty_tags: splitList(readCell(row, mapping.specialty_tags)),
+          specialty_tags: normaliseSpecialtyTags(readCell(row, mapping.specialty_tags)),
         })
         return
       }
@@ -297,16 +432,21 @@ export default function CsvImportFlow() {
         return
       }
 
+      const role = normaliseRole(readCell(row, mapping.role))
+      if (!role.matched) rowWarnings.push(`Row ${rowNumber}: role "${readCell(row, mapping.role)}" imported as Observed.`)
+      const supervision = normaliseSupervision(readCell(row, mapping.supervision))
+      if (!supervision.matched) rowWarnings.push(`Row ${rowNumber}: supervision "${readCell(row, mapping.supervision)}" left blank.`)
+
       records.push({
         user_id: userId,
         procedure_name: procedureName.slice(0, 200),
         surgical_specialty: surgicalSpecialty.slice(0, 120),
         date: normaliseDate(readCell(row, mapping.date)),
-        role: normaliseRole(readCell(row, mapping.role)),
-        supervision: normaliseSupervision(readCell(row, mapping.supervision)),
+        role: role.value,
+        supervision: supervision.value,
         supervisor_name: readCell(row, mapping.supervisor_name).trim().slice(0, 120) || null,
         learning_points: learningPoints || null,
-        specialty_tags: splitList(readCell(row, mapping.specialty_tags)),
+        specialty_tags: normaliseSpecialtyTags(readCell(row, mapping.specialty_tags)),
         pinned: false,
       })
     })
@@ -382,24 +522,45 @@ export default function CsvImportFlow() {
       </div>
 
       <div className="rounded-lg border border-white/[0.07] bg-[#141416] p-6">
-        <h2 className="mb-3 text-sm font-medium text-[#F5F5F2]">Upload CSV</h2>
-        <p className="mb-4 text-xs leading-relaxed text-[rgba(245,245,242,0.42)]">
-          The first row must contain headers. Required fields are marked in blue. For cases and logbook rows, imports with obvious patient identifiers are blocked.
-        </p>
-        <button
-          type="button"
-          onClick={() => fileRef.current?.click()}
-          className="flex items-center gap-2.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-4 py-2.5 text-sm text-[rgba(245,245,242,0.72)] transition-colors hover:bg-white/[0.07]"
-        >
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="17 8 12 3 7 8" />
-            <line x1="12" y1="3" x2="12" y2="15" />
-          </svg>
-          {fileName || 'Choose CSV file'}
-        </button>
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="mb-2 text-sm font-medium text-[#F5F5F2]">Upload CSV</h2>
+            <p className="max-w-2xl text-xs leading-relaxed text-[rgba(245,245,242,0.42)]">
+              The first row must contain headers. Required fields are marked in blue. For cases and logbook rows, imports with obvious patient identifiers are blocked.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => downloadTemplate(target)}
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.1] bg-white/[0.04] px-3.5 py-2 text-xs font-medium text-[rgba(245,245,242,0.68)] transition-colors hover:border-white/[0.16] hover:text-[#F5F5F2]"
+          >
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Download template
+          </button>
+        </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => fileRef.current?.click()}
+            className="flex items-center gap-2.5 rounded-lg border border-white/[0.1] bg-white/[0.04] px-4 py-2.5 text-sm text-[rgba(245,245,242,0.72)] transition-colors hover:bg-white/[0.07]"
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            {fileName || 'Choose CSV file'}
+          </button>
+          <p className="text-xs text-[rgba(245,245,242,0.34)]">Excel and Google Sheets CSV exports are supported.</p>
+        </div>
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFile} />
       </div>
+
+      <FormatRules target={target} />
 
       {parsed && (
         <div className="rounded-lg border border-white/[0.07] bg-[#141416] p-6">
@@ -511,6 +672,56 @@ function MessageList({ title, items, tone }: { title: string; items: string[]; t
         ))}
         {items.length > 6 && <li className="text-xs opacity-70">...and {items.length - 6} more</li>}
       </ul>
+    </div>
+  )
+}
+
+function FormatRules({ target }: { target: ImportTarget }) {
+  const roleExamples = 'watched -> Observed, assisted -> First Assist, operator -> Surgeon'
+  const supervisionExamples = 'unsupervised -> Independent, talked through -> Directed, watched -> Observed'
+  const categoryExamples = 'QIP -> Audit & QIP, course -> Conferences & Courses, DOPS -> Reflections'
+
+  return (
+    <div className="rounded-lg border border-white/[0.07] bg-[#141416] p-6">
+      <h2 className="mb-3 text-sm font-medium text-[#F5F5F2]">Accepted formats</h2>
+      <div className="grid gap-4 text-xs text-[rgba(245,245,242,0.42)] md:grid-cols-3">
+        <div>
+          <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Dates</p>
+          <p className="leading-relaxed">Use `YYYY-MM-DD` or UK-style `DD/MM/YYYY`. Blank dates default to today.</p>
+        </div>
+        <div>
+          <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Lists</p>
+          <p className="leading-relaxed">Separate multiple application tags or clinical areas with semicolons. Commas are accepted too.</p>
+        </div>
+        <div>
+          <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Application tags</p>
+          <p className="leading-relaxed">Specialty names are converted when matched, e.g. `IMT 2026` to `imt_2026`; unknown tags are left unchanged.</p>
+        </div>
+        {target === 'portfolio' && (
+          <div className="md:col-span-3">
+            <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Portfolio categories</p>
+            <p className="leading-relaxed">{categoryExamples}. Unknown categories import as `custom` with a warning.</p>
+          </div>
+        )}
+        {target === 'logbook' && (
+          <>
+            <div>
+              <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Roles</p>
+              <p className="leading-relaxed">{roleExamples}. Unknown roles import as `Observed` with a warning.</p>
+            </div>
+            <div>
+              <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Supervision</p>
+              <p className="leading-relaxed">{supervisionExamples}. Unknown supervision values are left blank.</p>
+            </div>
+          </>
+        )}
+        {(target === 'cases' || target === 'logbook') && (
+          <div className={target === 'logbook' ? '' : 'md:col-span-3'}>
+            <p className="mb-1 font-medium text-[rgba(245,245,242,0.68)]">Anonymisation</p>
+            <p className="leading-relaxed">Rows are blocked when obvious identifiers such as DOB labels, NHS numbers, MRN, hospital number, or patient ID are detected.</p>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
