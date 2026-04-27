@@ -33,16 +33,23 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     return () => document.removeEventListener('keydown', onKey)
   }, [])
 
+  // Exit select mode automatically when nothing is selected
+  useEffect(() => {
+    if (selected.size === 0) setSelectMode(false)
+  }, [selected.size])
+
   function toggleCase(id: string) {
     setSelected(prev => {
       const next = new Set(prev)
       next.has(id) ? next.delete(id) : next.add(id)
       return next
     })
+    setSelectMode(true)
   }
 
-  function selectAll() { setSelected(new Set(cases.map(c => c.id))) }
+  function selectAll() { setSelected(new Set(cases.map(c => c.id))); setSelectMode(true) }
   function deselectAll() { setSelected(new Set()) }
+  function cancelSelect() { setSelected(new Set()); setSelectMode(false) }
 
   async function handleBulkTrash() {
     if (!confirm(`Move ${selected.size} case${selected.size === 1 ? '' : 's'} to trash?`)) return
@@ -90,52 +97,59 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
   return (
     <>
-      {/* Select mode toggle */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => { setSelectMode(v => !v); setSelected(new Set()) }}
-          className={`text-xs font-medium transition-colors ${
-            selectMode
-              ? 'text-[#1B6FD9] hover:text-[#3884DD]'
-              : 'text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2]'
-          }`}
-        >
-          {selectMode ? 'Cancel selection' : 'Select'}
-        </button>
-        {selectMode && cases.length > 0 && (
+      {/* Select mode controls — only shown when active */}
+      {selectMode && (
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={cancelSelect}
+            className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD] transition-colors"
+          >
+            Cancel selection
+          </button>
           <div className="flex items-center gap-3">
             <button onClick={selectAll} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">Select all</button>
             <button onClick={deselectAll} className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">Deselect all</button>
             <span className="text-xs text-[rgba(245,245,242,0.35)]">{selected.size} selected</span>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* Cases list */}
-      <div className="grid grid-cols-1 gap-3">
+      <div className="flex flex-col gap-3">
         {cases.map(c => (
-          <div key={c.id} className="relative group/row">
-            {selectMode && (
-              <div
-                className="absolute left-0 top-0 bottom-0 flex items-center pl-3 z-10 cursor-pointer"
-                onClick={() => toggleCase(c.id)}
-              >
-                <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
-                  selected.has(c.id) ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'border-white/[0.3] bg-[#141416] group-hover/row:border-white/[0.5]'
-                }`}>
-                  {selected.has(c.id) && (
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </div>
-              </div>
-            )}
+          <div key={c.id} className="relative group/row flex items-stretch">
+            {/* Checkbox column — always reserves space, fades in on hover */}
             <div
-              className={selectMode ? 'pl-9 cursor-pointer' : ''}
-              onClick={selectMode ? () => toggleCase(c.id) : undefined}
+              className={`flex-shrink-0 w-10 flex items-center justify-center cursor-pointer z-20 transition-opacity ${
+                selectMode || selected.has(c.id)
+                  ? 'opacity-100'
+                  : 'opacity-0 group-hover/row:opacity-100'
+              }`}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleCase(c.id) }}
             >
+              <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
+                selected.has(c.id)
+                  ? 'bg-[#1B6FD9] border-[#1B6FD9]'
+                  : 'border-white/[0.3] bg-[#141416] group-hover/row:border-white/[0.5]'
+              }`}>
+                {selected.has(c.id) && (
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                )}
+              </div>
+            </div>
+
+            {/* Card — takes remaining width */}
+            <div className="flex-1 min-w-0 relative">
               <CaseCard c={c} />
+              {/* Transparent overlay in select mode to block navigation and capture clicks */}
+              {selectMode && (
+                <div
+                  className="absolute inset-0 z-10 cursor-pointer"
+                  onClick={() => toggleCase(c.id)}
+                />
+              )}
             </div>
           </div>
         ))}
@@ -174,7 +188,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             {trashing ? 'Moving…' : 'Move to trash'}
           </button>
           <button
-            onClick={() => { setSelected(new Set()); setSelectMode(false) }}
+            onClick={cancelSelect}
             className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors ml-1"
           >
             ×
