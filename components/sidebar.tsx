@@ -296,25 +296,6 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             {loggingOut ? 'Signing out…' : 'Log out'}
           </button>
 
-          {/* Import */}
-          <Link
-            href="/import"
-            onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
-              pathname === '/import'
-                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
-                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
-            }`}
-            style={pathname === '/import' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Import
-          </Link>
-
           {/* Trash */}
           <Link
             href="/trash"

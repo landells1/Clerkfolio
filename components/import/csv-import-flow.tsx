@@ -60,9 +60,10 @@ const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 
 
 const TEMPLATE_ROWS: Record<ImportTarget, string[][]> = {
   portfolio: [
-    ['title', 'category', 'date', 'notes', 'specialty_tags'],
-    ['Presented QIP at governance meeting', 'audit_qip', '2026-03-12', 'Reduced missed VTE assessments after checklist intervention.', 'imt_2026;gp_st1_2026'],
-    ['Small-group bedside teaching', 'teaching', '2026-02-05', 'Abdominal examination teaching for Year 4 students.', 'cst_2026'],
+    ['title', 'category', 'date', 'notes', 'application tags'],
+    ['Presented QIP at local governance meeting', 'QIP', '2026-03-12', 'Reduced missed VTE assessments after checklist intervention.', 'IMT 2026; GP ST1 2026'],
+    ['Small-group bedside teaching for medical students', 'Teaching', '2026-02-05', 'Abdominal examination teaching for Year 4 students.', 'Core Surgical Training 2026'],
+    ['Regional poster presentation', 'Conference', '18/01/2026', 'Poster presentation on antimicrobial stewardship.', 'IMT 2026'],
   ],
   cases: [
     ['case title', 'date', 'clinical areas', 'notes', 'application tags'],
