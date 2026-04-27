@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { LogbookEntry, LogbookRole } from '@/lib/types/logbook'
 import { LOGBOOK_ROLES } from '@/lib/types/logbook'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { LogbookFormModal } from './logbook-form-modal'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Props = {
   entries: LogbookEntry[]
@@ -29,11 +30,14 @@ type RoleFilter = 'all' | 'Surgeon' | 'assist' | 'Observed'
 
 export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKeys }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [entries, setEntries] = useState<LogbookEntry[]>(initialEntries)
   const [showForm, setShowForm] = useState(false)
   const [editEntry, setEditEntry] = useState<LogbookEntry | undefined>()
   const [roleFilter, setRoleFilter] = useState<RoleFilter>('all')
-  const [specialtyFilter, setSpecialtyFilter] = useState('')
+  const [query, setQuery] = useState('')
+  const [tagFilter, setTagFilter] = useState('')
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   function handleSave(saved: LogbookEntry) {
     setEntries(prev => {
@@ -45,10 +49,58 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
   }
 
   async function handleDelete(id: string) {
-    if (!window.confirm('Delete this logbook entry? This cannot be undone.')) return
-    const { error } = await supabase.from('logbook_entries').delete().eq('id', id)
-    if (error) { alert('Failed to delete entry'); return }
-    setEntries(prev => prev.filter(e => e.id !== id))
+    if (!window.confirm('Move this logbook entry to trash?')) return
+
+    setSavingId(id)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      addToast('Please sign in again', 'error')
+      setSavingId(null)
+      return
+    }
+
+    const deletedAt = new Date().toISOString()
+    const { error } = await supabase
+      .from('logbook_entries')
+      .update({ deleted_at: deletedAt })
+      .eq('id', id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      addToast('Failed to move entry to trash', 'error')
+      setSavingId(null)
+      return
+    }
+
+    setEntries(prev => prev.map(e => (e.id === id ? { ...e, deleted_at: deletedAt } : e)))
+    addToast('Logbook entry moved to trash', 'success')
+    setSavingId(null)
+  }
+
+  async function handlePin(entry: LogbookEntry) {
+    setSavingId(entry.id)
+    const nextPinned = !entry.pinned
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      addToast('Please sign in again', 'error')
+      setSavingId(null)
+      return
+    }
+
+    const { error } = await supabase
+      .from('logbook_entries')
+      .update({ pinned: nextPinned })
+      .eq('id', entry.id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      addToast('Failed to update pin status', 'error')
+      setSavingId(null)
+      return
+    }
+
+    setEntries(prev => prev.map(e => (e.id === entry.id ? { ...e, pinned: nextPinned } : e)))
+    setSavingId(null)
   }
 
   const filtered = useMemo(() => {
@@ -60,11 +112,28 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
         return e.role === roleFilter
       })
       .filter(e => {
-        if (!specialtyFilter.trim()) return true
-        return e.surgical_specialty.toLowerCase().includes(specialtyFilter.toLowerCase())
+        if (!tagFilter) return true
+        return e.specialty_tags.includes(tagFilter)
       })
-      .sort((a, b) => b.date.localeCompare(a.date))
-  }, [entries, roleFilter, specialtyFilter])
+      .filter(e => {
+        const q = query.trim().toLowerCase()
+        if (!q) return true
+        return [
+          e.procedure_name,
+          e.surgical_specialty,
+          e.supervision,
+          e.supervisor_name,
+          e.learning_points,
+        ]
+          .filter(Boolean)
+          .some(value => value!.toLowerCase().includes(q))
+      })
+      .sort((a, b) =>
+        Number(b.pinned) - Number(a.pinned) ||
+        b.date.localeCompare(a.date) ||
+        b.created_at.localeCompare(a.created_at)
+      )
+  }, [entries, roleFilter, tagFilter, query])
 
   // Stats from all non-deleted entries
   const all = entries.filter(e => !e.deleted_at)
@@ -73,15 +142,16 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
     surgeon: all.filter(e => e.role === 'Surgeon').length,
     assist: all.filter(e => ['First Assist', 'Second Assist', 'Scrubbed'].includes(e.role)).length,
     observed: all.filter(e => e.role === 'Observed').length,
+    specialties: new Set(all.map(e => e.surgical_specialty)).size,
   }
 
   return (
-    <div className="p-6 max-w-4xl">
+    <div className="p-6 lg:p-8 max-w-5xl">
       {/* Header */}
       <div className="flex items-start justify-between mb-6 gap-4">
         <div>
-          <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Operative Logbook</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.4)]">Personal reflection notes — not a substitute for your official logbook</p>
+          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-1">Operative logbook</h1>
+          <p className="text-sm text-[rgba(245,245,242,0.45)]">Personal operative reflection notes. Do not enter patient-identifiable information.</p>
         </div>
         <button
           onClick={() => { setEditEntry(undefined); setShowForm(true) }}
@@ -90,19 +160,20 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          Log Procedure
+          Log procedure
         </button>
       </div>
 
       {/* Stats row */}
-      <div className="grid grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
         {[
           { label: 'Total', value: stats.total, colour: 'text-[#F5F5F2]' },
           { label: 'As Surgeon', value: stats.surgeon, colour: 'text-[#1B6FD9]' },
           { label: 'Assisting', value: stats.assist, colour: 'text-purple-400' },
           { label: 'Observed', value: stats.observed, colour: 'text-[rgba(245,245,242,0.45)]' },
+          { label: 'Specialties', value: stats.specialties, colour: 'text-teal-400' },
         ].map(s => (
-          <div key={s.label} className="bg-[#141416] border border-white/[0.08] rounded-xl p-4">
+          <div key={s.label} className="bg-[#141416] border border-white/[0.08] rounded-lg p-4">
             <p className="text-xs text-[rgba(245,245,242,0.4)] mb-1">{s.label}</p>
             <p className={`text-2xl font-bold ${s.colour}`}>{s.value}</p>
           </div>
@@ -111,7 +182,7 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
 
       {/* Filter bar */}
       <div className="flex items-center gap-3 mb-4 flex-wrap">
-        <div className="flex gap-1 bg-[#141416] border border-white/[0.08] rounded-xl p-1">
+        <div className="flex gap-1 bg-[#141416] border border-white/[0.08] rounded-lg p-1">
           {([
             { value: 'all',     label: 'All' },
             { value: 'Surgeon', label: 'Surgeon' },
@@ -131,13 +202,42 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
             </button>
           ))}
         </div>
-        <input
-          type="text"
-          value={specialtyFilter}
-          onChange={e => setSpecialtyFilter(e.target.value)}
-          placeholder="Filter by specialty…"
-          className="bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors w-48"
-        />
+        <div className="relative flex-1 min-w-[220px]">
+          <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" />
+              <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </span>
+          <input
+            type="text"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search procedure, specialty, reflection..."
+            className="w-full bg-[#141416] border border-white/[0.08] rounded-lg pl-9 pr-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+          />
+        </div>
+        {trackedSpecialtyKeys.length > 0 && (
+          <select
+            value={tagFilter}
+            onChange={e => setTagFilter(e.target.value)}
+            className="bg-[#141416] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+          >
+            <option value="">All applications</option>
+            {trackedSpecialtyKeys.map(key => (
+              <option key={key} value={key}>{getSpecialtyConfig(key)?.name ?? key}</option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-lg px-4 py-3 mb-6">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+        </svg>
+        <p className="text-xs text-[rgba(245,245,242,0.4)] leading-relaxed">
+          This is a self-managed reflective log, not supervisor sign-off or a replacement for eLogbook/ISCP.
+        </p>
       </div>
 
       {/* Entry list */}
@@ -176,6 +276,8 @@ export function LogbookPageClient({ entries: initialEntries, trackedSpecialtyKey
               entry={e}
               onEdit={() => { setEditEntry(e); setShowForm(true) }}
               onDelete={() => handleDelete(e.id)}
+              onPin={() => handlePin(e)}
+              disabled={savingId === e.id}
             />
           ))}
         </div>
@@ -197,20 +299,29 @@ function LogbookEntryCard({
   entry,
   onEdit,
   onDelete,
+  onPin,
+  disabled,
 }: {
   entry: LogbookEntry
   onEdit: () => void
   onDelete: () => void
+  onPin: () => void
+  disabled: boolean
 }) {
   const roleStyle = getRoleStyle(entry.role as LogbookRole)
   const roleLabel = getRoleShort(entry.role as LogbookRole)
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] hover:border-white/[0.14] rounded-xl px-5 py-4 transition-all group">
+    <div className="bg-[#141416] border border-white/[0.08] hover:border-white/[0.14] rounded-lg px-5 py-4 transition-all group">
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 min-w-0">
           {/* Top row: procedure + role badge */}
           <div className="flex items-center gap-2.5 flex-wrap mb-1.5">
+            {entry.pinned && (
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor" className="text-amber-400 shrink-0" aria-label="Pinned">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            )}
             <span className="font-semibold text-[#F5F5F2] text-sm">{entry.procedure_name}</span>
             <span className={`shrink-0 px-2 py-0.5 rounded-md text-xs font-medium ${roleStyle}`}>
               {roleLabel}
@@ -261,7 +372,22 @@ function LogbookEntryCard({
           <span className="text-xs text-[rgba(245,245,242,0.35)]">{formatDate(entry.date)}</span>
           <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
             <button
+              onClick={onPin}
+              disabled={disabled}
+              className={`w-7 h-7 flex items-center justify-center rounded-lg transition-all disabled:opacity-50 ${
+                entry.pinned
+                  ? 'text-amber-400 hover:bg-amber-400/10'
+                  : 'text-[rgba(245,245,242,0.35)] hover:text-amber-400 hover:bg-amber-400/10'
+              }`}
+              aria-label={entry.pinned ? 'Unpin' : 'Pin'}
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={entry.pinned ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </button>
+            <button
               onClick={onEdit}
+              disabled={disabled}
               className="w-7 h-7 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.35)] hover:text-[#F5F5F2] hover:bg-white/[0.06] transition-all"
               aria-label="Edit"
             >
@@ -272,8 +398,9 @@ function LogbookEntryCard({
             </button>
             <button
               onClick={onDelete}
+              disabled={disabled}
               className="w-7 h-7 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.35)] hover:text-red-400 hover:bg-red-500/10 transition-all"
-              aria-label="Delete"
+              aria-label="Move to trash"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/>
