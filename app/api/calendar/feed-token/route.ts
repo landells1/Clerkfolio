@@ -11,13 +11,16 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
+  const body = await req.json().catch(() => ({}))
+  const rotate = Boolean(body?.rotate)
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('calendar_feed_token')
     .eq('id', user.id)
     .single()
 
-  if (profile?.calendar_feed_token) {
+  if (profile?.calendar_feed_token && !rotate) {
     return NextResponse.json({ token: profile.calendar_feed_token })
   }
 

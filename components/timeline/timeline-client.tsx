@@ -180,6 +180,22 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
     addToast('Calendar feed link copied', 'success')
   }
 
+  async function rotateCalendarFeed() {
+    const res = await fetch('/api/calendar/feed-token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ rotate: true }),
+    })
+    const body = await res.json()
+    if (!res.ok || !body.token) {
+      addToast(body.error ?? 'Failed to rotate calendar feed', 'error')
+      return
+    }
+    setCalendarToken(body.token)
+    await navigator.clipboard.writeText(`${window.location.origin}/api/calendar/feed/${body.token}`)
+    addToast('New calendar feed link copied', 'success')
+  }
+
   const days = monthDays(month)
 
   return (
@@ -196,6 +212,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
             ))}
           </div>
           <button onClick={copyCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Calendar feed</button>
+          {calendarToken && <button onClick={rotateCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Rotate feed</button>}
           <button onClick={() => setShowEventForm(true)} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Add event</button>
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>

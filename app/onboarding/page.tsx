@@ -55,26 +55,35 @@ export default function OnboardingPage() {
   }
 
   async function complete(target = firstEntryTarget) {
+    if (saving) return
     setSaving(true)
     setError(null)
-    const res = await fetch('/api/onboarding/complete', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        firstName,
-        lastName,
-        careerStage,
-        specialties: selectedSpecialties,
-      }),
-    })
-    setSaving(false)
+    let res: Response
+    try {
+      res = await fetch('/api/onboarding/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          firstName,
+          lastName,
+          careerStage,
+          specialties: selectedSpecialties,
+        }),
+      })
+    } catch {
+      setSaving(false)
+      setError('Could not finish onboarding. Check your connection and try again.')
+      return
+    }
 
     if (!res.ok) {
-      const json = await res.json()
+      const json = await res.json().catch(() => ({}))
+      setSaving(false)
       setError(json.error ?? 'Could not finish onboarding.')
       return
     }
 
+    setSaving(false)
     if (target === 'portfolio') router.push('/portfolio/new')
     else if (target === 'case') router.push('/cases/new')
     else router.push('/dashboard')
@@ -184,7 +193,7 @@ export default function OnboardingPage() {
               { value: 'case' as const, title: 'Clinical case', body: 'Best for memorable clinical stories, interview examples, and reflection prompts.' },
               { value: 'dashboard' as const, title: 'Dashboard', body: 'Finish setup and look around before logging anything.' },
             ].map(option => (
-              <button key={option.value} onClick={() => setFirstEntryTarget(option.value)} className={`rounded-2xl border p-5 text-left transition-colors ${firstEntryTarget === option.value ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/15' : 'border-white/[0.08] bg-[#141416] hover:border-white/[0.16]'}`}>
+              <button key={option.value} onClick={() => { setFirstEntryTarget(option.value); complete(option.value) }} disabled={saving} className={`rounded-2xl border p-5 text-left transition-colors disabled:opacity-60 ${firstEntryTarget === option.value ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/15' : 'border-white/[0.08] bg-[#141416] hover:border-white/[0.16]'}`}>
                 <h2 className="text-base font-semibold">{option.title}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">{option.body}</p>
               </button>

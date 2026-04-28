@@ -6,12 +6,10 @@ export async function POST(request: NextRequest) {
   const originError = validateOrigin(request)
   if (originError) return originError
 
-  // Verify the user is authenticated via their session
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  // Require explicit confirmation text in the request body
   let body: { confirm?: string } = {}
   try {
     body = await request.json()
@@ -23,11 +21,21 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Confirmation text required' }, { status: 400 })
   }
 
-  // Use service role for all deletion operations (bypasses RLS)
   const service = createServiceClient()
 
   try {
-    // 1. Delete storage objects (evidence files from Supabase Storage)
+    const { data: profile, error: profileError } = await service
+      .from('profiles')
+      .select('stripe_subscription_id')
+      .eq('id', user.id)
+      .single()
+    if (profileError) throw profileError
+
+    if (profile?.stripe_subscription_id && process.env.STRIPE_SECRET_KEY) {
+      const { stripe } = await import('@/lib/stripe')
+      await stripe.subscriptions.cancel(profile.stripe_subscription_id)
+    }
+
     const { data: files } = await service
       .from('evidence_files')
       .select('file_path')
@@ -35,22 +43,10 @@ export async function POST(request: NextRequest) {
 
     if (files && files.length > 0) {
       const paths = files.map((f: { file_path: string }) => f.file_path)
-      await service.storage.from('evidence').remove(paths)
+      const { error: storageError } = await service.storage.from('evidence').remove(paths)
+      if (storageError) throw storageError
     }
 
-    // 2. Delete all user data rows — check each individually before touching auth
-    const deleteOps = [
-      service.from('evidence_files').delete().eq('user_id', user.id),
-      service.from('portfolio_entries').delete().eq('user_id', user.id),
-      service.from('cases').delete().eq('user_id', user.id),
-      service.from('deadlines').delete().eq('user_id', user.id),
-      service.from('profiles').delete().eq('id', user.id),
-    ]
-    const deleteResults = await Promise.all(deleteOps)
-    const deleteError = deleteResults.find(r => r.error)?.error
-    if (deleteError) throw deleteError
-
-    // 3. Delete the auth user (irrecoverable — do this last)
     const { error: authDeleteError } = await service.auth.admin.deleteUser(user.id)
     if (authDeleteError) throw authDeleteError
 
