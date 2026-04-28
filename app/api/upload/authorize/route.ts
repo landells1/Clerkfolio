@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { getSubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
 import { FREE_CAP_BYTES, PRO_CAP_BYTES, MAX_FILE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/supabase/storage'
 
@@ -59,26 +59,12 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // Resolve plan-aware quota limit
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('trial_started_at, subscription_status, subscription_period_end')
-    .eq('id', user.id)
-    .single()
-
-  const subInfo = getSubscriptionInfo(
-    profile ?? { trial_started_at: null, subscription_status: null, subscription_period_end: null }
-  )
-  const quotaBytes = subInfo.isPro ? PRO_CAP_BYTES : FREE_CAP_BYTES
-  const limitLabel  = subInfo.isPro ? '5 GB' : '200 MB'
-
-  // Current storage usage from the authoritative server-side table
-  const { data: files } = await supabase
-    .from('evidence_files')
-    .select('file_size')
-    .eq('user_id', user.id)
-
-  const usedBytes = files?.reduce((sum, f) => sum + (f.file_size ?? 0), 0) ?? 0
+  // Resolve plan-aware quota limit via subscription info (fetches storage usage internally)
+  const subInfo = await fetchSubscriptionInfo(supabase, user.id)
+  const quotaMB = subInfo.storageQuotaMB
+  const quotaBytes = quotaMB * 1024 * 1024
+  const usedBytes = subInfo.usage.storageUsedMB * 1024 * 1024
+  const limitLabel = subInfo.isPro ? '5 GB' : '100 MB'
 
   if (usedBytes + fileSize > quotaBytes) {
     return NextResponse.json(

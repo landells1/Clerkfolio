@@ -1,282 +1,141 @@
 import Link from 'next/link'
-import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase/server'
-import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
-import type { PortfolioEntry } from '@/lib/types/portfolio'
-import PortfolioFilters from '@/components/portfolio/portfolio-filters'
-import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
+import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
+import EntryCard from '@/components/portfolio/entry-card'
+import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 
-const PAGE_SIZE = 20
+type ViewMode = 'categories' | 'themes' | 'all'
+
+function normaliseTheme(value: string) {
+  return value.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '')
+}
 
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: { category?: string; q?: string; sort?: string; page?: string }
+  searchParams: { view?: ViewMode; category?: string; q?: string }
 }) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const activeCategory = (searchParams.category as Category) ?? null
+  const view = searchParams.view ?? 'categories'
+  const activeCategory = (searchParams.category as Category | undefined) ?? undefined
   const q = searchParams.q ?? ''
-  const sort = searchParams.sort ?? ''
-  const page = Math.max(1, parseInt(searchParams.page ?? '1', 10))
-  const offset = (page - 1) * PAGE_SIZE
 
-  let query = supabase
-    .from('portfolio_entries')
-    .select('*', { count: 'exact' })
-    .eq('user_id', user!.id)
-    .is('deleted_at', null)
-
-  if (activeCategory) {
-    query = query.eq('category', activeCategory)
-  }
-
-  if (q.trim()) {
-    query = query.ilike('title', `%${q.trim()}%`)
-  }
-
-  if (sort === 'date_asc') {
-    query = query.order('pinned', { ascending: false }).order('date', { ascending: true })
-  } else if (sort === 'title_asc') {
-    query = query.order('pinned', { ascending: false }).order('title', { ascending: true })
-  } else {
-    query = query.order('pinned', { ascending: false }).order('date', { ascending: false }).order('created_at', { ascending: false })
-  }
-
-  const [{ data: entries, count }, { data: counts }, { data: trackedSpecialtyRows }] = await Promise.all([
-    query.range(offset, offset + PAGE_SIZE - 1),
+  const [{ data: entries }, { data: customThemes }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('category')
+      .select('*')
       .eq('user_id', user!.id)
-      .is('deleted_at', null),
+      .is('deleted_at', null)
+      .order('pinned', { ascending: false })
+      .order('date', { ascending: false })
+      .order('created_at', { ascending: false }),
     supabase
-      .from('specialty_applications')
-      .select('specialty_key')
-      .eq('user_id', user!.id),
+      .from('custom_competency_themes')
+      .select('name, slug')
+      .eq('user_id', user!.id)
+      .order('name', { ascending: true }),
   ])
 
-  const countMap: Record<string, number> = {}
-  counts?.forEach(r => {
-    countMap[r.category] = (countMap[r.category] ?? 0) + 1
+  const allEntries = ((entries ?? []) as PortfolioEntry[]).filter(entry => {
+    if (q && !`${entry.title} ${entry.notes ?? ''}`.toLowerCase().includes(q.toLowerCase())) return false
+    if (view === 'categories' && activeCategory && entry.category !== activeCategory) return false
+    return true
   })
-  const total = counts?.length ?? 0
-  const pageTotal = count ?? 0
-  const totalPages = Math.ceil(pageTotal / PAGE_SIZE)
 
-  const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
+  const countMap = (entries ?? []).reduce((acc: Record<string, number>, entry) => {
+    acc[entry.category] = (acc[entry.category] ?? 0) + 1
+    return acc
+  }, {})
 
-  // Procedure summary data (when filtered to procedures)
-  type ProcSummary = { name: string; count: number; lastDate: string }
-  let procSummary: ProcSummary[] = []
-  if (activeCategory === 'procedure' && entries) {
-    const procMap: Record<string, { count: number; lastDate: string }> = {}
-    entries.forEach((e: PortfolioEntry) => {
-      const name = e.proc_name ?? 'Unknown procedure'
-      const count = e.proc_count ?? 1
-      if (!procMap[name]) {
-        procMap[name] = { count, lastDate: e.date }
-      } else {
-        procMap[name].count += count
-        if (e.date > procMap[name].lastDate) procMap[name].lastDate = e.date
-      }
-    })
-    procSummary = Object.entries(procMap)
-      .sort((a, b) => b[1].count - a[1].count)
-      .map(([name, v]) => ({ name, ...v }))
-  }
-
-  function pageHref(p: number) {
-    const params = new URLSearchParams()
-    if (activeCategory) params.set('category', activeCategory)
-    if (q) params.set('q', q)
-    if (sort) params.set('sort', sort)
-    if (p > 1) params.set('page', String(p))
-    const qs = params.toString()
-    return `/portfolio${qs ? `?${qs}` : ''}`
-  }
+  const themes = [
+    ...INTERVIEW_THEMES.map(name => ({ name: name.replace('Interview', 'Competency'), slug: normaliseTheme(name) })),
+    ...(customThemes ?? []),
+  ]
 
   return (
-    <div className="p-8">
-      {/* Header */}
+    <div className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Portfolio</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
-            {total} {total === 1 ? 'entry' : 'entries'} logged
-          </p>
+          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">{entries?.length ?? 0} entries logged</p>
         </div>
-        <Link
-          href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'}
-          className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors"
-        >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+        <Link href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'} className="min-h-[44px] flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
+          <span className="text-lg leading-none">+</span>
           Add entry
         </Link>
       </div>
 
-      {/* Count summary bar */}
-      <div className="flex flex-wrap gap-x-4 gap-y-1 mb-6 text-xs text-[rgba(245,245,242,0.4)]">
-        {CATEGORIES.filter(c => (countMap[c.value] ?? 0) > 0).map(c => (
-          <span key={c.value}>
-            <span className="text-[rgba(245,245,242,0.65)]">{countMap[c.value]}</span> {c.label}
-          </span>
-        ))}
+      <form className="mb-4 flex gap-2">
+        <input type="hidden" name="view" value={view} />
+        {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
+        <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]" />
+        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+      </form>
+
+      <div className="mb-6 flex flex-wrap gap-2 border-b border-white/[0.06] pb-4">
+        <ViewLink href="/portfolio" active={view === 'categories'} label="Categories" />
+        <ViewLink href="/portfolio?view=themes" active={view === 'themes'} label="Themes" />
+        <ViewLink href="/portfolio?view=all" active={view === 'all'} label="All" />
       </div>
 
-      {/* Search + sort filters */}
-      <Suspense fallback={<div className="h-10" />}>
-        <PortfolioFilters defaultQ={q} defaultSort={sort} />
-      </Suspense>
-
-      {/* Category tabs */}
-      <div className="flex gap-1.5 flex-wrap mb-6 pb-4 border-b border-white/[0.06]">
-        <Link
-          href="/portfolio"
-          className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-            !activeCategory
-              ? 'bg-[#F5F5F2]/10 text-[#F5F5F2]'
-              : 'text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
-          }`}
-        >
-          All
-          {total > 0 && (
-            <span className="ml-1.5 text-[10px] text-[rgba(245,245,242,0.35)]">{total}</span>
-          )}
-        </Link>
-        {CATEGORIES.map(cat => (
-          <Link
-            key={cat.value}
-            href={`/portfolio?category=${cat.value}`}
-            className={`px-3.5 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              activeCategory === cat.value
-                ? 'bg-[#F5F5F2]/10 text-[#F5F5F2]'
-                : 'text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
-            }`}
-          >
-            {cat.label}
-            {countMap[cat.value] > 0 && (
-              <span className="ml-1.5 text-[10px] text-[rgba(245,245,242,0.35)]">{countMap[cat.value]}</span>
-            )}
-          </Link>
-        ))}
-      </div>
-
-      {/* Procedure summary panel */}
-      {activeCategory === 'procedure' && procSummary.length > 0 && (
-        <ProcedureSummaryPanel summary={procSummary} />
+      {view === 'categories' && (
+        <div className="mb-6 flex flex-wrap gap-1.5">
+          <ViewLink href="/portfolio" active={!activeCategory} label={`All ${entries?.length ?? 0}`} />
+          {CATEGORIES.map(category => (
+            <ViewLink
+              key={category.value}
+              href={`/portfolio?category=${category.value}`}
+              active={activeCategory === category.value}
+              label={`${category.label} ${countMap[category.value] ?? 0}`}
+            />
+          ))}
+        </div>
       )}
 
-      {/* Entry list */}
-      {!entries || entries.length === 0 ? (
-        <EmptyState category={activeCategory} />
-      ) : (
-        <>
-          <PortfolioListClient entries={entries as PortfolioEntry[]} userInterests={trackedSpecialtyKeys} />
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between pt-6 mt-2 border-t border-white/[0.06]">
-              <p className="text-xs text-[rgba(245,245,242,0.35)]">
-                Page {page} of {totalPages} · {pageTotal} entries
-              </p>
-              <div className="flex items-center gap-2">
-                {page > 1 && (
-                  <Link
-                    href={pageHref(page - 1)}
-                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
-                  >
-                    ← Previous
-                  </Link>
-                )}
-                {page < totalPages && (
-                  <Link
-                    href={pageHref(page + 1)}
-                    className="px-3 py-1.5 text-xs text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.08] rounded-lg transition-colors"
-                  >
-                    Next →
-                  </Link>
-                )}
-              </div>
-            </div>
+      {view === 'themes' ? (
+        <div className="space-y-5">
+          {themes.map(theme => {
+            const matching = allEntries.filter(entry => (entry.interview_themes ?? []).map(normaliseTheme).includes(theme.slug))
+            if (matching.length === 0) return null
+            return (
+              <section key={theme.slug} className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
+                <details open>
+                  <summary className="cursor-pointer text-sm font-semibold text-[#F5F5F2]">{theme.name} <span className="text-[rgba(245,245,242,0.35)]">({matching.length})</span></summary>
+                  <div className="mt-4 space-y-3">
+                    {matching.map(entry => <EntryCard key={entry.id} entry={entry} />)}
+                  </div>
+                </details>
+              </section>
+            )
+          })}
+          {themes.every(theme => allEntries.filter(entry => (entry.interview_themes ?? []).map(normaliseTheme).includes(theme.slug)).length === 0) && (
+            <EmptyPortfolio />
           )}
-        </>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {allEntries.map(entry => <EntryCard key={entry.id} entry={entry} />)}
+          {allEntries.length === 0 && <EmptyPortfolio />}
+        </div>
       )}
     </div>
   )
 }
 
-function ProcedureSummaryPanel({ summary }: { summary: { name: string; count: number; lastDate: string }[] }) {
-  const colours = CATEGORY_COLOURS['procedure']
+function ViewLink({ href, active, label }: { href: string; active: boolean; label: string }) {
   return (
-    <div className="mb-5 bg-[#141416] border border-white/[0.06] rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-        <p className="text-xs font-medium text-[rgba(245,245,242,0.45)] uppercase tracking-wider">Procedure summary</p>
-        <span className="text-[10px] text-[rgba(245,245,242,0.3)]">{summary.length} type{summary.length !== 1 ? 's' : ''}</span>
-      </div>
-      <div className="divide-y divide-white/[0.04]">
-        {summary.map(({ name, count, lastDate }) => (
-          <Link
-            key={name}
-            href={`/portfolio?category=procedure&q=${encodeURIComponent(name)}`}
-            className="flex items-center justify-between px-4 py-2.5 hover:bg-white/[0.02] transition-colors group"
-          >
-            <div className="flex items-center gap-2.5">
-              <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border ${colours.badge}`}>
-                {count}×
-              </span>
-              <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{name}</span>
-            </div>
-            <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono">
-              last {new Date(lastDate).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}
-            </span>
-          </Link>
-        ))}
-      </div>
-    </div>
+    <Link href={href} className={`min-h-[36px] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-[#F5F5F2]/10 text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.5)] hover:bg-white/[0.05] hover:text-[#F5F5F2]'}`}>
+      {label}
+    </Link>
   )
 }
 
-function EmptyState({ category }: { category: Category | null }) {
-  const catMeta = category ? CATEGORIES.find(c => c.value === category) : null
-  const colours = category ? CATEGORY_COLOURS[category] : null
-
+function EmptyPortfolio() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center">
-      <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="12" y1="18" x2="12" y2="12" />
-          <line x1="9" y1="15" x2="15" y2="15" />
-        </svg>
-      </div>
-      {catMeta && colours ? (
-        <>
-          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium border mb-3 ${colours.badge}`}>
-            {catMeta.label}
-          </span>
-          <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No entries yet</p>
-          <p className="text-xs text-[rgba(245,245,242,0.3)] mb-6">Log your first {catMeta.label.toLowerCase()} entry to get started.</p>
-        </>
-      ) : (
-        <>
-          <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No portfolio entries yet</p>
-          <p className="text-xs text-[rgba(245,245,242,0.3)] mb-6">Start logging your achievements to build your portfolio.</p>
-        </>
-      )}
-      <Link
-        href={category ? `/portfolio/new?category=${category}` : '/portfolio/new'}
-        className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors"
-      >
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-        </svg>
-        Add {catMeta ? catMeta.label.toLowerCase() : 'entry'}
-      </Link>
+    <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-10 text-center">
+      <p className="text-sm text-[rgba(245,245,242,0.5)]">No portfolio entries in this view.</p>
     </div>
   )
 }

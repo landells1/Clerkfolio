@@ -14,6 +14,7 @@ export default function SignupPage() {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const referralCode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ref') : null
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -35,6 +36,10 @@ export default function SignupPage() {
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+        data: {
+          referral_code: referralCode,
+          student_email_verified: /\.ac\.uk$/i.test(email),
+        },
       },
     })
 
@@ -51,7 +56,18 @@ export default function SignupPage() {
       return
     }
 
-    // Email confirmation disabled — go straight to onboarding
+    if (referralCode && data.user) {
+      const { data: referrer } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('referral_code', referralCode)
+        .maybeSingle()
+      if (referrer) {
+        await supabase.from('profiles').update({ referred_by: referrer.id }).eq('id', data.user.id)
+      }
+    }
+
+    // Email confirmation disabled - go straight to onboarding
     router.push('/onboarding')
     router.refresh()
   }
@@ -81,7 +97,7 @@ export default function SignupPage() {
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8">
       <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Create your account</h1>
       <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
-        Free for 6 months. No credit card required.
+        Free to start. No credit card required.
       </p>
 
       <form onSubmit={handleSignup} className="space-y-4">

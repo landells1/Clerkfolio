@@ -18,7 +18,7 @@ type LinkedEntry = {
   id: string
   title: string
   date: string
-  type: 'portfolio' | 'case'
+  type: 'portfolio'
   category?: string
 }
 
@@ -37,20 +37,13 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
     if (!expanded && links.length > 0 && entryDetails === null) {
       setLoadingEntries(true)
       const portfolioIds = links.filter(l => l.entry_type === 'portfolio').map(l => l.entry_id)
-      const caseIds = links.filter(l => l.entry_type === 'case').map(l => l.entry_id)
 
-      const [portfolioRes, caseRes] = await Promise.all([
-        portfolioIds.length > 0
-          ? supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds)
-          : Promise.resolve({ data: [] }),
-        caseIds.length > 0
-          ? supabase.from('cases').select('id, title, date').in('id', caseIds)
-          : Promise.resolve({ data: [] }),
-      ])
+      const portfolioRes = portfolioIds.length > 0
+        ? await supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds)
+        : { data: [] }
 
       const details: LinkedEntry[] = [
         ...((portfolioRes.data ?? []).map(e => ({ ...e, type: 'portfolio' as const }))),
-        ...((caseRes.data ?? []).map(e => ({ ...e, type: 'case' as const }))),
       ]
       setEntryDetails(details)
       setLoadingEntries(false)
@@ -143,7 +136,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                     <div className="flex-1 min-w-0">
                       {detail ? (
                         <Link
-                          href={link.entry_type === 'portfolio' ? `/portfolio/${link.entry_id}` : `/cases/${link.entry_id}`}
+                          href={`/portfolio/${link.entry_id}`}
                           className="text-sm text-[rgba(245,245,242,0.8)] hover:text-[#F5F5F2] transition-colors truncate block"
                         >
                           {detail.title}

@@ -23,7 +23,7 @@ export default async function ARCPPage() {
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">ARCP Evidence</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
-          Link your portfolio entries and cases to Foundation Programme curriculum capabilities.
+          Link your portfolio entries to Foundation Programme curriculum capabilities.
         </p>
       </div>
 

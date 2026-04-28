@@ -21,7 +21,7 @@ export type ARCPEntryLink = {
   user_id: string
   capability_key: string
   entry_id: string
-  entry_type: 'portfolio' | 'case'
+  entry_type: 'portfolio'
   notes: string | null
   created_at: string
 }

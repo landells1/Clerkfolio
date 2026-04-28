@@ -11,7 +11,7 @@ import {
 } from '@/lib/specialties'
 import type { SpecialtyApplication, SpecialtyConfig } from '@/lib/specialties'
 
-const FREE_SPECIALTY_LIMIT = 3
+const FREE_SPECIALTY_LIMIT = 1
 
 type Props = {
   onClose: () => void
@@ -139,7 +139,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
               <div>
                 <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Upgrade to Pro</p>
                 <p className="text-xs text-[rgba(245,245,242,0.45)] max-w-xs mx-auto leading-relaxed">
-                  Free accounts can track up to {FREE_SPECIALTY_LIMIT} specialties. Upgrade to Pro to add unlimited specialty trackers.
+                  Free accounts can track one specialty. Upgrade to Pro to add more specialty trackers.
                 </p>
               </div>
               <button

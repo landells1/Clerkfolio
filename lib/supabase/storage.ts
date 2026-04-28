@@ -1,7 +1,7 @@
 import { createClient } from './client'
 
 const BUCKET = 'evidence'
-export const FREE_CAP_BYTES = 200 * 1024 * 1024        // 200 MB
+export const FREE_CAP_BYTES = 100 * 1024 * 1024        // 100 MB
 export const PRO_CAP_BYTES  = 5 * 1024 * 1024 * 1024  // 5 GB
 export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 
@@ -9,10 +9,13 @@ export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 // GIF and WEBP are intentionally excluded — they are not in the bucket config.
 export const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
-  'image/jpeg',
-  'image/png',
-  'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  'text/plain',
+  'image/png',
+  'image/jpeg',
+  'image/heic',
 ])
 
 export type EvidenceFile = {
@@ -49,10 +52,13 @@ export async function uploadEvidence(
 
   // Client-side MIME guard (UX only — server enforce via /api/upload/authorize)
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    return { path: '', error: 'File type not allowed. Accepted: PDF, JPEG, PNG, Word documents.' }
+    return { path: '', error: 'File type not allowed. Accepted: PDF, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.' }
   }
   if (file.size > MAX_FILE_BYTES) {
     return { path: '', error: 'File too large. Maximum size is 50 MB.' }
+  }
+  if (!(await hasValidMagicBytes(file))) {
+    return { path: '', error: 'File contents do not match the selected file type.' }
   }
 
   const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
@@ -83,7 +89,27 @@ export async function insertEvidenceRecord(
     file_path: path,
     file_size: file.size,
     mime_type: file.type || null,
+    scan_status: 'pending',
   })
+}
+
+async function hasValidMagicBytes(file: File) {
+  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer())
+  const hex = Array.from(bytes).map(byte => byte.toString(16).padStart(2, '0')).join('')
+  const ascii = String.fromCharCode(...Array.from(bytes))
+  if (file.type === 'application/pdf') return ascii.startsWith('%PDF')
+  if (file.type === 'image/png') return hex.startsWith('89504e470d0a1a0a')
+  if (file.type === 'image/jpeg') return hex.startsWith('ffd8ff')
+  if (file.type === 'image/heic') return ascii.includes('ftypheic') || ascii.includes('ftypheix') || ascii.includes('ftyphevc') || ascii.includes('ftypmif1')
+  if (file.type === 'text/plain') return !bytes.includes(0)
+  if (
+    file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+    file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+  ) {
+    return hex.startsWith('504b0304') || hex.startsWith('504b0506') || hex.startsWith('504b0708')
+  }
+  return false
 }
 
 /**

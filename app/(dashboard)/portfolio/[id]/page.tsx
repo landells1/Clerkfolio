@@ -80,6 +80,12 @@ export default async function EntryDetailPage({ params }: { params: { id: string
             </svg>
             Edit
           </Link>
+          <Link
+            href={`/portfolio/${entry.id}/history`}
+            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"
+          >
+            History
+          </Link>
           <SaveTemplateButton entry={entry} />
           <DuplicateEntryButton entryId={entry.id} />
           <PinEntryButton entryId={entry.id} initialPinned={entry.pinned ?? false} />

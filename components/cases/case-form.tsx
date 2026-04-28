@@ -10,6 +10,7 @@ import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
+import { completenessScore } from '@/lib/utils/completeness'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -126,11 +127,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       interview_themes: interviewThemes,
       notes: notes.trim() || null,
     }
+    const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'case') }
 
     if (mode === 'create') {
       const { data, error } = await supabase
         .from('cases')
-        .insert({ ...payload, user_id: user.id })
+        .insert({ ...scoredPayload, user_id: user.id })
         .select('id')
         .single()
       if (error) { setError(error.message); setSaving(false); return }
@@ -145,9 +147,15 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       addToast('Case logged', 'success')
       router.push('/cases')
     } else {
+      await supabase.from('entry_revisions').insert({
+        user_id: user.id,
+        entry_id: initialData!.id!,
+        entry_type: 'case',
+        snapshot: initialData,
+      })
       const { error } = await supabase
         .from('cases')
-        .update(payload)
+        .update(scoredPayload)
         .eq('id', initialData!.id!)
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {
