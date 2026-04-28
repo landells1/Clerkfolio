@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import {
   calculateDomainScore,
@@ -26,6 +26,7 @@ type Props = {
   onLinksChange: (links: SpecialtyEntryLink[]) => void
   onApplicationUpdate: (app: SpecialtyApplication) => void
   onBack: () => void
+  isPro?: boolean
 }
 
 export function SpecialtyDetail({
@@ -36,6 +37,7 @@ export function SpecialtyDetail({
   onLinksChange,
   onApplicationUpdate,
   onBack,
+  isPro = false,
 }: Props) {
   const supabase = createClient()
   const evidenceBased = isEvidenceBased(config)
@@ -43,6 +45,7 @@ export function SpecialtyDetail({
   const [bonusClaimed, setBonusClaimed] = useState(application.bonus_claimed)
   const [togglingBonus, setTogglingBonus] = useState(false)
   const [tickingAll, setTickingAll] = useState(false)
+  const [showShareModal, setShowShareModal] = useState(false)
 
   async function handleBonusToggle(_optionKey: string) {
     if (togglingBonus) return
@@ -121,7 +124,7 @@ export function SpecialtyDetail({
 
       {/* Header */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-5">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex items-start justify-between mb-4 gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
               <h1 className="text-xl font-semibold text-[#F5F5F2]">{config.name}</h1>
@@ -150,7 +153,25 @@ export function SpecialtyDetail({
               />
             )}
           </div>
+
+          {isPro && (
+            <button
+              onClick={() => setShowShareModal(true)}
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+              Share
+            </button>
+          )}
         </div>
+
+        {showShareModal && (
+          <ShareModal specialtyKey={application.specialty_key} onClose={() => setShowShareModal(false)} />
+        )}
 
         {/* Bonus options — only for points-based with bonuses */}
         {!evidenceBased && config.bonusOptions && config.bonusOptions.length > 0 && (
@@ -658,5 +679,194 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </span>
+  )
+}
+
+// ---------- Share Modal ----------
+
+type ShareLinkData = { id: string; token: string; expires_at: string }
+
+function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: () => void }) {
+  const [link, setLink] = useState<ShareLinkData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [generating, setGenerating] = useState(false)
+  const [revoking, setRevoking] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clinidex.co.uk'
+
+  useEffect(() => {
+    async function load() {
+      const res = await fetch('/api/share')
+      if (res.ok) {
+        const links: (ShareLinkData & { specialty_key: string })[] = await res.json()
+        const match = links.find(l => l.specialty_key === specialtyKey)
+        setLink(match ?? null)
+      }
+      setLoading(false)
+    }
+    load()
+  }, [specialtyKey])
+
+  async function handleGenerate() {
+    setGenerating(true)
+    const res = await fetch('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ specialty_key: specialtyKey }),
+    })
+    if (res.ok) {
+      const data = await res.json()
+      setLink(data)
+    }
+    setGenerating(false)
+  }
+
+  async function handleRevoke() {
+    if (!link) return
+    if (!confirm('Revoke this link? Anyone using it will lose access immediately.')) return
+    setRevoking(true)
+    const res = await fetch(`/api/share?id=${link.id}`, { method: 'DELETE' })
+    if (res.ok) setLink(null)
+    setRevoking(false)
+  }
+
+  function handleCopy() {
+    if (!link) return
+    navigator.clipboard.writeText(`${BASE_URL}/share/${link.token}`)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  const url = link ? `${BASE_URL}/share/${link.token}` : null
+  const expiresFormatted = link
+    ? new Date(link.expires_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-[#141416] border border-white/[0.1] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+        {/* Header */}
+        <div className="flex items-start justify-between mb-5 gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-[#F5F5F2]">Share read-only link</h2>
+            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">
+              Anyone with the link can view your evidence — no account needed.
+            </p>
+          </div>
+          <button onClick={onClose} className="shrink-0 text-[rgba(245,245,242,0.3)] hover:text-[#F5F5F2] transition-colors mt-0.5">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : link ? (
+          <div className="space-y-4">
+            {/* URL display */}
+            <div className="bg-[#0B0B0C] border border-white/[0.08] rounded-xl p-3">
+              <p className="text-xs font-mono text-[rgba(245,245,242,0.5)] truncate">{url}</p>
+            </div>
+            <p className="text-xs text-[rgba(245,245,242,0.4)]">Expires {expiresFormatted} · Read-only</p>
+            {/* Actions */}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleCopy}
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  {copied
+                    ? <polyline points="20 6 9 17 4 12" />
+                    : <><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></>
+                  }
+                </svg>
+                {copied ? 'Copied!' : 'Copy link'}
+              </button>
+              <a
+                href={url!}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+                  <polyline points="15 3 21 3 21 9"/>
+                  <line x1="10" y1="14" x2="21" y2="3"/>
+                </svg>
+                Preview
+              </a>
+              <button
+                onClick={handleRevoke}
+                disabled={revoking}
+                className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50"
+              >
+                {revoking ? 'Revoking…' : 'Revoke'}
+              </button>
+            </div>
+            {/* Manage all links */}
+            <p className="text-xs text-[rgba(245,245,242,0.3)] text-center">
+              Manage all shared links in{' '}
+              <a href="/settings/shared-links" className="text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] underline transition-colors">
+                Settings → Shared links
+              </a>
+            </p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-[#0B0B0C] border border-white/[0.06] rounded-xl p-4 flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="8" x2="12" y2="12"/>
+                  <line x1="12" y1="16" x2="12.01" y2="16"/>
+                </svg>
+                <span className="text-xs text-[rgba(245,245,242,0.4)]">Link expires after 30 days</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                </svg>
+                <span className="text-xs text-[rgba(245,245,242,0.4)]">Read-only — no login required</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"/>
+                  <path d="M19 6l-1 14H6L5 6"/>
+                  <path d="M10 11v6M14 11v6"/>
+                  <path d="M9 6V4h6v2"/>
+                </svg>
+                <span className="text-xs text-[rgba(245,245,242,0.4)]">Revoke at any time</span>
+              </div>
+            </div>
+            <button
+              onClick={handleGenerate}
+              disabled={generating}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+            >
+              {generating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full animate-spin" />
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
+                    <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
+                  </svg>
+                  Generate link
+                </>
+              )}
+            </button>
+          </div>
+        )}
+      </div>
+    </div>
   )
 }

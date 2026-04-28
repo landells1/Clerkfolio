@@ -40,6 +40,12 @@ export type BonusOption = {
   points: number
 }
 
+export type ApplicationWindow = {
+  opensDate: string   // ISO date e.g. "2026-10-01" — verify at NHS England recruitment pages
+  closesDate: string  // ISO date e.g. "2026-11-14"
+  source: string      // URL to the NHS England / ORIEL source page
+}
+
 export type SpecialtyConfig = {
   key: string
   name: string
@@ -53,6 +59,8 @@ export type SpecialtyConfig = {
   trainingLevel?: TrainingLevel  // 'entry' (default; ST1/CT1) or 'higher' (ST3/ST4)
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
+  applicationWindow?: ApplicationWindow  // auto-populated deadlines; must be verified before use
+  supersededBy?: string                  // specialty_key of the next-cycle config e.g. 'imt_2027'
 }
 
 export type SpecialtyApplication = {
@@ -62,6 +70,8 @@ export type SpecialtyApplication = {
   cycle_year: number
   bonus_claimed: boolean
   created_at: string
+  is_active: boolean       // false = archived (moved to new cycle)
+  archived_at: string | null
 }
 
 export type SpecialtyEntryLink = {

@@ -176,7 +176,7 @@ export default async function DashboardPage() {
       const { essentialsTotal, essentialsMet, desirablesTotal, desirablesEvidenced } = getEvidenceProgress(config, links)
       return { key: row.specialty_key, label, isEvidenceBased: true, score: 0, maxScore: 0, essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal }
     }
-    const score = calculateTotalScore(config, { id: row.id, user_id: user!.id, specialty_key: row.specialty_key, cycle_year: config.cycleYear, bonus_claimed: row.bonus_claimed, created_at: '' }, links)
+    const score = calculateTotalScore(config, { id: row.id, user_id: user!.id, specialty_key: row.specialty_key, cycle_year: config.cycleYear, bonus_claimed: row.bonus_claimed, created_at: '', is_active: true, archived_at: null }, links)
     return { key: row.specialty_key, label, isEvidenceBased: false, score, maxScore: config.totalMax, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
   })
 

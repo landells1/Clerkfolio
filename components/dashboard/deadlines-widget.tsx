@@ -11,6 +11,8 @@ type Deadline = {
   title: string
   due_date: string
   completed: boolean
+  is_auto?: boolean
+  source_specialty_key?: string | null
 }
 
 function urgency(due: string): { label: string; cls: string } {
@@ -232,33 +234,47 @@ export default function DeadlinesWidget({ initialDeadlines }: { initialDeadlines
             return (
               <div key={d.id} className="flex items-center gap-3 px-4 py-3 group">
                 <div className="flex-1 min-w-0">
-                  <p
-                    className="text-sm text-[rgba(245,245,242,0.85)] truncate cursor-pointer hover:text-[#F5F5F2] transition-colors"
-                    onClick={() => startEdit(d)}
-                  >
-                    {d.title}
-                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <p
+                      className={`text-sm text-[rgba(245,245,242,0.85)] truncate transition-colors ${d.is_auto ? 'cursor-default' : 'cursor-pointer hover:text-[#F5F5F2]'}`}
+                      onClick={d.is_auto ? undefined : () => startEdit(d)}
+                    >
+                      {d.title}
+                    </p>
+                    {d.is_auto && (
+                      <span title="Auto-added from specialty tracker" className="shrink-0 inline-flex items-center gap-0.5 px-1 py-0.5 rounded text-[9px] font-medium bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        auto
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono">{formatted}</p>
                 </div>
                 <span className={`text-xs font-mono font-medium shrink-0 ${cls}`}>{label}</span>
-                <button
-                  onClick={() => handleComplete(d.id)}
-                  className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.25)] hover:text-[#1B6FD9] transition-all"
-                  title="Mark complete"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => handleDelete(d.id)}
-                  className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-all"
-                  title="Delete"
-                >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
-                  </svg>
-                </button>
+                {!d.is_auto && (
+                  <>
+                    <button
+                      onClick={() => handleComplete(d.id)}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.25)] hover:text-[#1B6FD9] transition-all"
+                      title="Mark complete"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => handleDelete(d.id)}
+                      className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-all"
+                      title="Delete"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </>
+                )}
               </div>
             )
           })

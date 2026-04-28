@@ -486,6 +486,25 @@ export default function SettingsPage() {
         </div>
       </section>
 
+      {/* Shared links */}
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Shared links</h2>
+            <p className="text-xs text-[rgba(245,245,242,0.4)]">Read-only links you&apos;ve shared to your specialty evidence views.</p>
+          </div>
+          <Link
+            href="/settings/shared-links"
+            className="flex items-center gap-1.5 text-sm text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium shrink-0 ml-4"
+          >
+            Manage
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </Link>
+        </div>
+      </section>
+
       {/* Storage usage */}
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Storage</h2>
