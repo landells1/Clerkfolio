@@ -7,7 +7,7 @@ export const maxDuration = 30
 
 type NotificationDraft = {
   user_id: string
-  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window'
+  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window_open'
   title: string
   body: string
   link: string
@@ -31,7 +31,7 @@ function preferenceAllows(prefs: Preferences, type: NotificationDraft['type']) {
   if (type === 'deadline_due') return prefs.deadlines !== false
   if (type === 'share_link_expiring') return prefs.share_link_expiring !== false
   if (type === 'activity_nudge') return prefs.activity_nudge === true
-  if (type === 'application_window') return prefs.application_window !== false
+  if (type === 'application_window_open') return prefs.application_window !== false
   return true
 }
 
@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     const isApplicationWindow = Boolean(d.source_specialty_key)
     drafts.push({
       user_id: d.user_id,
-      type: isApplicationWindow ? 'application_window' : 'deadline_due',
+      type: isApplicationWindow ? 'application_window_open' : 'deadline_due',
       title: isApplicationWindow ? d.title : `Deadline soon: ${d.title}`,
       body: daysLeft <= 0 ? 'Due today' : `Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
       link: '/timeline',
