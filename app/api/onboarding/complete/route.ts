@@ -26,11 +26,14 @@ export async function POST(req: NextRequest) {
   if (originError) return originError
 
   const supabase = createClient()
-  const service = createServiceClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid onboarding payload.' }, { status: 400 })
+  }
+
   const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : ''
   const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : ''
   const careerStage = typeof body.careerStage === 'string' && CAREER_STAGES.has(body.careerStage) ? body.careerStage : null
@@ -45,13 +48,13 @@ export async function POST(req: NextRequest) {
   const specialtySet = new Set(SPECIALTY_CONFIGS.map(s => s.key))
   const validSpecialties = selectedSpecialties.filter(key => specialtySet.has(key))
 
-  const { data: profile } = await service
+  const { data: profile } = await supabase
     .from('profiles')
     .select('referred_by, pro_features_used')
     .eq('id', user.id)
     .single()
 
-  const { error: profileError } = await service
+  const { error: profileError } = await supabase
     .from('profiles')
     .update({
       first_name: firstName,
@@ -65,11 +68,13 @@ export async function POST(req: NextRequest) {
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
 
   if (validSpecialties.length > 0) {
-    const { data: existingApps } = await service
+    const { data: existingApps, error: existingAppsError } = await supabase
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user.id)
       .in('specialty_key', validSpecialties)
+
+    if (existingAppsError) return NextResponse.json({ error: existingAppsError.message }, { status: 500 })
 
     const existingKeys = new Set((existingApps ?? []).map(row => row.specialty_key))
     const newSpecialties = validSpecialties.filter(key => !existingKeys.has(key))
@@ -78,7 +83,10 @@ export async function POST(req: NextRequest) {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)!
       return { user_id: user.id, specialty_key: key, cycle_year: Number(config.cycleYear) || new Date().getFullYear(), bonus_claimed: false }
     })
-    if (appRows.length > 0) await service.from('specialty_applications').insert(appRows)
+    if (appRows.length > 0) {
+      const { error } = await supabase.from('specialty_applications').insert(appRows)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
 
     const deadlineRows = newSpecialties.flatMap(key => {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)
@@ -88,10 +96,14 @@ export async function POST(req: NextRequest) {
         { user_id: user.id, title: `${config.name} applications close`, due_date: config.applicationWindow.closesDate, completed: false, is_auto: true, source_specialty_key: key },
       ]
     })
-    if (deadlineRows.length > 0) await service.from('deadlines').insert(deadlineRows)
+    if (deadlineRows.length > 0) {
+      const { error } = await supabase.from('deadlines').insert(deadlineRows)
+      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    }
   }
 
-  if (profile?.referred_by && profile.referred_by !== user.id) {
+  if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    const service = createServiceClient()
     const now = new Date().toISOString()
     const { data: referrer } = await service
       .from('profiles')
