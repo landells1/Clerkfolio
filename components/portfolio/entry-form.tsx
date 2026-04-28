@@ -10,6 +10,7 @@ import SpecialtyTagSelect from './specialty-tag-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
+import { completenessScore } from '@/lib/utils/completeness'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -392,11 +393,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (!user) { router.push('/login'); return }
 
     const payload = buildPayload()
+    const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'portfolio') }
 
     if (mode === 'create') {
       const { data, error } = await supabase
         .from('portfolio_entries')
-        .insert({ ...payload, user_id: user.id })
+        .insert({ ...scoredPayload, user_id: user.id })
         .select('id')
         .single()
       if (error) { setError(error.message); setSaving(false); return }
@@ -414,9 +416,15 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
     } else {
+      await supabase.from('entry_revisions').insert({
+        user_id: user.id,
+        entry_id: initialData!.id!,
+        entry_type: 'portfolio',
+        snapshot: initialData,
+      })
       const { error } = await supabase
         .from('portfolio_entries')
-        .update(payload)
+        .update(scoredPayload)
         .eq('id', initialData!.id!)
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {

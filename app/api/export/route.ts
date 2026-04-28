@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
-import { getSubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import React, { type ReactElement } from 'react'
@@ -21,14 +21,16 @@ export async function POST(request: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
   // ── Server-side subscription gate ─────────────────────────────────────────
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('first_name, last_name, trial_started_at, subscription_status, subscription_period_end')
-    .eq('id', user.id)
-    .single()
+  const [{ data: profile }, subInfo] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('first_name, last_name')
+      .eq('id', user.id)
+      .single(),
+    fetchSubscriptionInfo(supabase, user.id),
+  ])
 
-  const subInfo = getSubscriptionInfo(profile ?? { trial_started_at: null, subscription_status: null, subscription_period_end: null })
-  if (!subInfo.canExport) {
+  if (!subInfo.limits.canExportPdf) {
     return NextResponse.json({ error: 'subscription_required' }, { status: 403 })
   }
 
@@ -95,6 +97,17 @@ export async function POST(request: NextRequest) {
 
     const buffer = await renderToBuffer(element)
     const filename = `clinidex-${safeSpecialty}-${dateStr}.pdf`
+
+    // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
+    if (!subInfo.isPro) {
+      supabase.from('profiles').update({
+        pro_features_used: {
+          pdf_exports_used: subInfo.usage.pdfExportsUsed + 1,
+          share_links_used: subInfo.usage.shareLinksUsed,
+          referral_pro_until: subInfo.usage.referralProUntil,
+        },
+      }).eq('id', user.id).then(() => {})
+    }
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,

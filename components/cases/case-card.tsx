@@ -2,20 +2,11 @@ import Link from 'next/link'
 import { type Case } from '@/lib/types/cases'
 import { relativeDate } from '@/lib/utils/dates'
 import { getSpecialtyConfig } from '@/lib/specialties'
-
-function completenessLevel(c: Case & { has_evidence?: boolean }): 'green' | 'amber' | 'none' {
-  const hasTag = (c.specialty_tags?.length ?? 0) > 0
-  const hasNotes = !!(c.notes?.trim())
-  const hasEv = !!(c as { has_evidence?: boolean }).has_evidence
-
-  const score = [hasTag, hasNotes, hasEv].filter(Boolean).length
-  if (score === 3) return 'green'
-  if (score >= 1) return 'amber'
-  return 'none'
-}
+import { calculateCompleteness, missingCompletenessFields } from '@/lib/utils/completeness'
 
 export default function CaseCard({ c }: { c: Case & { has_evidence?: boolean } }) {
-  const dot = completenessLevel(c)
+  const dot = calculateCompleteness(c, 'case')
+  const missing = missingCompletenessFields(c, 'case')
 
   return (
     <Link
@@ -54,12 +45,10 @@ export default function CaseCard({ c }: { c: Case & { has_evidence?: boolean } }
         <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
           <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono" title={c.date}>{relativeDate(c.date)}</p>
           <div className="flex items-center gap-1.5">
-            {dot !== 'none' && (
-              <span
-                title={dot === 'green' ? 'Complete: has notes, tag & evidence' : 'Partially complete'}
-                className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot === 'green' ? 'bg-emerald-400' : 'bg-amber-400'}`}
-              />
-            )}
+            <span
+              title={missing.length === 0 ? 'Complete' : `Missing: ${missing.join(', ')}`}
+              className={`w-1.5 h-1.5 rounded-full shrink-0 ${dot === 'green' ? 'bg-emerald-400' : dot === 'amber' ? 'bg-amber-400' : 'bg-red-400'}`}
+            />
             <svg className="w-4 h-4 text-[rgba(245,245,242,0.2)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>

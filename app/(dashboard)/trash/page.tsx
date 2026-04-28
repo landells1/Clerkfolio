@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import TrashActions from '@/components/trash/trash-actions'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
-type TrashItemType = 'entry' | 'case' | 'logbook'
+type TrashItemType = 'entry' | 'case'
 
 type TrashItem = {
   id: string
@@ -17,14 +17,11 @@ export default async function TrashPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: deletedEntries }, { data: deletedCases }, { data: deletedLogbookEntries }] = await Promise.all([
+  const [{ data: deletedEntries }, { data: deletedCases }] = await Promise.all([
     supabase.from('portfolio_entries').select('id, title, category, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
     supabase.from('cases').select('id, title, clinical_domain, date, deleted_at')
-      .eq('user_id', user!.id).not('deleted_at', 'is', null)
-      .order('deleted_at', { ascending: false }),
-    supabase.from('logbook_entries').select('id, procedure_name, surgical_specialty, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
   ])
@@ -46,21 +43,12 @@ export default async function TrashPage() {
       deletedAt: c.deleted_at,
       type: 'case' as const,
     })),
-    ...(deletedLogbookEntries ?? []).map(entry => ({
-      id: entry.id,
-      title: entry.procedure_name,
-      subtitle: entry.surgical_specialty,
-      date: entry.date,
-      deletedAt: entry.deleted_at,
-      type: 'logbook' as const,
-    })),
   ].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt))
 
   const totalItems = items.length
   const totals = {
     entry: items.filter(item => item.type === 'entry').length,
     case: items.filter(item => item.type === 'case').length,
-    logbook: items.filter(item => item.type === 'logbook').length,
   }
 
   return (
@@ -73,10 +61,9 @@ export default async function TrashPage() {
       </div>
 
       {totalItems > 0 && (
-        <div className="grid grid-cols-3 gap-3 mb-6">
+        <div className="grid grid-cols-2 gap-3 mb-6">
           <TrashStat label="Portfolio" value={totals.entry} />
           <TrashStat label="Cases" value={totals.case} />
-          <TrashStat label="Logbook" value={totals.logbook} />
         </div>
       )}
 
@@ -121,7 +108,7 @@ function TrashStat({ label, value }: { label: string; value: number }) {
 function TrashRow({ item }: { item: TrashItem }) {
   const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  const typeLabel = item.type === 'entry' ? 'Portfolio' : item.type === 'case' ? 'Case' : 'Logbook'
+  const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
   return (
     <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
       <div className="flex-1 min-w-0">

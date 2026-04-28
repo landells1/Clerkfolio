@@ -1,24 +1,22 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
-import { getStorageUsage, FREE_CAP_BYTES, PRO_CAP_BYTES } from '@/lib/supabase/storage'
-import { getSubscriptionInfo } from '@/lib/subscription'
+import { createClient } from '@/lib/supabase/client'
+import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
 
-function formatStorageBytes(bytes: number) {
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
-
 const CAREER_STAGES = [
-  { value: 'Y1-2', label: 'Medical Student — Year 1–2' },
-  { value: 'Y3-4', label: 'Medical Student — Year 3–4' },
-  { value: 'Y5-6', label: 'Medical Student — Year 5–6' },
-  { value: 'FY1',  label: 'Foundation Year 1 (FY1)' },
-  { value: 'FY2',  label: 'Foundation Year 2 (FY2)' },
+  { value: 'Y1', label: 'Medical Student - Year 1' },
+  { value: 'Y2', label: 'Medical Student - Year 2' },
+  { value: 'Y3', label: 'Medical Student - Year 3' },
+  { value: 'Y4', label: 'Medical Student - Year 4' },
+  { value: 'Y5', label: 'Medical Student - Year 5' },
+  { value: 'Y6', label: 'Medical Student - Year 6' },
+  { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
+  { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
+  { value: 'POST_FY', label: 'Post-Foundation' },
 ]
 
 export default function SettingsPage() {
@@ -26,177 +24,104 @@ export default function SettingsPage() {
   const router = useRouter()
   const { addToast } = useToast()
 
-  const [profile, setProfile] = useState({
-    first_name: '',
-    last_name: '',
-    career_stage: '',
-  })
+  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '' })
   const [email, setEmail] = useState('')
+  const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-
-  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
-  const [passwordError, setPasswordError] = useState<string | null>(null)
+  const [savingProfile, setSavingProfile] = useState(false)
+  const [pendingStage, setPendingStage] = useState<string | null>(null)
+  const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
-
-  const [showEmailChange, setShowEmailChange] = useState(false)
-  const [newEmail, setNewEmail] = useState('')
-  const [emailChangeLoading, setEmailChangeLoading] = useState(false)
-  const [emailChangeError, setEmailChangeError] = useState<string | null>(null)
-
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [deleteConfirmText, setDeleteConfirmText] = useState('')
-  const [storageUsed, setStorageUsed] = useState<number | null>(null)
-  const [subInfo, setSubInfo] = useState<ReturnType<typeof getSubscriptionInfo> | null>(null)
-  const [billingLoading, setBillingLoading] = useState(false)
-  const [upgradedMsg, setUpgradedMsg] = useState(false)
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
-  const [emailReminders, setEmailReminders] = useState(false)
-  const [savingReminders, setSavingReminders] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      setEmail(user.email || '')
 
-      const { data } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, career_stage, trial_started_at, subscription_status, subscription_period_end, email_reminders_enabled')
-        .eq('id', user.id)
-        .single()
+      setEmail(user.email ?? '')
+      const [{ data }, { count: specialtiesTracked }, { data: files }] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select('first_name, last_name, career_stage, tier, pro_features_used, student_grace_until')
+          .eq('id', user.id)
+          .single(),
+        supabase
+          .from('specialty_applications')
+          .select('id', { count: 'exact', head: true })
+          .eq('user_id', user.id)
+          .eq('is_active', true),
+        supabase
+          .from('evidence_files')
+          .select('file_size')
+          .eq('user_id', user.id),
+      ])
 
       if (data) {
         setProfile({
-          first_name: data.first_name || '',
-          last_name: data.last_name || '',
-          career_stage: data.career_stage || '',
+          first_name: data.first_name ?? '',
+          last_name: data.last_name ?? '',
+          career_stage: data.career_stage ?? '',
         })
-        setEmailReminders(data.email_reminders_enabled ?? false)
-        setSubInfo(getSubscriptionInfo({
-          trial_started_at: data.trial_started_at,
-          subscription_status: data.subscription_status,
-          subscription_period_end: data.subscription_period_end,
+        const storageUsedMB = (files ?? []).reduce((sum, file) => sum + (file.file_size ?? 0), 0) / (1024 * 1024)
+        setSubInfo(getSubscriptionInfo(data, {
+          specialtiesTracked: specialtiesTracked ?? 0,
+          storageUsedMB,
         }))
       }
-
-      const used = await getStorageUsage(user.id)
-      setStorageUsed(used)
-
-      // Show success message if redirected back from Stripe
-      if (window.location.search.includes('upgraded=true')) {
-        setUpgradedMsg(true)
-        window.history.replaceState({}, '', '/settings')
-      }
-
       setLoading(false)
     }
     load()
   }, [supabase])
 
-  async function handleSaveProfile(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    setError(null)
-
+  async function saveProfile(next = profile) {
+    setSavingProfile(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSaving(false); return }
+    if (!user) return
 
     const { error } = await supabase
       .from('profiles')
-      .update(profile)
+      .update(next)
       .eq('id', user.id)
 
+    setSavingProfile(false)
     if (error) {
-      setError('Failed to save changes.')
-    } else {
-      addToast('Profile saved', 'success')
-    }
-    setSaving(false)
-  }
-
-  async function handleChangePassword(e: React.FormEvent) {
-    e.preventDefault()
-    setPasswordError(null)
-
-    if (passwordForm.next !== passwordForm.confirm) {
-      setPasswordError('New passwords do not match.')
+      addToast('Failed to save settings', 'error')
       return
     }
+    setProfile(next)
+    addToast('Settings saved', 'success')
+    router.refresh()
+  }
+
+  async function handlePasswordChange(e: React.FormEvent) {
+    e.preventDefault()
     if (passwordForm.next.length < 8) {
-      setPasswordError('New password must be at least 8 characters.')
+      addToast('Password must be at least 8 characters', 'error')
+      return
+    }
+    if (passwordForm.next !== passwordForm.confirm) {
+      addToast('Passwords do not match', 'error')
       return
     }
 
     setPasswordLoading(true)
     const { error } = await supabase.auth.updateUser({ password: passwordForm.next })
-
-    if (error) {
-      setPasswordError(error.message)
-    } else {
-      addToast('Password updated', 'success')
-      setPasswordForm({ current: '', next: '', confirm: '' })
-    }
     setPasswordLoading(false)
-  }
-
-  async function handleUpgrade() {
-    setBillingLoading(true)
-    try {
-      const res = await fetch('/api/stripe/checkout', { method: 'POST' })
-      const json = await res.json()
-      if (json.url) {
-        window.location.href = json.url
-      } else {
-        addToast('Could not open billing page. Please try again.', 'error')
-        setBillingLoading(false)
-      }
-    } catch {
-      addToast('Could not open billing page. Please try again.', 'error')
-      setBillingLoading(false)
-    }
-  }
-
-  async function handleManageBilling() {
-    setBillingLoading(true)
-    try {
-      const res = await fetch('/api/stripe/portal', { method: 'POST' })
-      const json = await res.json()
-      if (json.url) {
-        window.location.href = json.url
-      } else {
-        addToast('Could not open billing page. Please try again.', 'error')
-        setBillingLoading(false)
-      }
-    } catch {
-      addToast('Could not open billing page. Please try again.', 'error')
-      setBillingLoading(false)
-    }
-  }
-
-  async function handleEmailChange() {
-    setEmailChangeLoading(true)
-    setEmailChangeError(null)
-    const { error } = await supabase.auth.updateUser({ email: newEmail })
     if (error) {
-      setEmailChangeError(error.message)
-    } else {
-      addToast('Confirmation email sent. Check your inbox.', 'success')
-      setNewEmail('')
-      setShowEmailChange(false)
+      addToast(error.message, 'error')
+      return
     }
-    setEmailChangeLoading(false)
+    setPasswordForm({ next: '', confirm: '' })
+    addToast('Password updated', 'success')
   }
 
   async function handleDataExport() {
     setExportLoading(true)
     try {
       const res = await fetch('/api/account/export', { method: 'POST' })
-      if (!res.ok) {
-        addToast('Failed to generate export. Please try again.', 'error')
-        return
-      }
+      if (!res.ok) throw new Error('Export failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
@@ -207,486 +132,213 @@ export default function SettingsPage() {
       document.body.removeChild(a)
       URL.revokeObjectURL(url)
     } catch {
-      addToast('Failed to generate export. Please try again.', 'error')
+      addToast('Failed to generate export', 'error')
     } finally {
       setExportLoading(false)
     }
   }
 
-  async function handleToggleReminders(val: boolean) {
-    setSavingReminders(true)
+  async function restartTutorial() {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSavingReminders(false); return }
-    const { error } = await supabase.from('profiles').update({ email_reminders_enabled: val }).eq('id', user.id)
-    if (!error) setEmailReminders(val)
-    setSavingReminders(false)
+    if (!user) return
+    await supabase
+      .from('profiles')
+      .update({ onboarding_complete: false, onboarding_checklist_completed_items: [] })
+      .eq('id', user.id)
+    router.push('/onboarding')
   }
 
-  async function handleDeleteAccount() {
-    try {
-      const res = await fetch('/api/account/delete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirm: 'DELETE' }),
-      })
-      if (!res.ok) {
-        const data = await res.json()
-        setError(data.error ?? 'Failed to delete account. Please contact hello@clinidex.co.uk.')
-        return
-      }
-      // Auth user is deleted server-side; sign out client session and redirect
-      await supabase.auth.signOut()
-      router.push('/?deleted=true')
-    } catch {
-      setError('Failed to delete account. Please contact hello@clinidex.co.uk.')
+  async function deleteAccount() {
+    const res = await fetch('/api/account/delete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirm: 'DELETE' }),
+    })
+    if (!res.ok) {
+      addToast('Failed to delete account', 'error')
+      return
     }
+    await supabase.auth.signOut()
+    router.push('/?deleted=true')
   }
 
   if (loading) {
-    return (
-      <div className="p-8 flex items-center justify-center h-64">
-        <div className="text-[rgba(245,245,242,0.35)] text-sm">Loading settings…</div>
-      </div>
-    )
+    return <div className="p-8 text-sm text-[rgba(245,245,242,0.45)]">Loading settings...</div>
   }
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-6 lg:p-8 max-w-3xl">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Settings</h1>
-        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your account and preferences.</p>
+        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your profile, plan, data, and preferences.</p>
       </div>
 
-      {/* Quick links */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        {[
-          { href: '/portfolio', label: 'View portfolio' },
-          { href: '/export',    label: 'Export PDF' },
-          { href: '/cases',     label: 'Cases' },
-          { href: '/specialties', label: 'Specialties' },
-        ].map(({ href, label }) => (
-          <Link
-            key={href}
-            href={href}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.06] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.12] transition-colors"
+      <section className="bg-[#141416] border border-[#1B6FD9]/30 rounded-2xl p-6 mb-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Career stage</h2>
+            <p className="text-sm text-[rgba(245,245,242,0.45)]">This controls which features are shown in your sidebar. Your data is not affected.</p>
+          </div>
+          <select
+            value={profile.career_stage}
+            onChange={e => setPendingStage(e.target.value)}
+            className="min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9]"
           >
-            {label}
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </Link>
-        ))}
-      </div>
+            <option value="">Select career stage</option>
+            {CAREER_STAGES.map(stage => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
+          </select>
+        </div>
+      </section>
 
-      {/* Profile */}
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Profile</h2>
-
-        {/* Name + career stage form — email change is intentionally a separate sibling form
-            below to avoid nested-form behaviour when pressing Enter in the email input. */}
-        <form onSubmit={handleSaveProfile} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">First name</label>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+            saveProfile()
+          }}
+          className="space-y-4"
+        >
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+              First name
               <input
-                type="text"
                 value={profile.first_name}
                 onChange={e => setProfile(p => ({ ...p, first_name: e.target.value }))}
-                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal"
               />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Last name</label>
+            </label>
+            <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+              Last name
               <input
-                type="text"
                 value={profile.last_name}
                 onChange={e => setProfile(p => ({ ...p, last_name: e.target.value }))}
-                className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal"
               />
-            </div>
+            </label>
           </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Stage of training</label>
-            <select
-              value={profile.career_stage}
-              onChange={e => setProfile(p => ({ ...p, career_stage: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
-            >
-              {CAREER_STAGES.map(s => (
-                <option key={s.value} value={s.value}>{s.label}</option>
-              ))}
-            </select>
-          </div>
-
-          {error && <p className="text-sm text-red-400">{error}</p>}
-
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={saving}
-              className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
-            >
-              {saving ? 'Saving…' : 'Save changes'}
-            </button>
-          </div>
-        </form>
-
-        {/* Email change — separate form so Enter in the email input doesn't trigger profile save */}
-        <div className="mt-5 pt-5 border-t border-white/[0.06]">
-          <div className="flex items-center gap-2 mb-1.5">
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Email address</label>
-            <button
-              type="button"
-              onClick={() => { setShowEmailChange(v => !v); setEmailChangeError(null) }}
-              className="text-xs text-[#1B6FD9] hover:underline"
-            >
-              Change email
-            </button>
-          </div>
-          <input
-            type="email"
-            value={email}
-            disabled
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.4)] cursor-not-allowed"
-          />
-          {emailChangeError && <p className="text-xs text-red-400 mt-1">{emailChangeError}</p>}
-          {showEmailChange && (
-            <form
-              onSubmit={e => { e.preventDefault(); handleEmailChange() }}
-              className="mt-3 flex gap-2"
-            >
-              <input
-                type="email"
-                value={newEmail}
-                onChange={e => setNewEmail(e.target.value)}
-                disabled={emailChangeLoading}
-                placeholder="New email address"
-                className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors disabled:opacity-50"
-              />
-              <button
-                type="submit"
-                disabled={emailChangeLoading || !newEmail}
-                className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-4 py-2 text-sm transition-colors whitespace-nowrap"
-              >
-                {emailChangeLoading ? 'Sending…' : 'Send confirmation'}
-              </button>
-            </form>
-          )}
-        </div>
-      </section>
-
-      {/* Password */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Change password</h2>
-        <form onSubmit={handleChangePassword} className="space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">New password</label>
-            <input
-              type="password"
-              value={passwordForm.next}
-              onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
-              placeholder="At least 8 characters"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Confirm new password</label>
-            <input
-              type="password"
-              value={passwordForm.confirm}
-              onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
-              placeholder="••••••••"
-            />
-          </div>
-          {passwordError && <p className="text-sm text-red-400">{passwordError}</p>}
-          <div className="flex items-center gap-3">
-            <button
-              type="submit"
-              disabled={passwordLoading}
-              className="bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm transition-colors"
-            >
-              {passwordLoading ? 'Updating…' : 'Update password'}
-            </button>
-          </div>
-        </form>
-      </section>
-
-      {/* Privacy & Security */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Privacy & security</h2>
-        <div className="space-y-3 text-sm text-[rgba(245,245,242,0.55)] leading-relaxed">
-          <p>Your data is stored securely on UK servers (London region) with AES-256 encryption at rest and TLS 1.3 in transit.</p>
-          <p>Clinidex does not store patient-identifiable data. All case entries must be anonymised before saving.</p>
-          <p>We do not share your data with third parties. <a href="/privacy" className="text-[#1B6FD9] hover:underline">See our privacy policy</a> and <a href="/terms" className="text-[#1B6FD9] hover:underline">terms of service</a> for full details.</p>
-        </div>
-      </section>
-
-      {/* Subscription */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Plan & billing</h2>
-
-        {upgradedMsg && (
-          <div className="mb-4 bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-4 py-3 text-sm text-[#1B6FD9]">
-            ✓ You&apos;re now on Clinidex Pro. Thank you!
-          </div>
-        )}
-
-        {subInfo ? (
-          <div className="space-y-4">
-            {/* Status badge */}
-            <div className="flex items-center gap-3">
-              {subInfo.isPro ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/30">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#1B6FD9]" />
-                  Pro
-                </span>
-              ) : subInfo.isTrial ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  Free trial
-                </span>
-              ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-red-500/10 text-red-400 border border-red-500/20">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-400" />
-                  Trial expired
-                </span>
-              )}
-
-              <span className="text-sm text-[rgba(245,245,242,0.45)]">
-                {subInfo.isPro
-                  ? 'Full access — all features unlocked'
-                  : subInfo.isTrial
-                  ? `${subInfo.daysRemaining} day${subInfo.daysRemaining === 1 ? '' : 's'} remaining in free trial`
-                  : 'Upgrade to continue exporting'}
-              </span>
-            </div>
-
-            {/* Features list */}
-            <div className="grid grid-cols-2 gap-2 text-xs text-[rgba(245,245,242,0.5)]">
-              {[
-                'Unlimited portfolio entries',
-                'Unlimited case logging',
-                subInfo.isPro ? '5 GB evidence storage' : '200 MB evidence storage',
-                subInfo.canExport ? 'PDF export — included' : 'PDF export — Pro only',
-              ].map(f => (
-                <div key={f} className="flex items-center gap-2">
-                  <svg className={subInfo.canExport || !f.includes('export') ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.2)]'} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {f}
-                </div>
-              ))}
-            </div>
-
-            {/* Action buttons */}
-            {subInfo.isPro ? (
-              <button
-                onClick={handleManageBilling}
-                disabled={billingLoading}
-                className="text-sm text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] underline underline-offset-2 transition-colors disabled:opacity-50"
-              >
-                {billingLoading ? 'Opening portal…' : 'Manage subscription →'}
-              </button>
-            ) : (
-              <button
-                onClick={handleUpgrade}
-                disabled={billingLoading}
-                className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors"
-              >
-                {billingLoading ? 'Redirecting…' : 'Upgrade to Pro — £10/year'}
-              </button>
-            )}
-          </div>
-        ) : (
-          <div className="h-16 rounded-xl bg-white/[0.03] animate-pulse" />
-        )}
-      </section>
-
-      {/* Templates */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">My templates</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)]">Personal templates saved from your entries. Use them when creating new entries.</p>
-          </div>
-          <Link
-            href="/settings/templates"
-            className="flex items-center gap-1.5 text-sm text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium shrink-0 ml-4"
-          >
-            Manage
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </Link>
-        </div>
-      </section>
-
-      {/* Shared links */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Shared links</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)]">Read-only links you&apos;ve shared to your specialty evidence views.</p>
-          </div>
-          <Link
-            href="/settings/shared-links"
-            className="flex items-center gap-1.5 text-sm text-[#1B6FD9] hover:text-[#3884DD] transition-colors font-medium shrink-0 ml-4"
-          >
-            Manage
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </Link>
-        </div>
-      </section>
-
-      {/* Storage usage */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Storage</h2>
-        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">Evidence files attached to portfolio entries and cases.</p>
-        {storageUsed !== null && subInfo ? (() => {
-          const capBytes   = subInfo.isPro ? PRO_CAP_BYTES : FREE_CAP_BYTES
-          const capLabel   = subInfo.isPro ? '5 GB' : '200 MB'
-          const planLabel  = subInfo.isPro ? 'Pro' : 'free plan'
-          const pct        = Math.min(100, (storageUsed / capBytes) * 100)
-          return (
-            <div className="space-y-2">
-              <div className="flex justify-between text-xs text-[rgba(245,245,242,0.55)]">
-                <span>{formatStorageBytes(storageUsed)} used</span>
-                <span>{capLabel} {planLabel} limit</span>
-              </div>
-              <div className="h-2 bg-white/[0.06] rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full transition-all ${
-                    pct > 90 ? 'bg-red-400' : pct > 70 ? 'bg-amber-400' : 'bg-[#1B6FD9]'
-                  }`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-[rgba(245,245,242,0.3)]">
-                {Math.round(pct)}% of {planLabel} used
-              </p>
-            </div>
-          )
-        })() : (
-          <div className="h-2 bg-white/[0.06] rounded-full animate-pulse" />
-        )}
-      </section>
-
-      {/* Notifications */}
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Notifications</h2>
-        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">In-app notifications are always on. Email reminders are Pro only.</p>
-        <label className="flex items-center justify-between gap-4 cursor-pointer">
-          <div>
-            <p className="text-sm font-medium text-[rgba(245,245,242,0.8)]">Email deadline reminders</p>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">
-              Get an email when a deadline or application window is within 7 days. <span className="text-[#1B6FD9]">Pro only</span>
-            </p>
-          </div>
-          <button
-            onClick={() => { if (subInfo?.isPro) handleToggleReminders(!emailReminders) }}
-            disabled={savingReminders || !subInfo?.isPro}
-            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${
-              emailReminders && subInfo?.isPro ? 'bg-[#1B6FD9]' : 'bg-white/[0.12]'
-            }`}
-          >
-            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
-              emailReminders && subInfo?.isPro ? 'translate-x-5' : 'translate-x-0'
-            }`} />
+          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            Email
+            <input value={email} disabled className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.45)] normal-case tracking-normal" />
+          </label>
+          <button disabled={savingProfile} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
+            {savingProfile ? 'Saving...' : 'Save profile'}
           </button>
-        </label>
+        </form>
       </section>
 
-      {/* Data & Privacy */}
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Export your data</h2>
-        <p className="text-sm text-[rgba(245,245,242,0.5)] mb-4">
-          Download a complete copy of all your Clinidex data including entries, cases, and uploaded files.
-          This is your right under GDPR.
-        </p>
-        <button
-          onClick={handleDataExport}
-          disabled={exportLoading}
-          className="flex items-center gap-2 px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-[rgba(245,245,242,0.7)] font-medium text-sm rounded-xl transition-colors disabled:opacity-50"
-        >
-          {exportLoading ? (
-            <>
-              <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
-              Assembling export…
-            </>
-          ) : (
-            <>
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
-              </svg>
-              Request data export
-            </>
-          )}
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
+        {subInfo && (
+          <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
+            <p><span className="text-[#F5F5F2] font-medium">{subInfo.isPro ? 'Pro access' : 'Free tier'}</span> - {subInfo.storageQuotaMB} MB storage quota</p>
+            <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+            <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+          </div>
+        )}
+      </section>
+
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+        <SettingsLink href="/settings/notifications" label="Notifications" />
+        <SettingsLink href="/settings/referrals" label="Referrals" />
+        <SettingsLink href="/settings/templates" label="Templates" />
+        <SettingsLink href="/settings/shared-links" label="Shared links" />
+        <SettingsLink href="/trash" label="Trash" />
+        <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+          Restart tutorial
         </button>
-        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-3">
-          Your export will include a ZIP file with JSON data and any uploaded evidence files. Assembly may take up to 30 seconds.
-        </p>
       </section>
 
-      {/* Danger zone */}
-      <section className="bg-red-500/5 border border-red-500/15 rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-red-400 mb-2">Danger zone</h2>
-        <p className="text-sm text-[rgba(245,245,242,0.45)] mb-4">
-          Deleting your account is permanent and cannot be undone. All your data will be removed.
-        </p>
-        {!showDeleteConfirm ? (
-          <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 text-red-400 font-medium rounded-lg px-4 py-2 text-sm transition-colors"
-          >
-            Delete account
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Password</h2>
+        <form onSubmit={handlePasswordChange} className="space-y-4">
+          <input type="password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
+          <input type="password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
+          <button disabled={passwordLoading} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
+            {passwordLoading ? 'Updating...' : 'Update password'}
           </button>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-start gap-3 bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3">
-              <svg className="shrink-0 mt-0.5 text-red-400" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-                <line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
-              </svg>
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-red-400">This is permanent and cannot be undone</p>
-                <p className="text-sm text-[rgba(245,245,242,0.45)]">
-                  We recommend exporting your data before deleting.{' '}
-                  <Link href="/export" className="text-[#1B6FD9] hover:underline">Export your portfolio →</Link>
-                </p>
-              </div>
-            </div>
-            <div>
-              <input
-                type="text"
-                value={deleteConfirmText}
-                onChange={e => setDeleteConfirmText(e.target.value)}
-                placeholder="Type DELETE to confirm"
-                className="w-full bg-[#0B0B0C] border border-red-500/30 rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-red-500/60 transition-colors"
-              />
-            </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleDeleteAccount}
-                disabled={deleteConfirmText !== 'DELETE'}
-                className="bg-red-500 hover:bg-red-600 disabled:opacity-40 disabled:cursor-not-allowed text-white font-semibold rounded-lg px-4 py-2 text-sm transition-colors"
-              >
-                Yes, delete my account
-              </button>
-              <button
-                onClick={() => { setShowDeleteConfirm(false); setDeleteConfirmText('') }}
-                className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
+        </form>
       </section>
+
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Data</h2>
+        <button onClick={handleDataExport} disabled={exportLoading} className="min-h-[44px] bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-50 text-[#F5F5F2] font-medium rounded-lg px-5 py-2.5 text-sm">
+          {exportLoading ? 'Preparing backup...' : 'Download personal data backup'}
+        </button>
+      </section>
+
+      <section className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
+        <h2 className="text-base font-semibold text-red-300 mb-3">Delete account</h2>
+        <button onClick={() => setDeleteConfirm(true)} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
+          Delete account
+        </button>
+      </section>
+
+      {pendingStage && (
+        <ConfirmModal
+          title="Change career stage?"
+          body="Changing your career stage will adjust which features are shown in the sidebar. Your data will not be affected. Continue?"
+          confirmLabel="Continue"
+          onCancel={() => setPendingStage(null)}
+          onConfirm={() => {
+            const next = { ...profile, career_stage: pendingStage }
+            setPendingStage(null)
+            saveProfile(next)
+          }}
+        />
+      )}
+
+      {deleteConfirm && (
+        <ConfirmModal
+          title="Delete account?"
+          body="This permanently deletes your account data from Clinidex."
+          confirmLabel="Delete account"
+          danger
+          onCancel={() => setDeleteConfirm(false)}
+          onConfirm={deleteAccount}
+        />
+      )}
+    </div>
+  )
+}
+
+function SettingsLink({ href, label }: { href: string; label: string }) {
+  return (
+    <Link href={href} className="min-h-[44px] bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+      {label}
+    </Link>
+  )
+}
+
+function ConfirmModal({
+  title,
+  body,
+  confirmLabel,
+  danger,
+  onCancel,
+  onConfirm,
+}: {
+  title: string
+  body: string
+  confirmLabel: string
+  danger?: boolean
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+      <div className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">{title}</h2>
+        <p className="text-sm text-[rgba(245,245,242,0.5)] leading-relaxed mb-6">{body}</p>
+        <div className="flex gap-2">
+          <button onClick={onCancel} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">
+            Cancel
+          </button>
+          <button onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold ${danger ? 'bg-red-500 text-white' : 'bg-[#1B6FD9] text-[#0B0B0C]'}`}>
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
     </div>
   )
 }

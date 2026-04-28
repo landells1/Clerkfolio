@@ -7,7 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 type Result = {
   id: string
   title: string
-  type: 'entry' | 'case' | 'logbook'
+  type: 'entry' | 'case'
   subtitle: string
 }
 
@@ -29,19 +29,17 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
       setLoading(true)
       setSearchError(false)
       try {
-        const [entriesResult, casesResult, logbookResult] = await Promise.all([
+        const [entriesResult, casesResult] = await Promise.all([
           supabase.from('portfolio_entries').select('id, title, category').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
           supabase.from('cases').select('id, title, clinical_domain').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-          supabase.from('logbook_entries').select('id, procedure_name, surgical_specialty').ilike('procedure_name', `%${q.trim()}%`).is('deleted_at', null).limit(5),
         ])
-        if (entriesResult.error || casesResult.error || logbookResult.error) {
+        if (entriesResult.error || casesResult.error) {
           setSearchError(true)
           setResults([])
         } else {
           const r: Result[] = [
             ...(entriesResult.data ?? []).map(e => ({ id: e.id, title: e.title, type: 'entry' as const, subtitle: e.category?.replace(/_/g, ' ') ?? 'Portfolio entry' })),
             ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
-            ...(logbookResult.data ?? []).map(e => ({ id: e.id, title: e.procedure_name, type: 'logbook' as const, subtitle: e.surgical_specialty ?? 'Logbook' })),
           ]
           setResults(r)
           setSelected(0)
@@ -59,9 +57,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
     const path =
       result.type === 'entry'
         ? `/portfolio/${result.id}`
-        : result.type === 'case'
-          ? `/cases/${result.id}`
-          : '/logbook'
+        : `/cases/${result.id}`
     router.push(path)
     onClose()
   }, [onClose, router])
@@ -90,7 +86,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             type="text"
             value={q}
             onChange={e => setQ(e.target.value)}
-            placeholder="Search portfolio, cases, and logbook..."
+            placeholder="Search portfolio and cases..."
             className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none"
           />
           <kbd className="text-[10px] text-[rgba(245,245,242,0.3)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
@@ -111,11 +107,9 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
                 <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border flex-shrink-0 capitalize ${
                   r.type === 'case'
                     ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20'
-                    : r.type === 'logbook'
-                      ? 'bg-blue-500/10 text-blue-400 border-blue-500/20'
                       : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
                 }`}>
-                  {r.type === 'case' ? 'Case' : r.type === 'logbook' ? 'Logbook' : r.subtitle}
+                  {r.type === 'case' ? 'Case' : r.subtitle}
                 </span>
                 <span className="text-sm text-[rgba(245,245,242,0.8)] truncate">{r.title}</span>
               </button>
@@ -125,7 +119,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
 
         {q.trim().length < 2 && (
           <div className="px-4 py-3">
-            <p className="text-xs text-[rgba(245,245,242,0.3)]">Type to search across your portfolio, cases, and logbook</p>
+            <p className="text-xs text-[rgba(245,245,242,0.3)]">Type to search across your portfolio and cases</p>
           </div>
         )}
       </div>

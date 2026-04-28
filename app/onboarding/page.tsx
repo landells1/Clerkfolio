@@ -8,9 +8,12 @@ import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/special
 type Step = 'welcome' | 'features' | 'career' | 'name' | 'specialties' | 'done'
 
 const CAREER_STAGES = [
-  { value: 'Y1-2', label: 'Medical Student', sub: 'Year 1–2' },
-  { value: 'Y3-4', label: 'Medical Student', sub: 'Year 3–4' },
-  { value: 'Y5-6', label: 'Medical Student', sub: 'Year 5–6' },
+  { value: 'Y1', label: 'Medical Student', sub: 'Year 1' },
+  { value: 'Y2', label: 'Medical Student', sub: 'Year 2' },
+  { value: 'Y3', label: 'Medical Student', sub: 'Year 3' },
+  { value: 'Y4', label: 'Medical Student', sub: 'Year 4' },
+  { value: 'Y5', label: 'Medical Student', sub: 'Year 5' },
+  { value: 'Y6', label: 'Medical Student', sub: 'Year 6' },
   { value: 'FY1',  label: 'Foundation Doctor', sub: 'FY1' },
   { value: 'FY2',  label: 'Foundation Doctor', sub: 'FY2' },
 ]
@@ -99,6 +102,31 @@ export default function OnboardingPage() {
       setError('Something went wrong. Please try again.')
       setSaving(false)
       return
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('referred_by, pro_features_used')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.referred_by) {
+      const until = new Date()
+      until.setDate(until.getDate() + 30)
+      await supabase.from('referrals').upsert({
+        referrer_id: profile.referred_by,
+        referred_id: user.id,
+        status: 'completed',
+        reward_granted_at: new Date().toISOString(),
+      }, { onConflict: 'referred_id' })
+      await Promise.all([
+        supabase.from('profiles').update({
+          pro_features_used: { ...(profile.pro_features_used ?? {}), referral_pro_until: until.toISOString() },
+        }).eq('id', user.id),
+        supabase.from('profiles').update({
+          pro_features_used: { referral_pro_until: until.toISOString() },
+        }).eq('id', profile.referred_by),
+      ])
     }
 
     router.push('/dashboard')

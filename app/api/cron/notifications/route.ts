@@ -21,8 +21,8 @@ export async function GET(req: NextRequest) {
 
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]
-  const in2Days = new Date(today); in2Days.setDate(today.getDate() + 2)
-  const in2Str = in2Days.toISOString().split('T')[0]
+  const in3Days = new Date(today); in3Days.setDate(today.getDate() + 3)
+  const in3Str = in3Days.toISOString().split('T')[0]
   const in7Days = new Date(today); in7Days.setDate(today.getDate() + 7)
   const in7Str = in7Days.toISOString().split('T')[0]
 
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     .select('user_id, title, due_date')
     .eq('completed', false)
     .gte('due_date', todayStr)
-    .lte('due_date', in2Str)
+    .lte('due_date', in3Str)
 
   deadlines?.forEach(d => {
     const daysLeft = Math.ceil((new Date(d.due_date).getTime() - today.getTime()) / 86400000)
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
       type: 'deadline_due',
       title: `Deadline soon: ${d.title}`,
       body: daysLeft <= 0 ? 'Due today' : `Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
-      link: '/deadlines',
+      link: '/timeline',
     })
   })
 
@@ -53,17 +53,17 @@ export async function GET(req: NextRequest) {
   const { data: shareLinks } = await supabase
     .from('share_links')
     .select('user_id, specialty_key, expires_at')
-    .eq('revoked', false)
+    .is('revoked_at', null)
     .gte('expires_at', todayStr)
-    .lte('expires_at', in2Str + 'T23:59:59Z')
+    .lte('expires_at', in3Str + 'T23:59:59Z')
 
   shareLinks?.forEach(sl => {
     toInsert.push({
       user_id: sl.user_id,
       type: 'share_link_expiring',
       title: `Shared link expiring soon`,
-      body: `Your read-only link for ${sl.specialty_key ?? 'your portfolio'} expires within 2 days.`,
-      link: '/settings/shared-links',
+      body: `Your read-only link for ${sl.specialty_key ?? 'your portfolio'} expires within 3 days.`,
+      link: '/export',
     })
   })
 
@@ -96,13 +96,12 @@ export async function GET(req: NextRequest) {
       const userIds = Array.from(userIdSet)
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('id, first_name, email_reminders_enabled, subscription_status')
+        .select('id, first_name, notification_preferences')
         .in('id', userIds)
-        .eq('email_reminders_enabled', true)
 
       for (const profile of (profiles ?? [])) {
-        // Only Pro users
-        if (profile.subscription_status !== 'active') continue
+        const prefs = profile.notification_preferences ?? {}
+        if (!prefs.deadlines && !prefs.share_link_expiring) continue
 
         const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
         if (!user?.email) continue
@@ -115,7 +114,7 @@ export async function GET(req: NextRequest) {
           from: 'Clinidex <hello@clinidex.co.uk>',
           to: user.email,
           subject: `${userNotifs.length > 1 ? `${userNotifs.length} reminders` : userNotifs[0].title} — Clinidex`,
-          text: `Hi ${profile.first_name ?? 'there'},\n\n${items}\n\nView your dashboard: https://clinidex.co.uk/dashboard\n\n—\nClinidex · Manage notification preferences at https://clinidex.co.uk/settings`,
+          text: `Hi ${profile.first_name ?? 'there'},\n\n${items}\n\nView your timeline: https://clinidex.co.uk/timeline\n\nClinidex - manage notification preferences at https://clinidex.co.uk/settings/notifications`,
         })
       }
     }

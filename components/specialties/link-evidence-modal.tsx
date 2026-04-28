@@ -8,7 +8,7 @@ type SearchResult = {
   id: string
   title: string
   date: string
-  type: 'portfolio' | 'case'
+  type: 'portfolio'
 }
 
 type Props = {
@@ -46,24 +46,15 @@ export function LinkEvidenceModal({
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
       try {
-        const [{ data: portfolioData }, { data: caseData }] = await Promise.all([
-          supabase
-            .from('portfolio_entries')
-            .select('id, title, date')
-            .ilike('title', `%${query}%`)
-            .is('deleted_at', null)
-            .limit(8),
-          supabase
-            .from('cases')
-            .select('id, title, date')
-            .ilike('title', `%${query}%`)
-            .is('deleted_at', null)
-            .limit(8),
-        ])
+        const { data: portfolioData } = await supabase
+          .from('portfolio_entries')
+          .select('id, title, date')
+          .ilike('title', `%${query}%`)
+          .is('deleted_at', null)
+          .limit(8)
 
         const combined: SearchResult[] = [
           ...(portfolioData ?? []).map(e => ({ ...e, type: 'portfolio' as const })),
-          ...(caseData ?? []).map(e => ({ ...e, type: 'case' as const })),
         ]
           .filter(e => !existingEntryIds.includes(e.id))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -164,7 +155,7 @@ export function LinkEvidenceModal({
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="Search portfolio entries and cases…"
+                  placeholder="Search portfolio entries..."
                   className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                 />
                 {searching && (
@@ -180,7 +171,7 @@ export function LinkEvidenceModal({
                       onClick={() => setSelectedResult(result)}
                       className="w-full flex items-start gap-3 p-3 bg-[#0B0B0C] border border-white/[0.06] hover:border-white/[0.16] rounded-xl text-left transition-all"
                     >
-                      <span className="text-base mt-0.5 shrink-0">{result.type === 'case' ? '💼' : '📄'}</span>
+                      <span className="text-xs mt-0.5 shrink-0 text-[rgba(245,245,242,0.45)]">Entry</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[#F5F5F2] font-medium truncate">{result.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -208,7 +199,7 @@ export function LinkEvidenceModal({
 
               {!query && (
                 <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-6">
-                  Start typing to search your portfolio entries and cases.
+                  Start typing to search your portfolio entries.
                 </p>
               )}
             </>
@@ -224,7 +215,7 @@ export function LinkEvidenceModal({
                 </button>
                 <span className="text-[rgba(245,245,242,0.2)]">|</span>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-base shrink-0">{selectedResult.type === 'case' ? '💼' : '📄'}</span>
+                  <span className="text-xs shrink-0 text-[rgba(245,245,242,0.45)]">Entry</span>
                   <span className="text-sm text-[#F5F5F2] font-medium truncate">{selectedResult.title}</span>
                 </div>
               </div>

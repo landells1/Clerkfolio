@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
-import { getSubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 // POST /api/share — create a share link for a specialty
 export async function POST(req: NextRequest) {
@@ -19,18 +19,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'specialty_key is required' }, { status: 400 })
   }
 
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('trial_started_at, subscription_status, subscription_period_end')
-    .eq('id', user.id)
-    .single()
+  const subInfo = await fetchSubscriptionInfo(supabase, user.id)
 
-  if (profileError || !profile) {
-    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
-  }
-
-  if (!getSubscriptionInfo(profile).isPro) {
-    return NextResponse.json({ error: 'Clinidex Pro is required to create share links' }, { status: 403 })
+  if (!subInfo.limits.canCreateShareLink) {
+    return NextResponse.json(
+      { error: 'You have used your free share link. Upgrade to Pro to create more.' },
+      { status: 403 }
+    )
   }
 
   // Verify the user actually tracks this specialty
@@ -51,12 +46,25 @@ export async function POST(req: NextRequest) {
     .insert({
       user_id: user.id,
       specialty_key,
+      scope: 'specialty',
       // expires_at defaults to now() + 30 days in schema
     })
-    .select('id, token, specialty_key, expires_at, created_at')
+    .select('id, token, specialty_key, scope, expires_at, view_count, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Increment lifetime share link counter for free-tier tracking (fire-and-forget)
+  if (!subInfo.isPro) {
+    supabase.from('profiles').update({
+      pro_features_used: {
+        pdf_exports_used: subInfo.usage.pdfExportsUsed,
+        share_links_used: subInfo.usage.shareLinksUsed + 1,
+        referral_pro_until: subInfo.usage.referralProUntil,
+      },
+    }).eq('id', user.id).then(() => {})
+  }
+
   return NextResponse.json(data)
 }
 
@@ -74,7 +82,7 @@ export async function DELETE(req: NextRequest) {
 
   const { error } = await supabase
     .from('share_links')
-    .update({ revoked: true })
+    .update({ revoked_at: new Date().toISOString() })
     .eq('id', id)
     .eq('user_id', user.id)
 
@@ -90,9 +98,9 @@ export async function GET(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('share_links')
-    .select('id, token, specialty_key, expires_at, revoked, created_at')
+    .select('id, token, specialty_key, scope, expires_at, view_count, revoked_at, created_at')
     .eq('user_id', user.id)
-    .eq('revoked', false)
+    .is('revoked_at', null)
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

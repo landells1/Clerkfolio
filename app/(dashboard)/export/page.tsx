@@ -58,7 +58,7 @@ export default function ExportPage() {
       ] = await Promise.all([
         supabase
           .from('profiles')
-          .select('trial_started_at, subscription_status, subscription_period_end')
+          .select('tier, pro_features_used, student_grace_until')
           .eq('id', user.id)
           .single(),
         supabase
@@ -73,10 +73,21 @@ export default function ExportPage() {
       ])
 
       if (profile) {
-        setSubInfo(getSubscriptionInfo({
-          trial_started_at: profile.trial_started_at,
-          subscription_status: profile.subscription_status,
-          subscription_period_end: profile.subscription_period_end,
+        const [{ count: specialtiesTracked }, { data: files }] = await Promise.all([
+          supabase
+            .from('specialty_applications')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('is_active', true),
+          supabase
+            .from('evidence_files')
+            .select('file_size')
+            .eq('user_id', user.id),
+        ])
+        const storageUsedMB = (files ?? []).reduce((sum, f) => sum + (f.file_size ?? 0), 0) / (1024 * 1024)
+        setSubInfo(getSubscriptionInfo(profile, {
+          specialtiesTracked: specialtiesTracked ?? 0,
+          storageUsedMB,
         }))
       }
 
@@ -222,7 +233,7 @@ export default function ExportPage() {
         </div>
         <button
           onClick={handleGenerate}
-          disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.canExport)}
+          disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.limits.canExportPdf)}
           className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold rounded-xl px-5 py-2.5 text-sm transition-colors shrink-0"
         >
           {generating ? (
@@ -244,7 +255,7 @@ export default function ExportPage() {
       </div>
 
       {/* Pro gate */}
-      {subInfo && !subInfo.canExport && (
+      {subInfo && !subInfo.limits.canExportPdf && (
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 mb-6 text-center">
           <div className="inline-flex items-center gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-1.5 mb-4">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -252,9 +263,9 @@ export default function ExportPage() {
             </svg>
             <span className="text-amber-400 text-xs font-semibold">Pro feature</span>
           </div>
-          <h2 className="text-base font-semibold text-[#F5F5F2] mb-2">Your free trial has ended</h2>
+          <h2 className="text-base font-semibold text-[#F5F5F2] mb-2">Your free PDF export has been used</h2>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mb-6 max-w-sm mx-auto">
-            PDF export requires a Pro subscription. Upgrade to keep generating CVs and application portfolios.
+            PDF export is included once on Free. Upgrade to keep generating portfolio PDFs.
           </p>
           <a
             href="/settings"
