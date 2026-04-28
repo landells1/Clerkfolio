@@ -19,6 +19,10 @@ create table if not exists arcp_capabilities (
   category text not null check (category in ('clinical', 'safety', 'professional', 'development')),
   sort_order int not null default 0
 );
+alter table arcp_capabilities enable row level security;
+-- Authenticated users can read capabilities; nobody can write via the API (admin-seeded only)
+create policy "arcp capabilities readable by authenticated users" on arcp_capabilities
+  for select using (auth.role() = 'authenticated');
 
 -- 4. ARCP entry links (user's evidence links)
 create table if not exists arcp_entry_links (
