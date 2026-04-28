@@ -33,6 +33,8 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
     if (linksError) { alert('Failed to remove specialty. Please try again.'); return }
     const { error: appError } = await supabase.from('specialty_applications').delete().eq('id', application.id)
     if (appError) { alert('Failed to remove specialty. Please try again.'); return }
+    // Clean up auto-deadlines created when this specialty was tracked
+    await supabase.from('deadlines').delete().eq('source_specialty_key', config.key).eq('is_auto', true)
     onRemove()
   }
 

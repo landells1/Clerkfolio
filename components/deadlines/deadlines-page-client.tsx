@@ -10,6 +10,8 @@ type Deadline = {
   title: string
   due_date: string
   completed: boolean
+  is_auto?: boolean
+  source_specialty_key?: string | null
 }
 
 function urgencyInfo(due: string): { label: string; cls: string; days: number } {
@@ -160,8 +162,10 @@ export default function DeadlinesPageClient({
     setEditSaving(false)
   }
 
-  const overdue = upcoming.filter(d => urgencyInfo(d.due_date).days < 0)
-  const active = upcoming.filter(d => urgencyInfo(d.due_date).days >= 0)
+  const autoDeadlines = upcoming.filter(d => d.is_auto)
+  const manualUpcoming = upcoming.filter(d => !d.is_auto)
+  const overdue = manualUpcoming.filter(d => urgencyInfo(d.due_date).days < 0)
+  const active = manualUpcoming.filter(d => urgencyInfo(d.due_date).days >= 0)
 
   return (
     <div className="space-y-4">
@@ -210,6 +214,31 @@ export default function DeadlinesPageClient({
             </button>
           </div>
         </form>
+      )}
+
+      {/* Application windows (auto-deadlines) */}
+      {autoDeadlines.length > 0 && (
+        <Section title="Application windows" count={autoDeadlines.length} accent="blue">
+          {autoDeadlines.map(d => {
+            const { label, cls } = urgencyInfo(d.due_date)
+            return (
+              <div key={d.id} className="flex items-center gap-3 px-4 py-3.5 group hover:bg-white/[0.02] transition-colors">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
+                  <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-[rgba(245,245,242,0.85)] truncate">{d.title}</p>
+                  <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono mt-0.5">{formatDate(d.due_date)}</p>
+                </div>
+                <span className={`text-[10px] font-semibold px-2 py-0.5 rounded border shrink-0 ${cls}`}>{label}</span>
+                <span className="text-[9px] font-medium px-1.5 py-0.5 rounded bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20 shrink-0">auto</span>
+              </div>
+            )
+          })}
+          <p className="px-4 py-2 text-[10px] text-[rgba(245,245,242,0.3)] border-t border-white/[0.04]">
+            These dates are managed by your specialty trackers. Remove a specialty to remove its deadlines.
+          </p>
+        </Section>
       )}
 
       {/* Overdue */}
@@ -315,17 +344,17 @@ export default function DeadlinesPageClient({
 }
 
 function Section({ title, count, accent, muted, children }: {
-  title: string; count: number; accent?: 'red'; muted?: boolean; children: React.ReactNode
+  title: string; count: number; accent?: 'red' | 'blue'; muted?: boolean; children: React.ReactNode
 }) {
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
-      <div className={`flex items-center justify-between px-4 py-3 border-b border-white/[0.06] ${accent === 'red' ? 'bg-red-500/5' : ''}`}>
+      <div className={`flex items-center justify-between px-4 py-3 border-b border-white/[0.06] ${accent === 'red' ? 'bg-red-500/5' : accent === 'blue' ? 'bg-[#1B6FD9]/5' : ''}`}>
         <h2 className={`text-xs font-semibold uppercase tracking-wider ${
-          accent === 'red' ? 'text-red-400' : muted ? 'text-[rgba(245,245,242,0.35)]' : 'text-[rgba(245,245,242,0.55)]'
+          accent === 'red' ? 'text-red-400' : accent === 'blue' ? 'text-[#1B6FD9]' : muted ? 'text-[rgba(245,245,242,0.35)]' : 'text-[rgba(245,245,242,0.55)]'
         }`}>
           {title}
         </h2>
-        <span className={`text-xs font-mono ${accent === 'red' ? 'text-red-400' : 'text-[rgba(245,245,242,0.3)]'}`}>
+        <span className={`text-xs font-mono ${accent === 'red' ? 'text-red-400' : accent === 'blue' ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)]'}`}>
           {count}
         </span>
       </div>
