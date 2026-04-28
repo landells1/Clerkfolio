@@ -57,6 +57,7 @@ export async function middleware(request: NextRequest) {
   const alwaysAccessible =
     pathname === '/privacy' ||
     pathname === '/terms' ||
+    pathname.startsWith('/share/') ||
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/auth/')
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createServiceClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig, isEvidenceBased, getEssentialDomains, getDesirableDomains } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 
@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic'
 type Entry = { id: string; title: string; date: string; type: 'portfolio' | 'case'; category?: string }
 
 async function resolveEntries(
-  supabase: ReturnType<typeof createClient>,
+  supabase: ReturnType<typeof createServiceClient>,
   links: SpecialtyEntryLink[]
 ): Promise<Entry[]> {
   const portfolioIds = links.filter(l => l.entry_type === 'portfolio' && l.entry_id).map(l => l.entry_id!)
@@ -30,12 +30,12 @@ async function resolveEntries(
 }
 
 export default async function SharePage({ params }: { params: { token: string } }) {
-  const supabase = createClient()
+  const supabase = createServiceClient()
 
   // Look up token — no auth required; token is the secret
   const { data: shareLink } = await supabase
     .from('share_links')
-    .select('*')
+    .select('id, user_id, token, specialty_key, expires_at, revoked')
     .eq('token', params.token)
     .eq('revoked', false)
     .single()
@@ -52,9 +52,10 @@ export default async function SharePage({ params }: { params: { token: string } 
   // Fetch the specialty application for this user + key
   const { data: application } = await supabase
     .from('specialty_applications')
-    .select('*')
+    .select('id, user_id, specialty_key')
     .eq('user_id', shareLink.user_id)
     .eq('specialty_key', specialty_key)
+    .eq('is_active', true)
     .single()
 
   if (!application) notFound()
@@ -62,7 +63,7 @@ export default async function SharePage({ params }: { params: { token: string } 
   // Fetch evidence links
   const { data: linkData } = await supabase
     .from('specialty_entry_links')
-    .select('*')
+    .select('id, application_id, domain_key, entry_id, entry_type, band_label, points_claimed, is_checkbox, created_at')
     .eq('application_id', application.id)
     .order('created_at', { ascending: true })
 

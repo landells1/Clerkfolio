@@ -60,8 +60,8 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
 
   async function handleUnlink(linkId: string) {
     setUnlinking(linkId)
-    const { error } = await supabase.from('arcp_entry_links').delete().eq('id', linkId)
-    if (error) {
+    const res = await fetch(`/api/arcp/links?id=${linkId}`, { method: 'DELETE' })
+    if (!res.ok) {
       addToast('Failed to unlink evidence', 'error')
     } else {
       setEntryDetails(prev => {

@@ -36,8 +36,43 @@ create table if not exists arcp_entry_links (
   unique(user_id, capability_key, entry_id, entry_type)
 );
 alter table arcp_entry_links enable row level security;
-create policy "own arcp links" on arcp_entry_links
-  for all using (user_id = auth.uid());
+drop policy if exists "own arcp links" on arcp_entry_links;
+create policy "sel_own_arcp_links" on arcp_entry_links
+  for select using (user_id = auth.uid());
+create policy "ins_own_arcp_links" on arcp_entry_links
+  for insert with check (
+    user_id = auth.uid()
+    and (
+      (entry_type = 'portfolio' and entry_id in (
+        select id from portfolio_entries
+        where user_id = auth.uid() and deleted_at is null
+      ))
+      or
+      (entry_type = 'case' and entry_id in (
+        select id from cases
+        where user_id = auth.uid() and deleted_at is null
+      ))
+    )
+  );
+create policy "upd_own_arcp_links" on arcp_entry_links
+  for update
+  using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and (
+      (entry_type = 'portfolio' and entry_id in (
+        select id from portfolio_entries
+        where user_id = auth.uid() and deleted_at is null
+      ))
+      or
+      (entry_type = 'case' and entry_id in (
+        select id from cases
+        where user_id = auth.uid() and deleted_at is null
+      ))
+    )
+  );
+create policy "del_own_arcp_links" on arcp_entry_links
+  for delete using (user_id = auth.uid());
 
 -- 5. Share links (shareable read-only specialty views)
 create table if not exists share_links (
