@@ -1,4 +1,5 @@
 import { createClient } from './client'
+import { fileHasValidMagicBytes } from '@/lib/upload/magic-bytes'
 
 const BUCKET = 'evidence'
 export const FREE_CAP_BYTES = 100 * 1024 * 1024        // 100 MB
@@ -24,6 +25,7 @@ export type EvidenceFile = {
   file_path: string
   file_size: number
   mime_type: string | null
+  scan_status?: 'pending' | 'scanning' | 'clean' | 'quarantined'
   created_at: string
 }
 
@@ -57,7 +59,7 @@ export async function uploadEvidence(
   if (file.size > MAX_FILE_BYTES) {
     return { path: '', error: 'File too large. Maximum size is 50 MB.' }
   }
-  if (!(await hasValidMagicBytes(file))) {
+  if (!(await fileHasValidMagicBytes(file))) {
     return { path: '', error: 'File contents do not match the selected file type.' }
   }
 
@@ -90,26 +92,7 @@ export async function insertEvidenceRecord(
     file_size: file.size,
     mime_type: file.type || null,
     scan_status: 'pending',
-  })
-}
-
-async function hasValidMagicBytes(file: File) {
-  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer())
-  const hex = Array.from(bytes).map(byte => byte.toString(16).padStart(2, '0')).join('')
-  const ascii = String.fromCharCode(...Array.from(bytes))
-  if (file.type === 'application/pdf') return ascii.startsWith('%PDF')
-  if (file.type === 'image/png') return hex.startsWith('89504e470d0a1a0a')
-  if (file.type === 'image/jpeg') return hex.startsWith('ffd8ff')
-  if (file.type === 'image/heic') return ascii.includes('ftypheic') || ascii.includes('ftypheix') || ascii.includes('ftyphevc') || ascii.includes('ftypmif1')
-  if (file.type === 'text/plain') return !bytes.includes(0)
-  if (
-    file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    file.type === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
-  ) {
-    return hex.startsWith('504b0304') || hex.startsWith('504b0506') || hex.startsWith('504b0708')
-  }
-  return false
+  }).select('id').single()
 }
 
 /**
@@ -140,7 +123,24 @@ export async function uploadPendingFiles(
 
     const { path, error } = await uploadEvidence(file, userId, entryId, entryType)
     if (error) { errors.push(`${file.name}: ${error}`); continue }
-    await insertEvidenceRecord(userId, entryId, entryType, file, path)
+    const { data, error: insertError } = await insertEvidenceRecord(userId, entryId, entryType, file, path)
+    if (insertError || !data?.id) {
+      errors.push(`${file.name}: Could not save file record`)
+      continue
+    }
+
+    const verifyRes = await fetch('/api/upload/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fileId: data.id }),
+    })
+    if (!verifyRes.ok) {
+      const body = await verifyRes.json().catch(() => ({}))
+      errors.push(`${file.name}: ${body.error ?? 'Could not verify uploaded file'}`)
+    } else {
+      const body = await verifyRes.json().catch(() => ({}))
+      if (body.scan_status === 'quarantined') errors.push(`${file.name}: File failed server-side verification`)
+    }
   }
 
   return errors
@@ -149,6 +149,18 @@ export async function uploadPendingFiles(
 /** Get a 1-hour signed download URL for a stored file */
 export async function getSignedUrl(path: string): Promise<string | null> {
   const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return null
+
+  const { data: file } = await supabase
+    .from('evidence_files')
+    .select('scan_status, user_id')
+    .eq('file_path', path)
+    .eq('user_id', user.id)
+    .single()
+
+  if (file?.scan_status !== 'clean') return null
+
   const { data } = await supabase.storage
     .from(BUCKET)
     .createSignedUrl(path, 3600)

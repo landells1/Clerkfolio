@@ -24,7 +24,7 @@ export default function EvidenceFiles({
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    const imageFiles = initialFiles.filter(f => f.mime_type?.startsWith('image/'))
+    const imageFiles = initialFiles.filter(f => f.mime_type?.startsWith('image/') && (f.scan_status ?? 'clean') === 'clean')
     if (imageFiles.length === 0) return
     let cancelled = false
     ;(async () => {
@@ -39,6 +39,7 @@ export default function EvidenceFiles({
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDownload(file: EvidenceFile) {
+    if ((file.scan_status ?? 'clean') !== 'clean') return
     setDownloading(file.id)
     const url = await getSignedUrl(file.file_path)
     if (url) {
@@ -69,6 +70,10 @@ export default function EvidenceFiles({
       </p>
       <ul className="space-y-2">
         {files.map(file => (
+          (() => {
+            const status = file.scan_status ?? 'clean'
+            const blocked = status !== 'clean'
+            return (
           <li
             key={file.id}
             className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3.5 py-2.5"
@@ -87,15 +92,20 @@ export default function EvidenceFiles({
             )}
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{file.file_name}</p>
-              <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">{formatBytes(file.file_size)}</p>
+              <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">
+                {formatBytes(file.file_size)}
+                {status === 'pending' && ' - scanning'}
+                {status === 'scanning' && ' - scanning'}
+                {status === 'quarantined' && ' - quarantined'}
+              </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => handleDownload(file)}
-                disabled={downloading === file.id}
+                disabled={downloading === file.id || blocked}
                 className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors disabled:opacity-50"
               >
-                {downloading === file.id ? 'Getting link…' : 'Download'}
+                {blocked ? 'Locked' : downloading === file.id ? 'Getting link...' : 'Download'}
               </button>
               {canDelete && (
                 confirmDeleteId === file.id ? (
@@ -132,6 +142,8 @@ export default function EvidenceFiles({
               )}
             </div>
           </li>
+            )
+          })()
         ))}
       </ul>
     </div>

@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
 
       const { error: activateError } = await supabase.from('profiles').update({
+        tier: 'pro',
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: subscription.id,
         subscription_status: 'active',
@@ -75,6 +76,7 @@ export async function POST(request: NextRequest) {
         : 'cancelled'
 
       const { error: updateError } = await supabase.from('profiles').update({
+        tier: status === 'active' ? 'pro' : 'free',
         subscription_status: status,
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id)
@@ -91,6 +93,7 @@ export async function POST(request: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription
 
       const { error: deleteError } = await supabase.from('profiles').update({
+        tier: 'free',
         subscription_status: 'cancelled',
         stripe_subscription_id: null,
         subscription_period_end: null,

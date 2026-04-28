@@ -34,6 +34,7 @@ export default function SettingsPage() {
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
+  const [billingLoading, setBillingLoading] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -138,6 +139,21 @@ export default function SettingsPage() {
     }
   }
 
+  async function openBilling() {
+    setBillingLoading(true)
+    const hasStripePlan = subInfo?.tier === 'pro'
+    const endpoint = hasStripePlan ? '/api/stripe/portal' : '/api/stripe/checkout'
+    try {
+      const res = await fetch(endpoint, { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok || !body.url) throw new Error(body.error ?? 'Billing unavailable')
+      window.location.href = body.url
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Failed to open billing', 'error')
+      setBillingLoading(false)
+    }
+  }
+
   async function restartTutorial() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
@@ -230,10 +246,19 @@ export default function SettingsPage() {
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
         {subInfo && (
-          <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
-            <p><span className="text-[#F5F5F2] font-medium">{subInfo.isPro ? 'Pro access' : 'Free tier'}</span> - {subInfo.storageQuotaMB} MB storage quota</p>
-            <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
-            <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+            <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
+              <p><span className="text-[#F5F5F2] font-medium">{subInfo.isPro ? 'Pro access' : 'Free tier'}</span> - {subInfo.storageQuotaMB} MB storage quota</p>
+              <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+              <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+            </div>
+            <button
+              onClick={openBilling}
+              disabled={billingLoading}
+              className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] disabled:opacity-50"
+            >
+              {billingLoading ? 'Opening...' : subInfo.tier === 'pro' ? 'Manage billing' : 'Upgrade to Pro'}
+            </button>
           </div>
         )}
       </section>

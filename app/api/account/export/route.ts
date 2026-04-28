@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     supabase.from('specialty_entry_links').select('*'),
     supabase.from('arcp_entry_links').select('*').eq('user_id', user.id),
     supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`),
-    supabase.from('evidence_files').select('*').eq('user_id', user.id),
+    supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean'),
   ])
 
   // Filter specialty links to user's applications
@@ -59,14 +59,14 @@ export async function POST(req: NextRequest) {
   if (evidenceFiles && evidenceFiles.length > 0) {
     const evidenceFolder = root.folder('evidence')!
     await Promise.allSettled(
-      evidenceFiles.map(async (ef: { entry_id: string; storage_path: string; original_name?: string }) => {
+      evidenceFiles.map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
         try {
           const { data: blob } = await supabase.storage
             .from('evidence')
-            .download(ef.storage_path)
+            .download(ef.file_path)
           if (blob) {
             const entryFolder = evidenceFolder.folder(ef.entry_id)!
-            const filename = ef.original_name ?? ef.storage_path.split('/').pop() ?? 'file'
+            const filename = ef.file_name ?? ef.file_path.split('/').pop() ?? 'file'
             const arrayBuffer = await blob.arrayBuffer()
             entryFolder.file(filename, arrayBuffer)
           }

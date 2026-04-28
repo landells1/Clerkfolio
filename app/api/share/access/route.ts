@@ -15,6 +15,12 @@ function startOfHour() {
   return d.toISOString()
 }
 
+function minutesAgo(minutes: number) {
+  const d = new Date()
+  d.setMinutes(d.getMinutes() - minutes)
+  return d.toISOString()
+}
+
 export async function POST(req: NextRequest) {
   const supabase = createServiceClient()
   const body = await req.json()
@@ -38,10 +44,24 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This share link has expired.' }, { status: 410 })
   }
 
+  const ipHash = hashIp(req)
+  const { count: failedAttempts } = await supabase
+    .from('share_access_attempts')
+    .select('id', { count: 'exact', head: true })
+    .eq('share_link_id', link.id)
+    .eq('ip_hash', ipHash)
+    .eq('success', false)
+    .gte('created_at', minutesAgo(15))
+
+  if ((failedAttempts ?? 0) >= 10) {
+    return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
+  }
+
   if (link.pin_hash && !pin) {
     return NextResponse.json({ pinRequired: true }, { status: 401 })
   }
   if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
+    await supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: false })
     return NextResponse.json({ error: 'Incorrect PIN.' }, { status: 403 })
   }
 
@@ -78,7 +98,8 @@ export async function POST(req: NextRequest) {
   if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
 
   await Promise.allSettled([
-    supabase.from('share_views').insert({ share_link_id: link.id, ip_hash: hashIp(req) }),
+    supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: true }),
+    supabase.from('share_views').insert({ share_link_id: link.id, ip_hash: ipHash }),
     supabase.from('share_links').update({ view_count: (link.view_count ?? 0) + 1 }).eq('id', link.id),
     supabase.from('audit_log').insert({
       user_id: link.user_id,
@@ -96,4 +117,3 @@ export async function POST(req: NextRequest) {
     entries: entries ?? [],
   })
 }
-
