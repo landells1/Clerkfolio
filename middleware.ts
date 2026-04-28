@@ -53,6 +53,14 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
+  // Older cached onboarding bundles posted completion JSON to the page route.
+  // Rewrite that POST to the API route so users are not blocked by stale assets.
+  if (request.method === 'POST' && pathname === '/onboarding') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/api/onboarding/complete'
+    return applySecurityHeaders(NextResponse.rewrite(url))
+  }
+
   // ── Always accessible — bypass auth logic entirely ──────────────────────────
   const alwaysAccessible =
     pathname === '/privacy' ||
