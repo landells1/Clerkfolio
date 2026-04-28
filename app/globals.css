@@ -102,6 +102,25 @@ body {
   outline-offset: 2px;
 }
 
+@media (max-width: 640px) {
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
+
+  .fixed[role="dialog"],
+  [role="dialog"] {
+    max-height: calc(100dvh - 24px);
+  }
+
+  table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+}
+
 /* Upload indeterminate progress */
 @keyframes upload-progress {
   0%   { width: 0%;   margin-left: 0%; }

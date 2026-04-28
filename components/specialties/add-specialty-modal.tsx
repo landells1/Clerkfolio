@@ -143,10 +143,10 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
                 </p>
               </div>
               <button
-                onClick={onClose}
+                onClick={() => { window.location.href = '/settings' }}
                 className="inline-flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#3884DD] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
               >
-                Coming soon
+                Manage plan
               </button>
             </div>
           ) : available.length === 0 ? (

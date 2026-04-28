@@ -468,24 +468,21 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
         )}
 
-        {/* Template picker trigger (create mode only) */}
-        {mode === 'create' && templates.length > 0 && (
-          <button
-            type="button"
-            onClick={() => setTemplatePickerOpen(true)}
-            className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-dashed border-white/[0.12] text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] hover:border-white/[0.2] transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
-            </svg>
-            Start from a template
-          </button>
-        )}
-
         {/* Category selector */}
         {mode === 'create' && (
           <div>
-            <label className={LABEL}>Category</label>
+            <div className="flex items-center justify-between gap-3">
+              <label className={LABEL}>Category</label>
+              {templates.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setTemplatePickerOpen(true)}
+                  className="mb-1 text-xs font-medium text-[rgba(245,245,242,0.38)] transition-colors hover:text-[#F5F5F2]"
+                >
+                  Use template
+                </button>
+              )}
+            </div>
             <div className="grid grid-cols-3 gap-2">
               {CATEGORIES.map(c => (
                 <button

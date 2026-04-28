@@ -1,0 +1,99 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
+import { createServiceClient } from '@/lib/supabase/server'
+import { verifyPin } from '@/lib/share/pin'
+
+function hashIp(req: NextRequest) {
+  const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const ip = forwarded || req.headers.get('x-real-ip') || 'unknown'
+  return createHash('sha256').update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''}`).digest('hex')
+}
+
+function startOfHour() {
+  const d = new Date()
+  d.setMinutes(0, 0, 0)
+  return d.toISOString()
+}
+
+export async function POST(req: NextRequest) {
+  const supabase = createServiceClient()
+  const body = await req.json()
+  const token = typeof body.token === 'string' ? body.token : ''
+  const pin = typeof body.pin === 'string' ? body.pin.trim() : ''
+
+  if (!token) return NextResponse.json({ error: 'Token required' }, { status: 400 })
+
+  const { data: link, error } = await supabase
+    .from('share_links')
+    .select('id, user_id, token, scope, specialty_key, theme_slug, expires_at, revoked, revoked_at, pin_hash, view_count, created_at')
+    .eq('token', token)
+    .maybeSingle()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (!link || link.revoked || link.revoked_at) {
+    return NextResponse.json({ error: 'This share link is no longer available.' }, { status: 404 })
+  }
+  if (new Date(link.expires_at).getTime() < Date.now()) {
+    await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
+    return NextResponse.json({ error: 'This share link has expired.' }, { status: 410 })
+  }
+
+  if (link.pin_hash && !pin) {
+    return NextResponse.json({ pinRequired: true }, { status: 401 })
+  }
+  if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
+    return NextResponse.json({ error: 'Incorrect PIN.' }, { status: 403 })
+  }
+
+  const { count: recentViews } = await supabase
+    .from('share_views')
+    .select('id', { count: 'exact', head: true })
+    .eq('share_link_id', link.id)
+    .gte('viewed_at', startOfHour())
+
+  if ((recentViews ?? 0) >= 100) {
+    await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
+    return NextResponse.json({ error: 'This share link has been paused after unusual traffic.' }, { status: 429 })
+  }
+
+  let query = supabase
+    .from('portfolio_entries')
+    .select('id, title, date, category, specialty_tags, interview_themes, notes, created_at, updated_at')
+    .eq('user_id', link.user_id)
+    .is('deleted_at', null)
+    .order('date', { ascending: false })
+
+  if (link.scope === 'specialty' && link.specialty_key) {
+    query = query.contains('specialty_tags', [link.specialty_key])
+  }
+  if (link.scope === 'theme' && link.theme_slug) {
+    query = query.contains('interview_themes', [link.theme_slug])
+  }
+
+  const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
+    supabase.from('profiles').select('first_name, last_name').eq('id', link.user_id).maybeSingle(),
+    query,
+  ])
+
+  if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
+
+  await Promise.allSettled([
+    supabase.from('share_views').insert({ share_link_id: link.id, ip_hash: hashIp(req) }),
+    supabase.from('share_links').update({ view_count: (link.view_count ?? 0) + 1 }).eq('id', link.id),
+    supabase.from('audit_log').insert({
+      user_id: link.user_id,
+      action: 'share_link_viewed',
+      metadata: { share_link_id: link.id, scope: link.scope },
+    }),
+  ])
+
+  return NextResponse.json({
+    ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex user',
+    scope: link.scope,
+    specialtyKey: link.specialty_key,
+    themeSlug: link.theme_slug,
+    expiresAt: link.expires_at,
+    entries: entries ?? [],
+  })
+}
+

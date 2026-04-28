@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
     supabase.from('specialty_applications').select('*').eq('user_id', user.id),
     supabase.from('specialty_entry_links').select('*'),
     supabase.from('arcp_entry_links').select('*').eq('user_id', user.id),
-    supabase.from('entry_templates').select('*').eq('user_id', user.id),
+    supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`),
     supabase.from('evidence_files').select('*').eq('user_id', user.id),
   ])
 
