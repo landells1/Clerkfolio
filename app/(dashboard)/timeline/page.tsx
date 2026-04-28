@@ -37,18 +37,26 @@ export default async function TimelinePage() {
     name: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key,
   }))
 
+  const persistedAutoKeys = new Set(
+    (deadlines ?? [])
+      .filter(deadline => deadline.is_auto && deadline.source_specialty_key)
+      .map(deadline => `${deadline.source_specialty_key}|${deadline.title}|${deadline.due_date}`)
+  )
+
   const configuredDeadlines = specialtyRows.flatMap(specialty =>
-    getDeadlinesForSpecialty(specialty.key).map(item => ({
-      id: `${specialty.id}-${item.kind}`,
-      title: item.label,
-      date: item.date,
-      details: null,
-      location: null,
-      specialtyApplicationId: specialty.id,
-      specialtyKey: specialty.key,
-      specialtyName: specialty.name,
-      source: 'config' as const,
-    }))
+    getDeadlinesForSpecialty(specialty.key)
+      .filter(item => !persistedAutoKeys.has(`${specialty.key}|${item.label}|${item.date}`))
+      .map(item => ({
+        id: `${specialty.id}-${item.kind}`,
+        title: item.label,
+        date: item.date,
+        details: null,
+        location: null,
+        specialtyApplicationId: specialty.id,
+        specialtyKey: specialty.key,
+        specialtyName: specialty.name,
+        source: 'config' as const,
+      }))
   )
 
   const manualDeadlines: TimelineSpecialtyDeadline[] = (deadlines ?? []).map(deadline => {

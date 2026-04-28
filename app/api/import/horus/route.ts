@@ -28,6 +28,24 @@ function parseDate(raw: string): string | null {
   return null
 }
 
+function mapReflectionType(raw: string): 'cbd' | 'dop' | 'mini_cex' | 'reflection' | null {
+  const value = raw.toLowerCase()
+  if (value.includes('cbd') || value.includes('case-based')) return 'cbd'
+  if (value.includes('mini-cex') || value.includes('minicex')) return 'mini_cex'
+  if (value.includes('dop') || value.includes('directly observed')) return 'dop'
+  if (value.includes('reflection') || value.includes('acat') || value.includes('acute care')) return 'reflection'
+  return null
+}
+
+function buildNotes(row: { notes: string; type: string; supervisor_name: string; supervision_level: string }) {
+  return [
+    row.notes,
+    row.type ? `Imported Horus type: ${row.type}` : '',
+    row.supervisor_name ? `Supervisor/assessor: ${row.supervisor_name}` : '',
+    row.supervision_level ? `Outcome/level: ${row.supervision_level}` : '',
+  ].filter(Boolean).join('\n\n') || null
+}
+
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
@@ -102,11 +120,9 @@ export async function POST(req: NextRequest) {
       title: row.title.trim(),
       date: parsedDate,
       category: row.category,
-      notes: row.notes || null,
-      supervisor_name: row.supervisor_name || null,
-      supervision_level: row.supervision_level || null,
+      notes: buildNotes(row),
       specialty_tags: row.specialty_tags ?? [],
-      reflection_type: row.type || null,
+      refl_type: row.category === 'reflection' ? mapReflectionType(row.type) : null,
     })
   }
 

@@ -5,14 +5,9 @@ export function hasValidMagicBytes(bytes: Uint8Array, mimeType: string) {
   if (mimeType === 'application/pdf') return ascii.startsWith('%PDF')
   if (mimeType === 'image/png') return hex.startsWith('89504e470d0a1a0a')
   if (mimeType === 'image/jpeg') return hex.startsWith('ffd8ff')
-  if (mimeType === 'image/heic') {
-    return ascii.includes('ftypheic') || ascii.includes('ftypheix') || ascii.includes('ftyphevc') || ascii.includes('ftypmif1')
-  }
-  if (mimeType === 'text/plain') return !bytes.includes(0)
+  if (mimeType === 'application/msword') return hex.startsWith('d0cf11e0a1b11ae1')
   if (
-    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-    mimeType === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-    mimeType === 'application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
   ) {
     return hex.startsWith('504b0304') || hex.startsWith('504b0506') || hex.startsWith('504b0708')
   }

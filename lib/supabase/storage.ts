@@ -10,13 +10,10 @@ export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 // GIF and WEBP are intentionally excluded — they are not in the bucket config.
 export const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
+  'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-  'text/plain',
   'image/png',
   'image/jpeg',
-  'image/heic',
 ])
 
 export type EvidenceFile = {
@@ -54,7 +51,7 @@ export async function uploadEvidence(
 
   // Client-side MIME guard (UX only — server enforce via /api/upload/authorize)
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    return { path: '', error: 'File type not allowed. Accepted: PDF, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.' }
+    return { path: '', error: 'File type not allowed. Accepted: PDF, DOC, DOCX, PNG, or JPEG.' }
   }
   if (file.size > MAX_FILE_BYTES) {
     return { path: '', error: 'File too large. Maximum size is 50 MB.' }
