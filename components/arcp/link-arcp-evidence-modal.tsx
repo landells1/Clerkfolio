@@ -68,23 +68,20 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
 
   async function handleLink(result: SearchResult) {
     setLinking(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setLinking(false); return }
-
-    const { data, error } = await supabase
-      .from('arcp_entry_links')
-      .insert({
-        user_id: user.id,
+    const res = await fetch('/api/arcp/links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
         capability_key: capability.capability_key,
         entry_id: result.id,
         entry_type: result.type,
-      })
-      .select()
-      .single()
+      }),
+    })
 
-    if (error) {
+    if (!res.ok) {
       addToast('Failed to link evidence', 'error')
-    } else if (data) {
+    } else {
+      const data = await res.json()
       onLinked(data as ARCPEntryLink)
       addToast(`Linked to ${capability.name}`, 'success')
       onClose()

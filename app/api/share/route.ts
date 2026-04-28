@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { getSubscriptionInfo } from '@/lib/subscription'
 
 // POST /api/share — create a share link for a specialty
 export async function POST(req: NextRequest) {
@@ -16,6 +17,20 @@ export async function POST(req: NextRequest) {
 
   if (!specialty_key || typeof specialty_key !== 'string') {
     return NextResponse.json({ error: 'specialty_key is required' }, { status: 400 })
+  }
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('trial_started_at, subscription_status, subscription_period_end')
+    .eq('id', user.id)
+    .single()
+
+  if (profileError || !profile) {
+    return NextResponse.json({ error: 'Profile not found' }, { status: 404 })
+  }
+
+  if (!getSubscriptionInfo(profile).isPro) {
+    return NextResponse.json({ error: 'Clinidex Pro is required to create share links' }, { status: 403 })
   }
 
   // Verify the user actually tracks this specialty
