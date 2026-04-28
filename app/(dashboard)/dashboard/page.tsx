@@ -7,6 +7,7 @@ import {
 } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 import ActivityFeed from '@/components/dashboard/activity-feed'
+import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
 import DeadlinesWidget from '@/components/dashboard/deadlines-widget'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
 import QuickAddButton from '@/components/dashboard/quick-add-button'
@@ -75,7 +76,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('first_name, career_stage')
+      .select('first_name, career_stage, onboarding_checklist_dismissed, onboarding_checklist_completed_items')
       .eq('id', user!.id)
       .single(),
     supabase
@@ -223,8 +224,17 @@ export default async function DashboardPage() {
         </div>
       </div>
 
+      {/* Onboarding checklist — shown for new accounts until dismissed or all done */}
+      {profile && !profile.onboarding_checklist_dismissed && (
+        <OnboardingChecklist
+          userId={user!.id}
+          completedItems={(profile as { onboarding_checklist_completed_items?: string[] }).onboarding_checklist_completed_items ?? []}
+          accountCreatedAt={user!.created_at}
+        />
+      )}
+
       {/* Stat row */}
-      <div className="grid grid-cols-3 gap-4 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
         <StatCard label="Portfolio entries" value={totalEntries} href="/portfolio" icon={<PortfolioIcon />} />
         <StatCard label="Cases logged" value={totalCases} href="/cases" icon={<CaseIcon />} />
         <StatCard label="Upcoming deadlines" value={totalDeadlines} href="/deadlines" icon={<DeadlineIcon />} highlight={totalDeadlines > 0} />

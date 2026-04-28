@@ -51,6 +51,9 @@ export default function SettingsPage() {
   const [subInfo, setSubInfo] = useState<ReturnType<typeof getSubscriptionInfo> | null>(null)
   const [billingLoading, setBillingLoading] = useState(false)
   const [upgradedMsg, setUpgradedMsg] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
+  const [emailReminders, setEmailReminders] = useState(false)
+  const [savingReminders, setSavingReminders] = useState(false)
 
   useEffect(() => {
     async function load() {
@@ -60,7 +63,7 @@ export default function SettingsPage() {
 
       const { data } = await supabase
         .from('profiles')
-        .select('first_name, last_name, career_stage, trial_started_at, subscription_status, subscription_period_end')
+        .select('first_name, last_name, career_stage, trial_started_at, subscription_status, subscription_period_end, email_reminders_enabled')
         .eq('id', user.id)
         .single()
 
@@ -70,6 +73,7 @@ export default function SettingsPage() {
           last_name: data.last_name || '',
           career_stage: data.career_stage || '',
         })
+        setEmailReminders(data.email_reminders_enabled ?? false)
         setSubInfo(getSubscriptionInfo({
           trial_started_at: data.trial_started_at,
           subscription_status: data.subscription_status,
@@ -183,6 +187,39 @@ export default function SettingsPage() {
       setShowEmailChange(false)
     }
     setEmailChangeLoading(false)
+  }
+
+  async function handleDataExport() {
+    setExportLoading(true)
+    try {
+      const res = await fetch('/api/account/export', { method: 'POST' })
+      if (!res.ok) {
+        addToast('Failed to generate export. Please try again.', 'error')
+        return
+      }
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `clinidex-export-${new Date().toISOString().split('T')[0]}.zip`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+    } catch {
+      addToast('Failed to generate export. Please try again.', 'error')
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
+  async function handleToggleReminders(val: boolean) {
+    setSavingReminders(true)
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) { setSavingReminders(false); return }
+    const { error } = await supabase.from('profiles').update({ email_reminders_enabled: val }).eq('id', user.id)
+    if (!error) setEmailReminders(val)
+    setSavingReminders(false)
   }
 
   async function handleDeleteAccount() {
@@ -536,6 +573,63 @@ export default function SettingsPage() {
         })() : (
           <div className="h-2 bg-white/[0.06] rounded-full animate-pulse" />
         )}
+      </section>
+
+      {/* Notifications */}
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Notifications</h2>
+        <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">In-app notifications are always on. Email reminders are Pro only.</p>
+        <label className="flex items-center justify-between gap-4 cursor-pointer">
+          <div>
+            <p className="text-sm font-medium text-[rgba(245,245,242,0.8)]">Email deadline reminders</p>
+            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">
+              Get an email when a deadline or application window is within 7 days. <span className="text-[#1B6FD9]">Pro only</span>
+            </p>
+          </div>
+          <button
+            onClick={() => { if (subInfo?.isPro) handleToggleReminders(!emailReminders) }}
+            disabled={savingReminders || !subInfo?.isPro}
+            className={`relative w-11 h-6 rounded-full transition-colors flex-shrink-0 disabled:opacity-50 ${
+              emailReminders && subInfo?.isPro ? 'bg-[#1B6FD9]' : 'bg-white/[0.12]'
+            }`}
+          >
+            <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${
+              emailReminders && subInfo?.isPro ? 'translate-x-5' : 'translate-x-0'
+            }`} />
+          </button>
+        </label>
+      </section>
+
+      {/* Data & Privacy */}
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Export your data</h2>
+        <p className="text-sm text-[rgba(245,245,242,0.5)] mb-4">
+          Download a complete copy of all your Clinidex data including entries, cases, and uploaded files.
+          This is your right under GDPR.
+        </p>
+        <button
+          onClick={handleDataExport}
+          disabled={exportLoading}
+          className="flex items-center gap-2 px-4 py-2.5 bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] text-[rgba(245,245,242,0.7)] font-medium text-sm rounded-xl transition-colors disabled:opacity-50"
+        >
+          {exportLoading ? (
+            <>
+              <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin" />
+              Assembling export…
+            </>
+          ) : (
+            <>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              Request data export
+            </>
+          )}
+        </button>
+        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-3">
+          Your export will include a ZIP file with JSON data and any uploaded evidence files. Assembly may take up to 30 seconds.
+        </p>
       </section>
 
       {/* Danger zone */}

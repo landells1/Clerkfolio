@@ -31,7 +31,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <DashboardProviders userInterests={specialtyKeys}>
       <div className="flex h-screen bg-[#0B0B0C] overflow-hidden">
         <Sidebar profile={profile} />
-        <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0">
+        <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0 pb-16 lg:pb-0">
           {children}
         </main>
       </div>
