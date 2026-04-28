@@ -59,6 +59,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/terms' ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/api/stripe/webhook') ||
+    pathname.startsWith('/api/cron/') ||
     pathname.startsWith('/auth/')
 
   if (alwaysAccessible) return applySecurityHeaders(supabaseResponse)
