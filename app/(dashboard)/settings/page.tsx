@@ -33,6 +33,7 @@ export default function SettingsPage() {
   const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [exportLoading, setExportLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
 
@@ -45,7 +46,7 @@ export default function SettingsPage() {
       const [{ data }, { count: specialtiesTracked }, { data: files }] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, tier, pro_features_used, student_grace_until')
+          .select('first_name, last_name, career_stage, tier, subscription_status, pro_features_used, student_grace_until')
           .eq('id', user.id)
           .single(),
         supabase
@@ -294,7 +295,7 @@ export default function SettingsPage() {
 
       <section className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
         <h2 className="text-base font-semibold text-red-300 mb-3">Delete account</h2>
-        <button onClick={() => setDeleteConfirm(true)} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
+        <button onClick={() => { setDeleteConfirmText(''); setDeleteConfirm(true) }} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
           Delete account
         </button>
       </section>
@@ -316,10 +317,13 @@ export default function SettingsPage() {
       {deleteConfirm && (
         <ConfirmModal
           title="Delete account?"
-          body="This permanently deletes your account data from Clinidex."
+          body={`This permanently deletes your Clinidex account, portfolio entries, cases, evidence metadata, goals, share links, and settings. Type DELETE to confirm.`}
           confirmLabel="Delete account"
           danger
-          onCancel={() => setDeleteConfirm(false)}
+          confirmationText={deleteConfirmText}
+          onConfirmationTextChange={setDeleteConfirmText}
+          confirmationRequired="DELETE"
+          onCancel={() => { setDeleteConfirm(false); setDeleteConfirmText('') }}
           onConfirm={deleteAccount}
         />
       )}
@@ -340,6 +344,9 @@ function ConfirmModal({
   body,
   confirmLabel,
   danger,
+  confirmationText,
+  onConfirmationTextChange,
+  confirmationRequired,
   onCancel,
   onConfirm,
 }: {
@@ -347,19 +354,32 @@ function ConfirmModal({
   body: string
   confirmLabel: string
   danger?: boolean
+  confirmationText?: string
+  onConfirmationTextChange?: (value: string) => void
+  confirmationRequired?: string
   onCancel: () => void
   onConfirm: () => void
 }) {
+  const disabled = confirmationRequired != null && confirmationText !== confirmationRequired
+
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
       <div className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">{title}</h2>
         <p className="text-sm text-[rgba(245,245,242,0.5)] leading-relaxed mb-6">{body}</p>
+        {confirmationRequired && (
+          <input
+            value={confirmationText ?? ''}
+            onChange={e => onConfirmationTextChange?.(e.target.value)}
+            placeholder={confirmationRequired}
+            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-red-400"
+          />
+        )}
         <div className="flex gap-2">
           <button onClick={onCancel} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">
             Cancel
           </button>
-          <button onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold ${danger ? 'bg-red-500 text-white' : 'bg-[#1B6FD9] text-[#0B0B0C]'}`}>
+          <button disabled={disabled} onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 ${danger ? 'bg-red-500 text-white' : 'bg-[#1B6FD9] text-[#0B0B0C]'}`}>
             {confirmLabel}
           </button>
         </div>

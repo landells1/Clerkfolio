@@ -83,7 +83,7 @@ export default function ExportPage() {
       if (!user) return
 
       const [{ data: profile }, { data: tagRows }, { data: apps }, { data: links }] = await Promise.all([
-        supabase.from('profiles').select('tier, pro_features_used, student_grace_until').eq('id', user.id).single(),
+        supabase.from('profiles').select('tier, subscription_status, pro_features_used, student_grace_until').eq('id', user.id).single(),
         supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
         fetch('/api/share').then(r => r.ok ? r.json() : []),

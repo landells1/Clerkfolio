@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
@@ -31,7 +32,7 @@ export default function NotificationSettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const [{ data: profile }, { count: specialtiesTracked }, { data: files }] = await Promise.all([
-        supabase.from('profiles').select('tier, pro_features_used, student_grace_until, notification_preferences').eq('id', user.id).single(),
+        supabase.from('profiles').select('tier, subscription_status, pro_features_used, student_grace_until, notification_preferences').eq('id', user.id).single(),
         supabase.from('specialty_applications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_active', true),
         supabase.from('evidence_files').select('file_size').eq('user_id', user.id),
       ])
@@ -62,8 +63,17 @@ export default function NotificationSettingsPage() {
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
-      <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-2">Notifications</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.45)] mb-6">Email reminders are sent once daily at 09:00 UTC when relevant.</p>
+      <div className="flex items-center gap-3 mb-6">
+        <Link href="/settings" className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors" aria-label="Back to settings">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="15 18 9 12 15 6" />
+          </svg>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-2">Notifications</h1>
+          <p className="text-sm text-[rgba(245,245,242,0.45)]">Email reminders are sent once daily at 09:00 UTC when relevant.</p>
+        </div>
+      </div>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6">
         {!isPro ? (

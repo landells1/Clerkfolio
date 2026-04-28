@@ -7,7 +7,7 @@ export default async function TimelinePage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: goals }, { data: specialties }, { data: deadlines }] = await Promise.all([
+  const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }] = await Promise.all([
     supabase
       .from('goals')
       .select('id, category, target_count, due_date, specialty_application_id, created_at')
@@ -20,10 +20,15 @@ export default async function TimelinePage() {
       .eq('is_active', true),
     supabase
       .from('deadlines')
-      .select('id, title, due_date, source_specialty_key, is_auto')
+      .select('id, title, due_date, details, location, source_specialty_key, is_auto')
       .eq('user_id', user!.id)
       .eq('completed', false)
       .order('due_date', { ascending: true }),
+    supabase
+      .from('profiles')
+      .select('calendar_feed_token')
+      .eq('id', user!.id)
+      .single(),
   ])
 
   const specialtyRows: TimelineSpecialty[] = (specialties ?? []).map(row => ({
@@ -37,6 +42,8 @@ export default async function TimelinePage() {
       id: `${specialty.id}-${item.kind}`,
       title: item.label,
       date: item.date,
+      details: null,
+      location: null,
       specialtyApplicationId: specialty.id,
       specialtyKey: specialty.key,
       specialtyName: specialty.name,
@@ -50,6 +57,8 @@ export default async function TimelinePage() {
       id: deadline.id,
       title: deadline.title,
       date: deadline.due_date,
+      details: deadline.details,
+      location: deadline.location,
       specialtyApplicationId: specialty?.id ?? null,
       specialtyKey: deadline.source_specialty_key,
       specialtyName: specialty?.name ?? 'Other',
@@ -62,6 +71,7 @@ export default async function TimelinePage() {
       goals={(goals ?? []) as TimelineGoal[]}
       specialties={specialtyRows}
       deadlines={[...configuredDeadlines, ...manualDeadlines]}
+      calendarFeedToken={profile?.calendar_feed_token ?? null}
     />
   )
 }

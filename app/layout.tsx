@@ -9,11 +9,14 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
+      { url: '/favicon.ico', sizes: 'any' },
       { url: '/icon.svg', type: 'image/svg+xml' },
       { url: '/icon', type: 'image/png', sizes: '32x32' },
+      { url: '/icon-192', type: 'image/png', sizes: '192x192' },
+      { url: '/icon-512', type: 'image/png', sizes: '512x512' },
     ],
-    shortcut: '/icon.svg',
-    apple: '/icon.svg',
+    shortcut: '/favicon.ico',
+    apple: '/icon-192',
   },
   openGraph: {
     title: 'Clinidex',

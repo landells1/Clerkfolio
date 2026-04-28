@@ -25,6 +25,8 @@ export type TimelineSpecialtyDeadline = {
   id: string
   title: string
   date: string
+  details?: string | null
+  location?: string | null
   specialtyApplicationId: string | null
   specialtyKey: string | null
   specialtyName: string
@@ -35,6 +37,8 @@ type TimelineItem = {
   id: string
   title: string
   date: string
+  details: string | null
+  location: string | null
   type: 'deadline' | 'goal'
   specialtyApplicationId: string | null
   specialtyName: string
@@ -61,14 +65,17 @@ function monthDays(month: Date) {
   })
 }
 
-export function TimelineClient({ goals, specialties, deadlines }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[] }) {
+export function TimelineClient({ goals, specialties, deadlines, calendarFeedToken }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedToken: string | null }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
   const [month, setMonth] = useState(new Date())
   const [showGoalForm, setShowGoalForm] = useState(false)
+  const [showEventForm, setShowEventForm] = useState(false)
   const [goalForm, setGoalForm] = useState({ category: 'custom', target_count: '1', due_date: iso(new Date()), specialty_application_id: '' })
+  const [eventForm, setEventForm] = useState({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
+  const [calendarToken, setCalendarToken] = useState(calendarFeedToken)
 
   const colourBySpecialty = useMemo(() => Object.fromEntries(specialties.map((specialty, index) => [specialty.id, COLOURS[index % COLOURS.length]])), [specialties])
 
@@ -81,6 +88,8 @@ export function TimelineClient({ goals, specialties, deadlines }: { goals: Timel
           id: `goal-${goal.id}`,
           title: `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
           date: goal.due_date!,
+          details: null,
+          location: null,
           type: 'goal' as const,
           specialtyApplicationId: goal.specialty_application_id,
           specialtyName: specialty?.name ?? 'Other',
@@ -90,6 +99,8 @@ export function TimelineClient({ goals, specialties, deadlines }: { goals: Timel
       id: `deadline-${deadline.id}`,
       title: deadline.title,
       date: deadline.date,
+      details: deadline.details ?? null,
+      location: deadline.location ?? null,
       type: 'deadline' as const,
       specialtyApplicationId: deadline.specialtyApplicationId,
       specialtyName: deadline.specialtyName,
@@ -127,6 +138,48 @@ export function TimelineClient({ goals, specialties, deadlines }: { goals: Timel
     router.refresh()
   }
 
+  async function addEvent(e: React.FormEvent) {
+    e.preventDefault()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const specialty = specialties.find(row => row.id === eventForm.source_specialty_key)
+    const { error } = await supabase.from('deadlines').insert({
+      user_id: user.id,
+      title: eventForm.title.trim(),
+      due_date: eventForm.due_date,
+      details: eventForm.details.trim() || null,
+      location: eventForm.location.trim() || null,
+      completed: false,
+      is_auto: false,
+      source_specialty_key: specialty?.key ?? null,
+    })
+    if (error) {
+      addToast('Failed to add event', 'error')
+      return
+    }
+    addToast('Event added', 'success')
+    setShowEventForm(false)
+    setEventForm({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
+    router.refresh()
+  }
+
+  async function copyCalendarFeed() {
+    let token = calendarToken
+    if (!token) {
+      const res = await fetch('/api/calendar/feed-token', { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok || !body.token) {
+        addToast(body.error ?? 'Failed to create calendar feed', 'error')
+        return
+      }
+      token = body.token
+      setCalendarToken(token)
+    }
+    const url = `${window.location.origin}/api/calendar/feed/${token}`
+    await navigator.clipboard.writeText(url)
+    addToast('Calendar feed link copied', 'success')
+  }
+
   const days = monthDays(month)
 
   return (
@@ -142,6 +195,8 @@ export function TimelineClient({ goals, specialties, deadlines }: { goals: Timel
               <button key={mode} onClick={() => setView(mode)} className={`min-h-[36px] px-3 rounded-md text-sm capitalize ${view === mode ? 'bg-white/[0.08] text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.45)]'}`}>{mode}</button>
             ))}
           </div>
+          <button onClick={copyCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Calendar feed</button>
+          <button onClick={() => setShowEventForm(true)} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Add event</button>
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>
       </div>
@@ -208,6 +263,26 @@ export function TimelineClient({ goals, specialties, deadlines }: { goals: Timel
           </form>
         </div>
       )}
+
+      {showEventForm && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+          <form onSubmit={addEvent} className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
+            <h2 className="text-lg font-semibold text-[#F5F5F2]">Add calendar event</h2>
+            <input required value={eventForm.title} onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))} placeholder="Event title" className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
+            <input type="date" value={eventForm.due_date} onChange={e => setEventForm(f => ({ ...f, due_date: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
+            <input value={eventForm.location} onChange={e => setEventForm(f => ({ ...f, location: e.target.value }))} placeholder="Location or link" className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
+            <textarea value={eventForm.details} onChange={e => setEventForm(f => ({ ...f, details: e.target.value }))} placeholder="Details" rows={4} className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2.5 text-[#F5F5F2]" />
+            <select value={eventForm.source_specialty_key} onChange={e => setEventForm(f => ({ ...f, source_specialty_key: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">
+              <option value="">Other</option>
+              {specialties.map(specialty => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}
+            </select>
+            <div className="flex gap-2">
+              <button type="button" onClick={() => setShowEventForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>
+              <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-[#0B0B0C] rounded-lg px-4 py-2.5 text-sm font-semibold">Add event</button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   )
 }
@@ -225,6 +300,9 @@ function TimelineList({ grouped, colourBySpecialty }: { grouped: Record<string, 
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-[#F5F5F2]">{item.title}</p>
                   <p className="text-xs text-[rgba(245,245,242,0.35)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  {(item.location || item.details) && (
+                    <p className="mt-1 line-clamp-2 text-xs text-[rgba(245,245,242,0.42)]">{[item.location, item.details].filter(Boolean).join(' - ')}</p>
+                  )}
                 </div>
                 <span className="text-[10px] uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{item.type}</span>
               </div>

@@ -2,7 +2,11 @@
 
 import Link from 'next/link'
 import { useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 import type { Case } from '@/lib/types/cases'
+import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Props = {
   cases: Case[]
@@ -24,8 +28,16 @@ function clinicalArea(c: Case) {
 }
 
 export default function CasesListClient({ cases, userInterests }: Props) {
+  const router = useRouter()
+  const supabase = createClient()
+  const { addToast } = useToast()
   const [query, setQuery] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [selectMode, setSelectMode] = useState(false)
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [tagModalOpen, setTagModalOpen] = useState(false)
+  const [bulkTags, setBulkTags] = useState<string[]>([])
+  const [busy, setBusy] = useState(false)
   const [domain, setDomain] = useState('')
   const [specialty, setSpecialty] = useState('')
   const [from, setFrom] = useState('')
@@ -53,6 +65,50 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     return acc
   }, {})
 
+  function toggleCase(id: string) {
+    setSelected(prev => {
+      const next = new Set(prev)
+      next.has(id) ? next.delete(id) : next.add(id)
+      setSelectMode(next.size > 0)
+      return next
+    })
+  }
+
+  function cancelSelect() {
+    setSelected(new Set())
+    setSelectMode(false)
+  }
+
+  async function bulkTrash() {
+    if (!confirm(`Move ${selected.size} ${selected.size === 1 ? 'case' : 'cases'} to trash?`)) return
+    setBusy(true)
+    const { error } = await supabase.from('cases').update({ deleted_at: new Date().toISOString() }).in('id', Array.from(selected))
+    setBusy(false)
+    if (error) {
+      addToast('Failed to trash cases', 'error')
+      return
+    }
+    addToast(`${selected.size} ${selected.size === 1 ? 'case' : 'cases'} moved to trash`, 'success')
+    cancelSelect()
+    router.refresh()
+  }
+
+  async function bulkAddTags() {
+    if (bulkTags.length === 0) return
+    setBusy(true)
+    const { data: rows } = await supabase.from('cases').select('id, specialty_tags').in('id', Array.from(selected))
+    for (const row of rows ?? []) {
+      const merged = Array.from(new Set([...(row.specialty_tags ?? []), ...bulkTags]))
+      await supabase.from('cases').update({ specialty_tags: merged }).eq('id', row.id)
+    }
+    setBusy(false)
+    addToast(`Tags added to ${selected.size} ${selected.size === 1 ? 'case' : 'cases'}`, 'success')
+    setBulkTags([])
+    setTagModalOpen(false)
+    cancelSelect()
+    router.refresh()
+  }
+
   return (
     <>
       <div className="sticky top-0 z-20 -mx-2 mb-6 bg-[#0B0B0C]/95 px-2 py-3 backdrop-blur">
@@ -69,12 +125,22 @@ export default function CasesListClient({ cases, userInterests }: Props) {
         </div>
       </div>
 
+      {selectMode && (
+        <div className="mb-3 flex items-center justify-between">
+          <button onClick={cancelSelect} className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD]">Cancel selection</button>
+          <div className="flex items-center gap-3">
+            <button onClick={() => setSelected(new Set(filtered.map(c => c.id)))} className="text-xs text-[#1B6FD9] hover:text-[#3884DD]">Select all</button>
+            <span className="text-xs text-[rgba(245,245,242,0.35)]">{selected.size} selected</span>
+          </div>
+        </div>
+      )}
+
       <div className="space-y-8">
         {pinned.length > 0 && (
           <section>
             <h2 className="mb-3 text-sm font-semibold text-[#F5F5F2]">Pinned</h2>
             <div className="space-y-3">
-              {pinned.map(c => <JournalCaseCard key={c.id} c={c} pinned />)}
+              {pinned.map(c => <JournalCaseCard key={c.id} c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />)}
             </div>
           </section>
         )}
@@ -83,7 +149,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           <section key={month} className="relative border-l border-white/[0.08] pl-5">
             <h2 className="sticky top-16 z-10 -ml-5 mb-3 bg-[#0B0B0C] py-1 pl-5 text-sm font-semibold text-[rgba(245,245,242,0.72)]">{month}</h2>
             <div className="space-y-3">
-              {monthCases.map(c => <JournalCaseCard key={c.id} c={c} />)}
+              {monthCases.map(c => <JournalCaseCard key={c.id} c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />)}
             </div>
           </section>
         ))}
@@ -118,6 +184,29 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           </div>
         </div>
       )}
+
+      {selectMode && selected.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl">
+          <span className="mr-1 text-xs font-medium text-[rgba(245,245,242,0.6)]">{selected.size} selected</span>
+          <button onClick={() => setTagModalOpen(true)} className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)]">Add tag</button>
+          <button onClick={bulkTrash} disabled={busy} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 disabled:opacity-50">{busy ? 'Working...' : 'Move to trash'}</button>
+          <button onClick={cancelSelect} className="ml-1 text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2]">Close</button>
+        </div>
+      )}
+
+      {tagModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setTagModalOpen(false)}>
+          <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#141416] p-6" onClick={e => e.stopPropagation()}>
+            <h2 className="mb-2 text-base font-semibold text-[#F5F5F2]">Add specialty tag</h2>
+            <p className="mb-3 text-xs text-[rgba(245,245,242,0.4)]">Adding to {selected.size} {selected.size === 1 ? 'case' : 'cases'}.</p>
+            <SpecialtyTagSelect value={bulkTags} onChange={setBulkTags} userInterests={userInterests} trackedOnly />
+            <div className="mt-4 flex gap-2">
+              <button onClick={() => setTagModalOpen(false)} className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm text-[rgba(245,245,242,0.55)]">Cancel</button>
+              <button onClick={bulkAddTags} disabled={bulkTags.length === 0 || busy} className="flex-[2] rounded-xl bg-[#1B6FD9] py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">Apply</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
@@ -134,20 +223,30 @@ function Select({ label, value, onChange, options }: { label: string; value: str
   )
 }
 
-function JournalCaseCard({ c, pinned }: { c: Case; pinned?: boolean }) {
+function JournalCaseCard({ c, pinned, selected, selectMode, onToggle }: { c: Case; pinned?: boolean; selected: boolean; selectMode: boolean; onToggle: () => void }) {
   return (
-    <Link href={`/cases/${c.id}`} className="block rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-        <div className="min-w-0">
-          <div className="mb-2 flex flex-wrap items-center gap-2">
-            {pinned && <span className="rounded bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[#1B6FD9]">Pinned</span>}
-            <span className="rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)]">{clinicalArea(c)}</span>
+    <div className="group/row flex items-stretch">
+      <button onClick={onToggle} className={`w-10 shrink-0 transition-opacity ${selectMode || selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`} aria-label={selected ? 'Deselect case' : 'Select case'}>
+        <span className={`mx-auto flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-[#1B6FD9] bg-[#1B6FD9]' : 'border-white/[0.3] bg-[#141416]'}`}>
+          {selected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+        </span>
+      </button>
+      <div className="relative flex-1">
+        <Link href={`/cases/${c.id}`} className="block rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <div className="mb-2 flex flex-wrap items-center gap-2">
+                {pinned && <span className="rounded bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[#1B6FD9]">Pinned</span>}
+                <span className="rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)]">{clinicalArea(c)}</span>
+              </div>
+              <h3 className="truncate text-base font-semibold text-[#F5F5F2]">{c.title}</h3>
+              <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{firstSentence(c.notes)}</p>
+            </div>
+            <time className="shrink-0 text-xs text-[rgba(245,245,242,0.38)]">{new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
           </div>
-          <h3 className="truncate text-base font-semibold text-[#F5F5F2]">{c.title}</h3>
-          <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{firstSentence(c.notes)}</p>
-        </div>
-        <time className="shrink-0 text-xs text-[rgba(245,245,242,0.38)]">{new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+        </Link>
+        {selectMode && <button onClick={onToggle} className="absolute inset-0 z-10" aria-label="Toggle case selection" />}
       </div>
-    </Link>
+    </div>
   )
 }

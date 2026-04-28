@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
 
 // Allowlist of safe post-auth destinations
@@ -32,6 +32,24 @@ export async function GET(request: NextRequest) {
     const supabase = createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
+      const { data: { user } } = await supabase.auth.getUser()
+      const referralCode = user?.user_metadata?.referral_code
+      if (user && typeof referralCode === 'string' && referralCode.trim()) {
+        const service = createServiceClient()
+        const { data: referrer } = await service
+          .from('profiles')
+          .select('id')
+          .eq('referral_code', referralCode.trim())
+          .neq('id', user.id)
+          .maybeSingle()
+        if (referrer) {
+          await service
+            .from('profiles')
+            .update({ referred_by: referrer.id })
+            .eq('id', user.id)
+            .is('referred_by', null)
+        }
+      }
       return NextResponse.redirect(`${origin}${next}`)
     }
   }

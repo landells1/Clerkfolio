@@ -26,6 +26,7 @@ export interface SubscriptionInfo {
 
 type ProfileData = {
   tier?: string | null
+  subscription_status?: string | null
   pro_features_used?: {
     pdf_exports_used?: number
     share_links_used?: number
@@ -41,6 +42,7 @@ type UsageData = {
 
 export function getSubscriptionInfo(profile: ProfileData, usage: UsageData): SubscriptionInfo {
   const tier = ((profile.tier ?? 'free') as Tier)
+  const stripeActive = profile.subscription_status === 'active'
   const pfu = profile.pro_features_used ?? {}
   const now = new Date()
 
@@ -49,7 +51,7 @@ export function getSubscriptionInfo(profile: ProfileData, usage: UsageData): Sub
   const graceActive =
     profile.student_grace_until != null && new Date(profile.student_grace_until) > now
 
-  const isPro = tier === 'pro' || tier === 'student' || referralActive || graceActive
+  const isPro = tier === 'pro' || tier === 'student' || stripeActive || referralActive || graceActive
   const isStudent = tier === 'student'
   const storageQuotaMB = isPro ? 5120 : 100
 
@@ -89,7 +91,7 @@ export async function fetchSubscriptionInfo(
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('tier, pro_features_used, student_grace_until')
+      .select('tier, subscription_status, pro_features_used, student_grace_until')
       .eq('id', userId)
       .single(),
     supabase
@@ -109,7 +111,7 @@ export async function fetchSubscriptionInfo(
   )
 
   return getSubscriptionInfo(
-    profile ?? { tier: 'free', pro_features_used: null, student_grace_until: null },
+    profile ?? { tier: 'free', subscription_status: null, pro_features_used: null, student_grace_until: null },
     { specialtiesTracked: specialtiesTracked ?? 0, storageUsedMB: storageUsedBytes / (1024 * 1024) }
   )
 }
