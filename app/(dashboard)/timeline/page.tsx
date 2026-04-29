@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
-import { getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
+import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
 export default async function TimelinePage() {
@@ -50,14 +50,30 @@ export default async function TimelinePage() {
         id: `${specialty.id}-${item.kind}`,
         title: item.label,
         date: item.date,
-        details: null,
+        details: item.details ?? null,
         location: null,
+        sourceUrl: item.sourceUrl,
+        sourceLabel: item.sourceLabel,
         specialtyApplicationId: specialty.id,
         specialtyKey: specialty.key,
         specialtyName: specialty.name,
         source: 'config' as const,
       }))
   )
+
+  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = NHS_ROUND_3_2026_DEADLINES.map(item => ({
+    id: item.kind,
+    title: item.label,
+    date: item.date,
+    details: item.details ?? null,
+    location: null,
+    sourceUrl: item.sourceUrl,
+    sourceLabel: item.sourceLabel,
+    specialtyApplicationId: null,
+    specialtyKey: item.specialtyKey,
+    specialtyName: 'NHS recruitment',
+    source: 'config',
+  }))
 
   const manualDeadlines: TimelineSpecialtyDeadline[] = (deadlines ?? []).map(deadline => {
     const specialty = specialtyRows.find(row => row.key === deadline.source_specialty_key)
@@ -67,6 +83,8 @@ export default async function TimelinePage() {
       date: deadline.due_date,
       details: deadline.details,
       location: deadline.location,
+      sourceUrl: deadline.location?.startsWith('http') ? deadline.location : null,
+      sourceLabel: deadline.location?.startsWith('http') ? 'Event link' : null,
       specialtyApplicationId: specialty?.id ?? null,
       specialtyKey: deadline.source_specialty_key,
       specialtyName: specialty?.name ?? 'Other',
@@ -78,7 +96,7 @@ export default async function TimelinePage() {
     <TimelineClient
       goals={(goals ?? []) as TimelineGoal[]}
       specialties={specialtyRows}
-      deadlines={[...configuredDeadlines, ...manualDeadlines]}
+      deadlines={[...nationalRecruitmentDeadlines, ...configuredDeadlines, ...manualDeadlines]}
       calendarFeedToken={profile?.calendar_feed_token ?? null}
     />
   )

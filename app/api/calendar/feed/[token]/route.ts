@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { getSpecialtyConfig } from '@/lib/specialties'
+import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 
 function escapeIcs(value: string | null | undefined) {
   return (value ?? '')
@@ -41,9 +43,39 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
     .eq('completed', false)
     .order('due_date', { ascending: true })
 
+  const { data: specialties } = await supabase
+    .from('specialty_applications')
+    .select('id, specialty_key')
+    .eq('user_id', profile.id)
+    .eq('is_active', true)
+
   const host = req.nextUrl.host
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
-  const events = (deadlines ?? []).flatMap(deadline => {
+  const configuredDeadlines = [
+    ...NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
+      id: `nhs-round-3-${deadline.kind}`,
+      title: deadline.label,
+      due_date: deadline.date,
+      details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
+      location: deadline.sourceUrl,
+      updated_at: null,
+      created_at: null,
+    })),
+    ...(specialties ?? []).flatMap(specialty => {
+      const config = getSpecialtyConfig(specialty.specialty_key)
+      return getDeadlinesForSpecialty(specialty.specialty_key).map(deadline => ({
+        id: `${specialty.id}-${deadline.kind}`,
+        title: deadline.label,
+        due_date: deadline.date,
+        details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
+        location: deadline.sourceUrl,
+        updated_at: null,
+        created_at: config?.key ?? null,
+      }))
+    }),
+  ]
+
+  const events = [...configuredDeadlines, ...(deadlines ?? [])].flatMap(deadline => {
     const start = icsDate(deadline.due_date)
     const endDate = new Date(deadline.due_date)
     endDate.setDate(endDate.getDate() + 1)

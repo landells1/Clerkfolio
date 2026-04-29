@@ -2,11 +2,26 @@ import Link from 'next/link'
 import HorusImportWizard from '@/components/import/horus-import-wizard'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { getSpecialtyConfig } from '@/lib/specialties'
 
 export default async function ImportPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const sub = user ? await fetchSubscriptionInfo(supabase, user.id) : null
+  const [sub, { data: specialties }] = user
+    ? await Promise.all([
+        fetchSubscriptionInfo(supabase, user.id),
+        supabase
+          .from('specialty_applications')
+          .select('specialty_key')
+          .eq('user_id', user.id)
+          .eq('is_active', true),
+      ])
+    : [null, { data: [] }]
+
+  const specialtyOptions = (specialties ?? []).map(row => ({
+    key: row.specialty_key,
+    name: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key,
+  }))
 
   return (
     <div className="p-6 sm:p-8 max-w-5xl">
@@ -19,13 +34,13 @@ export default async function ImportPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Import from Horus</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-0.5">
-            Import supervised learning events from your NHS Horus e-portfolio
+            Move your NHS foundation portfolio evidence into Clerkfolio quickly.
           </p>
         </div>
       </div>
 
       {sub?.limits.canBulkImport ? (
-        <HorusImportWizard />
+        <HorusImportWizard specialtyOptions={specialtyOptions} />
       ) : (
         <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-6">
           <h2 className="text-lg font-semibold text-[#F5F5F2]">Bulk import is a Pro feature</h2>

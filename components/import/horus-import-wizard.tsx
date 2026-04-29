@@ -4,14 +4,14 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import Papa from 'papaparse'
 
-// Known Horus column names (case-insensitive matching)
-const COL_DATE         = ['date', 'event date']
-const COL_TYPE         = ['type', 'assessment type', 'event type', 'form type']
-const COL_TITLE        = ['title', 'subject', 'case / problem', 'case/problem', 'patient problem', 'topic']
+// Known Horus and foundation e-portfolio column names (case-insensitive matching)
+const COL_DATE         = ['date', 'event date', 'created date', 'completion date', 'signed date']
+const COL_TYPE         = ['type', 'assessment type', 'event type', 'form type', 'entry type', 'activity type']
+const COL_TITLE        = ['title', 'subject', 'case / problem', 'case/problem', 'patient problem', 'topic', 'activity', 'description', 'summary']
 const COL_SUPERVISOR   = ['supervisor', 'assessor', 'supervisor name', 'assessor name']
 const COL_GRADE        = ['grade', 'level', 'outcome']
-const COL_COMMENTS     = ['comments', 'feedback', 'comment', 'supervisor comments', 'assessor comments']
-const COL_SETTING      = ['clinical setting', 'setting', 'location']
+const COL_COMMENTS     = ['comments', 'feedback', 'comment', 'supervisor comments', 'assessor comments', 'reflection', 'learning points', 'notes']
+const COL_SETTING      = ['clinical setting', 'setting', 'location', 'placement']
 
 type HorusRow = {
   rawIndex: number
@@ -30,6 +30,7 @@ type HorusRow = {
 
 type Step = 1 | 2 | 3 | 4
 type DuplicateHandling = 'skip' | 'import'
+type ImportSpecialty = { key: string; name: string }
 
 function findCol(headers: string[], candidates: string[]): string | null {
   const lower = headers.map(h => h.toLowerCase().trim())
@@ -67,9 +68,9 @@ function parseRows(data: Record<string, string>[], headers: string[]): HorusRow[
     const rawType  = colType  ? (row[colType] ?? '').trim()  : ''
 
     const issues: string[] = []
-    if (!rawTitle) issues.push('Missing title — will be skipped')
+    if (!rawTitle) issues.push('Missing title - will be skipped')
     if (!rawDate)  issues.push('Missing date')
-    if (!rawType)  issues.push('Missing type — will import as Custom')
+    if (!rawType)  issues.push('Missing type - will import as Custom')
 
     return {
       rawIndex:       i,
@@ -98,7 +99,7 @@ function detectHorusFormat(headers: string[]): boolean {
   return hasDate && hasType && hasTitle
 }
 
-export default function HorusImportWizard() {
+export default function HorusImportWizard({ specialtyOptions = [] }: { specialtyOptions?: ImportSpecialty[] }) {
   const [step, setStep] = useState<Step>(1)
   const [error, setError] = useState<string | null>(null)
   const [rows, setRows] = useState<HorusRow[]>([])
@@ -112,8 +113,8 @@ export default function HorusImportWizard() {
 
   function handleFile(file: File) {
     setError(null)
-    if (!file.name.endsWith('.csv')) {
-      setError('Please upload a .csv file exported from Horus.')
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      setError('Please upload a .csv file exported from Horus or another official foundation portfolio.')
       return
     }
     Papa.parse<Record<string, string>>(file, {
@@ -122,7 +123,7 @@ export default function HorusImportWizard() {
       complete: (result) => {
         const hdrs = result.meta.fields ?? []
         if (!detectHorusFormat(hdrs)) {
-          setError(`This doesn't look like a Horus export. Expected columns including date, type, and title/subject. Found: ${hdrs.slice(0, 6).join(', ')}…`)
+          setError(`This does not look like a supported portfolio export. Expected columns including date, type, and title/subject. Found: ${hdrs.slice(0, 6).join(', ')}...`)
           return
         }
         const parsed = parseRows(result.data, hdrs)
@@ -147,6 +148,10 @@ export default function HorusImportWizard() {
 
   function toggleAll(val: boolean) {
     setRows(prev => prev.map(r => ({ ...r, selected: val })))
+  }
+
+  function toggleTag(key: string) {
+    setSelectedTags(prev => prev.includes(key) ? prev.filter(tag => tag !== key) : [...prev, key])
   }
 
   async function handleImport() {
@@ -199,7 +204,7 @@ export default function HorusImportWizard() {
               : step > s ? 'bg-emerald-500 text-[#0B0B0C]'
               : 'bg-white/[0.06] text-[rgba(245,245,242,0.35)]'
             }`}>
-              {step > s ? '✓' : s}
+              {step > s ? 'OK' : s}
             </div>
             <span className={`text-xs font-medium ${step === s ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.35)]'}`}>
               {['Upload', 'Preview', 'Configure', 'Done'][idx]}
@@ -209,12 +214,12 @@ export default function HorusImportWizard() {
         ))}
       </div>
 
-      {/* ── Step 1: Upload ── */}
+      {/* Step 1: Upload */}
       {step === 1 && (
         <div className="space-y-6">
           <div>
             <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Upload your Horus export</h2>
-            <p className="text-sm text-[rgba(245,245,242,0.5)]">In Horus, go to your portfolio → Export → CSV. Upload that file below.</p>
+            <p className="text-sm text-[rgba(245,245,242,0.5)]">Built for doctors moving Horus evidence into Clerkfolio. CSV exports from other official foundation portfolio systems can also work if they include date, type, and title columns.</p>
           </div>
 
           <div
@@ -232,7 +237,7 @@ export default function HorusImportWizard() {
             </svg>
             <div className="text-center">
               <p className="text-sm font-medium text-[rgba(245,245,242,0.7)]">Drop CSV here, or click to browse</p>
-              <p className="text-xs text-[rgba(245,245,242,0.35)] mt-1">.csv files only — Horus supervised learning event export</p>
+              <p className="text-xs text-[rgba(245,245,242,0.35)] mt-1">.csv files only - Horus supervised learning event export preferred</p>
             </div>
             <input
               ref={fileRef}
@@ -254,25 +259,30 @@ export default function HorusImportWizard() {
 
           <div className="bg-[#141416] border border-white/[0.06] rounded-xl p-4 text-xs text-[rgba(245,245,242,0.45)] space-y-1.5">
             <p className="font-medium text-[rgba(245,245,242,0.6)]">How to export from Horus</p>
-            <p>1. Log in to your Horus account at <span className="font-mono text-[rgba(245,245,242,0.6)]">horus.nhs.uk</span></p>
-            <p>2. Navigate to Portfolio → Supervised Learning Events</p>
-            <p>3. Click Export → Download as CSV</p>
+            <p>1. Log in to your Horus account at <span className="font-mono text-[rgba(245,245,242,0.6)]">horus.hee.nhs.uk</span></p>
+            <p>2. Navigate to Portfolio, then Supervised Learning Events or portfolio contents</p>
+            <p>3. Use the export/download option and choose CSV where available</p>
             <p>4. Upload that file here</p>
+            <p className="pt-2">Horus is the NHS England ePortfolio for foundation doctors in England. Clerkfolio imports your own export; it does not connect to Horus directly.</p>
+            <div className="flex flex-wrap gap-3 pt-2">
+              <a href="https://supporthorus.hee.nhs.uk/about-horus/what-is-horus/" target="_blank" rel="noopener noreferrer" className="text-[#1B6FD9] hover:text-[#3884DD]">Horus support</a>
+              <a href="https://foundationprogramme.nhs.uk/curriculum/e-portfolio/" target="_blank" rel="noopener noreferrer" className="text-[#1B6FD9] hover:text-[#3884DD]">UKFPO e-portfolio guidance</a>
+            </div>
           </div>
         </div>
       )}
 
-      {/* ── Step 2: Preview ── */}
+      {/* Step 2: Preview */}
       {step === 2 && (
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Preview</h2>
-              <p className="text-sm text-[rgba(245,245,242,0.5)]">{rows.length} rows parsed · {skippableCount > 0 ? `${skippableCount} will be skipped (no title)` : 'All rows have titles'}</p>
+              <p className="text-sm text-[rgba(245,245,242,0.5)]">{rows.length} rows parsed - {skippableCount > 0 ? `${skippableCount} will be skipped (no title)` : 'All rows have titles'}</p>
             </div>
             <div className="flex gap-2 shrink-0">
               <button onClick={() => toggleAll(true)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">Select all</button>
-              <span className="text-[rgba(245,245,242,0.2)]">·</span>
+              <span className="text-[rgba(245,245,242,0.2)]">-</span>
               <button onClick={() => toggleAll(false)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">None</button>
             </div>
           </div>
@@ -283,7 +293,7 @@ export default function HorusImportWizard() {
                 <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                 <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
               </svg>
-              {warningCount} row{warningCount !== 1 ? 's' : ''} with warnings (unrecognised type → will import as Custom)
+              {warningCount} row{warningCount !== 1 ? 's' : ''} with warnings (unrecognised type will import as Custom)
             </div>
           )}
 
@@ -297,7 +307,7 @@ export default function HorusImportWizard() {
                     </th>
                     <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Date</th>
                     <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Title</th>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Type → Category</th>
+                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Type / Category</th>
                     <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Supervisor</th>
                   </tr>
                 </thead>
@@ -313,16 +323,16 @@ export default function HorusImportWizard() {
                           className="accent-[#1B6FD9]"
                         />
                       </td>
-                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.55)] whitespace-nowrap font-mono">{row.date || '—'}</td>
+                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.55)] whitespace-nowrap font-mono">{row.date || '-'}</td>
                       <td className="px-3 py-2.5 text-[rgba(245,245,242,0.8)] max-w-[200px] truncate">
                         {row.title || <span className="italic text-[rgba(245,245,242,0.3)]">no title</span>}
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className="text-[rgba(245,245,242,0.4)]">{row.type || '—'}</span>
-                        {row.type && <span className="mx-1 text-[rgba(245,245,242,0.2)]">→</span>}
+                        <span className="text-[rgba(245,245,242,0.4)]">{row.type || '-'}</span>
+                        {row.type && <span className="mx-1 text-[rgba(245,245,242,0.2)]">/</span>}
                         <span className="text-[rgba(245,245,242,0.6)] capitalize">{row.mappedCategory}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.4)] truncate max-w-[120px]">{row.supervisor || '—'}</td>
+                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.4)] truncate max-w-[120px]">{row.supervisor || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -332,20 +342,20 @@ export default function HorusImportWizard() {
 
           <div className="flex justify-between gap-3">
             <button onClick={() => setStep(1)} className="px-4 py-2 text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] transition-colors">
-              ← Back
+              Back
             </button>
             <button
               onClick={() => setStep(3)}
               disabled={selectedCount === 0}
               className="px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              Configure import ({selectedCount} rows) →
+              Configure import ({selectedCount} rows)
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 3: Configure ── */}
+      {/* Step 3: Configure */}
       {step === 3 && (
         <div className="space-y-6">
           <div>
@@ -357,12 +367,22 @@ export default function HorusImportWizard() {
           <div className="bg-[#141416] border border-white/[0.08] rounded-xl p-4 space-y-3">
             <p className="text-sm font-medium text-[#F5F5F2]">Specialty tags</p>
             <p className="text-xs text-[rgba(245,245,242,0.45)]">Tag all imported entries with your tracked specialties so they show up in the specialty tracker. You can change this per-entry later.</p>
-            <input
-              value={selectedTags.join(', ')}
-              onChange={e => setSelectedTags(e.target.value.split(',').map(t => t.trim()).filter(Boolean))}
-              placeholder="e.g. imt_2026, gp_st1_2026 (comma separated keys)"
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
-            />
+            {specialtyOptions.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {specialtyOptions.map(option => (
+                  <button
+                    key={option.key}
+                    type="button"
+                    onClick={() => toggleTag(option.key)}
+                    className={`min-h-[36px] rounded-lg border px-3 text-xs font-medium ${selectedTags.includes(option.key) ? 'border-[#1B6FD9] bg-[#1B6FD9]/15 text-[#F5F5F2]' : 'border-white/[0.08] text-[rgba(245,245,242,0.55)]'}`}
+                  >
+                    {option.name}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-[rgba(245,245,242,0.4)]">Track a specialty first if you want these entries to appear in a specialty score tracker.</p>
+            )}
           </div>
 
           {/* Duplicate handling */}
@@ -400,7 +420,7 @@ export default function HorusImportWizard() {
 
           <div className="flex justify-between gap-3">
             <button onClick={() => setStep(2)} className="px-4 py-2 text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] transition-colors">
-              ← Back
+              Back
             </button>
             <button
               onClick={handleImport}
@@ -410,17 +430,17 @@ export default function HorusImportWizard() {
               {importing ? (
                 <>
                   <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full animate-spin" />
-                  Importing…
+                  Importing...
                 </>
               ) : (
-                `Import ${selectedCount} entries →`
+                `Import ${selectedCount} entries`
               )}
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Step 4: Done ── */}
+      {/* Step 4: Done */}
       {step === 4 && result && (
         <div className="space-y-6">
           <div className="flex flex-col items-center py-8 text-center">
@@ -455,7 +475,7 @@ export default function HorusImportWizard() {
               href="/portfolio"
               className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              View portfolio →
+              View portfolio
             </Link>
             <button
               onClick={() => { setStep(1); setRows([]); setResult(null); setError(null) }}

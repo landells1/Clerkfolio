@@ -27,6 +27,8 @@ export type TimelineSpecialtyDeadline = {
   date: string
   details?: string | null
   location?: string | null
+  sourceUrl?: string | null
+  sourceLabel?: string | null
   specialtyApplicationId: string | null
   specialtyKey: string | null
   specialtyName: string
@@ -39,6 +41,8 @@ type TimelineItem = {
   date: string
   details: string | null
   location: string | null
+  sourceUrl: string | null
+  sourceLabel: string | null
   type: 'deadline' | 'goal'
   specialtyApplicationId: string | null
   specialtyName: string
@@ -76,6 +80,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
   const [goalForm, setGoalForm] = useState({ category: 'custom', target_count: '1', due_date: iso(new Date()), specialty_application_id: '' })
   const [eventForm, setEventForm] = useState({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
   const [calendarToken, setCalendarToken] = useState(calendarFeedToken)
+  const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null)
 
   const colourBySpecialty = useMemo(() => Object.fromEntries(specialties.map((specialty, index) => [specialty.id, COLOURS[index % COLOURS.length]])), [specialties])
 
@@ -90,6 +95,8 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
           date: goal.due_date!,
           details: null,
           location: null,
+          sourceUrl: null,
+          sourceLabel: null,
           type: 'goal' as const,
           specialtyApplicationId: goal.specialty_application_id,
           specialtyName: specialty?.name ?? 'Other',
@@ -101,6 +108,8 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
       date: deadline.date,
       details: deadline.details ?? null,
       location: deadline.location ?? null,
+      sourceUrl: deadline.sourceUrl ?? null,
+      sourceLabel: deadline.sourceLabel ?? null,
       type: 'deadline' as const,
       specialtyApplicationId: deadline.specialtyApplicationId,
       specialtyName: deadline.specialtyName,
@@ -196,6 +205,33 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
     addToast('New calendar feed link copied', 'success')
   }
 
+  async function ensureCalendarFeedUrl() {
+    let token = calendarToken
+    if (!token) {
+      const res = await fetch('/api/calendar/feed-token', { method: 'POST' })
+      const body = await res.json()
+      if (!res.ok || !body.token) {
+        addToast(body.error ?? 'Failed to create calendar feed', 'error')
+        return null
+      }
+      token = body.token
+      setCalendarToken(token)
+    }
+    return `${window.location.origin}/api/calendar/feed/${token}`
+  }
+
+  async function openCalendarFeed() {
+    const url = await ensureCalendarFeedUrl()
+    if (!url) return
+    window.location.href = url.replace(/^https?:/, 'webcal:')
+  }
+
+  async function openGoogleCalendar() {
+    const url = await ensureCalendarFeedUrl()
+    if (!url) return
+    window.open(`https://calendar.google.com/calendar/render?cid=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
+  }
+
   const days = monthDays(month)
 
   return (
@@ -205,13 +241,15 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Timeline</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Goals and application deadlines in one place.</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <div className="hidden sm:flex rounded-lg border border-white/[0.08] bg-[#141416] p-1">
             {(['calendar', 'list'] as const).map(mode => (
               <button key={mode} onClick={() => setView(mode)} className={`min-h-[36px] px-3 rounded-md text-sm capitalize ${view === mode ? 'bg-white/[0.08] text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.45)]'}`}>{mode}</button>
             ))}
           </div>
-          <button onClick={copyCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Calendar feed</button>
+          <button onClick={copyCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Copy feed</button>
+          <button onClick={openCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Apple/Outlook</button>
+          <button onClick={openGoogleCalendar} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Google</button>
           {calendarToken && <button onClick={rotateCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Rotate feed</button>}
           <button onClick={() => setShowEventForm(true)} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Add event</button>
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
@@ -244,9 +282,9 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
                   <p className={`text-xs mb-2 ${muted ? 'text-[rgba(245,245,242,0.2)]' : 'text-[rgba(245,245,242,0.5)]'}`}>{day.getDate()}</p>
                   <div className="space-y-1">
                     {dayItems.slice(0, 3).map(item => (
-                      <div key={item.id} className="truncate rounded px-2 py-1 text-[11px] text-white" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : '#6B7280' }}>
+                      <button key={item.id} type="button" onClick={() => setSelectedItem(item)} className="block w-full truncate rounded px-2 py-1 text-left text-[11px] text-white" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : '#6B7280' }}>
                         {item.title}
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -255,10 +293,10 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
           </div>
         </section>
       ) : (
-        <TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} />
+        <TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} />
       )}
 
-      {view === 'calendar' && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} /></div>}
+      {view === 'calendar' && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} /></div>}
 
       {showGoalForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
@@ -300,11 +338,51 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedToke
           </form>
         </div>
       )}
+
+      {selectedItem && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
+          <div className="w-full sm:max-w-lg bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{selectedItem.type}</p>
+                <h2 className="mt-1 text-lg font-semibold text-[#F5F5F2]">{selectedItem.title}</h2>
+              </div>
+              <button type="button" onClick={() => setSelectedItem(null)} className="min-h-[36px] px-3 text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Close</button>
+            </div>
+            <dl className="mt-5 space-y-3 text-sm">
+              <div>
+                <dt className="text-xs text-[rgba(245,245,242,0.35)]">Date</dt>
+                <dd className="text-[#F5F5F2]">{new Date(selectedItem.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
+              </div>
+              <div>
+                <dt className="text-xs text-[rgba(245,245,242,0.35)]">Group</dt>
+                <dd className="text-[#F5F5F2]">{selectedItem.specialtyName}</dd>
+              </div>
+              {(selectedItem.location || selectedItem.details) && (
+                <div>
+                  <dt className="text-xs text-[rgba(245,245,242,0.35)]">Details</dt>
+                  <dd className="whitespace-pre-line text-[rgba(245,245,242,0.7)]">{[selectedItem.location, selectedItem.details].filter(Boolean).join('\n\n')}</dd>
+                </div>
+              )}
+            </dl>
+            {selectedItem.sourceUrl && (
+              <a
+                href={selectedItem.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]"
+              >
+                Open {selectedItem.sourceLabel ?? 'source'}
+              </a>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
-function TimelineList({ grouped, colourBySpecialty }: { grouped: Record<string, TimelineItem[]>; colourBySpecialty: Record<string, string> }) {
+function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: Record<string, TimelineItem[]>; colourBySpecialty: Record<string, string>; onSelectItem: (item: TimelineItem) => void }) {
   return (
     <div className="space-y-4">
       {Object.entries(grouped).map(([group, groupItems]) => (
@@ -312,7 +390,7 @@ function TimelineList({ grouped, colourBySpecialty }: { grouped: Record<string, 
           <h2 className="text-sm font-semibold text-[#F5F5F2] mb-3">{group}</h2>
           <div className="space-y-2">
             {groupItems.map(item => (
-              <div key={item.id} className="flex items-center gap-3 rounded-xl bg-[#0B0B0C] border border-white/[0.06] px-4 py-3">
+              <button key={item.id} type="button" onClick={() => onSelectItem(item)} className="flex w-full items-center gap-3 rounded-xl bg-[#0B0B0C] border border-white/[0.06] px-4 py-3 text-left hover:border-white/[0.14]">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : '#6B7280' }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-[#F5F5F2]">{item.title}</p>
@@ -322,7 +400,7 @@ function TimelineList({ grouped, colourBySpecialty }: { grouped: Record<string, 
                   )}
                 </div>
                 <span className="text-[10px] uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{item.type}</span>
-              </div>
+              </button>
             ))}
           </div>
         </section>
