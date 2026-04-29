@@ -127,28 +127,27 @@ export async function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.redirect(url))
   }
 
-  // Logged in on an unauth-only route → dashboard or onboarding
-  if (user && isUnauthRoute) {
+  // Single profile fetch covers both redirect paths below
+  let onboardingComplete: boolean | null = null
+  if (user) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('onboarding_complete')
       .eq('id', user.id)
       .single()
+    onboardingComplete = profile?.onboarding_complete ?? false
+  }
 
+  // Logged in on an unauth-only route → dashboard or onboarding
+  if (user && isUnauthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = profile?.onboarding_complete ? '/dashboard' : '/onboarding'
+    url.pathname = onboardingComplete ? '/dashboard' : '/onboarding'
     return applySecurityHeaders(NextResponse.redirect(url))
   }
 
   // Logged in on a protected route — enforce onboarding
   if (user && !isUnauthRoute && pathname !== '/onboarding') {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('onboarding_complete')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile?.onboarding_complete) {
+    if (!onboardingComplete) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
       return applySecurityHeaders(NextResponse.redirect(url))

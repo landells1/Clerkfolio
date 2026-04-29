@@ -113,31 +113,40 @@ export async function POST(req: NextRequest) {
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     const service = createServiceClient()
-    const now = new Date().toISOString()
-    const { data: referrer } = await service
-      .from('profiles')
-      .select('id, pro_features_used')
-      .eq('id', profile.referred_by)
-      .single()
 
-    const referredUntil = referralUntil((profile.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
-    const referrerUntil = referralUntil((referrer?.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
+    const { data: existingReferral } = await service
+      .from('referrals')
+      .select('status')
+      .eq('referred_id', user.id)
+      .maybeSingle()
 
-    await service.from('referrals').upsert({
-      referrer_id: profile.referred_by,
-      referred_id: user.id,
-      status: 'completed',
-      reward_granted_at: now,
-    }, { onConflict: 'referred_id' })
+    if (existingReferral?.status !== 'completed') {
+      const now = new Date().toISOString()
+      const { data: referrer } = await service
+        .from('profiles')
+        .select('id, pro_features_used')
+        .eq('id', profile.referred_by)
+        .single()
 
-    await Promise.all([
-      service.from('profiles').update({
-        pro_features_used: mergeUsage(profile.pro_features_used as Record<string, unknown> | null, referredUntil),
-      }).eq('id', user.id),
-      referrer ? service.from('profiles').update({
-        pro_features_used: mergeUsage(referrer.pro_features_used as Record<string, unknown> | null, referrerUntil),
-      }).eq('id', profile.referred_by) : Promise.resolve(),
-    ])
+      const referredUntil = referralUntil((profile.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
+      const referrerUntil = referralUntil((referrer?.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
+
+      await service.from('referrals').upsert({
+        referrer_id: profile.referred_by,
+        referred_id: user.id,
+        status: 'completed',
+        reward_granted_at: now,
+      }, { onConflict: 'referred_id' })
+
+      await Promise.all([
+        service.from('profiles').update({
+          pro_features_used: mergeUsage(profile.pro_features_used as Record<string, unknown> | null, referredUntil),
+        }).eq('id', user.id),
+        referrer ? service.from('profiles').update({
+          pro_features_used: mergeUsage(referrer.pro_features_used as Record<string, unknown> | null, referrerUntil),
+        }).eq('id', profile.referred_by) : Promise.resolve(),
+      ])
+    }
   }
 
   return NextResponse.json({ ok: true })

@@ -156,7 +156,7 @@ export async function POST(req: NextRequest) {
   await Promise.allSettled([
     supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: true }),
     supabase.from('share_views').insert({ share_link_id: link.id, ip_hash: ipHash }),
-    supabase.from('share_links').update({ view_count: (link.view_count ?? 0) + 1 }).eq('id', link.id),
+    supabase.rpc('increment_share_link_view_count', { p_link_id: link.id }),
     supabase.from('audit_log').insert({
       user_id: link.user_id,
       action: 'share_link_viewed',

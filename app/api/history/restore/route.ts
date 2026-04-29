@@ -83,7 +83,7 @@ export async function POST(req: NextRequest) {
     .eq('entry_id', revision.entry_id)
     .eq('entry_type', entryType)
     .order('created_at', { ascending: false })
-    .range(50, 200)
+    .range(50, 9999)
 
   if (excess?.length) {
     await supabase.from('entry_revisions').delete().in('id', excess.map(row => row.id))

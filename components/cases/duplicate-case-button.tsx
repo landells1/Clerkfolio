@@ -20,6 +20,7 @@ export default function DuplicateCaseButton({ caseId }: { caseId: string }) {
         .from('cases')
         .select('*')
         .eq('id', caseId)
+        .eq('user_id', user.id)
         .single()
 
       if (fetchError || !original) {
