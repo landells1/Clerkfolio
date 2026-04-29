@@ -33,17 +33,6 @@ const SUPERVISION_LEVELS: { id: string; label: string }[] = [
   { id: 'Unsupervised', label: 'Unsupervised' },
 ]
 
-const CASE_TEMPLATES = [
-  { label: 'Chest pain', domain: 'Cardiology', tags: ['Cardiology', 'Acute Medicine'] },
-  { label: 'SOB', domain: 'Respiratory Medicine', tags: ['Respiratory Medicine', 'Acute Medicine'] },
-  { label: 'Acute abdomen', domain: 'General Surgery', tags: ['General Surgery', 'Acute Medicine'] },
-  { label: 'Sepsis', domain: 'Acute Medicine', tags: ['Acute Medicine', 'Infectious Diseases'] },
-  { label: 'Stroke / TIA', domain: 'Neurology', tags: ['Neurology', 'Acute Medicine'] },
-  { label: 'DKA', domain: 'Endocrinology & Diabetes', tags: ['Endocrinology & Diabetes', 'Acute Medicine'] },
-  { label: 'AKI', domain: 'Nephrology', tags: ['Nephrology', 'Acute Medicine'] },
-  { label: 'Cardiac arrest', domain: 'Acute Medicine', tags: ['Acute Medicine', 'Cardiology'] },
-]
-
 const KEYWORD_TAG_MAP: [string[], string][] = [
   [['cardio', 'cardiac', 'heart', 'mi ', 'stemi', 'nstemi', 'af ', 'atrial', 'chest pain', 'angina'], 'Cardiology'],
   [['resp', 'lung', 'pneum', 'asthma', 'copd', 'pleural', 'breathless', 'sob', 'shortness', 'haemoptysis'], 'Respiratory Medicine'],
@@ -93,7 +82,7 @@ export default function QuickAddModal({
   const [date, setDate] = useState(new Date().toISOString().split('T')[0])
   const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
-  // Case-specific — prefer domains[] array, fall back to single domain string
+  // Case-specific - prefer domains[] array, fall back to single domain string
   const [domains, setDomains] = useState<string[]>(
     initialValues?.domains?.length
       ? initialValues.domains
@@ -208,10 +197,10 @@ export default function QuickAddModal({
   }
 
   const SAVE_LABEL: Record<EntryType, string> = {
-    case: 'Save case →',
-    teaching: 'Save teaching →',
-    reflection: 'Save reflection →',
-    procedure: 'Save procedure →',
+    case: 'Save case',
+    teaching: 'Save teaching',
+    reflection: 'Save reflection',
+    procedure: 'Save procedure',
   }
 
   return (
@@ -252,26 +241,7 @@ export default function QuickAddModal({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Case templates */}
-          {type === 'case' && (
-            <div>
-              <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Templates</p>
-              <div className="overflow-x-auto flex gap-1.5 pb-1 mb-3">
-                {CASE_TEMPLATES.map(tpl => (
-                  <button
-                    key={tpl.label}
-                    type="button"
-                    onClick={() => { setTitle(tpl.label); setDomains([tpl.domain]); setTags(tpl.tags) }}
-                    className="shrink-0 px-2.5 py-1 rounded-lg text-xs font-medium bg-white/[0.04] border border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-[#1B6FD9]/40 hover:text-[#1B6FD9] transition-colors cursor-pointer whitespace-nowrap"
-                  >
-                    {tpl.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Title — shared */}
+          {/* Title - shared */}
           <div>
             <label className={LABEL}>
               {type === 'case' ? 'Case title' : type === 'procedure' ? 'Entry title' : `${TYPES.find(t => t.id === type)?.label} title`}{' '}
@@ -288,7 +258,7 @@ export default function QuickAddModal({
               className={INPUT}
               placeholder={
                 type === 'case'
-                  ? 'Brief description — no patient identifiers'
+                  ? 'Brief description - no patient identifiers'
                   : type === 'teaching'
                   ? 'e.g. Cardiology teaching session'
                   : type === 'reflection'
@@ -297,7 +267,7 @@ export default function QuickAddModal({
               }
             />
             {type === 'case' && (
-              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.35)]">Anonymised entries only — no patient identifiers</p>
+              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.35)]">Anonymised entries only - no patient identifiers</p>
             )}
 
             {/* Auto-tag suggestions */}
@@ -326,12 +296,12 @@ export default function QuickAddModal({
                   <line x1="12" y1="17" x2="12.01" y2="17"/>
                 </svg>
                 <span className="flex-1">Similar case already logged: &ldquo;{duplicateWarning.title}&rdquo;</span>
-                <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-400/60 hover:text-amber-400 ml-1">✕</button>
+                <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-400/60 hover:text-amber-400 ml-1">x</button>
               </div>
             )}
           </div>
 
-          {/* Date — shared */}
+          {/* Date - shared */}
           <div className={type === 'case' ? 'grid grid-cols-2 gap-3' : ''}>
             <div>
               <label className={LABEL}>Date</label>
@@ -397,7 +367,7 @@ export default function QuickAddModal({
                   rows={3}
                   value={reflFreeText}
                   onChange={e => setReflFreeText(e.target.value)}
-                  placeholder="What happened, what you learnt…"
+                  placeholder="What happened, what you learnt..."
                   className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
                 />
               </div>
@@ -454,20 +424,20 @@ export default function QuickAddModal({
             </div>
           )}
 
-          {/* Application tags — shared */}
+          {/* Application tags - shared */}
           <div>
             <label className={LABEL}>Application tags</label>
             <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
           </div>
 
-          {/* Comments / notes — shared */}
+          {/* Comments / notes - shared */}
           <div>
             <label className={LABEL}>Comments <span className="normal-case font-normal text-[rgba(245,245,242,0.3)]">(optional)</span></label>
             <textarea
               rows={3}
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              placeholder="Any notes, learning points, or comments…"
+              placeholder="Any notes, learning points, or comments..."
               className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
             />
           </div>
@@ -489,7 +459,7 @@ export default function QuickAddModal({
               disabled={saving}
               className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-2.5 text-sm transition-colors"
             >
-              {saving ? 'Saving…' : SAVE_LABEL[type]}
+              {saving ? 'Saving...' : SAVE_LABEL[type]}
             </button>
           </div>
         </form>

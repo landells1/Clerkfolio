@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
+import { LegalContactButton } from '@/components/legal/contact-modal'
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
 
@@ -137,7 +138,7 @@ function Hero() {
 
           <div style={{ display: 'flex', gap: 12 }}>
             <Link href="/signup" style={{ background: pal.accent, color: pal.bg, padding: '14px 24px', fontSize: 14, fontWeight: 600, fontFamily: font.sans, borderRadius: 8, textDecoration: 'none', display: 'inline-block' }}>
-              Create your portfolio →
+              Create your portfolio
             </Link>
             <a href="#how-it-works" style={{ background: 'transparent', color: pal.ink, border: `1px solid ${pal.ruleHi}`, padding: '14px 24px', fontSize: 14, fontWeight: 500, fontFamily: font.sans, borderRadius: 8, textDecoration: 'none', display: 'inline-block' }}>
               See how it works
@@ -171,7 +172,7 @@ function ProductVisual() {
           <div style={{ display: 'flex', gap: 6 }}>
             {['#FF5F57','#FEBC2E','#28C840'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: 5, background: c, opacity: 0.8 }} />)}
           </div>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: pal.inkDim, fontFamily: font.mono }}>clerkfolio.app · cases · entry</div>
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: pal.inkDim, fontFamily: font.mono }}>clerkfolio.app - cases - entry</div>
         </div>
         <div style={{ padding: '20px 24px' }}>
           <div style={{ fontFamily: font.mono, fontSize: 10, color: pal.inkDim, letterSpacing: 1.2, display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
@@ -274,7 +275,7 @@ function MiniStat({ label, value }: { label: string; value: string }) {
 function Features() {
   return (
     <section id="features" style={{ padding: '140px 56px 60px' }}>
-      <SectionHeader number="§ 002" label="FEATURES" title="Built like a reference system." sub="Every entry indexed, tagged, retrievable. Nothing buried. Nothing lost between rotations." />
+      <SectionHeader number="002" label="FEATURES" title="Built like a reference system." sub="Every entry indexed, tagged, retrievable. Nothing buried. Nothing lost between rotations." />
       <div style={{ marginTop: 80, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
         <FeatureCard tag="01 / CAPTURE"    title="Log it between patients"              body="Voice-dictate on the walk back from theatre. One-tap templates. Offline-safe — it syncs when you're back on wifi."                                                                                                                              visual={<MockMobileVoice />} large />
         <FeatureCard tag="02 / INSIGHTS"   title="See the shape of your training"       body="A live picture of what you've done — specialty, supervision level, curriculum domain. Notice the gaps before ARCP does."                                                                                                                        visual={<MockInsights />}    large />
@@ -541,7 +542,7 @@ function HowItWorks() {
   ]
   return (
     <section id="how-it-works" style={{ padding: '140px 56px', borderTop: `1px solid ${pal.rule}`, background: pal.bgPanel }}>
-      <SectionHeader number="§ 003" label="HOW IT WORKS" title="Four moves. Repeat forever." />
+      <SectionHeader number="003" label="HOW IT WORKS" title="Four moves. Repeat forever." />
       <div style={{ marginTop: 80, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1, background: pal.rule, border: `1px solid ${pal.rule}`, borderRadius: 12, overflow: 'hidden' }}>
         {steps.map((s, i) => (
           <div key={i} style={{ background: pal.bgPanel, padding: 36, minHeight: 260, display: 'flex', flexDirection: 'column' }}>
@@ -560,10 +561,10 @@ function HowItWorks() {
 function Founders() {
   return (
     <section id="founders" style={{ padding: '140px 56px' }}>
-      <SectionHeader number="§ 004" label="FOUNDERS" title="Built by the people who actually use it." />
+      <SectionHeader number="004" label="FOUNDERS" title="Built by the people who actually use it." />
       <div style={{ marginTop: 60, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        <FounderCard name="Dr [Name]" role="Co-founder · Internal Medicine Trainee" hospital="Royal London Hospital" quote="I wasted weeks every application cycle stitching my portfolio back together. Clerkfolio is the thing I wished existed in FY1." />
-        <FounderCard name="Dr [Name]" role="Co-founder · Core Surgical Trainee"    hospital="Guy's & St Thomas'"    quote="Your career should leave a trail. We built Clerkfolio so it actually does — in a form you can hand over, share, and own." />
+        <FounderCard name="Dr [Name]" role="Co-founder - Internal Medicine Trainee" hospital="Royal London Hospital" quote="I wasted weeks every application cycle stitching my portfolio back together. Clerkfolio is the thing I wished existed in FY1." />
+        <FounderCard name="Dr [Name]" role="Co-founder - Core Surgical Trainee"    hospital="Guy's & St Thomas'"    quote="Your career should leave a trail. We built Clerkfolio so it actually does - in a form you can hand over, share, and own." />
       </div>
       <div style={{ marginTop: 60, padding: 28, background: pal.bgPanel, border: `1px solid ${pal.rule}`, borderRadius: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
         {([
@@ -604,7 +605,7 @@ function CtaFooter() {
   return (
     <section style={{ padding: '120px 56px 40px', borderTop: `1px solid ${pal.rule}`, background: `linear-gradient(180deg, ${pal.bg}, oklch(0.2 0.04 195 / 0.1))`, position: 'relative', overflow: 'hidden' }}>
       <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center' }}>
-        <div style={{ fontFamily: font.mono, fontSize: 11, color: pal.accent, letterSpacing: 1.5, marginBottom: 24 }}>§ 005 · BEGIN</div>
+        <div style={{ fontFamily: font.mono, fontSize: 11, color: pal.accent, letterSpacing: 1.5, marginBottom: 24 }}>005 - BEGIN</div>
         <h2 style={{ fontSize: 'clamp(56px, 7vw, 104px)', lineHeight: 1, letterSpacing: -3.6, fontWeight: 500, margin: 0 }}>
           Start the<br />
           <span style={{ background: `linear-gradient(100deg, ${pal.accent}, oklch(0.7 0.13 260))`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontStyle: 'italic', fontWeight: 400 }}>
@@ -615,19 +616,19 @@ function CtaFooter() {
           Free during early access. No credit card. Your portfolio, portable for as long as you&apos;re a doctor.
         </p>
         <Link href="/signup" style={{ display: 'inline-block', background: pal.accent, color: pal.bg, padding: '18px 36px', fontSize: 15, fontWeight: 600, fontFamily: font.sans, borderRadius: 10, textDecoration: 'none' }}>
-          Create your portfolio — free →
+          Create your portfolio - free
         </Link>
       </div>
 
       <div style={{ marginTop: 120, paddingTop: 28, borderTop: `1px solid ${pal.rule}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: font.mono, fontSize: 11, color: pal.inkDim, letterSpacing: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Logo />
-          <span>CLERKFOLIO · § 2026</span>
+          <span>CLERKFOLIO - 2026</span>
         </div>
         <div style={{ display: 'flex', gap: 32 }}>
           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-          <a href="mailto:hello@clerkfolio.co.uk" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</a>
+          <LegalContactButton />
         </div>
       </div>
     </section>

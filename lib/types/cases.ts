@@ -16,7 +16,7 @@ export type Case = {
 
 export type NewCase = Omit<Case, 'id' | 'user_id' | 'created_at' | 'updated_at'>
 
-// Common clinical domains — shown as suggestions, free text is also accepted
+// Common clinical domains - shown as suggestions, free text is also accepted
 export const CLINICAL_DOMAINS = [
   'Acute Medicine',
   'Anaesthetics',
