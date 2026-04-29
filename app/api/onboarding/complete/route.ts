@@ -2,24 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
+import { grantEligibleReferralReward } from '@/lib/referrals/rewards'
 
 const CAREER_STAGES = new Set(['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6', 'FY1', 'FY2', 'POST_FY'])
-
-function referralUntil(existing?: string | null) {
-  const base = existing && new Date(existing).getTime() > Date.now()
-    ? new Date(existing)
-    : new Date()
-  base.setDate(base.getDate() + 30)
-  return base.toISOString()
-}
-
-function mergeUsage(usage: Record<string, unknown> | null, referral_pro_until: string) {
-  return {
-    pdf_exports_used: Number(usage?.pdf_exports_used ?? 0),
-    share_links_used: Number(usage?.share_links_used ?? 0),
-    referral_pro_until,
-  }
-}
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
@@ -59,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('referred_by, pro_features_used')
+    .select('referred_by')
     .eq('id', user.id)
     .single()
 
@@ -112,41 +97,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    const service = createServiceClient()
-
-    const { data: existingReferral } = await service
-      .from('referrals')
-      .select('status')
-      .eq('referred_id', user.id)
-      .maybeSingle()
-
-    if (existingReferral?.status !== 'completed') {
-      const now = new Date().toISOString()
-      const { data: referrer } = await service
-        .from('profiles')
-        .select('id, pro_features_used')
-        .eq('id', profile.referred_by)
-        .single()
-
-      const referredUntil = referralUntil((profile.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
-      const referrerUntil = referralUntil((referrer?.pro_features_used as Record<string, unknown> | null)?.referral_pro_until as string | null)
-
-      await service.from('referrals').upsert({
-        referrer_id: profile.referred_by,
-        referred_id: user.id,
-        status: 'completed',
-        reward_granted_at: now,
-      }, { onConflict: 'referred_id' })
-
-      await Promise.all([
-        service.from('profiles').update({
-          pro_features_used: mergeUsage(profile.pro_features_used as Record<string, unknown> | null, referredUntil),
-        }).eq('id', user.id),
-        referrer ? service.from('profiles').update({
-          pro_features_used: mergeUsage(referrer.pro_features_used as Record<string, unknown> | null, referrerUntil),
-        }).eq('id', profile.referred_by) : Promise.resolve(),
-      ])
-    }
+    await grantEligibleReferralReward(createServiceClient(), user.id)
   }
 
   return NextResponse.json({ ok: true })
