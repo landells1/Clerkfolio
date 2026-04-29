@@ -40,12 +40,12 @@ Clinidex is a UK medical portfolio tracker spanning medical school → foundatio
 - **Stripe** — £10/year Pro subscription
 
 ## Subscription model (V2)
-- **Free**: 100MB storage. Lifetime trial of Pro features: 1 PDF, 1 share link, 1 specialty.
+- **Free**: 100MB storage. Free allowance: 1 PDF, 1 share link, 1 specialty.
 - **Pro**: £10/year. 5GB storage. Unlimited.
-- **Student**: verified `.ac.uk` email. 5GB. Pro features free. 3-month grace when career stage moves to FY1+.
+- **Student**: verified `.ac.uk` email. 1GB storage. Same feature limits as Free; moves to Foundation after graduation / FY career stage.
 - **Referrals**: 1 month Pro for both on referee onboarding completion.
 
-Time-based trial is **removed**. Gate via `lib/subscription.ts` → `getSubscriptionInfo()` returning `{ tier, isPro, isStudent, usage, limits }`.
+Time-based trial is **removed**. Gate via `lib/subscription.ts` → `fetchSubscriptionInfo()` returning `{ tier, isPro, isStudent, usage, limits }` from Supabase `get_profile_entitlements()`.
 
 ## Tag Landscape — three distinct concepts
 | Type | Field | Where | Source |
@@ -71,7 +71,7 @@ Never blur these in UI. Always label distinctly.
 ## Database Tables (post-V2)
 | Table | Purpose |
 |---|---|
-| `profiles` | `first_name`, `last_name`, `career_stage`, `tier`, `student_email_verified`, `referral_code`, `referred_by`, `pro_features_used` (jsonb), `notification_preferences` (jsonb), `student_grace_until` |
+| `profiles` | `first_name`, `last_name`, `career_stage`, `tier`, `student_email_verified`, `student_graduation_date`, `referral_code`, `referred_by`, `pro_features_used` (jsonb), `notification_preferences` (jsonb) |
 | `cases` | Clinical diary: `title`, `date`, `clinical_domain`, `specialty_tags[]`, `notes`, `pinned`, `deleted_at`, `interview_themes[]`, `completeness_score` |
 | `portfolio_entries` | Achievements: `category`, `title`, `date`, `specialty_tags[]`, `interview_themes[]`, `pinned`, `deleted_at`, `completeness_score` + many category-specific fields |
 | `specialty_applications` | `user_id`, `specialty_key`, `cycle_year`, `bonus_claimed`, `is_active` |
@@ -116,7 +116,7 @@ Bottom nav bar replaces sidebar under `md` breakpoint. 5 items: Dashboard, Portf
 - Whitelist: PDF, DOCX, XLSX, PPTX, TXT, PNG, JPG, JPEG, HEIC
 - Magic byte validation in `app/api/upload/authorize/route.ts` (use `file-type` package)
 - ClamAV scan via `supabase/functions/scan-evidence` Edge Function; status in `evidence_files.scan_status`
-- Quota: 100MB free / 5GB Pro/Student. DB trigger as source of truth, app-level check for fast UX
+- Quota: 100MB free/foundation, 1GB student, 5GB Pro/referral Pro. `get_profile_entitlements()` is the source of truth; DB trigger and app both call it.
 
 ## Component Patterns
 
@@ -145,8 +145,8 @@ getSpecialtyConfig('imt_2026')?.name  // → "IMT"
 
 ### Subscription gating
 ```tsx
-import { getSubscriptionInfo } from '@/lib/subscription'
-const sub = await getSubscriptionInfo(userId)
+import { fetchSubscriptionInfo } from '@/lib/subscription'
+const sub = await fetchSubscriptionInfo(supabase, userId)
 if (!sub.limits.canExportPdf) {
   return <UpgradeCard feature="PDF export" />
 }
@@ -173,6 +173,6 @@ Key: `clinidex-case-draft` in `sessionStorage`. Expires 24h. Saves `title`, `dat
 - Duplicate entries: `created_at` tiebreaker ensures copy appears above original
 - After logging a case, redirect goes to `/cases` list (not the individual case)
 - Cases sort defaults to `created_at` not `date` (so newest-added is always first — journal feel)
-- `specialty_interests` on `profiles` is stale onboarding data — do NOT use for application tag logic; use `specialty_applications` instead
+- `specialty_interests` was removed from `profiles`; use `specialty_applications` for application tag logic
 - `interview_themes[]` array can hold preset slugs OR custom theme slugs (slugs unique per user across both)
 - Cases removed from `specialty_entry_links` and `arcp_entry_links` — portfolio entries only as evidence

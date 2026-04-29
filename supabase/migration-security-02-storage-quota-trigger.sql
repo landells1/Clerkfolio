@@ -8,9 +8,10 @@
 -- layer: an evidence_files INSERT is rejected if the user would exceed their
 -- plan-appropriate limit.
 --
--- Limits (must stay in sync with lib/supabase/storage.ts):
---   Free / trial : 200 MB  (209,715,200 bytes)
---   Pro          :   5 GB  (5,368,709,120 bytes)
+-- Limits are resolved by public.get_profile_entitlements():
+--   Free/Foundation : 100 MB
+--   Student         :   1 GB
+--   Pro/Referral Pro:   5 GB
 -- ============================================================
 
 CREATE OR REPLACE FUNCTION public.enforce_storage_quota()
@@ -21,25 +22,21 @@ SET search_path = public
 AS $$
 DECLARE
   v_used        bigint;
-  v_is_pro      boolean;
+  v_quota_mb    integer;
   v_quota_bytes bigint;
   v_limit_label text;
 BEGIN
-  -- Determine plan
-  SELECT (subscription_status = 'active'
-          AND subscription_period_end IS NOT NULL
-          AND subscription_period_end > now())
-    INTO v_is_pro
-    FROM public.profiles
-   WHERE id = NEW.user_id;
+  SELECT storage_quota_mb
+    INTO v_quota_mb
+    FROM public.get_profile_entitlements(NEW.user_id)
+    LIMIT 1;
 
-  IF v_is_pro THEN
-    v_quota_bytes := 5368709120; -- 5 GB
-    v_limit_label := '5 GB';
-  ELSE
-    v_quota_bytes := 209715200;  -- 200 MB
-    v_limit_label := '200 MB';
-  END IF;
+  v_quota_bytes := COALESCE(v_quota_mb, 100) * 1024 * 1024;
+  v_limit_label := CASE
+    WHEN COALESCE(v_quota_mb, 100) >= 5120 THEN '5 GB'
+    WHEN COALESCE(v_quota_mb, 100) >= 1024 THEN '1 GB'
+    ELSE '100 MB'
+  END;
 
   -- Sum existing usage (new row is not yet committed, so SUM gives the pre-insert total)
   SELECT COALESCE(SUM(file_size), 0)

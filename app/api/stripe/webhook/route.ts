@@ -56,7 +56,6 @@ export async function POST(request: NextRequest) {
         tier: 'pro',
         stripe_customer_id: session.customer as string,
         stripe_subscription_id: subscription.id,
-        subscription_status: 'active',
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('id', userId)
 
@@ -71,13 +70,8 @@ export async function POST(request: NextRequest) {
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription
 
-      const status = subscription.status === 'active' ? 'active'
-        : subscription.status === 'past_due' ? 'past_due'
-        : 'cancelled'
-
       const { error: updateError } = await supabase.from('profiles').update({
-        tier: status === 'active' ? 'pro' : 'free',
-        subscription_status: status,
+        tier: subscription.status === 'active' ? 'pro' : 'free',
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id)
 
@@ -94,7 +88,6 @@ export async function POST(request: NextRequest) {
 
       const { error: deleteError } = await supabase.from('profiles').update({
         tier: 'free',
-        subscription_status: 'cancelled',
         stripe_subscription_id: null,
         subscription_period_end: null,
       }).eq('stripe_subscription_id', subscription.id)

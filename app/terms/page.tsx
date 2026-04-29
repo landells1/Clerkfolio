@@ -20,7 +20,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Plans">
-          <p>Free accounts include core cases, portfolio, dashboard, timeline, ARCP tracking, personal data backup, and one lifetime PDF export and share link. Free accounts can track one specialty at a time and have 100 MB storage. Pro is GBP 10 per year and includes 5 GB storage plus unrestricted Pro features. Verified medical student accounts may receive Student access under the rules shown in the product.</p>
+      <p>Free accounts include core cases, portfolio, dashboard, timeline, ARCP tracking, personal data backup, and one lifetime PDF export and share link. Free accounts can track one specialty at a time and have 100 MB storage. Student accounts have the same feature limits as Free accounts with 1 GB storage. Pro is GBP 10 per year and includes 5 GB storage plus unrestricted Pro features.</p>
         </Section>
 
         <Section title="Data ownership">

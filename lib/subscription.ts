@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-export type Tier = 'free' | 'pro' | 'student'
+export type Tier = 'free' | 'student' | 'foundation' | 'pro'
 
 export interface SubscriptionInfo {
   tier: Tier
@@ -13,7 +13,7 @@ export interface SubscriptionInfo {
     specialtiesTracked: number
     storageUsedMB: number
     referralProUntil: string | null
-    studentGraceUntil: string | null
+    studentGraduationDate: string | null
   }
   limits: {
     canExportPdf: boolean
@@ -24,58 +24,45 @@ export interface SubscriptionInfo {
   }
 }
 
-type ProfileData = {
-  tier?: string | null
-  subscription_status?: string | null
-  pro_features_used?: {
-    pdf_exports_used?: number
-    share_links_used?: number
-    referral_pro_until?: string | null
-  } | null
-  student_grace_until?: string | null
+type EntitlementRow = {
+  tier: Tier | null
+  is_pro: boolean | null
+  is_student: boolean | null
+  storage_quota_mb: number | null
+  pdf_exports_used: number | null
+  share_links_used: number | null
+  specialties_tracked: number | null
+  storage_used_mb: number | null
+  referral_pro_until: string | null
+  student_graduation_date: string | null
+  can_export_pdf: boolean | null
+  can_create_share_link: boolean | null
+  can_track_another_specialty: boolean | null
+  can_bulk_import: boolean | null
+  can_upload_files: boolean | null
 }
 
-type UsageData = {
-  specialtiesTracked: number
-  storageUsedMB: number
-}
-
-export function getSubscriptionInfo(profile: ProfileData, usage: UsageData): SubscriptionInfo {
-  const tier = ((profile.tier ?? 'free') as Tier)
-  const stripeActive = profile.subscription_status === 'active'
-  const pfu = profile.pro_features_used ?? {}
-  const now = new Date()
-
-  const referralActive =
-    pfu.referral_pro_until != null && new Date(pfu.referral_pro_until) > now
-  const graceActive =
-    profile.student_grace_until != null && new Date(profile.student_grace_until) > now
-
-  const isPro = tier === 'pro' || tier === 'student' || stripeActive || referralActive || graceActive
-  const isStudent = tier === 'student'
-  const storageQuotaMB = isPro ? 5120 : 100
-
-  const usageObj = {
-    pdfExportsUsed: pfu.pdf_exports_used ?? 0,
-    shareLinksUsed: pfu.share_links_used ?? 0,
-    specialtiesTracked: usage.specialtiesTracked,
-    storageUsedMB: usage.storageUsedMB,
-    referralProUntil: pfu.referral_pro_until ?? null,
-    studentGraceUntil: profile.student_grace_until ?? null,
-  }
-
+function mapEntitlements(row: EntitlementRow | null): SubscriptionInfo {
+  const tier = row?.tier ?? 'free'
   return {
     tier,
-    isPro,
-    isStudent,
-    storageQuotaMB,
-    usage: usageObj,
+    isPro: row?.is_pro ?? false,
+    isStudent: row?.is_student ?? false,
+    storageQuotaMB: row?.storage_quota_mb ?? 100,
+    usage: {
+      pdfExportsUsed: row?.pdf_exports_used ?? 0,
+      shareLinksUsed: row?.share_links_used ?? 0,
+      specialtiesTracked: row?.specialties_tracked ?? 0,
+      storageUsedMB: row?.storage_used_mb ?? 0,
+      referralProUntil: row?.referral_pro_until ?? null,
+      studentGraduationDate: row?.student_graduation_date ?? null,
+    },
     limits: {
-      canExportPdf: isPro || usageObj.pdfExportsUsed < 1,
-      canCreateShareLink: isPro || usageObj.shareLinksUsed < 1,
-      canTrackAnotherSpecialty: isPro || usageObj.specialtiesTracked < 1,
-      canBulkImport: isPro,
-      canUploadFiles: usageObj.storageUsedMB < storageQuotaMB,
+      canExportPdf: row?.can_export_pdf ?? true,
+      canCreateShareLink: row?.can_create_share_link ?? true,
+      canTrackAnotherSpecialty: row?.can_track_another_specialty ?? true,
+      canBulkImport: row?.can_bulk_import ?? false,
+      canUploadFiles: row?.can_upload_files ?? true,
     },
   }
 }
@@ -84,34 +71,9 @@ export async function fetchSubscriptionInfo(
   supabase: SupabaseClient,
   userId: string
 ): Promise<SubscriptionInfo> {
-  const [
-    { data: profile },
-    { count: specialtiesTracked },
-    { data: files },
-  ] = await Promise.all([
-    supabase
-      .from('profiles')
-      .select('tier, subscription_status, pro_features_used, student_grace_until')
-      .eq('id', userId)
-      .single(),
-    supabase
-      .from('specialty_applications')
-      .select('id', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('is_active', true),
-    supabase
-      .from('evidence_files')
-      .select('file_size')
-      .eq('user_id', userId),
-  ])
+  const { data } = await supabase
+    .rpc('get_profile_entitlements', { p_user_id: userId })
+    .single()
 
-  const storageUsedBytes = (files ?? []).reduce(
-    (sum: number, f: { file_size: number | null }) => sum + (f.file_size ?? 0),
-    0
-  )
-
-  return getSubscriptionInfo(
-    profile ?? { tier: 'free', subscription_status: null, pro_features_used: null, student_grace_until: null },
-    { specialtiesTracked: specialtiesTracked ?? 0, storageUsedMB: storageUsedBytes / (1024 * 1024) }
-  )
+  return mapEntitlements(data as EntitlementRow | null)
 }

@@ -37,12 +37,21 @@ export async function POST(req: NextRequest) {
   const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : ''
   const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : ''
   const careerStage = typeof body.careerStage === 'string' && CAREER_STAGES.has(body.careerStage) ? body.careerStage : null
+  const studentGraduationDate =
+    typeof body.studentGraduationDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.studentGraduationDate)
+      ? body.studentGraduationDate
+      : null
   const selectedSpecialties: string[] = Array.isArray(body.specialties)
     ? body.specialties.filter((key: unknown): key is string => typeof key === 'string').slice(0, 3)
     : []
 
   if (!firstName || !lastName || !careerStage) {
     return NextResponse.json({ error: 'Profile details are incomplete.' }, { status: 400 })
+  }
+
+  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6'].includes(careerStage)
+  if (isMedicalStudent && !studentGraduationDate) {
+    return NextResponse.json({ error: 'Expected graduation date is required for student accounts.' }, { status: 400 })
   }
 
   const specialtySet = new Set(SPECIALTY_CONFIGS.map(s => s.key))
@@ -60,7 +69,7 @@ export async function POST(req: NextRequest) {
       first_name: firstName,
       last_name: lastName,
       career_stage: careerStage,
-      specialty_interests: validSpecialties,
+      student_graduation_date: studentGraduationDate,
       onboarding_complete: true,
     })
     .eq('id', user.id)

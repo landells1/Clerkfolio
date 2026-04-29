@@ -38,7 +38,6 @@ export default function SignupPage() {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
         data: {
           referral_code: referralCode,
-          student_email_verified: /\.ac\.uk$/i.test(email),
         },
       },
     })

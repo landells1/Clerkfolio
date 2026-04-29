@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
-import { FREE_CAP_BYTES, PRO_CAP_BYTES, MAX_FILE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/supabase/storage'
+import { MAX_FILE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/supabase/storage'
 
 /**
  * POST /api/upload/authorize
@@ -11,7 +11,7 @@ import { FREE_CAP_BYTES, PRO_CAP_BYTES, MAX_FILE_BYTES, ALLOWED_MIME_TYPES } fro
  *  - Authentication
  *  - MIME type whitelist (matches the Supabase evidence bucket config)
  *  - Per-file size limit (50 MB)
- *  - Plan-aware storage quota (200 MB free / 5 GB Pro)
+ *  - Plan-aware storage quota (100 MB free/foundation, 1 GB student, 5 GB Pro/referral Pro)
  *
  * The client must call this before uploading. The quota check runs against the
  * evidence_files table which is the authoritative record of used storage.
@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
   const quotaMB = subInfo.storageQuotaMB
   const quotaBytes = quotaMB * 1024 * 1024
   const usedBytes = subInfo.usage.storageUsedMB * 1024 * 1024
-  const limitLabel = subInfo.isPro ? '5 GB' : '100 MB'
+  const limitLabel = quotaMB >= 5120 ? '5 GB' : quotaMB >= 1024 ? '1 GB' : '100 MB'
 
   if (usedBytes + fileSize > quotaBytes) {
     return NextResponse.json(
