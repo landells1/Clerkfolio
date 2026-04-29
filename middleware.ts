@@ -1,6 +1,16 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const SHARE_RATE_LIMIT = 5
+const SHARE_RATE_WINDOW_MS = 60_000
+const shareRateBuckets = new Map<string, { count: number; resetAt: number }>()
+
+function shareRateKey(request: NextRequest) {
+  const forwarded = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+  const ip = (request as NextRequest & { ip?: string }).ip ?? forwarded ?? request.headers.get('x-real-ip') ?? 'unknown'
+  return `${ip}:${request.nextUrl.pathname}`
+}
+
 function applySecurityHeaders(response: NextResponse): NextResponse {
   response.headers.set('X-Frame-Options', 'DENY')
   response.headers.set('X-Content-Type-Options', 'nosniff')
@@ -52,6 +62,31 @@ export async function middleware(request: NextRequest) {
   )
 
   const { pathname } = request.nextUrl
+
+  if (pathname.startsWith('/share/')) {
+    const now = Date.now()
+    const key = shareRateKey(request)
+    const bucket = shareRateBuckets.get(key)
+
+    if (!bucket || bucket.resetAt <= now) {
+      shareRateBuckets.set(key, { count: 1, resetAt: now + SHARE_RATE_WINDOW_MS })
+    } else if (bucket.count >= SHARE_RATE_LIMIT) {
+      const response = NextResponse.json(
+        { error: 'Too many share link requests. Try again shortly.' },
+        { status: 429 }
+      )
+      response.headers.set('X-RateLimit-Limit', String(SHARE_RATE_LIMIT))
+      response.headers.set('X-RateLimit-Window', String(SHARE_RATE_WINDOW_MS / 1000))
+      response.headers.set('X-RateLimit-Remaining', '0')
+      response.headers.set('Retry-After', String(Math.ceil((bucket.resetAt - now) / 1000)))
+      return applySecurityHeaders(response)
+    } else {
+      bucket.count += 1
+    }
+
+    supabaseResponse.headers.set('X-RateLimit-Limit', String(SHARE_RATE_LIMIT))
+    supabaseResponse.headers.set('X-RateLimit-Window', String(SHARE_RATE_WINDOW_MS / 1000))
+  }
 
   // Older cached onboarding bundles posted completion JSON to the page route.
   // Rewrite that POST to the API route so users are not blocked by stale assets.

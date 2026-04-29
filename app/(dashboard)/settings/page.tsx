@@ -6,17 +6,18 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
+import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 
 const CAREER_STAGES = [
-  { value: 'Y1', label: 'Medical Student - Year 1' },
-  { value: 'Y2', label: 'Medical Student - Year 2' },
-  { value: 'Y3', label: 'Medical Student - Year 3' },
-  { value: 'Y4', label: 'Medical Student - Year 4' },
-  { value: 'Y5', label: 'Medical Student - Year 5' },
-  { value: 'Y6', label: 'Medical Student - Year 6' },
+  { value: 'Y1', label: 'Year 1 (Medical Student)' },
+  { value: 'Y2', label: 'Year 2 (Medical Student)' },
+  { value: 'Y3', label: 'Year 3 (Medical Student)' },
+  { value: 'Y4', label: 'Year 4 (Medical Student)' },
+  { value: 'Y5', label: 'Year 5 (Medical Student)' },
+  { value: 'Y6', label: 'Year 6 (Medical Student)' },
   { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
   { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
-  { value: 'POST_FY', label: 'Post-Foundation' },
+  { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
 ]
 
 export default function SettingsPage() {
@@ -273,6 +274,12 @@ export default function SettingsPage() {
         <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
           Restart tutorial
         </button>
+      </section>
+
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Competency themes</h2>
+        <p className="mb-5 text-sm text-[rgba(245,245,242,0.45)]">Create or delete your custom competency themes.</p>
+        <CompetencyThemePicker manageOnly />
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">

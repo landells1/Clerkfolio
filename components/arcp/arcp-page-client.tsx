@@ -33,6 +33,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
   const totalLinked = capabilities.filter(cap =>
     links.some(l => l.capability_key === cap.capability_key)
   ).length
+  const hasEvidence = (capabilityKey: string) => links.some(link => link.capability_key === capabilityKey)
 
   return (
     <>
@@ -48,6 +49,27 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
               className="h-full bg-[#1B6FD9] rounded-full transition-all"
               style={{ width: capabilities.length > 0 ? `${(totalLinked / capabilities.length) * 100}%` : '0%' }}
             />
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            {CATEGORY_ORDER.map(cat => {
+              const total = capabilities.filter(c => c.category === cat).length
+              const linked = capabilities.filter(c => c.category === cat && hasEvidence(c.capability_key)).length
+              const pct = total > 0 ? Math.round((linked / total) * 100) : 0
+              return (
+                <div key={cat}>
+                  <div className="mb-1 flex justify-between text-xs text-white/50">
+                    <span>{ARCP_CATEGORY_LABELS[cat]}</span>
+                    <span>{linked}/{total}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                    <div
+                      className="h-full rounded-full bg-[#1B6FD9] transition-all"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </div>
+              )
+            })}
           </div>
         </div>
         <a

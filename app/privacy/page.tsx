@@ -39,6 +39,12 @@ export default function PrivacyPage() {
         <Section title="Cookies and analytics">
           <p>Clinidex uses authentication cookies required for login sessions. If analytics are enabled, they are used to understand aggregate product usage, not to sell or broker personal data.</p>
         </Section>
+
+        <Section title="Data Controller & Contact">
+          <p>Clinidex is operated by Clinidex Ltd, registered in England and Wales.</p>
+          <p>For data subject requests including access, deletion, rectification, portability, or any privacy-related query, contact us at admin@clinidex.co.uk.</p>
+          <p>We aim to respond to all requests within 30 days as required by UK GDPR.</p>
+        </Section>
       </article>
     </main>
   )
