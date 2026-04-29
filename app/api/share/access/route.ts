@@ -111,9 +111,9 @@ export async function POST(req: NextRequest) {
       .eq('id', link.user_id)
       .maybeSingle()
 
-    const prefs = (ownerProfile?.notification_preferences ?? {}) as { share_link_expiring?: boolean }
     const resendKey = process.env.RESEND_API_KEY
-    if (prefs.share_link_expiring !== false && resendKey) {
+    // Auto-revoke due to unusual traffic is a security event — send unconditionally regardless of notification prefs
+    if (resendKey) {
       const { data: userData } = await supabase.auth.admin.getUserById(link.user_id)
       if (userData?.user?.email) {
         const resend = new Resend(resendKey)

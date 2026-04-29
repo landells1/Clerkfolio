@@ -34,7 +34,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, { data: evidenceFiles }] = await Promise.all([
+  const [{ data: entry }, { data: evidenceFiles, error: evidenceError }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -208,11 +208,15 @@ export default async function EntryDetailPage({ params }: { params: { id: string
         )}
 
         {/* Evidence files */}
-        {evidenceFiles && evidenceFiles.length > 0 && (
+        {evidenceError ? (
+          <div className="border-t border-white/[0.06] pt-5">
+            <p className="text-xs text-red-400">Could not load attachments. Try refreshing the page.</p>
+          </div>
+        ) : evidenceFiles && evidenceFiles.length > 0 ? (
           <div className="border-t border-white/[0.06] pt-5">
             <EvidenceFiles initialFiles={evidenceFiles} canDelete={true} />
           </div>
-        )}
+        ) : null}
 
         {/* Metadata */}
         <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.25)] font-mono">

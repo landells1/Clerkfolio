@@ -3,10 +3,12 @@ import { stripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
+type WithPeriodEnd = { current_period_end?: number }
+
 function getPeriodEnd(subscription: Stripe.Subscription): string | null {
   // Newer Stripe API versions (2025+) moved current_period_end to items level
-  const topLevel = (subscription as any).current_period_end as number | undefined
-  const itemLevel = (subscription.items?.data?.[0] as any)?.current_period_end as number | undefined
+  const topLevel = (subscription as unknown as WithPeriodEnd).current_period_end
+  const itemLevel = (subscription.items?.data?.[0] as unknown as WithPeriodEnd | undefined)?.current_period_end
   const ts = topLevel ?? itemLevel
   return ts ? new Date(ts * 1000).toISOString() : null
 }

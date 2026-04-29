@@ -122,7 +122,9 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function toCsv(entries: any[]): string {
+type CsvEntry = { title?: string; category?: string; date?: string; specialty_tags?: string[]; notes?: string; created_at?: string }
+
+function toCsv(entries: CsvEntry[]): string {
   const FIELDS = ['title', 'category', 'date', 'specialty_tags', 'notes', 'created_at'] as const
   // Prefix leading formula characters so Excel/Sheets cannot execute them.
   const FORMULA_CHARS = /^[=+\-@\t\r]/
