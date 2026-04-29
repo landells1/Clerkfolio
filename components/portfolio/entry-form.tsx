@@ -33,7 +33,7 @@ const TOGGLE_BTN = (active: boolean) =>
   }`
 
 const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
-const DRAFT_KEY = 'clinidex-entry-draft'
+const DRAFT_KEY = 'clerkfolio-entry-draft'
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 

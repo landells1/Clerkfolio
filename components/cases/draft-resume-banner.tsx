@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
-const DRAFT_KEY = 'clinidex-case-draft'
+const DRAFT_KEY = 'clerkfolio-case-draft'
 
 export default function DraftResumeBanner() {
   const [hasDraft, setHasDraft] = useState(false)

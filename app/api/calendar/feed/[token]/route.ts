@@ -64,10 +64,10 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
   const body = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Clinidex//Timeline//EN',
+    'PRODID:-//Clerkfolio//Timeline//EN',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    'X-WR-CALNAME:Clinidex Timeline',
+    'X-WR-CALNAME:Clerkfolio Timeline',
     ...events,
     'END:VCALENDAR',
   ].join('\r\n')
@@ -75,7 +75,7 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
   return new NextResponse(body, {
     headers: {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Content-Disposition': 'inline; filename="clinidex-timeline.ics"',
+      'Content-Disposition': 'inline; filename="clerkfolio-timeline.ics"',
       'Cache-Control': 'private, max-age=300',
     },
   })

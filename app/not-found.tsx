@@ -2,7 +2,7 @@ import Link from 'next/link'
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: '404 — Page not found · Clinidex',
+  title: '404 — Page not found · Clerkfolio',
 }
 
 export default function NotFound() {

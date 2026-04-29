@@ -5,7 +5,7 @@ const nextConfig = {
       allowedOrigins:
         process.env.NODE_ENV === 'development'
           ? ['localhost:3000', '127.0.0.1:3000']
-          : ['clinidex.co.uk', 'www.clinidex.co.uk'],
+          : ['clerkfolio.co.uk', 'www.clerkfolio.co.uk'],
     },
   },
 };

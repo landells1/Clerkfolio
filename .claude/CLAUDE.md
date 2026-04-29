@@ -1,4 +1,4 @@
-# Clinidex — Project Context for Claude
+# Clerkfolio — Project Context for Claude
 
 > **V2 work in progress.** Read `HANDOVER_V2.md` at repo root for the comprehensive V2 implementation plan from the April 2026 grill-me session. That document is the source of truth — read it before structural changes. This file covers the persistent project context that survives V2.
 
@@ -13,7 +13,7 @@
 Do this without being asked, every time. If the push fails (e.g. remote has new commits from Codex), pull with rebase first (`git pull --rebase`), resolve any conflicts, then push.
 
 ## What This App Is
-Clinidex is a UK medical portfolio tracker spanning medical school → foundation training → higher specialty training applications. Users:
+Clerkfolio is a UK medical portfolio tracker spanning medical school → foundation training → higher specialty training applications. Users:
 - Log **clinical cases** (personal diary — interesting patients seen)
 - Build a **portfolio** of achievements (audits, teaching, publications, prizes, procedures, etc.)
 - Track **specialty application scores** against official person specs
@@ -153,7 +153,7 @@ if (!sub.limits.canExportPdf) {
 ```
 
 ### Draft auto-save (cases create form)
-Key: `clinidex-case-draft` in `sessionStorage`. Expires 24h. Saves `title`, `date`, `clinicalDomain`, `specialtyTags`. Notes intentionally excluded.
+Key: `clerkfolio-case-draft` in `sessionStorage`. Expires 24h. Saves `title`, `date`, `clinicalDomain`, `specialtyTags`. Notes intentionally excluded.
 
 ## Design System
 - Background layers: `#0B0B0C` (deepest) → `#0E0E10` (sidebar) → `#141416` (cards)

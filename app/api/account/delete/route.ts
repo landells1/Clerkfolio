@@ -53,6 +53,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Account deletion error:', err instanceof Error ? err.message : 'unknown error')
-    return NextResponse.json({ error: 'Deletion failed. Please contact hello@clinidex.co.uk.' }, { status: 500 })
+    return NextResponse.json({ error: 'Deletion failed. Please contact hello@clerkfolio.co.uk.' }, { status: 500 })
   }
 }

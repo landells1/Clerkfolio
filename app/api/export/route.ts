@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
 
   // ── JSON export ──────────────────────────────────────────────────────────────
   if (format === 'json') {
-    const filename = `clinidex-${safeSpecialty}-${dateStr}.json`
+    const filename = `clerkfolio-${safeSpecialty}-${dateStr}.json`
     return new NextResponse(JSON.stringify(entries), {
       status: 200,
       headers: {
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
 
   // ── CSV export ───────────────────────────────────────────────────────────────
   if (format === 'csv') {
-    const filename = `clinidex-${safeSpecialty}-${dateStr}.csv`
+    const filename = `clerkfolio-${safeSpecialty}-${dateStr}.csv`
     const csv = toCsv(entries)
     return new NextResponse(csv, {
       status: 200,
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   }
 
   // ── PDF export (default) ─────────────────────────────────────────────────────
-  const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex User'
+  const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
   try {
@@ -96,7 +96,7 @@ export async function POST(request: NextRequest) {
     }) as unknown as ReactElement<DocumentProps>
 
     const buffer = await renderToBuffer(element)
-    const filename = `clinidex-${safeSpecialty}-${dateStr}.pdf`
+    const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
     if (!subInfo.isPro) {

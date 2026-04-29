@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
 
   const zip = new JSZip()
   const dateStr = new Date().toISOString().split('T')[0]
-  const root = zip.folder(`clinidex-export-${dateStr}`)!
+  const root = zip.folder(`clerkfolio-export-${dateStr}`)!
 
   // Fetch all user data in parallel (specialty_entry_links fetched separately after we have app IDs)
   const [
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
     status: 200,
     headers: {
       'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="clinidex-export-${dateStr}.zip"`,
+      'Content-Disposition': `attachment; filename="clerkfolio-export-${dateStr}.zip"`,
     },
   })
 }

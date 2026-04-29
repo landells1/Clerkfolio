@@ -120,7 +120,7 @@ export default function SettingsPage() {
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `clinidex-export-${new Date().toISOString().split('T')[0]}.zip`
+      a.download = `clerkfolio-export-${new Date().toISOString().split('T')[0]}.zip`
       document.body.appendChild(a)
       a.click()
       document.body.removeChild(a)
@@ -327,7 +327,7 @@ export default function SettingsPage() {
       {deleteConfirm && (
         <ConfirmModal
           title="Delete account?"
-          body={`This permanently deletes your Clinidex account, portfolio entries, cases, evidence metadata, goals, share links, and settings. Type DELETE to confirm.`}
+          body={`This permanently deletes your Clerkfolio account, portfolio entries, cases, evidence metadata, goals, share links, and settings. Type DELETE to confirm.`}
           confirmLabel="Delete account"
           danger
           confirmationText={deleteConfirmText}

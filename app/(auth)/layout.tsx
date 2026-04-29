@@ -1,4 +1,4 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
@@ -19,7 +19,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-lg tracking-tight">Clinidex</span>
+          <span className="text-[#F5F5F2] font-semibold text-lg tracking-tight">Clerkfolio</span>
         </div>
         {children}
       </div>

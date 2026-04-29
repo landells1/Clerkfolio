@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
       if (userData?.user?.email) {
         const resend = new Resend(resendKey)
         await resend.emails.send({
-          from: 'Clinidex <noreply@clinidex.co.uk>',
+          from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
           to: userData.user.email,
           subject: 'Your shared portfolio link was auto-revoked',
           html: buildAutoRevokeEmail({
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
   ])
 
   return NextResponse.json({
-    ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clinidex user',
+    ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio user',
     scope: link.scope,
     specialtyKey: link.specialty_key,
     themeSlug: link.theme_slug,

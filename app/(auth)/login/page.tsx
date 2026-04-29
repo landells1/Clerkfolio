@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -37,7 +37,7 @@ function LoginForm() {
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8">
       <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Welcome back</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">Log in to your Clinidex account</p>
+      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">Log in to your Clerkfolio account</p>
 
       {confirmationFailed && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-400 mb-4">

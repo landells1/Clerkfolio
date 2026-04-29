@@ -1,5 +1,5 @@
 -- ============================================================
--- Clinidex — Stage 10 Schema: Add missing cycle_year column
+-- Clerkfolio — Stage 10 Schema: Add missing cycle_year column
 -- Run this in the Supabase SQL Editor after schema-stage9.sql
 -- ============================================================
 

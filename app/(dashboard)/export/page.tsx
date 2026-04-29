@@ -177,7 +177,7 @@ export default function ExportPage() {
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
-    await downloadBlob(res, `clinidex-${specialty || 'portfolio'}-${dateStr}.${format}`)
+    await downloadBlob(res, `clerkfolio-${specialty || 'portfolio'}-${dateStr}.${format}`)
   }
 
   async function handleBackup() {
@@ -191,7 +191,7 @@ export default function ExportPage() {
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
-    await downloadBlob(res, `clinidex-export-${dateStr}.zip`)
+    await downloadBlob(res, `clerkfolio-export-${dateStr}.zip`)
   }
 
   async function createShareLink() {

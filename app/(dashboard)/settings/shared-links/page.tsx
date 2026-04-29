@@ -15,7 +15,7 @@ type ShareLink = {
   created_at: string
 }
 
-const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clinidex.co.uk'
+const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clerkfolio.co.uk'
 
 export default function SharedLinksPage() {
   const supabase = createClient()

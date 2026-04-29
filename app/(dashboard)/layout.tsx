@@ -27,7 +27,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!profile.onboarding_complete) redirect('/onboarding')
 
   const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
-  const userName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Clinidex user'
+  const userName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Clerkfolio user'
 
   return (
     <DashboardProviders userInterests={specialtyKeys}>

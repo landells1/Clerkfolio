@@ -4,7 +4,7 @@ import { stripe, STRIPE_PRICE_ID } from '@/lib/stripe'
 import { validateOrigin } from '@/lib/csrf'
 
 // Use a server-side canonical URL — never trust the incoming Origin header for billing redirects
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://medclinidex.vercel.app'
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://medclerkfolio.vercel.app'
 
 export async function POST(request: NextRequest) {
   const originError = validateOrigin(request)
