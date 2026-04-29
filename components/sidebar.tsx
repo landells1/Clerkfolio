@@ -165,8 +165,8 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   async function handleLogout() {
     setLoggingOut(true)
     // Clear client-side draft storage so clinical notes don't linger after logout.
-    sessionStorage.removeItem('clinidex-case-draft')
-    sessionStorage.removeItem('clinidex-entry-draft')
+    sessionStorage.removeItem('clerkfolio-case-draft')
+    sessionStorage.removeItem('clerkfolio-entry-draft')
     // Tell the service worker to drop its cache so authenticated pages aren't
     // served offline after the user logs out.
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -222,7 +222,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
+          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </div>
         <NotificationBellMobile />
       </div>
@@ -267,7 +267,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clinidex</span>
+          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </Link>
         <button
           onClick={() => setMobileOpen(false)}

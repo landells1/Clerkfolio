@@ -69,7 +69,7 @@ function Nav() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 44 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
           <Logo />
-          <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: -0.3 }}>Clinidex</span>
+          <span style={{ fontSize: 16, fontWeight: 500, letterSpacing: -0.3 }}>Clerkfolio</span>
           <span style={{ fontFamily: font.mono, fontSize: 11, color: pal.inkDim, marginLeft: 6, padding: '2px 6px', border: `1px solid ${pal.rule}`, borderRadius: 3 }}>v0.1</span>
         </div>
         <div style={{ display: 'flex', gap: 28, fontSize: 13, color: pal.inkSoft }}>
@@ -171,7 +171,7 @@ function ProductVisual() {
           <div style={{ display: 'flex', gap: 6 }}>
             {['#FF5F57','#FEBC2E','#28C840'].map(c => <div key={c} style={{ width: 10, height: 10, borderRadius: 5, background: c, opacity: 0.8 }} />)}
           </div>
-          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: pal.inkDim, fontFamily: font.mono }}>clinidex.app · cases · entry</div>
+          <div style={{ flex: 1, textAlign: 'center', fontSize: 11, color: pal.inkDim, fontFamily: font.mono }}>clerkfolio.app · cases · entry</div>
         </div>
         <div style={{ padding: '20px 24px' }}>
           <div style={{ fontFamily: font.mono, fontSize: 10, color: pal.inkDim, letterSpacing: 1.2, display: 'flex', gap: 8, alignItems: 'center', marginBottom: 14 }}>
@@ -346,7 +346,7 @@ function MockMobileVoice() {
         <div style={{ background: pal.bgPanel, border: `1px solid ${pal.rule}`, borderRadius: 22, padding: '26px 14px 14px', position: 'relative', height: 360 }}>
           <div style={{ position: 'absolute', top: 6, left: '50%', transform: 'translateX(-50%)', width: 60, height: 6, background: '#000', borderRadius: 4 }} />
           <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: font.mono, fontSize: 9, color: pal.inkDim, marginBottom: 16 }}>
-            <span>CLINIDEX</span><span style={{ color: pal.accent }}>◉ REC</span>
+            <span>CLERKFOLIO</span><span style={{ color: pal.accent }}>◉ REC</span>
           </div>
           <div style={{ fontFamily: font.mono, fontSize: 9, color: pal.inkDim, letterSpacing: 1, marginBottom: 6 }}>DICTATING…</div>
           <div style={{ fontSize: 12, lineHeight: 1.5, color: pal.ink }}>
@@ -562,8 +562,8 @@ function Founders() {
     <section id="founders" style={{ padding: '140px 56px' }}>
       <SectionHeader number="§ 004" label="FOUNDERS" title="Built by the people who actually use it." />
       <div style={{ marginTop: 60, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        <FounderCard name="Dr [Name]" role="Co-founder · Internal Medicine Trainee" hospital="Royal London Hospital" quote="I wasted weeks every application cycle stitching my portfolio back together. Clinidex is the thing I wished existed in FY1." />
-        <FounderCard name="Dr [Name]" role="Co-founder · Core Surgical Trainee"    hospital="Guy's & St Thomas'"    quote="Your career should leave a trail. We built Clinidex so it actually does — in a form you can hand over, share, and own." />
+        <FounderCard name="Dr [Name]" role="Co-founder · Internal Medicine Trainee" hospital="Royal London Hospital" quote="I wasted weeks every application cycle stitching my portfolio back together. Clerkfolio is the thing I wished existed in FY1." />
+        <FounderCard name="Dr [Name]" role="Co-founder · Core Surgical Trainee"    hospital="Guy's & St Thomas'"    quote="Your career should leave a trail. We built Clerkfolio so it actually does — in a form you can hand over, share, and own." />
       </div>
       <div style={{ marginTop: 60, padding: 28, background: pal.bgPanel, border: `1px solid ${pal.rule}`, borderRadius: 12, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 24 }}>
         {([
@@ -622,12 +622,12 @@ function CtaFooter() {
       <div style={{ marginTop: 120, paddingTop: 28, borderTop: `1px solid ${pal.rule}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontFamily: font.mono, fontSize: 11, color: pal.inkDim, letterSpacing: 1 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <Logo />
-          <span>CLINIDEX · § 2026</span>
+          <span>CLERKFOLIO · § 2026</span>
         </div>
         <div style={{ display: 'flex', gap: 32 }}>
           <Link href="/privacy" style={{ color: 'inherit', textDecoration: 'none' }}>PRIVACY</Link>
           <Link href="/terms" style={{ color: 'inherit', textDecoration: 'none' }}>TERMS</Link>
-          <a href="mailto:hello@clinidex.co.uk" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</a>
+          <a href="mailto:hello@clerkfolio.co.uk" style={{ color: 'inherit', textDecoration: 'none' }}>CONTACT</a>
         </div>
       </div>
     </section>

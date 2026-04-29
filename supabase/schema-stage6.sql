@@ -1,5 +1,5 @@
 -- ============================================================
--- Clinidex — Stage 6 Schema
+-- Clerkfolio — Stage 6 Schema
 -- Run this in the Supabase SQL Editor after schema-stage4.sql
 -- ============================================================
 

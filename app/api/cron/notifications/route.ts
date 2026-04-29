@@ -162,9 +162,9 @@ export async function GET(req: NextRequest) {
       if (!user?.email) continue
 
       await resend.emails.send({
-        from: 'Clinidex <hello@clinidex.co.uk>',
+        from: 'Clerkfolio <hello@clerkfolio.co.uk>',
         to: user.email,
-        subject: userItems.length > 1 ? `${userItems.length} Clinidex reminders` : userItems[0].title,
+        subject: userItems.length > 1 ? `${userItems.length} Clerkfolio reminders` : userItems[0].title,
         text: notificationEmailText(profile?.first_name ?? null, userItems),
         html: notificationEmailHtml(profile?.first_name ?? null, userItems),
       })

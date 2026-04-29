@@ -11,7 +11,7 @@ export function PrintHeader({ userName }: { userName: string }) {
 
   return (
     <div className="print-header hidden print:block text-xs text-gray-500 pb-2 mb-4 border-b border-gray-200">
-      {userName || 'Clinidex user'} - Clinidex portfolio - {date}
+      {userName || 'Clerkfolio user'} - Clerkfolio portfolio - {date}
     </div>
   )
 }

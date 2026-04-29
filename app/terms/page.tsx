@@ -7,12 +7,12 @@ export default function TermsPage() {
           <p className="mt-2 text-sm text-[rgba(245,245,242,0.5)]">Last updated: 28 April 2026</p>
         </header>
 
-        <Section title="Use of Clinidex">
-          <p>Clinidex is a personal portfolio organisation tool for UK medical students and foundation doctors. It is not a supervisor sign-off system, not a formal ARCP submission tool, and not a replacement for Horus, NHS ePortfolio, ISCP, or Royal College systems.</p>
+        <Section title="Use of Clerkfolio">
+          <p>Clerkfolio is a personal portfolio organisation tool for UK medical students and foundation doctors. It is not a supervisor sign-off system, not a formal ARCP submission tool, and not a replacement for Horus, NHS ePortfolio, ISCP, or Royal College systems.</p>
         </Section>
 
         <Section title="No advice or benchmarking">
-          <p>Clinidex shows your own collated data. It does not tell you whether you are competitive, on track, or likely to succeed in an application or ARCP outcome.</p>
+          <p>Clerkfolio shows your own collated data. It does not tell you whether you are competitive, on track, or likely to succeed in an application or ARCP outcome.</p>
         </Section>
 
         <Section title="Anonymisation">
@@ -24,11 +24,11 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Data ownership">
-          <p>You own your portfolio data. You can export it from Settings. Downgrading a subscription may block new Pro-only actions or uploads, but Clinidex will not delete existing user data because of a downgrade.</p>
+          <p>You own your portfolio data. You can export it from Settings. Downgrading a subscription may block new Pro-only actions or uploads, but Clerkfolio will not delete existing user data because of a downgrade.</p>
         </Section>
 
         <Section title="Contact">
-          <p>Questions about these terms or data requests should be sent to admin@clinidex.co.uk.</p>
+          <p>Questions about these terms or data requests should be sent to admin@clerkfolio.co.uk.</p>
         </Section>
       </article>
     </main>

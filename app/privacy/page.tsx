@@ -8,11 +8,11 @@ export default function PrivacyPage() {
         </header>
 
         <Section title="What we collect">
-          <p>We collect your email address, profile details, career stage, portfolio entries, anonymised cases, goals, specialty trackers, evidence files you upload, referral activity, usage counters, and payment metadata from Stripe. Do not enter patient-identifiable information into Clinidex.</p>
+          <p>We collect your email address, profile details, career stage, portfolio entries, anonymised cases, goals, specialty trackers, evidence files you upload, referral activity, usage counters, and payment metadata from Stripe. Do not enter patient-identifiable information into Clerkfolio.</p>
         </Section>
 
         <Section title="Why we use it">
-          <p>We use this data to run the Clinidex service, authenticate your account, store your portfolio, generate exports, manage billing, send requested email reminders, prevent abuse, and answer support requests.</p>
+          <p>We use this data to run the Clerkfolio service, authenticate your account, store your portfolio, generate exports, manage billing, send requested email reminders, prevent abuse, and answer support requests.</p>
         </Section>
 
         <Section title="Where data is stored">
@@ -33,16 +33,16 @@ export default function PrivacyPage() {
         </Section>
 
         <Section title="Your UK GDPR rights">
-          <p>You can request access, rectification, deletion, portability, or objection to processing. You can export your own data from Settings at any time. For privacy requests, email admin@clinidex.co.uk.</p>
+          <p>You can request access, rectification, deletion, portability, or objection to processing. You can export your own data from Settings at any time. For privacy requests, email admin@clerkfolio.co.uk.</p>
         </Section>
 
         <Section title="Cookies and analytics">
-          <p>Clinidex uses authentication cookies required for login sessions. If analytics are enabled, they are used to understand aggregate product usage, not to sell or broker personal data.</p>
+          <p>Clerkfolio uses authentication cookies required for login sessions. If analytics are enabled, they are used to understand aggregate product usage, not to sell or broker personal data.</p>
         </Section>
 
         <Section title="Data Controller & Contact">
-          <p>Clinidex is operated by Clinidex Ltd, registered in England and Wales.</p>
-          <p>For data subject requests including access, deletion, rectification, portability, or any privacy-related query, contact us at admin@clinidex.co.uk.</p>
+          <p>Clerkfolio is operated by Clerkfolio Ltd, registered in England and Wales.</p>
+          <p>For data subject requests including access, deletion, rectification, portability, or any privacy-related query, contact us at admin@clerkfolio.co.uk.</p>
           <p>We aim to respond to all requests within 30 days as required by UK GDPR.</p>
         </Section>
       </article>

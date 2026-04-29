@@ -1,11 +1,11 @@
-﻿import type { Metadata } from 'next'
+import type { Metadata } from 'next'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
 
 export const metadata: Metadata = {
-  title: 'Clinidex - Medical Portfolio Tracker',
+  title: 'Clerkfolio - Medical Portfolio Tracker',
   description: 'The centralised portfolio tracker for UK medical students and foundation doctors. Log cases, achievements, and reflections. Export for any specialty application.',
-  metadataBase: new URL('https://clinidex.co.uk'),
+  metadataBase: new URL('https://clerkfolio.co.uk'),
   manifest: '/manifest.json',
   icons: {
     icon: [
@@ -19,17 +19,17 @@ export const metadata: Metadata = {
     apple: '/icon-192',
   },
   openGraph: {
-    title: 'Clinidex',
+    title: 'Clerkfolio',
     description: 'Your medical portfolio, organised.',
-    url: 'https://clinidex.co.uk',
-    siteName: 'Clinidex',
+    url: 'https://clerkfolio.co.uk',
+    siteName: 'Clerkfolio',
     locale: 'en_GB',
     type: 'website',
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Clinidex',
+    title: 'Clerkfolio',
   },
   other: {
     'mobile-web-app-capable': 'yes',

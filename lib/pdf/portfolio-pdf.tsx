@@ -1,4 +1,4 @@
-﻿import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
+import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
@@ -173,12 +173,12 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt 
   const sections = CAT_ORDER.filter(c => (grouped[c]?.length ?? 0) > 0)
 
   return (
-    <Document title={`Clinidex Export — ${specialty}`} author={userName}>
+    <Document title={`Clerkfolio Export — ${specialty}`} author={userName}>
       <Page size="A4" style={s.page}>
         {/* Header */}
         <View style={s.header} fixed>
           <View style={s.headerTop}>
-            <Text style={s.brand}>CLINIDEX</Text>
+            <Text style={s.brand}>CLERKFOLIO</Text>
             <Text style={s.exportDate}>Exported {exportedAt}</Text>
           </View>
           <Text style={s.headerName}>{userName}</Text>
@@ -215,7 +215,7 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt 
 
         {/* Footer */}
         <View style={s.footer} fixed>
-          <Text style={s.footerText}>clinidex.co.uk · Confidential</Text>
+          <Text style={s.footerText}>clerkfolio.co.uk · Confidential</Text>
           <Text style={s.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>

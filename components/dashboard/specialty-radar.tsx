@@ -144,13 +144,13 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
   const [view, setView] = useState<'bar' | 'radar'>('bar')
 
   useEffect(() => {
-    const stored = localStorage.getItem('clinidex-chart-view')
+    const stored = localStorage.getItem('clerkfolio-chart-view')
     if (stored === 'bar' || stored === 'radar') setView(stored)
   }, [])
 
   function handleSetView(v: 'bar' | 'radar') {
     setView(v)
-    localStorage.setItem('clinidex-chart-view', v)
+    localStorage.setItem('clerkfolio-chart-view', v)
   }
 
   const sorted = Object.entries(counts)

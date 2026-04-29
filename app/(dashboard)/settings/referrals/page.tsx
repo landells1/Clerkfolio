@@ -11,7 +11,7 @@ export default async function ReferralsPage() {
   ])
 
   const code = profile?.referral_code ?? ''
-  const url = `https://clinidex.co.uk/signup?ref=${code}`
+  const url = `https://clerkfolio.co.uk/signup?ref=${code}`
   const completed = referrals?.filter(ref => ref.status === 'completed').length ?? 0
   const proUntil = profile?.pro_features_used?.referral_pro_until ?? null
 

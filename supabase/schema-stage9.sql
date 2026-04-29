@@ -1,5 +1,5 @@
 -- ============================================================
--- Clinidex — Stage 9 Schema: Specialty applications, entry links, RLS soft-delete fix
+-- Clerkfolio — Stage 9 Schema: Specialty applications, entry links, RLS soft-delete fix
 -- Run this in the Supabase SQL Editor after schema-stage8.sql
 -- ============================================================
 

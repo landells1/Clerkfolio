@@ -1,5 +1,5 @@
 -- ============================================================
--- Clinidex V2 Foundations Migration
+-- Clerkfolio V2 Foundations Migration
 -- 2026-04-28
 -- Source of truth: HANDOVER_V2.md section 3
 -- ============================================================

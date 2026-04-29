@@ -693,7 +693,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
   const [revoking, setRevoking] = useState(false)
   const [copied, setCopied] = useState(false)
 
-  const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clinidex.co.uk'
+  const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clerkfolio.co.uk'
 
   useEffect(() => {
     async function load() {

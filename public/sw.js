@@ -1,4 +1,4 @@
-const CACHE_NAME = 'clinidex-static-v2'
+const CACHE_NAME = 'clerkfolio-static-v2'
 
 // Only cache genuinely immutable static assets — never HTML.
 // Next.js /_next/static/ files are content-hashed and safe to cache indefinitely.

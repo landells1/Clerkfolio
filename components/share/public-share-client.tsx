@@ -82,7 +82,7 @@ export default function PublicShareClient({ token }: { token: string }) {
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
             <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1B6FD9] text-sm font-bold text-[#0B0B0C]">C</div>
-            <span className="text-sm font-semibold tracking-tight">Clinidex</span>
+            <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
           {payload && (
             <p className="text-xs text-[rgba(245,245,242,0.35)]">

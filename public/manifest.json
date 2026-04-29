@@ -1,6 +1,6 @@
 {
-  "name": "Clinidex",
-  "short_name": "Clinidex",
+  "name": "Clerkfolio",
+  "short_name": "Clerkfolio",
   "description": "Medical portfolio tracker for UK doctors and students",
   "start_url": "/",
   "display": "standalone",

@@ -91,7 +91,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   }
 
   function handleAddToExport() {
-    sessionStorage.setItem('clinidex-export-preselect', JSON.stringify(Array.from(selected)))
+    sessionStorage.setItem('clerkfolio-export-preselect', JSON.stringify(Array.from(selected)))
     router.push('/export')
   }
 

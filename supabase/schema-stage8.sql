@@ -1,5 +1,5 @@
 -- ============================================================
--- Clinidex — Stage 8 Schema: Soft delete, pinned entries, goals
+-- Clerkfolio — Stage 8 Schema: Soft delete, pinned entries, goals
 -- Run this in the Supabase SQL Editor after schema-stage7.sql
 -- ============================================================
 
