@@ -50,8 +50,8 @@ export default async function PortfolioPage({
   }, {})
 
   const themes = [
-    ...INTERVIEW_THEMES.map(name => ({ name: name.replace('Interview', 'Competency'), slug: normaliseTheme(name) })),
-    ...(customThemes ?? []),
+    ...INTERVIEW_THEMES.map(name => ({ name, slug: normaliseTheme(name) })),
+    ...(customThemes ?? []).map(theme => ({ name: theme.name, slug: normaliseTheme(theme.slug) })),
   ]
 
   return (

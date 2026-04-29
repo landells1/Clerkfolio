@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
-import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 import type { Template } from '@/lib/types/templates'
 import SpecialtyTagSelect from './specialty-tag-select'
+import CompetencyThemePicker from './competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
@@ -125,7 +125,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
-  const [themesOpen, setThemesOpen] = useState(false)
 
   // Template guidance placeholders — overridden when a template is applied
   const [guidancePlaceholders, setGuidancePlaceholders] = useState<Record<string, string>>({})
@@ -383,6 +382,22 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setCustomFreeText('')
   }
 
+  async function pruneRevisions(entryId: string, entryType: 'portfolio' | 'case') {
+    const { data: revisions } = await supabase
+      .from('entry_revisions')
+      .select('id')
+      .eq('entry_id', entryId)
+      .eq('entry_type', entryType)
+      .order('created_at', { ascending: true })
+
+    if (revisions && revisions.length > 50) {
+      await supabase
+        .from('entry_revisions')
+        .delete()
+        .in('id', revisions.slice(0, revisions.length - 50).map(row => row.id))
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
@@ -416,12 +431,20 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
     } else {
+      const { data: currentRow } = await supabase
+        .from('portfolio_entries')
+        .select('*')
+        .eq('id', initialData!.id!)
+        .eq('user_id', user.id)
+        .single()
+
       await supabase.from('entry_revisions').insert({
         user_id: user.id,
         entry_id: initialData!.id!,
         entry_type: 'portfolio',
-        snapshot: initialData,
+        snapshot: currentRow ?? initialData,
       })
+      await pruneRevisions(initialData!.id!, 'portfolio')
       const { error } = await supabase
         .from('portfolio_entries')
         .update(scoredPayload)
@@ -521,58 +544,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
           </Field>
 
-          {/* Interview themes multi-select */}
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <label className={LABEL} style={{ marginBottom: 0 }}>Interview themes <span className="normal-case font-normal text-[rgba(245,245,242,0.35)]">(optional)</span></label>
-              <button
-                type="button"
-                onClick={() => setThemesOpen(o => !o)}
-                className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors flex items-center gap-1"
-              >
-                {themesOpen ? '−' : '+'}
-              </button>
-            </div>
-            {interviewThemes.length > 0 && !themesOpen && (
-              <div className="flex flex-wrap gap-1.5">
-                {interviewThemes.map(t => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => setInterviewThemes(prev => prev.filter(x => x !== t))}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-violet-300 border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
-                  >
-                    {t} ×
-                  </button>
-                ))}
-                <button type="button" onClick={() => setThemesOpen(true)} className="text-[11px] text-[rgba(245,245,242,0.35)] hover:text-[#F5F5F2] px-1">edit</button>
-              </div>
-            )}
-            {themesOpen && (
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {INTERVIEW_THEMES.map(t => {
-                  const active = interviewThemes.includes(t)
-                  return (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => {
-                        setInterviewThemes(prev => active ? prev.filter(x => x !== t) : [...prev, t])
-                        markDirty()
-                      }}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
-                        active
-                          ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                          : 'bg-white/[0.04] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15]'
-                      }`}
-                    >
-                      {t}
-                    </button>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+          <CompetencyThemePicker value={interviewThemes} onChange={setInterviewThemes} onDirty={markDirty} />
         </div>
 
         {/* Category-specific fields */}

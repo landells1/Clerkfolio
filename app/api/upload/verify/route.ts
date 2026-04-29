@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not verify uploaded file' }, { status: 500 })
   }
 
-  const bytes = new Uint8Array(await blob.slice(0, 16).arrayBuffer())
+  const bytes = new Uint8Array(await blob.slice(0, 512).arrayBuffer())
   const clean = file.mime_type ? hasValidMagicBytes(bytes, file.mime_type) : false
   const scanStatus = clean ? 'clean' : 'quarantined'
 

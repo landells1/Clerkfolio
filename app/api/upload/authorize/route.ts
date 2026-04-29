@@ -54,8 +54,8 @@ export async function POST(req: NextRequest) {
   // MIME type whitelist
   if (!ALLOWED_MIME_TYPES.has(mimeType)) {
     return NextResponse.json(
-      { error: 'File type not allowed. Accepted: PDF, JPEG, PNG, DOC, and DOCX.' },
-      { status: 400 }
+      { error: 'File type not allowed. Accepted: PDF, DOC, DOCX, XLSX, PPTX, TXT, PNG, JPEG, and HEIC.' },
+      { status: 415 }
     )
   }
 

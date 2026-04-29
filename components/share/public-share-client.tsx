@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
+import { PrintHeader } from '@/components/print-header'
 
 type SharedEntry = {
   id: string
@@ -129,6 +130,7 @@ export default function PublicShareClient({ token }: { token: string }) {
 
         {payload && (
           <>
+            <PrintHeader userName={payload.ownerName} />
             <section className="mb-8">
               <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">{scopeLabel(payload)}</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight">{payload.ownerName}</h1>
@@ -175,4 +177,3 @@ export default function PublicShareClient({ token }: { token: string }) {
     </div>
   )
 }
-

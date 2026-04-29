@@ -27,6 +27,10 @@
     background: #fff !important;
   }
 
+  .print-header {
+    display: block !important;
+  }
+
   aside,
   nav,
   button,

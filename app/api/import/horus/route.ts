@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 // Patterns that suggest patient-identifiable information
 const PII_PATTERNS = [
@@ -53,6 +54,14 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const sub = await fetchSubscriptionInfo(supabase, user.id)
+  if (!sub.limits.canBulkImport) {
+    return NextResponse.json(
+      { error: 'Bulk import requires a Pro subscription.' },
+      { status: 403 }
+    )
+  }
 
   const body = await req.json()
   const { rows, dupHandling = 'skip' } = body as {

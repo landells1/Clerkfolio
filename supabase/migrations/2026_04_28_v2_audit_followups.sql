@@ -1,12 +1,5 @@
 -- Follow-ups from the production bug and feature audit.
 
-alter table public.specialty_entry_links
-  drop constraint if exists specialty_entry_links_entry_type_check;
-
-alter table public.specialty_entry_links
-  add constraint specialty_entry_links_entry_type_check
-  check (entry_type = any (array['portfolio'::text, 'case'::text]));
-
 drop index if exists public.entry_revisions_entry_created_idx;
 
 drop policy if exists "manage own" on public.templates;

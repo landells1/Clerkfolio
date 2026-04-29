@@ -6,16 +6,22 @@ import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
-const STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
+function getSteps(careerStage: string): Step[] {
+  return careerStage === 'FY1' || careerStage === 'FY2'
+    ? ['profile', 'specialties', 'arcp', 'first-entry']
+    : ['profile', 'specialties', 'first-entry']
+}
+
 const CAREER_STAGES = [
-  { value: 'Y1', label: 'Medical student Y1' },
-  { value: 'Y2', label: 'Medical student Y2' },
-  { value: 'Y3', label: 'Medical student Y3' },
-  { value: 'Y4', label: 'Medical student Y4' },
-  { value: 'Y5', label: 'Medical student Y5' },
-  { value: 'Y6', label: 'Medical student Y6' },
-  { value: 'FY1', label: 'Foundation doctor FY1' },
-  { value: 'FY2', label: 'Foundation doctor FY2' },
+  { value: 'Y1', label: 'Year 1 (Medical Student)' },
+  { value: 'Y2', label: 'Year 2 (Medical Student)' },
+  { value: 'Y3', label: 'Year 3 (Medical Student)' },
+  { value: 'Y4', label: 'Year 4 (Medical Student)' },
+  { value: 'Y5', label: 'Year 5 (Medical Student)' },
+  { value: 'Y6', label: 'Year 6 (Medical Student)' },
+  { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
+  { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
+  { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
 ]
 
 const MAX_TRACKED_SPECIALTIES = 1
@@ -31,8 +37,10 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const stepIndex = STEPS.indexOf(step)
-  const progress = Math.round(((stepIndex + 1) / STEPS.length) * 100)
+  const steps = getSteps(careerStage)
+  const stepIndex = Math.max(steps.indexOf(step), 0)
+  const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
+  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6'].includes(careerStage)
   const entryLevelSpecialties = useMemo(
     () => SPECIALTY_CONFIGS.filter(config => getTrainingLevel(config) === 'entry').slice(0, 18),
     []
@@ -47,11 +55,11 @@ export default function OnboardingPage() {
   }
 
   function next() {
-    setStep(STEPS[Math.min(stepIndex + 1, STEPS.length - 1)])
+    setStep(steps[Math.min(stepIndex + 1, steps.length - 1)])
   }
 
   function back() {
-    setStep(STEPS[Math.max(stepIndex - 1, 0)])
+    setStep(steps[Math.max(stepIndex - 1, 0)])
   }
 
   async function complete(target = firstEntryTarget) {
@@ -102,7 +110,7 @@ export default function OnboardingPage() {
             <div className="h-1 w-28 overflow-hidden rounded-full bg-white/[0.08]">
               <div className="h-full rounded-full bg-[#1B6FD9] transition-all" style={{ width: `${progress}%` }} />
             </div>
-            <span className="text-xs text-[rgba(245,245,242,0.35)]">{stepIndex + 1} / {STEPS.length}</span>
+            <span className="text-xs text-[rgba(245,245,242,0.35)]">{stepIndex + 1} / {steps.length}</span>
           </div>
         </div>
       </header>
@@ -149,6 +157,21 @@ export default function OnboardingPage() {
 
         {step === 'specialties' && (
           <section>
+            {isMedicalStudent ? (
+              <>
+                <h2 className="mb-2 text-xl font-semibold tracking-tight">Which specialties interest you?</h2>
+                <p className="mb-4 max-w-2xl text-sm text-[rgba(245,245,242,0.5)]">
+                  Start building evidence early. You can update this any time in Settings.
+                </p>
+              </>
+            ) : (
+              <>
+                <h2 className="mb-2 text-xl font-semibold tracking-tight">Add your tracked specialty programmes</h2>
+                <p className="mb-4 max-w-2xl text-sm text-[rgba(245,245,242,0.5)]">
+                  We&apos;ll auto-populate application deadlines when you track a programme.
+                </p>
+              </>
+            )}
             <p className="mb-4 max-w-2xl text-sm text-[rgba(245,245,242,0.5)]">
               Free accounts track one specialty at a time. You can change this later from the specialty tracker.
             </p>
@@ -212,13 +235,24 @@ export default function OnboardingPage() {
               {saving ? 'Finishing...' : 'Finish setup'}
             </button>
           ) : (
-            <button
-              onClick={next}
-              disabled={step === 'profile' && (!firstName.trim() || !lastName.trim() || !careerStage)}
-              className="rounded-xl bg-[#1B6FD9] px-6 py-3 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40"
-            >
-              Continue
-            </button>
+            <div className="flex flex-col items-end">
+              <button
+                onClick={next}
+                disabled={step === 'profile' && (!firstName.trim() || !lastName.trim() || !careerStage)}
+                className="rounded-xl bg-[#1B6FD9] px-6 py-3 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40"
+              >
+                Continue
+              </button>
+              {(step === 'specialties' || step === 'arcp') && (
+                <button
+                  type="button"
+                  onClick={next}
+                  className="mt-2 text-sm text-white/40 transition-colors hover:text-white/60"
+                >
+                  Skip for now
+                </button>
+              )}
+            </div>
           )}
         </div>
       </main>

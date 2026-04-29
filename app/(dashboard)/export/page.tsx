@@ -11,6 +11,13 @@ type Tab = 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
 type ShareScope = 'specialty' | 'theme' | 'full'
 
+const EXPIRY_PRESETS = [
+  { label: '1 day', days: 1 },
+  { label: '1 week', days: 7 },
+  { label: '1 month', days: 30 },
+  { label: 'Custom', days: null },
+]
+
 type ShareLink = {
   id: string
   token: string
@@ -26,6 +33,12 @@ type TagCount = { tag: string; count: number }
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+function isoDateOffset(days: number) {
+  const date = new Date()
+  date.setDate(date.getDate() + days)
+  return date.toISOString().split('T')[0]
 }
 
 function entrySubtitle(e: PortfolioEntry): string | null {
@@ -69,11 +82,8 @@ export default function ExportPage() {
   const [shareScope, setShareScope] = useState<ShareScope>('specialty')
   const [shareTheme, setShareTheme] = useState('')
   const [sharePin, setSharePin] = useState('')
-  const [shareExpiry, setShareExpiry] = useState(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 30)
-    return d.toISOString().split('T')[0]
-  })
+  const [expiryPreset, setExpiryPreset] = useState<number | null>(30)
+  const [customExpiry, setCustomExpiry] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
 
@@ -194,6 +204,16 @@ export default function ExportPage() {
   async function createShareLink() {
     setShareLoading(true)
     setError(null)
+    const expiresAt = expiryPreset
+      ? new Date(Date.now() + expiryPreset * 86_400_000).toISOString()
+      : customExpiry
+
+    if (!expiresAt) {
+      setShareLoading(false)
+      setError('Choose an expiry date.')
+      return
+    }
+
     const res = await fetch('/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -201,7 +221,7 @@ export default function ExportPage() {
         scope: shareScope,
         specialty_key: shareScope === 'specialty' ? specialty : null,
         theme_slug: shareScope === 'theme' ? shareTheme : null,
-        expires_at: shareExpiry,
+        expires_at: expiresAt,
         pin: sharePin || null,
       }),
     })
@@ -380,7 +400,7 @@ export default function ExportPage() {
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Scope</span>
                 <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
                   <option value="specialty">Current specialty</option>
-                  <option value="theme">Interview theme</option>
+                  <option value="theme">Competency theme</option>
                   <option value="full">Full portfolio</option>
                 </select>
               </label>
@@ -391,13 +411,39 @@ export default function ExportPage() {
                   <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} />)}</datalist>
                 </label>
               )}
-              <label className="block">
+              <div>
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Expires</span>
-                <input type="date" value={shareExpiry} onChange={e => setShareExpiry(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
-              </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {EXPIRY_PRESETS.map(preset => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setExpiryPreset(preset.days)}
+                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                        expiryPreset === preset.days
+                          ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[#1B6FD9]'
+                          : 'border-white/[0.08] bg-[#0B0B0C] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                {expiryPreset === null && (
+                  <input
+                    type="date"
+                    value={customExpiry}
+                    min={isoDateOffset(1)}
+                    max={isoDateOffset(90)}
+                    onChange={e => setCustomExpiry(e.target.value)}
+                    className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]"
+                  />
+                )}
+              </div>
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">PIN</span>
-                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional, 4-8 digits" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
+                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
+                <p className="mt-1 text-xs text-[rgba(245,245,242,0.35)]">Optional PIN (4-8 digits)</p>
               </label>
               <button onClick={createShareLink} disabled={shareLoading || (subInfo != null && !subInfo.limits.canCreateShareLink)} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                 {shareLoading ? 'Creating...' : 'Create link'}

@@ -3,7 +3,19 @@
   "crons": [
     {
       "path": "/api/cron/notifications",
-      "schedule": "0 8 * * *"
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/purge-deleted",
+      "schedule": "0 2 * * *"
+    },
+    {
+      "path": "/api/cron/expire-share-links",
+      "schedule": "0 1 * * *"
+    },
+    {
+      "path": "/api/cron/purge-audit-log",
+      "schedule": "0 3 * * 0"
     }
   ]
 }

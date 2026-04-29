@@ -1,11 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
+import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPin } from '@/lib/share/pin'
+import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
+
+const ACCESS_RATE_LIMIT = 5
+const ACCESS_RATE_WINDOW_MS = 60_000
+const accessRateBuckets = new Map<string, { count: number; resetAt: number }>()
+
+function rawIp(req: NextRequest) {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown'
+}
 
 function hashIp(req: NextRequest) {
-  const forwarded = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-  const ip = forwarded || req.headers.get('x-real-ip') || 'unknown'
+  const ip = rawIp(req)
   return createHash('sha256').update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''}`).digest('hex')
 }
 
@@ -22,6 +33,27 @@ function minutesAgo(minutes: number) {
 }
 
 export async function POST(req: NextRequest) {
+  const now = Date.now()
+  const rateKey = rawIp(req)
+  const bucket = accessRateBuckets.get(rateKey)
+  if (!bucket || bucket.resetAt <= now) {
+    accessRateBuckets.set(rateKey, { count: 1, resetAt: now + ACCESS_RATE_WINDOW_MS })
+  } else if (bucket.count >= ACCESS_RATE_LIMIT) {
+    return NextResponse.json(
+      { error: 'Too many share link requests. Try again shortly.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String(ACCESS_RATE_LIMIT),
+          'X-RateLimit-Window': String(ACCESS_RATE_WINDOW_MS / 1000),
+          'Retry-After': String(Math.ceil((bucket.resetAt - now) / 1000)),
+        },
+      }
+    )
+  } else {
+    bucket.count += 1
+  }
+
   const supabase = createServiceClient()
   const body = await req.json()
   const token = typeof body.token === 'string' ? body.token : ''
@@ -73,6 +105,30 @@ export async function POST(req: NextRequest) {
 
   if ((recentViews ?? 0) >= 100) {
     await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
+    const { data: ownerProfile } = await supabase
+      .from('profiles')
+      .select('first_name, notification_preferences')
+      .eq('id', link.user_id)
+      .maybeSingle()
+
+    const prefs = (ownerProfile?.notification_preferences ?? {}) as { share_link_expiring?: boolean }
+    const resendKey = process.env.RESEND_API_KEY
+    if (prefs.share_link_expiring !== false && resendKey) {
+      const { data: userData } = await supabase.auth.admin.getUserById(link.user_id)
+      if (userData?.user?.email) {
+        const resend = new Resend(resendKey)
+        await resend.emails.send({
+          from: 'Clinidex <noreply@clinidex.co.uk>',
+          to: userData.user.email,
+          subject: 'Your shared portfolio link was auto-revoked',
+          html: buildAutoRevokeEmail({
+            userName: ownerProfile?.first_name ?? 'there',
+            linkScope: link.scope,
+            viewCount: 100,
+          }),
+        })
+      }
+    }
     return NextResponse.json({ error: 'This share link has been paused after unusual traffic.' }, { status: 429 })
   }
 
