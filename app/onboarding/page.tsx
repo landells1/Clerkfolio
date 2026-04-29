@@ -17,8 +17,7 @@ const CAREER_STAGES = [
   { value: 'Y2', label: 'Year 2 (Medical Student)' },
   { value: 'Y3', label: 'Year 3 (Medical Student)' },
   { value: 'Y4', label: 'Year 4 (Medical Student)' },
-  { value: 'Y5', label: 'Year 5 (Medical Student)' },
-  { value: 'Y6', label: 'Year 6 (Medical Student)' },
+  { value: 'Y5_PLUS', label: 'Year 5+ (Medical Student)' },
   { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
   { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
   { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
@@ -41,7 +40,7 @@ export default function OnboardingPage() {
   const steps = getSteps(careerStage)
   const stepIndex = Math.max(steps.indexOf(step), 0)
   const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
-  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6'].includes(careerStage)
+  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS'].includes(careerStage)
   const entryLevelSpecialties = useMemo(
     () => SPECIALTY_CONFIGS.filter(config => getTrainingLevel(config) === 'entry').slice(0, 18),
     []

@@ -4,6 +4,7 @@ import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
+import { getSpecialtyConfig } from '@/lib/specialties'
 
 const ACCESS_RATE_LIMIT = 5
 const ACCESS_RATE_WINDOW_MS = 60_000
@@ -30,6 +31,10 @@ function minutesAgo(minutes: number) {
   const d = new Date()
   d.setMinutes(d.getMinutes() - minutes)
   return d.toISOString()
+}
+
+function formatTag(tag: string) {
+  return getSpecialtyConfig(tag)?.name ?? tag
 }
 
 export async function POST(req: NextRequest) {
@@ -168,8 +173,12 @@ export async function POST(req: NextRequest) {
     ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio user',
     scope: link.scope,
     specialtyKey: link.specialty_key,
+    specialtyLabel: link.specialty_key ? formatTag(link.specialty_key) : null,
     themeSlug: link.theme_slug,
     expiresAt: link.expires_at,
-    entries: entries ?? [],
+    entries: (entries ?? []).map(entry => ({
+      ...entry,
+      specialty_tag_labels: (entry.specialty_tags ?? []).map(formatTag),
+    })),
   })
 }

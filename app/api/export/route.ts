@@ -12,6 +12,10 @@ function formatTag(tag: string): string {
   return config ? config.name : tag
 }
 
+function formatTags(tags: string[] | null | undefined) {
+  return (tags ?? []).map(formatTag)
+}
+
 export async function POST(request: NextRequest) {
   const originError = validateOrigin(request)
   if (originError) return originError
@@ -35,23 +39,35 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { entryIds, specialty, format } = body as { entryIds: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json' }
+  const { entryIds, caseIds, specialty, format } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json' }
 
-  if (!entryIds?.length) {
-    return NextResponse.json({ error: 'No entries selected' }, { status: 400 })
+  if (!entryIds?.length && !caseIds?.length) {
+    return NextResponse.json({ error: 'No entries or cases selected' }, { status: 400 })
   }
 
-  // Fetch selected entries (RLS ensures they belong to this user)
-  const { data: entries, error } = await supabase
-    .from('portfolio_entries')
-    .select('*')
-    .in('id', entryIds)
-    .eq('user_id', user.id)
-    .is('deleted_at', null)
-    .order('date', { ascending: false })
+  const [{ data: entries, error }, { data: cases, error: casesError }] = await Promise.all([
+    entryIds?.length
+      ? supabase
+          .from('portfolio_entries')
+          .select('*')
+          .in('id', entryIds)
+          .eq('user_id', user.id)
+          .is('deleted_at', null)
+          .order('date', { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+    caseIds?.length
+      ? supabase
+          .from('cases')
+          .select('*')
+          .in('id', caseIds)
+          .eq('user_id', user.id)
+          .is('deleted_at', null)
+          .order('date', { ascending: false })
+      : Promise.resolve({ data: [], error: null }),
+  ])
 
-  if (error || !entries?.length) {
-    return NextResponse.json({ error: 'Failed to fetch entries' }, { status: 500 })
+  if (error || casesError) {
+    return NextResponse.json({ error: 'Failed to fetch export data' }, { status: 500 })
   }
 
   const specialtyDisplay = formatTag(specialty || 'Portfolio')
@@ -61,7 +77,28 @@ export async function POST(request: NextRequest) {
   // ── JSON export ──────────────────────────────────────────────────────────────
   if (format === 'json') {
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.json`
-    return new NextResponse(JSON.stringify(entries), {
+    const payload = {
+      schema_version: 1,
+      exported_at: new Date().toISOString(),
+      specialty: {
+        key: specialty || null,
+        label: specialtyDisplay,
+      },
+      portfolio_entries: entries ?? [],
+      cases: cases ?? [],
+      readable: {
+        portfolio_entries: (entries ?? []).map(entry => ({
+          ...entry,
+          specialty_tag_labels: formatTags(entry.specialty_tags),
+        })),
+        cases: (cases ?? []).map(c => ({
+          ...c,
+          specialty_tag_labels: formatTags(c.specialty_tags),
+          clinical_area_labels: c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : [],
+        })),
+      },
+    }
+    return new NextResponse(JSON.stringify(payload, null, 2), {
       status: 200,
       headers: {
         'Content-Type': 'application/json; charset=utf-8',
@@ -73,7 +110,7 @@ export async function POST(request: NextRequest) {
   // ── CSV export ───────────────────────────────────────────────────────────────
   if (format === 'csv') {
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.csv`
-    const csv = toCsv(entries)
+    const csv = toCsv(entries ?? [], cases ?? [])
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -84,6 +121,10 @@ export async function POST(request: NextRequest) {
   }
 
   // ── PDF export (default) ─────────────────────────────────────────────────────
+  if (!entries?.length) {
+    return NextResponse.json({ error: 'PDF exports currently require at least one portfolio entry. Use CSV or JSON to export cases.' }, { status: 400 })
+  }
+
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
@@ -122,10 +163,11 @@ export async function POST(request: NextRequest) {
   }
 }
 
-type CsvEntry = { title?: string; category?: string; date?: string; specialty_tags?: string[]; notes?: string; created_at?: string }
+type CsvEntry = { id?: string; title?: string; category?: string; date?: string; specialty_tags?: string[]; notes?: string; created_at?: string }
+type CsvCase = { id?: string; title?: string; date?: string; clinical_domain?: string | null; clinical_domains?: string[]; specialty_tags?: string[]; notes?: string | null; created_at?: string }
 
-function toCsv(entries: CsvEntry[]): string {
-  const FIELDS = ['title', 'category', 'date', 'specialty_tags', 'notes', 'created_at'] as const
+function toCsv(entries: CsvEntry[], cases: CsvCase[]): string {
+  const FIELDS = ['record_type', 'id', 'title', 'category_or_area', 'date', 'specialty_tags', 'notes', 'created_at'] as const
   // Prefix leading formula characters so Excel/Sheets cannot execute them.
   const FORMULA_CHARS = /^[=+\-@\t\r]/
   const escape = (v: string) => {
@@ -134,12 +176,24 @@ function toCsv(entries: CsvEntry[]): string {
   }
   const header = FIELDS.join(',')
   const rows = entries.map(e => [
+    escape('portfolio_entry'),
+    escape(e.id ?? ''),
     escape(e.title ?? ''),
     escape(e.category ?? ''),
     escape(e.date ?? ''),
-    escape((e.specialty_tags ?? []).map(formatTag).join(';')),
+    escape(formatTags(e.specialty_tags).join(';')),
     escape(e.notes ?? ''),
     escape(e.created_at ?? ''),
   ].join(','))
-  return [header, ...rows].join('\n')
+  const caseRows = cases.map(c => [
+    escape('case'),
+    escape(c.id ?? ''),
+    escape(c.title ?? ''),
+    escape((c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(';')),
+    escape(c.date ?? ''),
+    escape(formatTags(c.specialty_tags).join(';')),
+    escape(c.notes ?? ''),
+    escape(c.created_at ?? ''),
+  ].join(','))
+  return [header, ...rows, ...caseRows].join('\n')
 }
