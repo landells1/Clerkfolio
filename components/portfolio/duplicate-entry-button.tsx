@@ -20,6 +20,7 @@ export default function DuplicateEntryButton({ entryId }: { entryId: string }) {
         .from('portfolio_entries')
         .select('*')
         .eq('id', entryId)
+        .eq('user_id', user.id)
         .single()
 
       if (fetchError || !original) {

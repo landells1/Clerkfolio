@@ -32,16 +32,6 @@ export type EvidenceFile = {
   created_at: string
 }
 
-/** Total bytes used by this user across all uploads */
-export async function getStorageUsage(userId: string): Promise<number> {
-  const supabase = createClient()
-  const { data } = await supabase
-    .from('evidence_files')
-    .select('file_size')
-    .eq('user_id', userId)
-  return data?.reduce((sum, f) => sum + (f.file_size ?? 0), 0) ?? 0
-}
-
 /**
  * Upload a file after server-side quota/MIME authorization.
  * Callers MUST call /api/upload/authorize first and surface any errors.

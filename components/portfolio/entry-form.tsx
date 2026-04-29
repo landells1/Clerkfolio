@@ -383,11 +383,14 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   }
 
   async function pruneRevisions(entryId: string, entryType: 'portfolio' | 'case') {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (!currentUser) return
     const { data: revisions } = await supabase
       .from('entry_revisions')
       .select('id')
       .eq('entry_id', entryId)
       .eq('entry_type', entryType)
+      .eq('user_id', currentUser.id)
       .order('created_at', { ascending: true })
 
     if (revisions && revisions.length > 50) {
@@ -471,7 +474,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast('Changes saved', 'success')
       router.push(`/portfolio/${initialData!.id}`)
     }
-    router.refresh()
   }
 
   const ph = (key: string, fallback: string) => guidancePlaceholders[key] ?? fallback
