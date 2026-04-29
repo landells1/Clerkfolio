@@ -108,6 +108,7 @@ export async function uploadPendingFiles(
   entryId: string,
   entryType: 'portfolio' | 'case',
 ): Promise<string[]> {
+  const supabase = createClient()
   const errors: string[] = []
 
   for (const file of files) {
@@ -131,17 +132,25 @@ export async function uploadPendingFiles(
       continue
     }
 
-    const verifyRes = await fetch('/api/upload/verify', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileId: data.id }),
+    const { data: scanData, error: scanError } = await supabase.functions.invoke('scan-evidence', {
+      body: { fileId: data.id },
     })
-    if (!verifyRes.ok) {
-      const body = await verifyRes.json().catch(() => ({}))
-      errors.push(`${file.name}: ${body.error ?? 'Could not verify uploaded file'}`)
-    } else {
-      const body = await verifyRes.json().catch(() => ({}))
-      if (body.scan_status === 'quarantined') errors.push(`${file.name}: File failed server-side verification`)
+
+    if (scanError) {
+      const verifyRes = await fetch('/api/upload/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileId: data.id }),
+      })
+      if (!verifyRes.ok) {
+        const body = await verifyRes.json().catch(() => ({}))
+        errors.push(`${file.name}: ${body.error ?? 'Could not verify uploaded file'}`)
+      } else {
+        const body = await verifyRes.json().catch(() => ({}))
+        if (body.scan_status === 'quarantined') errors.push(`${file.name}: File failed server-side verification`)
+      }
+    } else if (scanData?.status === 'quarantined') {
+      errors.push(`${file.name}: File failed server-side verification`)
     }
   }
 
