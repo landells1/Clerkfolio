@@ -32,6 +32,7 @@ export default function OnboardingPage() {
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [careerStage, setCareerStage] = useState('')
+  const [studentGraduationDate, setStudentGraduationDate] = useState('')
   const [selectedSpecialties, setSelectedSpecialties] = useState<string[]>([])
   const [firstEntryTarget, setFirstEntryTarget] = useState<'dashboard' | 'portfolio' | 'case'>('portfolio')
   const [saving, setSaving] = useState(false)
@@ -75,6 +76,7 @@ export default function OnboardingPage() {
           firstName,
           lastName,
           careerStage,
+          studentGraduationDate,
           specialties: selectedSpecialties,
         }),
       })
@@ -151,6 +153,17 @@ export default function OnboardingPage() {
                   </button>
                 ))}
               </div>
+              {isMedicalStudent && (
+                <label className="block max-w-xs">
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.5)]">Expected graduation date</span>
+                  <input
+                    type="date"
+                    value={studentGraduationDate}
+                    onChange={e => setStudentGraduationDate(e.target.value)}
+                    className="w-full rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-3 text-sm outline-none focus:border-[#1B6FD9]"
+                  />
+                </label>
+              )}
             </div>
           </section>
         )}
@@ -238,7 +251,7 @@ export default function OnboardingPage() {
             <div className="flex flex-col items-end">
               <button
                 onClick={next}
-                disabled={step === 'profile' && (!firstName.trim() || !lastName.trim() || !careerStage)}
+                disabled={step === 'profile' && (!firstName.trim() || !lastName.trim() || !careerStage || (isMedicalStudent && !studentGraduationDate))}
                 className="rounded-xl bg-[#1B6FD9] px-6 py-3 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40"
               >
                 Continue

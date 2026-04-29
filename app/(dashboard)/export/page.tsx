@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
-import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
 type Tab = 'pdf' | 'backup' | 'share'
@@ -92,21 +92,14 @@ export default function ExportPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [{ data: profile }, { data: tagRows }, { data: apps }, { data: links }] = await Promise.all([
-        supabase.from('profiles').select('tier, subscription_status, pro_features_used, student_grace_until').eq('id', user.id).single(),
+      const [subInfo, { data: tagRows }, { data: apps }, { data: links }] = await Promise.all([
+        fetchSubscriptionInfo(supabase, user.id),
         supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
         fetch('/api/share').then(r => r.ok ? r.json() : []),
       ])
 
-      if (profile) {
-        const [{ count: specialtiesTracked }, { data: files }] = await Promise.all([
-          supabase.from('specialty_applications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_active', true),
-          supabase.from('evidence_files').select('file_size').eq('user_id', user.id),
-        ])
-        const storageUsedMB = (files ?? []).reduce((sum, f) => sum + (f.file_size ?? 0), 0) / (1024 * 1024)
-        setSubInfo(getSubscriptionInfo(profile, { specialtiesTracked: specialtiesTracked ?? 0, storageUsedMB }))
-      }
+      setSubInfo(subInfo)
 
       const counts: Record<string, number> = {}
       tagRows?.forEach(row => row.specialty_tags?.forEach((tag: string) => { counts[tag] = (counts[tag] ?? 0) + 1 }))

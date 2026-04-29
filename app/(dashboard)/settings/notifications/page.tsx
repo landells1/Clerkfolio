@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
 
 const DEFAULT_PREFS = {
@@ -31,15 +31,13 @@ export default function NotificationSettingsPage() {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
-      const [{ data: profile }, { count: specialtiesTracked }, { data: files }] = await Promise.all([
-        supabase.from('profiles').select('tier, subscription_status, pro_features_used, student_grace_until, notification_preferences').eq('id', user.id).single(),
-        supabase.from('specialty_applications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_active', true),
-        supabase.from('evidence_files').select('file_size').eq('user_id', user.id),
+      const [{ data: profile }, subInfo] = await Promise.all([
+        supabase.from('profiles').select('notification_preferences').eq('id', user.id).single(),
+        fetchSubscriptionInfo(supabase, user.id),
       ])
       if (!profile) return
       setPrefs({ ...DEFAULT_PREFS, ...(profile.notification_preferences ?? {}) })
-      const storageUsedMB = (files ?? []).reduce((sum, file) => sum + (file.file_size ?? 0), 0) / (1024 * 1024)
-      setSubInfo(getSubscriptionInfo(profile, { specialtiesTracked: specialtiesTracked ?? 0, storageUsedMB }))
+      setSubInfo(subInfo)
     }
     load()
   }, [supabase])

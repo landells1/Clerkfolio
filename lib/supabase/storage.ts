@@ -3,6 +3,7 @@ import { fileHasValidMagicBytes } from '@/lib/upload/magic-bytes'
 
 const BUCKET = 'evidence'
 export const FREE_CAP_BYTES = 100 * 1024 * 1024        // 100 MB
+export const STUDENT_CAP_BYTES = 1024 * 1024 * 1024    // 1 GB
 export const PRO_CAP_BYTES  = 5 * 1024 * 1024 * 1024  // 5 GB
 export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 

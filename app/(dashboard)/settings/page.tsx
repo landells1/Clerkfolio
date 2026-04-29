@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { getSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 
@@ -25,7 +25,7 @@ export default function SettingsPage() {
   const router = useRouter()
   const { addToast } = useToast()
 
-  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '' })
+  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '', student_graduation_date: '' })
   const [email, setEmail] = useState('')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)
@@ -44,21 +44,13 @@ export default function SettingsPage() {
       if (!user) return
 
       setEmail(user.email ?? '')
-      const [{ data }, { count: specialtiesTracked }, { data: files }] = await Promise.all([
+      const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, tier, subscription_status, pro_features_used, student_grace_until')
+          .select('first_name, last_name, career_stage, student_graduation_date')
           .eq('id', user.id)
           .single(),
-        supabase
-          .from('specialty_applications')
-          .select('id', { count: 'exact', head: true })
-          .eq('user_id', user.id)
-          .eq('is_active', true),
-        supabase
-          .from('evidence_files')
-          .select('file_size')
-          .eq('user_id', user.id),
+        fetchSubscriptionInfo(supabase, user.id),
       ])
 
       if (data) {
@@ -66,12 +58,9 @@ export default function SettingsPage() {
           first_name: data.first_name ?? '',
           last_name: data.last_name ?? '',
           career_stage: data.career_stage ?? '',
+          student_graduation_date: data.student_graduation_date ?? '',
         })
-        const storageUsedMB = (files ?? []).reduce((sum, file) => sum + (file.file_size ?? 0), 0) / (1024 * 1024)
-        setSubInfo(getSubscriptionInfo(data, {
-          specialtiesTracked: specialtiesTracked ?? 0,
-          storageUsedMB,
-        }))
+        setSubInfo(subInfo)
       }
       setLoading(false)
     }
@@ -94,6 +83,8 @@ export default function SettingsPage() {
       return
     }
     setProfile(next)
+    const refreshed = await fetchSubscriptionInfo(supabase, user.id)
+    setSubInfo(refreshed)
     addToast('Settings saved', 'success')
     router.refresh()
   }
@@ -195,7 +186,7 @@ export default function SettingsPage() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Career stage</h2>
-            <p className="text-sm text-[rgba(245,245,242,0.45)]">This controls which features are shown in your sidebar. Your data is not affected.</p>
+            <p className="text-sm text-[rgba(245,245,242,0.45)]">This controls which features are shown in your sidebar. Moving out of medical school changes Student accounts to Foundation accounts.</p>
           </div>
           <select
             value={profile.career_stage}
@@ -206,6 +197,18 @@ export default function SettingsPage() {
             {CAREER_STAGES.map(stage => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
           </select>
         </div>
+        {subInfo?.tier === 'student' && (
+          <label className="mt-5 block max-w-xs text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            Expected graduation date
+            <input
+              type="date"
+              value={profile.student_graduation_date}
+              onChange={e => setProfile(p => ({ ...p, student_graduation_date: e.target.value }))}
+              onBlur={() => saveProfile()}
+              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal outline-none focus:border-[#1B6FD9]"
+            />
+          </label>
+        )}
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
@@ -250,7 +253,7 @@ export default function SettingsPage() {
         {subInfo && (
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
-              <p><span className="text-[#F5F5F2] font-medium">{subInfo.isPro ? 'Pro access' : 'Free tier'}</span> - {subInfo.storageQuotaMB} MB storage quota</p>
+              <p><span className="text-[#F5F5F2] font-medium">{planLabel(subInfo)}</span> - {formatQuota(subInfo.storageQuotaMB)} storage quota</p>
               <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
               <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
             </div>
@@ -344,6 +347,18 @@ function SettingsLink({ href, label }: { href: string; label: string }) {
       {label}
     </Link>
   )
+}
+
+function planLabel(subInfo: SubscriptionInfo) {
+  if (subInfo.isPro) return 'Pro access'
+  if (subInfo.tier === 'student') return 'Student tier'
+  if (subInfo.tier === 'foundation') return 'Foundation tier'
+  return 'Free tier'
+}
+
+function formatQuota(mb: number) {
+  if (mb >= 1024) return `${mb / 1024} GB`
+  return `${mb} MB`
 }
 
 function ConfirmModal({
