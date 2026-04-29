@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
+import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
@@ -71,7 +72,9 @@ export default function ExportPage() {
   const [format, setFormat] = useState<ExportFormat>('pdf')
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all')
   const [entries, setEntries] = useState<PortfolioEntry[]>([])
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
+  const [cases, setCases] = useState<Case[]>([])
+  const [selectedEntryIds, setSelectedEntryIds] = useState<Set<string>>(new Set())
+  const [selectedCaseIds, setSelectedCaseIds] = useState<Set<string>>(new Set())
   const [loadedSpecialty, setLoadedSpecialty] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
@@ -118,23 +121,37 @@ export default function ExportPage() {
     async function loadEntries() {
       setLoading(true)
       setEntries([])
-      setSelectedIds(new Set())
+      setCases([])
+      setSelectedEntryIds(new Set())
+      setSelectedCaseIds(new Set())
       setLoadedSpecialty(null)
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || cancelled) return
-      const { data } = await supabase
-        .from('portfolio_entries')
-        .select('*')
-        .eq('user_id', user.id)
-        .contains('specialty_tags', [specialty])
-        .is('deleted_at', null)
-        .order('date', { ascending: false })
+      const [{ data }, { data: caseRows }] = await Promise.all([
+        supabase
+          .from('portfolio_entries')
+          .select('*')
+          .eq('user_id', user.id)
+          .contains('specialty_tags', [specialty])
+          .is('deleted_at', null)
+          .order('date', { ascending: false }),
+        supabase
+          .from('cases')
+          .select('*')
+          .eq('user_id', user.id)
+          .contains('specialty_tags', [specialty])
+          .is('deleted_at', null)
+          .order('date', { ascending: false }),
+      ])
 
       if (cancelled) return
       const rows = (data ?? []) as PortfolioEntry[]
+      const caseData = (caseRows ?? []) as Case[]
       setEntries(rows)
-      setSelectedIds(new Set(rows.map(e => e.id)))
+      setCases(caseData)
+      setSelectedEntryIds(new Set(rows.map(e => e.id)))
+      setSelectedCaseIds(new Set(caseData.map(c => c.id)))
       setLoadedSpecialty(specialty)
       setLoading(false)
     }
@@ -143,8 +160,10 @@ export default function ExportPage() {
   }, [specialty, supabase])
 
   const visible = categoryFilter === 'all' ? entries : entries.filter(e => e.category === categoryFilter)
+  const visibleCases = categoryFilter === 'all' ? cases : []
   const categoriesPresent = Array.from(new Set(entries.map(e => e.category))) as Category[]
-  const totalSelected = selectedIds.size
+  const exportCaseIds = categoryFilter === 'all' ? selectedCaseIds : new Set<string>()
+  const totalSelected = selectedEntryIds.size + exportCaseIds.size
   const themes = useMemo(() => {
     const set = new Set<string>()
     entries.forEach(e => e.interview_themes?.forEach(t => set.add(t)))
@@ -163,12 +182,16 @@ export default function ExportPage() {
 
   async function handleGenerate() {
     if (totalSelected === 0) return
+    if (format === 'pdf' && selectedEntryIds.size === 0) {
+      setError('PDF exports currently require at least one portfolio entry. Use CSV or JSON to export cases.')
+      return
+    }
     setGenerating(true)
     setError(null)
     const res = await fetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryIds: Array.from(selectedIds), specialty, format }),
+      body: JSON.stringify({ entryIds: Array.from(selectedEntryIds), caseIds: Array.from(exportCaseIds), specialty, format }),
     })
     setGenerating(false)
     if (!res.ok) {
@@ -329,28 +352,28 @@ export default function ExportPage() {
           <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
             <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">
-                {loading ? 'Loading...' : `${visible.length} entries - ${totalSelected} selected`}
+                {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
               </p>
               <div className="flex items-center gap-3">
-                <button onClick={() => setSelectedIds(new Set(visible.map(e => e.id)))} className="text-xs text-[#1B6FD9]">Select visible</button>
-                <button onClick={() => setSelectedIds(new Set())} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
+                <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[#1B6FD9]">Select visible</button>
+                <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
                 <button onClick={handleGenerate} disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.limits.canExportPdf)} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
             </div>
 
-            {visible.length === 0 ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries match this specialty and category.</div>
+            {visible.length === 0 && visibleCases.length === 0 ? (
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases match this specialty and category.</div>
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {visible.map(entry => {
-                  const checked = selectedIds.has(entry.id)
+                  const checked = selectedEntryIds.has(entry.id)
                   const colour = CATEGORY_COLOURS[entry.category]
                   const label = CATEGORIES.find(c => c.value === entry.category)?.short ?? entry.category
                   return (
                     <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
-                      <input type="checkbox" checked={checked} onChange={() => setSelectedIds(prev => {
+                      <input type="checkbox" checked={checked} onChange={() => setSelectedEntryIds(prev => {
                         const next = new Set(prev)
                         next.has(entry.id) ? next.delete(entry.id) : next.add(entry.id)
                         return next
@@ -363,6 +386,27 @@ export default function ExportPage() {
                         {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[rgba(245,245,242,0.4)]">{entrySubtitle(entry)}</p>}
                       </div>
                       <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)]">{formatDate(entry.date)}</span>
+                    </label>
+                  )
+                })}
+                {visibleCases.map(c => {
+                  const checked = selectedCaseIds.has(c.id)
+                  const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
+                  return (
+                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
+                      <input type="checkbox" checked={checked} onChange={() => setSelectedCaseIds(prev => {
+                        const next = new Set(prev)
+                        next.has(c.id) ? next.delete(c.id) : next.add(c.id)
+                        return next
+                      })} className="h-4 w-4 accent-[#1B6FD9]" />
+                      <div className="min-w-0 flex-1">
+                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                          <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-medium text-cyan-400">Case</span>
+                          <span className="truncate text-sm text-[rgba(245,245,242,0.9)]">{c.title}</span>
+                        </div>
+                        {areas.length > 0 && <p className="truncate text-xs text-[rgba(245,245,242,0.4)]">{areas.join(' - ')}</p>}
+                      </div>
+                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)]">{formatDate(c.date)}</span>
                     </label>
                   )
                 })}

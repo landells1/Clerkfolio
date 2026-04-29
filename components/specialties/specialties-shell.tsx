@@ -1,6 +1,6 @@
 ﻿'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 import { getSpecialtyConfig, SPECIALTY_CONFIGS } from '@/lib/specialties'
@@ -11,7 +11,7 @@ import { CompareView } from './compare-view'
 
 type Tab = 'my_specialties' | 'compare' | 'archive'
 
-const FREE_SPECIALTY_LIMIT = 3
+const FREE_SPECIALTY_LIMIT = 1
 
 type Props = {
   applications: SpecialtyApplication[]
@@ -28,6 +28,13 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
     initialAppKey ? (initialApplications.find(a => a.specialty_key === initialAppKey)?.id ?? null) : null
   )
   const [showAddModal, setShowAddModal] = useState(false)
+
+  useEffect(() => {
+    setSelectedAppId(
+      initialAppKey ? (applications.find(a => a.specialty_key === initialAppKey)?.id ?? null) : null
+    )
+    if (!initialAppKey) setActiveTab('my_specialties')
+  }, [applications, initialAppKey])
 
   function handleAddApplication(app: SpecialtyApplication) {
     setApplications(prev => [...prev, app])
@@ -99,7 +106,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
             Add Specialty
             {!isPro && (
               <span className="text-[10px] font-normal text-[#0B0B0C]/60 ml-0.5">
-                {applications.length}/{FREE_SPECIALTY_LIMIT}
+                {activeApplications.length}/{FREE_SPECIALTY_LIMIT}
               </span>
             )}
           </button>
@@ -136,7 +143,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                     onClick={() => setShowAddModal(true)}
                     className="mt-4 text-sm text-[#1B6FD9] hover:text-[#155BB0] font-medium transition-colors"
                   >
-                    Track your first specialty application →
+                    Track your first specialty application
                   </button>
                 </div>
               ) : (
@@ -238,6 +245,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           onClose={() => setShowAddModal(false)}
           onAdd={handleAddApplication}
           existingKeys={applications.map(a => a.specialty_key)}
+          activeCount={activeApplications.length}
           isPro={isPro}
         />
       )}
@@ -300,7 +308,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
         disabled={loading}
         className="shrink-0 px-3 py-1.5 text-xs font-semibold text-[#0B0B0C] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 rounded-lg transition-colors"
       >
-        {loading ? 'Starting…' : 'Start new cycle →'}
+        {loading ? 'Starting...' : 'Start new cycle'}
       </button>
       <button onClick={() => setDismissed(true)} className="shrink-0 text-[rgba(245,245,242,0.3)] hover:text-[#F5F5F2] transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -310,4 +318,3 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
     </div>
   )
 }
-

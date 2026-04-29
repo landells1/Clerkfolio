@@ -17,10 +17,11 @@ type Props = {
   onClose: () => void
   onAdd: (app: SpecialtyApplication) => void
   existingKeys: string[]
+  activeCount: number
   isPro?: boolean
 }
 
-export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false }: Props) {
+export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, isPro = false }: Props) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -129,7 +130,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
             </div>
           )}
 
-          {!isPro && existingKeys.length >= FREE_SPECIALTY_LIMIT ? (
+          {!isPro && activeCount >= FREE_SPECIALTY_LIMIT ? (
             <div className="py-8 text-center space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 flex items-center justify-center mx-auto">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -161,7 +162,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, isPro = false 
                 Select a specialty to begin tracking your application score.
                 {!isPro && (
                   <span className="ml-1 text-[rgba(245,245,242,0.3)]">
-                    ({existingKeys.length}/{FREE_SPECIALTY_LIMIT} free slots used)
+                    ({activeCount}/{FREE_SPECIALTY_LIMIT} free slots used)
                   </span>
                 )}
               </p>
@@ -269,8 +270,8 @@ function SpecialtyCard({
         </div>
         <p className="text-xs text-[rgba(245,245,242,0.4)]">
           {evidenceBased
-            ? `${essentialsCount} essentials · ${desirablesCount} desirables`
-            : `Up to ${config.totalMax} pts · ${config.domains.length} domains`}
+            ? `${essentialsCount} essentials - ${desirablesCount} desirables`
+            : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
         </p>
         {!config.isOfficial && (
           <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>

@@ -3,7 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 
-const CAREER_STAGES = new Set(['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6', 'FY1', 'FY2'])
+const CAREER_STAGES = new Set(['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6', 'FY1', 'FY2', 'POST_FY'])
 
 function referralUntil(existing?: string | null) {
   const base = existing && new Date(existing).getTime() > Date.now()
@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Profile details are incomplete.' }, { status: 400 })
   }
 
-  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y6'].includes(careerStage)
+  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6'].includes(careerStage)
   if (isMedicalStudent && !studentGraduationDate) {
     return NextResponse.json({ error: 'Expected graduation date is required for student accounts.' }, { status: 400 })
   }

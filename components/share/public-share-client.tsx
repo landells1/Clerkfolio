@@ -10,6 +10,7 @@ type SharedEntry = {
   date: string
   category: Category
   specialty_tags: string[] | null
+  specialty_tag_labels?: string[] | null
   interview_themes: string[] | null
   notes: string | null
 }
@@ -18,6 +19,7 @@ type SharePayload = {
   ownerName: string
   scope: 'specialty' | 'theme' | 'full'
   specialtyKey: string | null
+  specialtyLabel: string | null
   themeSlug: string | null
   expiresAt: string
   entries: SharedEntry[]
@@ -30,7 +32,7 @@ function formatDate(value: string) {
 function scopeLabel(payload: SharePayload) {
   if (payload.scope === 'full') return 'Full portfolio'
   if (payload.scope === 'theme') return `Theme: ${payload.themeSlug}`
-  return `Specialty: ${payload.specialtyKey}`
+  return `Specialty: ${payload.specialtyLabel ?? payload.specialtyKey}`
 }
 
 export default function PublicShareClient({ token }: { token: string }) {
@@ -86,7 +88,7 @@ export default function PublicShareClient({ token }: { token: string }) {
           </div>
           {payload && (
             <p className="text-xs text-[rgba(245,245,242,0.35)]">
-              Read-only · expires {formatDate(payload.expiresAt)}
+              Read-only - expires {formatDate(payload.expiresAt)}
             </p>
           )}
         </div>
@@ -163,6 +165,15 @@ export default function PublicShareClient({ token }: { token: string }) {
                               <span className="text-xs text-[rgba(245,245,242,0.35)]">{formatDate(entry.date)}</span>
                             </div>
                             {entry.notes && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{entry.notes}</p>}
+                            {entry.specialty_tag_labels && entry.specialty_tag_labels.length > 0 && (
+                              <div className="mt-3 flex flex-wrap gap-1.5">
+                                {entry.specialty_tag_labels.map(label => (
+                                  <span key={label} className="rounded bg-[#1B6FD9]/10 px-2 py-0.5 text-[10px] font-medium text-[#6AA8FF]">
+                                    {label}
+                                  </span>
+                                ))}
+                              </div>
+                            )}
                           </article>
                         ))}
                       </div>
