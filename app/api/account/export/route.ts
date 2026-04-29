@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
   const dateStr = new Date().toISOString().split('T')[0]
   const root = zip.folder(`clinidex-export-${dateStr}`)!
 
-  // Fetch all user data in parallel
+  // Fetch all user data in parallel (specialty_entry_links fetched separately after we have app IDs)
   const [
     { data: profile },
     { data: portfolioEntries },
@@ -23,7 +23,6 @@ export async function POST(req: NextRequest) {
     { data: deadlines },
     { data: goals },
     { data: specialtyApps },
-    { data: specialtyLinks },
     { data: arcpLinks },
     { data: templates },
     { data: evidenceFiles },
@@ -34,15 +33,15 @@ export async function POST(req: NextRequest) {
     supabase.from('deadlines').select('*').eq('user_id', user.id),
     supabase.from('goals').select('*').eq('user_id', user.id),
     supabase.from('specialty_applications').select('*').eq('user_id', user.id),
-    supabase.from('specialty_entry_links').select('*'),
     supabase.from('arcp_entry_links').select('*').eq('user_id', user.id),
     supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`),
     supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean'),
   ])
 
-  // Filter specialty links to user's applications
-  const appIds = new Set((specialtyApps ?? []).map(a => a.id))
-  const filteredLinks = (specialtyLinks ?? []).filter(l => appIds.has(l.application_id))
+  const appIds = (specialtyApps ?? []).map(a => a.id)
+  const { data: filteredLinks } = appIds.length > 0
+    ? await supabase.from('specialty_entry_links').select('*').in('application_id', appIds)
+    : { data: [] }
 
   // Add JSON files
   root.file('profile.json', JSON.stringify(profile ?? {}, null, 2))
