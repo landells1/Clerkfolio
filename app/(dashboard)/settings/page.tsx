@@ -1,8 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
@@ -21,15 +21,24 @@ const CAREER_STAGES = [
 ]
 
 export default function SettingsPage() {
-  const supabase = createClient()
+  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { addToast } = useToast()
 
   const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '', student_graduation_date: '' })
+  const [studentEmail, setStudentEmail] = useState({
+    email: '',
+    verified: false,
+    verifiedAt: '',
+    dueAt: '',
+    sentAt: '',
+  })
   const [email, setEmail] = useState('')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
+  const [sendingStudentEmail, setSendingStudentEmail] = useState(false)
   const [pendingStage, setPendingStage] = useState<string | null>(null)
   const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
@@ -47,7 +56,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date')
+          .select('first_name, last_name, career_stage, student_graduation_date, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -61,11 +70,25 @@ export default function SettingsPage() {
           student_graduation_date: data.student_graduation_date ?? '',
         })
         setSubInfo(subInfo)
+        setStudentEmail({
+          email: data.student_email ?? '',
+          verified: data.student_email_verified ?? false,
+          verifiedAt: data.student_email_verified_at ?? '',
+          dueAt: data.student_email_verification_due_at ?? '',
+          sentAt: data.student_email_verification_sent_at ?? '',
+        })
       }
       setLoading(false)
     }
     load()
   }, [supabase])
+
+  useEffect(() => {
+    const status = searchParams.get('student_email')
+    if (status === 'verified') addToast('Student email verified', 'success')
+    if (status === 'expired') addToast('Verification link expired. Request a new one.', 'error')
+    if (status === 'invalid') addToast('Verification link is invalid or already used.', 'error')
+  }, [addToast, searchParams])
 
   async function saveProfile(next = profile) {
     setSavingProfile(true)
@@ -144,6 +167,33 @@ export default function SettingsPage() {
     } catch (err) {
       addToast(err instanceof Error ? err.message : 'Failed to open billing', 'error')
       setBillingLoading(false)
+    }
+  }
+
+  async function sendStudentEmailVerification(e: React.FormEvent) {
+    e.preventDefault()
+    setSendingStudentEmail(true)
+    try {
+      const res = await fetch('/api/student-email/send-verification', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: studentEmail.email }),
+      })
+      const body = await res.json()
+      if (!res.ok) throw new Error(body.error ?? 'Could not send verification link')
+      setStudentEmail(current => ({
+        ...current,
+        verified: false,
+        verifiedAt: '',
+        dueAt: '',
+        sentAt: new Date().toISOString(),
+      }))
+      addToast('Verification link sent', 'success')
+      router.refresh()
+    } catch (err) {
+      addToast(err instanceof Error ? err.message : 'Could not send verification link', 'error')
+    } finally {
+      setSendingStudentEmail(false)
     }
   }
 
@@ -268,6 +318,36 @@ export default function SettingsPage() {
         )}
       </section>
 
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[#F5F5F2]">Student verification</h2>
+            <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
+              Verify a university or medical school email for Student storage. Re-verification is required yearly.
+            </p>
+          </div>
+          <StudentEmailStatus studentEmail={studentEmail} />
+        </div>
+        <form onSubmit={sendStudentEmailVerification} className="flex flex-col gap-3 sm:flex-row">
+          <input
+            type="email"
+            value={studentEmail.email}
+            onChange={e => setStudentEmail(current => ({ ...current, email: e.target.value }))}
+            placeholder="you@university.ac.uk"
+            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+          />
+          <button
+            disabled={sendingStudentEmail}
+            className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] disabled:opacity-50"
+          >
+            {sendingStudentEmail ? 'Sending...' : studentEmail.verified ? 'Re-verify' : 'Send verification'}
+          </button>
+        </form>
+        {studentEmail.sentAt && !studentEmail.verified && (
+          <p className="mt-3 text-xs text-[rgba(245,245,242,0.38)]">Check your institution inbox for the verification link.</p>
+        )}
+      </section>
+
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <SettingsLink href="/settings/notifications" label="Notifications" />
         <SettingsLink href="/settings/referrals" label="Referrals" />
@@ -359,6 +439,26 @@ function planLabel(subInfo: SubscriptionInfo) {
 function formatQuota(mb: number) {
   if (mb >= 1024) return `${mb / 1024} GB`
   return `${mb} MB`
+}
+
+function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; verified: boolean; verifiedAt: string; dueAt: string } }) {
+  if (!studentEmail.email) {
+    return <span className="text-xs text-[rgba(245,245,242,0.35)]">Not added</span>
+  }
+
+  if (!studentEmail.verified) {
+    return <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-300">Unverified</span>
+  }
+
+  const dueLabel = studentEmail.dueAt
+    ? new Date(studentEmail.dueAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : 'next year'
+
+  return (
+    <span className="rounded-full bg-[#1B6FD9]/15 px-2.5 py-1 text-xs font-medium text-[#6AA8FF]">
+      Verified until {dueLabel}
+    </span>
+  )
 }
 
 function ConfirmModal({
