@@ -101,6 +101,7 @@ export default function SettingsPage() {
     if (status === 'verified') addToast('Institutional email verified', 'success')
     if (status === 'expired') addToast('Verification link expired. Request a new one.', 'error')
     if (status === 'invalid') addToast('Verification link is invalid or already used.', 'error')
+    if (status === 'already_used') addToast('That institutional email is already verified on another account.', 'error')
   }, [addToast, searchParams])
 
   async function saveProfile(next = profile) {
@@ -326,13 +327,20 @@ export default function SettingsPage() {
               <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
               <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
             </div>
-            <button
-              onClick={openBilling}
-              disabled={billingLoading}
-              className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] disabled:opacity-50"
-            >
-              {billingLoading ? 'Opening...' : subInfo.tier === 'pro' ? 'Manage billing' : 'Upgrade to Pro'}
-            </button>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-center text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
+                View plans
+              </Link>
+              {subInfo.tier === 'pro' && (
+                <button
+                  onClick={openBilling}
+                  disabled={billingLoading}
+                  className="text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] disabled:opacity-50"
+                >
+                  {billingLoading ? 'Opening...' : 'Manage billing'}
+                </button>
+              )}
+            </div>
           </div>
         )}
       </section>

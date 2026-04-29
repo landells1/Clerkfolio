@@ -335,6 +335,24 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             Send feedback
           </button>
 
+          {/* Upgrade */}
+          <Link
+            href="/upgrade"
+            onClick={() => setMobileOpen(false)}
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
+              pathname === '/upgrade'
+                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
+                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+            }`}
+            style={pathname === '/upgrade' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2v20" />
+              <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
+            </svg>
+            Upgrade
+          </Link>
+
           {/* Log out */}
           <button
             onClick={handleLogout}

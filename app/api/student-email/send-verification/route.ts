@@ -37,6 +37,18 @@ export async function POST(req: NextRequest) {
   }
 
   const service = createServiceClient()
+  const { data: existingVerifiedProfile } = await service
+    .from('profiles')
+    .select('id')
+    .eq('student_email_verified', true)
+    .ilike('student_email', email)
+    .neq('id', user.id)
+    .maybeSingle()
+
+  if (existingVerifiedProfile) {
+    return NextResponse.json({ error: 'This institutional email is already verified on another Clerkfolio account.' }, { status: 409 })
+  }
+
   const { data: profile } = await service
     .from('profiles')
     .select('student_email_verification_sent_at')
