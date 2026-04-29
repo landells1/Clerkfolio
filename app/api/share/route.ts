@@ -62,6 +62,7 @@ export async function GET() {
     .from('share_links')
     .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, revoked_at, created_at')
     .eq('user_id', user.id)
+    .eq('revoked', false)
     .is('revoked_at', null)
     .order('created_at', { ascending: false })
 
@@ -122,13 +123,10 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (!subInfo.isPro) {
-    await supabase.from('profiles').update({
-      pro_features_used: {
-        pdf_exports_used: subInfo.usage.pdfExportsUsed,
-        share_links_used: subInfo.usage.shareLinksUsed + 1,
-        referral_pro_until: subInfo.usage.referralProUntil,
-      },
-    }).eq('id', user.id)
+    await supabase.rpc('increment_pro_feature_usage', {
+      p_user_id: user.id,
+      p_feature: 'share_links_used',
+    })
   }
 
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
@@ -158,9 +156,25 @@ export async function PATCH(req: NextRequest) {
   const nextExpiry = new Date()
   nextExpiry.setDate(nextExpiry.getDate() + days)
 
+  const { data: existing, error: existingError } = await supabase
+    .from('share_links')
+    .select('revoked, revoked_at')
+    .eq('id', id)
+    .eq('user_id', user.id)
+    .maybeSingle()
+
+  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 })
+  if (!existing) return NextResponse.json({ error: 'Share link not found.' }, { status: 404 })
+  if (existing.revoked || existing.revoked_at) {
+    return NextResponse.json(
+      { error: 'This link was revoked and cannot be extended. Create a new share link.' },
+      { status: 409 }
+    )
+  }
+
   const { data, error } = await supabase
     .from('share_links')
-    .update({ expires_at: nextExpiry.toISOString(), revoked_at: null, revoked: false })
+    .update({ expires_at: nextExpiry.toISOString() })
     .eq('id', id)
     .eq('user_id', user.id)
     .select('id, expires_at')

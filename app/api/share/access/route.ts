@@ -21,12 +21,6 @@ function hashIp(req: NextRequest) {
   return createHash('sha256').update(`${ip}:${process.env.SHARE_IP_HASH_SALT ?? ''}`).digest('hex')
 }
 
-function startOfHour() {
-  const d = new Date()
-  d.setMinutes(0, 0, 0)
-  return d.toISOString()
-}
-
 function minutesAgo(minutes: number) {
   const d = new Date()
   d.setMinutes(d.getMinutes() - minutes)
@@ -106,7 +100,7 @@ export async function POST(req: NextRequest) {
     .from('share_views')
     .select('id', { count: 'exact', head: true })
     .eq('share_link_id', link.id)
-    .gte('viewed_at', startOfHour())
+    .gte('viewed_at', new Date(Date.now() - 60 * 60 * 1000).toISOString())
 
   if ((recentViews ?? 0) >= 100) {
     await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
@@ -117,21 +111,24 @@ export async function POST(req: NextRequest) {
       .maybeSingle()
 
     const resendKey = process.env.RESEND_API_KEY
-    // Auto-revoke due to unusual traffic is a security event — send unconditionally regardless of notification prefs
     if (resendKey) {
-      const { data: userData } = await supabase.auth.admin.getUserById(link.user_id)
-      if (userData?.user?.email) {
-        const resend = new Resend(resendKey)
-        await resend.emails.send({
-          from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
-          to: userData.user.email,
-          subject: 'Your shared portfolio link was auto-revoked',
-          html: buildAutoRevokeEmail({
-            userName: ownerProfile?.first_name ?? 'there',
-            linkScope: link.scope,
-            viewCount: 100,
-          }),
-        })
+      try {
+        const { data: userData } = await supabase.auth.admin.getUserById(link.user_id)
+        if (userData?.user?.email) {
+          const resend = new Resend(resendKey)
+          await resend.emails.send({
+            from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
+            to: userData.user.email,
+            subject: 'Your shared portfolio link was auto-revoked',
+            html: buildAutoRevokeEmail({
+              userName: ownerProfile?.first_name ?? 'there',
+              linkScope: link.scope,
+              viewCount: 100,
+            }),
+          })
+        }
+      } catch (err) {
+        console.error('auto-revoke email failed:', err)
       }
     }
     return NextResponse.json({ error: 'This share link has been paused after unusual traffic.' }, { status: 429 })

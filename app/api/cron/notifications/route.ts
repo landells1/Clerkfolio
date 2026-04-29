@@ -8,7 +8,7 @@ export const maxDuration = 30
 
 type NotificationDraft = {
   user_id: string
-  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window_open'
+  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window_open' | 'student_verification_expiring'
   title: string
   body: string
   link: string
@@ -29,7 +29,7 @@ function daysUntil(date: string) {
 }
 
 function preferenceAllows(prefs: Preferences, type: NotificationDraft['type']) {
-  if (type === 'deadline_due') return prefs.deadlines !== false
+  if (type === 'deadline_due' || type === 'student_verification_expiring') return prefs.deadlines !== false
   if (type === 'share_link_expiring') return prefs.share_link_expiring !== false
   if (type === 'activity_nudge') return prefs.activity_nudge === true
   if (type === 'application_window_open') return prefs.application_window !== false
@@ -48,6 +48,8 @@ export async function GET(req: NextRequest) {
   const todayStr = today.toISOString().split('T')[0]
   const in3Days = new Date(today); in3Days.setDate(today.getDate() + 3)
   const in3Str = in3Days.toISOString().split('T')[0]
+  const in30Days = new Date(today); in30Days.setDate(today.getDate() + 30)
+  const in30Str = in30Days.toISOString().split('T')[0]
   const fourteenDaysAgo = new Date(today); fourteenDaysAgo.setDate(today.getDate() - 14)
 
   const drafts: NotificationDraft[] = []
@@ -90,6 +92,26 @@ export async function GET(req: NextRequest) {
       title: 'Shared link expiring soon',
       body: `Your read-only link for ${label} expires within 3 days.`,
       link: '/export',
+    })
+  })
+
+  const { data: expiringStudentVerifications } = await supabase
+    .from('profiles')
+    .select('id, student_email_verification_due_at')
+    .eq('tier', 'student')
+    .gte('student_email_verification_due_at', todayStr)
+    .lte('student_email_verification_due_at', `${in30Str}T23:59:59Z`)
+
+  expiringStudentVerifications?.forEach(profile => {
+    const daysLeft = daysUntil(profile.student_email_verification_due_at)
+    drafts.push({
+      user_id: profile.id,
+      type: 'student_verification_expiring',
+      title: 'Your student email verification expires soon',
+      body: daysLeft <= 0
+        ? 'Re-verify your student email today to keep your student features active.'
+        : `Re-verify your student email within ${daysLeft} day${daysLeft !== 1 ? 's' : ''} to keep your student features active.`,
+      link: '/settings',
     })
   })
 
