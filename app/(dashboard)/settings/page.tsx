@@ -25,7 +25,7 @@ export default function SettingsPage() {
   const searchParams = useSearchParams()
   const { addToast } = useToast()
 
-  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '', student_graduation_date: '' })
+  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '', student_graduation_date: '', referral_code: '' })
   const [studentEmail, setStudentEmail] = useState({
     email: '',
     verified: false,
@@ -45,6 +45,11 @@ export default function SettingsPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [exportLoading, setExportLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
+  const [origin, setOrigin] = useState('')
+
+  useEffect(() => {
+    setOrigin(window.location.origin)
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -55,18 +60,27 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
       ])
 
       if (data) {
+        let referralCode = data.referral_code ?? ''
+        if (!/^[A-Z]{5}$/.test(referralCode)) {
+          const res = await fetch('/api/referrals/ensure-code', { method: 'POST' })
+          if (res.ok) {
+            const body = await res.json()
+            referralCode = body.code ?? referralCode
+          }
+        }
         setProfile({
           first_name: data.first_name ?? '',
           last_name: data.last_name ?? '',
           career_stage: data.career_stage ?? '',
           student_graduation_date: data.student_graduation_date ?? '',
+          referral_code: referralCode,
         })
         setSubInfo(subInfo)
         setStudentEmail({
@@ -204,6 +218,12 @@ export default function SettingsPage() {
       .update({ onboarding_complete: false, onboarding_checklist_completed_items: [] })
       .eq('id', user.id)
     router.push('/onboarding')
+  }
+
+  async function copyReferralLink() {
+    if (!profile.referral_code) return
+    await navigator.clipboard.writeText(`${origin || window.location.origin}/r/${profile.referral_code}`)
+    addToast('Referral link copied', 'success')
   }
 
   async function deleteAccount() {
@@ -357,6 +377,30 @@ export default function SettingsPage() {
           Restart tutorial
         </button>
       </section>
+
+      {profile.referral_code && (
+        <section className="bg-[#141416] border border-[#1B6FD9]/25 rounded-2xl p-6 mb-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.45)] mb-2">Referral code</p>
+              <h2 className="text-3xl font-semibold tracking-[0.18em] text-[#F5F5F2]">{profile.referral_code}</h2>
+              <p className="mt-3 break-all text-sm text-[rgba(245,245,242,0.45)]">{origin ? `${origin}/r/${profile.referral_code}` : `/r/${profile.referral_code}`}</p>
+            </div>
+            <div className="flex flex-col gap-2 sm:items-end">
+              <button
+                type="button"
+                onClick={copyReferralLink}
+                className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]"
+              >
+                Copy link
+              </button>
+              <Link href="/settings/referrals" className="text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2]">
+                View referrals
+              </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Competency themes</h2>

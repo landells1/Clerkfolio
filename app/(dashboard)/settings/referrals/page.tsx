@@ -1,4 +1,5 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
+import { ensureFiveLetterReferralCode } from '@/lib/referrals/codes'
 import Link from 'next/link'
 
 export default async function ReferralsPage() {
@@ -10,8 +11,8 @@ export default async function ReferralsPage() {
     supabase.from('referrals').select('id, status, created_at, reward_granted_at').eq('referrer_id', user!.id).order('created_at', { ascending: false }),
   ])
 
-  const code = profile?.referral_code ?? ''
-  const url = `https://clerkfolio.co.uk/signup?ref=${code}`
+  const code = await ensureFiveLetterReferralCode(createServiceClient(), user!.id, profile?.referral_code)
+  const url = `https://clerkfolio.co.uk/r/${code}`
   const completed = referrals?.filter(ref => ref.status === 'completed').length ?? 0
   const proUntil = profile?.pro_features_used?.referral_pro_until ?? null
 
@@ -30,6 +31,8 @@ export default async function ReferralsPage() {
       </div>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.45)] mb-2">Your referral code</p>
+        <p className="mb-4 text-3xl font-semibold tracking-[0.18em] text-[#F5F5F2]">{code}</p>
         <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.45)] mb-2">Your referral link</p>
         <div className="rounded-xl bg-[#0B0B0C] border border-white/[0.08] p-4 font-mono text-sm text-[#F5F5F2] break-all">{url}</div>
         <p className="mt-3 text-sm text-[rgba(245,245,242,0.45)]">{completed} completed referrals. {proUntil ? `Referral Pro until ${new Date(proUntil).toLocaleDateString('en-GB')}.` : 'No referral Pro time active.'}</p>

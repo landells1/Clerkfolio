@@ -104,7 +104,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/api/student-email/confirm') ||
     pathname.startsWith('/api/cron/') ||
-    pathname.startsWith('/auth/')
+    pathname.startsWith('/auth/') ||
+    pathname.startsWith('/r/')
 
   if (alwaysAccessible) return applySecurityHeaders(supabaseResponse)
 

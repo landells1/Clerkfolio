@@ -14,7 +14,9 @@ export default function SignupPage() {
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
   const router = useRouter()
   const supabase = createClient()
-  const referralCode = typeof window !== 'undefined' ? new URLSearchParams(window.location.search).get('ref') : null
+  const referralCode = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() ?? null
+    : null
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -37,7 +39,7 @@ export default function SignupPage() {
       options: {
         emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
         data: {
-          referral_code: referralCode,
+          referral_code: referralCode?.match(/^[A-Z]{5}$/) ? referralCode : null,
         },
       },
     })
@@ -55,7 +57,7 @@ export default function SignupPage() {
       return
     }
 
-    if (referralCode && data.user) {
+    if (referralCode?.match(/^[A-Z]{5}$/) && data.user) {
       const { data: referrer } = await supabase
         .from('profiles')
         .select('id')
