@@ -34,12 +34,13 @@ export async function GET(request: NextRequest) {
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
       const referralCode = user?.user_metadata?.referral_code
-      if (user && typeof referralCode === 'string' && referralCode.trim()) {
+      if (user && typeof referralCode === 'string' && /^[A-Z]{5}$/.test(referralCode.trim().toUpperCase())) {
+        const normalizedCode = referralCode.trim().toUpperCase()
         const service = createServiceClient()
         const { data: referrer } = await service
           .from('profiles')
           .select('id')
-          .eq('referral_code', referralCode.trim())
+          .eq('referral_code', normalizedCode)
           .neq('id', user.id)
           .maybeSingle()
         if (referrer) {

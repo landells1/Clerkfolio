@@ -79,6 +79,9 @@ export async function POST(req: NextRequest) {
   }
 
   if (!Array.isArray(rows)) return NextResponse.json({ error: 'rows must be an array' }, { status: 400 })
+  if (rows.length > 500) {
+    return NextResponse.json({ error: 'Maximum 500 rows per import. Split your file and import in batches.' }, { status: 400 })
+  }
 
   let created = 0
   let skipped = 0

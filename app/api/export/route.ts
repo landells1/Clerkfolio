@@ -41,6 +41,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json()
   const { entryIds, caseIds, specialty, format } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json' }
 
+  if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
+    return NextResponse.json({ error: 'Maximum 500 items per export. Use filters to narrow your selection.' }, { status: 400 })
+  }
+
   if (!entryIds?.length && !caseIds?.length) {
     return NextResponse.json({ error: 'No entries or cases selected' }, { status: 400 })
   }
@@ -71,7 +75,11 @@ export async function POST(request: NextRequest) {
   }
 
   const specialtyDisplay = formatTag(specialty || 'Portfolio')
-  const safeSpecialty = (specialty || 'portfolio').replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()
+  const safeSpecialty = ((specialty || 'portfolio')
+    .replace(/[^a-zA-Z0-9]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .toLowerCase()) || 'portfolio'
   const dateStr = new Date().toISOString().split('T')[0]
 
   // ── JSON export ──────────────────────────────────────────────────────────────
@@ -110,7 +118,7 @@ export async function POST(request: NextRequest) {
   // ── CSV export ───────────────────────────────────────────────────────────────
   if (format === 'csv') {
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.csv`
-    const csv = toCsv(entries ?? [], cases ?? [])
+    const csv = '\uFEFF' + toCsv(entries ?? [], cases ?? [])
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -141,13 +149,10 @@ export async function POST(request: NextRequest) {
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
     if (!subInfo.isPro) {
-      supabase.from('profiles').update({
-        pro_features_used: {
-          pdf_exports_used: subInfo.usage.pdfExportsUsed + 1,
-          share_links_used: subInfo.usage.shareLinksUsed,
-          referral_pro_until: subInfo.usage.referralProUntil,
-        },
-      }).eq('id', user.id).then(() => {})
+      supabase.rpc('increment_pro_feature_usage', {
+        p_user_id: user.id,
+        p_feature: 'pdf_exports_used',
+      }).then(() => {})
     }
 
     return new NextResponse(new Uint8Array(buffer), {

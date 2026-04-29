@@ -11,7 +11,7 @@ export function hasValidMagicBytes(bytes: Uint8Array, mimeType: string) {
   if (mimeType === 'application/pdf') return ascii.startsWith('%PDF')
   if (mimeType === 'image/png') return hex.startsWith('89504e470d0a1a0a')
   if (mimeType === 'image/jpeg') return hex.startsWith('ffd8ff')
-  if (mimeType === 'image/heic' || mimeType === 'image/heif') return ascii.slice(4, 8) === 'ftyp'
+  if (mimeType === 'image/heic' || mimeType === 'image/heif') return hex.slice(8, 16) === '66747970'
   if (mimeType === 'text/plain') return isProbablyUtf8Text(bytes)
   if (mimeType === 'application/msword') return hex.startsWith('d0cf11e0a1b11ae1')
   if (officeOpenXmlTypes.has(mimeType)) return zipMagic

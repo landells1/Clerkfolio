@@ -71,9 +71,34 @@ export async function fetchSubscriptionInfo(
   supabase: SupabaseClient,
   userId: string
 ): Promise<SubscriptionInfo> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .rpc('get_profile_entitlements', { p_user_id: userId })
     .single()
+
+  if (error) {
+    console.error('fetchSubscriptionInfo RPC failed:', error.message)
+    return {
+      tier: 'free',
+      isPro: false,
+      isStudent: false,
+      storageQuotaMB: 100,
+      usage: {
+        pdfExportsUsed: 0,
+        shareLinksUsed: 0,
+        specialtiesTracked: 0,
+        storageUsedMB: 0,
+        referralProUntil: null,
+        studentGraduationDate: null,
+      },
+      limits: {
+        canExportPdf: false,
+        canCreateShareLink: false,
+        canTrackAnotherSpecialty: false,
+        canBulkImport: false,
+        canUploadFiles: false,
+      },
+    }
+  }
 
   return mapEntitlements(data as EntitlementRow | null)
 }
