@@ -1,3 +1,5 @@
+import BackButton from '@/components/legal/back-button'
+
 const lastUpdated = '29 April 2026'
 
 const planRows = [
@@ -11,6 +13,7 @@ export default function TermsPage() {
   return (
     <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
       <article className="mx-auto max-w-4xl space-y-8">
+        <BackButton />
         <header className="space-y-3">
           <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Terms of service</h1>
