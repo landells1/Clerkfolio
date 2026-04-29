@@ -98,7 +98,7 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const status = searchParams.get('student_email')
-    if (status === 'verified') addToast('Student email verified', 'success')
+    if (status === 'verified') addToast('Institutional email verified', 'success')
     if (status === 'expired') addToast('Verification link expired. Request a new one.', 'error')
     if (status === 'invalid') addToast('Verification link is invalid or already used.', 'error')
   }, [addToast, searchParams])
@@ -340,9 +340,9 @@ export default function SettingsPage() {
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Student verification</h2>
+            <h2 className="text-base font-semibold text-[#F5F5F2]">Institutional email</h2>
             <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
-              Verify a university or medical school email for Student storage. Re-verification is required yearly.
+              Verify a university or NHS email for Student storage where eligible and referral rewards. Re-verification is required yearly, and you can change this email when your institution changes.
             </p>
           </div>
           <StudentEmailStatus studentEmail={studentEmail} />
@@ -352,7 +352,7 @@ export default function SettingsPage() {
             type="email"
             value={studentEmail.email}
             onChange={e => setStudentEmail(current => ({ ...current, email: e.target.value }))}
-            placeholder="you@university.ac.uk"
+            placeholder="you@university.ac.uk or you@nhs.net"
             className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
           />
           <button
@@ -362,9 +362,10 @@ export default function SettingsPage() {
             {sendingStudentEmail ? 'Sending...' : studentEmail.verified ? 'Re-verify' : 'Send verification'}
           </button>
         </form>
-        {studentEmail.sentAt && !studentEmail.verified && (
-          <p className="mt-3 text-xs text-[rgba(245,245,242,0.38)]">Check your institution inbox for the verification link.</p>
-        )}
+        <p className="mt-3 text-xs text-[rgba(245,245,242,0.38)]">
+          Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
+          {studentEmail.sentAt && !studentEmail.verified ? ' Check your institution inbox for the verification link.' : ''}
+        </p>
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">

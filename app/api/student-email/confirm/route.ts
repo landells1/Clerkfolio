@@ -1,6 +1,8 @@
 import { createHash } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
+import { isAcUkEmail } from '@/lib/institutional-email'
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -32,9 +34,18 @@ export async function GET(req: NextRequest) {
 
   const { data: profile } = await service
     .from('profiles')
-    .select('tier')
+    .select('tier, career_stage')
     .eq('id', verification.user_id)
     .single()
+
+  const isStudentEmail = isAcUkEmail(verification.email)
+  const nextTier = profile?.tier === 'pro'
+    ? 'pro'
+    : isStudentEmail
+      ? 'student'
+      : ['FY1', 'FY2', 'POST_FY'].includes(profile?.career_stage ?? '')
+        ? 'foundation'
+        : 'free'
 
   await service
     .from('student_email_verification_tokens')
@@ -44,13 +55,16 @@ export async function GET(req: NextRequest) {
   await service
     .from('profiles')
     .update({
-      tier: profile?.tier === 'pro' ? 'pro' : 'student',
+      tier: nextTier,
       student_email: verification.email,
       student_email_verified: true,
       student_email_verified_at: now.toISOString(),
       student_email_verification_due_at: dueAt.toISOString().split('T')[0],
     })
     .eq('id', verification.user_id)
+
+  await grantEligibleReferralReward(service, verification.user_id)
+  await grantPendingReferralRewardsForReferrer(service, verification.user_id)
 
   return redirectToSettings(req, 'verified')
 }

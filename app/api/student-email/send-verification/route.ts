@@ -3,17 +3,10 @@ import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { institutionalEmailHelpText, isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 
 const SEND_COOLDOWN_MS = 60 * 1000
 const TOKEN_TTL_HOURS = 24
-
-function normaliseEmail(email: unknown) {
-  return typeof email === 'string' ? email.trim().toLowerCase().slice(0, 254) : ''
-}
-
-function isInstitutionEmail(email: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.endsWith('.ac.uk')
-}
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -40,7 +33,7 @@ export async function POST(req: NextRequest) {
   const email = normaliseEmail(body?.email)
 
   if (!isInstitutionEmail(email)) {
-    return NextResponse.json({ error: 'Use your university or medical school .ac.uk email address.' }, { status: 400 })
+    return NextResponse.json({ error: institutionalEmailHelpText() }, { status: 400 })
   }
 
   const service = createServiceClient()
@@ -93,13 +86,13 @@ export async function POST(req: NextRequest) {
   await resend.emails.send({
     from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
     to: email,
-    subject: 'Verify your Clerkfolio student email',
-    text: `Verify your student email for Clerkfolio:\n\n${confirmUrl.toString()}\n\nThis link expires in ${TOKEN_TTL_HOURS} hours.`,
+    subject: 'Verify your Clerkfolio institutional email',
+    text: `Verify your institutional email for Clerkfolio:\n\n${confirmUrl.toString()}\n\nThis link expires in ${TOKEN_TTL_HOURS} hours.`,
     html: `
       <div style="font-family: sans-serif; max-width: 560px; margin: 0 auto;">
-        <h2 style="color: #1B6FD9;">Verify your student email</h2>
-        <p>Use this link to verify <strong>${htmlEscape(email)}</strong> for Clerkfolio student access.</p>
-        <p><a href="${confirmUrl.toString()}" style="display: inline-block; background: #1B6FD9; color: #fff; padding: 10px 16px; border-radius: 8px; text-decoration: none;">Verify student email</a></p>
+        <h2 style="color: #1B6FD9;">Verify your institutional email</h2>
+        <p>Use this link to verify <strong>${htmlEscape(email)}</strong> for Clerkfolio institutional access and referral rewards.</p>
+        <p><a href="${confirmUrl.toString()}" style="display: inline-block; background: #1B6FD9; color: #fff; padding: 10px 16px; border-radius: 8px; text-decoration: none;">Verify institutional email</a></p>
         <p style="color: #666; font-size: 13px;">This link expires in ${TOKEN_TTL_HOURS} hours.</p>
       </div>
     `,
