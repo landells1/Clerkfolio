@@ -1,10 +1,12 @@
-// TODO: ADD REAL CLAMAV SCANNING BEFORE PUBLIC LAUNCH.
-// Interim scanner: verifies stored file contents match the recorded MIME type
-// before marking evidence clean. Files that fail validation are quarantined.
+// Evidence scanner.
+// If CLAMAV_TCP_HOST is configured, streams the uploaded file to a ClamAV daemon
+// using the INSTREAM protocol. If not configured, falls back to MIME/magic-byte
+// validation so uploads are not permanently stuck in pending during setup.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
 const BUCKET = 'evidence'
+const CLAMAV_CHUNK_BYTES = 64 * 1024
 const OFFICE_OPEN_XML = new Set([
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -42,6 +44,41 @@ function hasValidMagicBytes(bytes: Uint8Array, mimeType: string) {
   if (mimeType === 'application/msword') return signature.startsWith('d0cf11e0a1b11ae1')
   if (OFFICE_OPEN_XML.has(mimeType)) return zipMagic
   return false
+}
+
+function int32Bytes(value: number) {
+  const bytes = new Uint8Array(4)
+  new DataView(bytes.buffer).setUint32(0, value, false)
+  return bytes
+}
+
+async function scanWithClamAv(bytes: Uint8Array) {
+  const host = Deno.env.get('CLAMAV_TCP_HOST')
+  const port = Number(Deno.env.get('CLAMAV_TCP_PORT') ?? '3310')
+  if (!host) return null
+  if (!Number.isInteger(port) || port <= 0 || port > 65535) {
+    throw new Error('Invalid CLAMAV_TCP_PORT')
+  }
+
+  const connection = await Deno.connect({ hostname: host, port })
+  try {
+    const writer = connection.writable.getWriter()
+    await writer.write(new TextEncoder().encode('zINSTREAM\0'))
+    for (let offset = 0; offset < bytes.length; offset += CLAMAV_CHUNK_BYTES) {
+      const chunk = bytes.slice(offset, offset + CLAMAV_CHUNK_BYTES)
+      await writer.write(int32Bytes(chunk.length))
+      await writer.write(chunk)
+    }
+    await writer.write(int32Bytes(0))
+    writer.releaseLock()
+
+    const response = await new Response(connection.readable).text()
+    if (response.includes('OK')) return 'clean'
+    if (response.includes('FOUND')) return 'quarantined'
+    throw new Error(`Unexpected ClamAV response: ${response.slice(0, 200)}`)
+  } finally {
+    connection.close()
+  }
 }
 
 Deno.serve(async (req) => {
@@ -82,9 +119,11 @@ Deno.serve(async (req) => {
     .from(BUCKET)
     .download(file.file_path)
 
-  const bytes = blob ? new Uint8Array(await blob.slice(0, 512).arrayBuffer()) : new Uint8Array()
-  const clean = !downloadError && file.mime_type && hasValidMagicBytes(bytes, file.mime_type)
-  const scanStatus = clean ? 'clean' : 'quarantined'
+  const fullBytes = blob ? new Uint8Array(await blob.arrayBuffer()) : new Uint8Array()
+  const headerBytes = fullBytes.slice(0, 512)
+  const contentMatchesMime = !downloadError && file.mime_type && hasValidMagicBytes(headerBytes, file.mime_type)
+  const clamStatus = contentMatchesMime ? await scanWithClamAv(fullBytes) : null
+  const scanStatus = contentMatchesMime ? (clamStatus ?? 'clean') : 'quarantined'
 
   const { error } = await service
     .from('evidence_files')
@@ -92,5 +131,5 @@ Deno.serve(async (req) => {
     .eq('id', fileId)
 
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-  return new Response(JSON.stringify({ status: scanStatus }), { status: clean ? 200 : 415 })
+  return new Response(JSON.stringify({ status: scanStatus }), { status: scanStatus === 'clean' ? 200 : 415 })
 })
