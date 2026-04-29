@@ -8,10 +8,10 @@ import type { Case } from '@/lib/types/cases'
 import { relativeDate } from '@/lib/utils/dates'
 
 function entrySubtitle(e: PortfolioEntry): string {
-  if (e.category === 'audit_qip')   return [e.audit_type?.toUpperCase(), e.audit_trust].filter(Boolean).join(' · ')
+  if (e.category === 'audit_qip')   return [e.audit_type?.toUpperCase(), e.audit_trust].filter(Boolean).join(' - ')
   if (e.category === 'teaching')    return e.teaching_type?.replace('_', ' ') ?? ''
   if (e.category === 'conference')  return e.conf_event_name ?? ''
-  if (e.category === 'publication') return [e.pub_type?.replace('_', ' '), e.pub_status].filter(Boolean).join(' · ')
+  if (e.category === 'publication') return [e.pub_type?.replace('_', ' '), e.pub_status].filter(Boolean).join(' - ')
   if (e.category === 'leadership')  return e.leader_organisation ?? ''
   if (e.category === 'prize')       return e.prize_body ?? ''
   if (e.category === 'procedure')   return e.proc_name ?? ''
@@ -79,7 +79,7 @@ export default function ActivityFeed({
                   : 'text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)]'
               }`}
             >
-              {tabCounts[t] !== null ? `${t} · ${tabCounts[t]}` : t}
+              {tabCounts[t] !== null ? `${t} - ${tabCounts[t]}` : t}
               {tab === t && (
                 <span className="absolute bottom-0 left-0 right-0 h-px bg-blue-400 rounded-full" />
               )}
@@ -116,7 +116,7 @@ export default function ActivityFeed({
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${colour.bg} ${colour.text}`}>{label}</span>
-                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(e.created_at)}</span>
+                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(e.date ?? e.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -135,7 +135,7 @@ export default function ActivityFeed({
             />
           ) : (
             cases.slice(0, 20).map(c => {
-              const domainStr = (c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(' · ')
+              const domainStr = (c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(' - ')
               return (
                 <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
                   <span
@@ -149,7 +149,7 @@ export default function ActivityFeed({
                     )}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.created_at)}</span>
+                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.date ?? c.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -225,7 +225,7 @@ export default function ActivityFeed({
               ))}
               <div className="pt-1 border-t border-white/[0.06]">
                 <Link href="/specialties" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)] transition-colors">
-                  Manage programmes →
+                  Manage programmes &gt;
                 </Link>
               </div>
             </div>

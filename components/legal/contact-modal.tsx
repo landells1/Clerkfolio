@@ -135,7 +135,7 @@ export function LegalContactButton() {
                   disabled={sending}
                   style={{ background: '#1B6FD9', border: 'none', borderRadius: 10, color: 'white', fontSize: 14, fontWeight: 600, padding: '11px 0', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.6 : 1, transition: 'opacity 0.15s' }}
                 >
-                  {sending ? 'Sending…' : 'Send message'}
+                  {sending ? 'Sending...' : 'Send message'}
                 </button>
               </form>
             )}

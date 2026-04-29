@@ -9,6 +9,7 @@ import QuickAddButton from '@/components/dashboard/quick-add-button'
 import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
 import StreakBadge from '@/components/dashboard/streak-badge'
 import SpecialtyRadar from '@/components/dashboard/specialty-radar'
+import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
@@ -101,7 +102,7 @@ export default async function DashboardPage() {
       .is('deleted_at', null),
     supabase
       .from('deadlines')
-      .select('title, due_date')
+      .select('id, title, due_date')
       .eq('user_id', user!.id)
       .eq('completed', false)
       .gte('due_date', today)
@@ -171,8 +172,8 @@ export default async function DashboardPage() {
   ]
 
   const upcomingItems = [
-    ...(deadlines ?? []).map(d => ({ title: d.title, date: d.due_date, type: 'Deadline' })),
-    ...(goals ?? []).filter(g => g.due_date).map(g => ({ title: `${g.target_count} ${g.category.replace(/_/g, ' ')}`, date: g.due_date, type: 'Goal' })),
+    ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const })),
+    ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${g.category.replace(/_/g, ' ')}`, date: g.due_date, type: 'Goal' as const })),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
   const specialtyProgressRows = (trackedSpecialtyRows ?? []).map(row => {
@@ -292,30 +293,6 @@ function buildEntryVolume(entries: { created_at: string }[]) {
     if (byKey[key]) byKey[key].count += 1
   })
   return months
-}
-
-function UpcomingTimeline({ items }: { items: { title: string; date: string; type: string }[] }) {
-  return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-sm font-semibold text-[#F5F5F2]">Upcoming this month</p>
-        <Link href="/timeline" className="text-xs text-[#1B6FD9] hover:text-[#3884DD]">Timeline</Link>
-      </div>
-      <div className="space-y-2">
-        {items.length === 0 ? (
-          <p className="text-sm text-[rgba(245,245,242,0.35)]">No upcoming timeline items.</p>
-        ) : items.map(item => (
-          <div key={`${item.type}-${item.title}-${item.date}`} className="flex items-center justify-between gap-3 rounded-lg bg-[#0B0B0C] border border-white/[0.06] px-3 py-2">
-            <div className="min-w-0">
-              <p className="truncate text-sm text-[#F5F5F2]">{item.title}</p>
-              <p className="text-[11px] text-[rgba(245,245,242,0.35)]">{item.type}</p>
-            </div>
-            <span className="shrink-0 text-xs text-[rgba(245,245,242,0.45)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
 }
 
 function DashboardSection({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
