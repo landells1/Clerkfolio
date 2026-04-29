@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
 
+export const dynamic = 'force-dynamic'
 export const maxDuration = 30
 
 type NotificationDraft = {
@@ -36,16 +37,12 @@ function preferenceAllows(prefs: Preferences, type: NotificationDraft['type']) {
 }
 
 export async function GET(req: NextRequest) {
-  const auth = req.headers.get('Authorization')
-  if (auth !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret || req.headers.get('authorization') !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!,
-    { auth: { persistSession: false } }
-  )
+  const supabase = createServiceClient()
 
   const today = new Date()
   const todayStr = today.toISOString().split('T')[0]

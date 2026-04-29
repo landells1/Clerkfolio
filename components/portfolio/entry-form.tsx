@@ -431,24 +431,32 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
     } else {
-      const { data: currentRow } = await supabase
+      const { data: currentRow, error: fetchError } = await supabase
         .from('portfolio_entries')
         .select('*')
         .eq('id', initialData!.id!)
         .eq('user_id', user.id)
         .single()
 
-      await supabase.from('entry_revisions').insert({
+      if (fetchError || !currentRow) {
+        setError('Could not load current entry state. Please refresh and try again.')
+        setSaving(false)
+        return
+      }
+
+      const { error: revisionError } = await supabase.from('entry_revisions').insert({
         user_id: user.id,
         entry_id: initialData!.id!,
         entry_type: 'portfolio',
-        snapshot: currentRow ?? initialData,
+        snapshot: currentRow,
       })
+      if (revisionError) console.error('Failed to save revision:', revisionError.message)
       await pruneRevisions(initialData!.id!, 'portfolio')
       const { error } = await supabase
         .from('portfolio_entries')
         .update(scoredPayload)
         .eq('id', initialData!.id!)
+        .eq('user_id', user.id)
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)

@@ -17,7 +17,7 @@ function rawIp(req: NextRequest) {
 
 function hashIp(req: NextRequest) {
   const ip = rawIp(req)
-  return createHash('sha256').update(`${ip}:${process.env.SUPABASE_SERVICE_ROLE_KEY ?? ''}`).digest('hex')
+  return createHash('sha256').update(`${ip}:${process.env.SHARE_IP_HASH_SALT ?? ''}`).digest('hex')
 }
 
 function startOfHour() {

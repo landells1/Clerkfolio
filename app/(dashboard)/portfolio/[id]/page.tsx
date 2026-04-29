@@ -46,6 +46,7 @@ export default async function EntryDetailPage({ params }: { params: { id: string
       .from('evidence_files')
       .select('*')
       .eq('entry_id', params.id)
+      .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
 
