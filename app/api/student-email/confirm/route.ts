@@ -8,7 +8,7 @@ function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
 
-function redirectToSettings(req: NextRequest, status: 'verified' | 'invalid' | 'expired') {
+function redirectToSettings(req: NextRequest, status: 'verified' | 'invalid' | 'expired' | 'already_used') {
   const url = new URL('/settings', req.nextUrl.origin)
   url.searchParams.set('student_email', status)
   return NextResponse.redirect(url)
@@ -32,6 +32,22 @@ export async function GET(req: NextRequest) {
   const dueAt = new Date(now)
   dueAt.setFullYear(dueAt.getFullYear() + 1)
 
+  const { data: existingVerifiedProfile } = await service
+    .from('profiles')
+    .select('id')
+    .eq('student_email_verified', true)
+    .ilike('student_email', verification.email)
+    .neq('id', verification.user_id)
+    .maybeSingle()
+
+  if (existingVerifiedProfile) {
+    await service
+      .from('student_email_verification_tokens')
+      .update({ consumed_at: now.toISOString() })
+      .eq('id', verification.id)
+    return redirectToSettings(req, 'already_used')
+  }
+
   const { data: profile } = await service
     .from('profiles')
     .select('tier, career_stage')
@@ -52,7 +68,7 @@ export async function GET(req: NextRequest) {
     .update({ consumed_at: now.toISOString() })
     .eq('id', verification.id)
 
-  await service
+  const { error: profileError } = await service
     .from('profiles')
     .update({
       tier: nextTier,
@@ -62,6 +78,8 @@ export async function GET(req: NextRequest) {
       student_email_verification_due_at: dueAt.toISOString().split('T')[0],
     })
     .eq('id', verification.user_id)
+
+  if (profileError) return redirectToSettings(req, 'already_used')
 
   await grantEligibleReferralReward(service, verification.user_id)
   await grantPendingReferralRewardsForReferrer(service, verification.user_id)
