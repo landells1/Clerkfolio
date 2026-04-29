@@ -5,7 +5,7 @@ const ALLOWED_ORIGINS = new Set(
     process.env.NEXT_PUBLIC_APP_URL,
     'https://clerkfolio.co.uk',
     'https://www.clerkfolio.co.uk',
-    'https://medclerkfolio.vercel.app',
+    'https://clerkfolio.vercel.app',
     // Allow localhost in development
     ...(process.env.NODE_ENV === 'development'
       ? ['http://localhost:3000', 'http://localhost:3001']
