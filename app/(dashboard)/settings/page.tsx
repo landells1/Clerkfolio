@@ -378,6 +378,14 @@ export default function SettingsPage() {
         </button>
       </section>
 
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Legal</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <SettingsLink href="/terms" label="Terms and conditions" />
+          <SettingsLink href="/privacy" label="Privacy policy" />
+        </div>
+      </section>
+
       {profile.referral_code && (
         <section className="bg-[#141416] border border-[#1B6FD9]/25 rounded-2xl p-6 mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
