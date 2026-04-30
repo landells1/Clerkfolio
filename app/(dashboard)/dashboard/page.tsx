@@ -13,6 +13,17 @@ import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
+const CAREER_STAGE_LABELS: Record<string, string> = {
+  Y1:       'Year 1 (Medical Student)',
+  Y2:       'Year 2 (Medical Student)',
+  Y3:       'Year 3 (Medical Student)',
+  Y4:       'Year 4 (Medical Student)',
+  Y5_PLUS:  'Year 5+ (Medical Student)',
+  FY1:      'Foundation Year 1',
+  FY2:      'Foundation Year 2',
+  POST_FY:  'Core / Specialty Training',
+}
+
 function computeWeeklyStreak(allDates: string[]): number {
   function getWeekStart(dateStr: string): string {
     const d = new Date(dateStr + 'T12:00:00Z')
@@ -210,7 +221,7 @@ export default async function DashboardPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Dashboard</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
-            {profile?.career_stage ? `${profile.career_stage} - ` : ''}Your collated portfolio data
+            {profile?.career_stage ? `${CAREER_STAGE_LABELS[profile.career_stage] ?? profile.career_stage} · ` : ''}Your collated portfolio data
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-4 shrink-0">
