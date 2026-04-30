@@ -46,7 +46,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 84)
+  cutoff.setDate(cutoff.getDate() - 182) // 26 weeks to match heatmap window
   const cutoffStr = cutoff.toISOString()
   const today = new Date().toISOString().split('T')[0]
   const in30 = new Date()

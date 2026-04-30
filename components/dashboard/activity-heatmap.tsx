@@ -5,7 +5,30 @@ interface ActivityHeatmapProps {
 }
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+// Show Mon / Wed / Fri, blank for other rows
 const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', '']
+
+const WEEKS     = 26
+const CELL      = 16  // px — cell width & height
+const GAP       = 3   // px — gap between cells
+const LABEL_W   = 24  // px — day-label column width
+const LABEL_GAP = 8   // px — gap between day labels and the cell grid
+
+function cellColor(count: number): string {
+  if (count === 0) return 'rgba(245,245,242,0.05)'
+  if (count === 1) return '#0A3260'
+  if (count === 2) return '#155BB0'
+  return '#3884DD'
+}
+
+function cellTitle(count: number, dateStr: string): string {
+  const d = new Date(dateStr + 'T12:00:00Z')
+  const formatted = d.toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
+  })
+  if (count === 0) return `No entries — ${formatted}`
+  return `${count} ${count === 1 ? 'entry' : 'entries'} — ${formatted}`
+}
 
 export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
   // Build date → count map
@@ -14,20 +37,18 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
     countMap.set(d, (countMap.get(d) ?? 0) + 1)
   }
 
-  // Find the Monday 12 weeks ago
-  const today = new Date()
-  const dayOfWeek = today.getUTCDay() // 0=Sun
-  const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+  // Start from the Monday (WEEKS - 1) weeks ago
+  const today     = new Date()
+  const dayOfWeek = today.getUTCDay() // 0 = Sun
+  const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   const thisMonday = new Date(today)
-  thisMonday.setUTCDate(today.getUTCDate() + diffToMonday)
+  thisMonday.setUTCDate(today.getUTCDate() + diffToMon)
 
   const startDate = new Date(thisMonday)
-  startDate.setUTCDate(thisMonday.getUTCDate() - 11 * 7) // go back 11 more weeks = 12 weeks total
+  startDate.setUTCDate(thisMonday.getUTCDate() - (WEEKS - 1) * 7)
 
-  // Build 12 weeks × 7 days grid
-  const WEEKS = 12
+  // Build WEEKS × 7 grid (indexed [week][day], day 0 = Mon)
   const weeks: { dateStr: string; count: number }[][] = []
-
   for (let w = 0; w < WEEKS; w++) {
     const week: { dateStr: string; count: number }[] = []
     for (let d = 0; d < 7; d++) {
@@ -39,11 +60,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
     weeks.push(week)
   }
 
-  // Week totals for sparkbar
-  const weekTotals = weeks.map(week => week.reduce((sum, day) => sum + day.count, 0))
-  const maxWeekTotal = Math.max(...weekTotals, 1)
-
-  // Month labels: for each week, check if the first day of that week is a different month than the previous week
+  // Month label: show at the first week whose Monday is in a new month
   const monthLabels: string[] = weeks.map((week, i) => {
     const thisMonth = new Date(week[0].dateStr + 'T12:00:00Z').getUTCMonth()
     if (i === 0) return MONTHS[thisMonth]
@@ -51,108 +68,97 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
     return thisMonth !== prevMonth ? MONTHS[thisMonth] : ''
   })
 
-  // Total entries in last 12 weeks
   const total = dates.length
-
-  function cellColor(count: number): string {
-    if (count === 0) return 'rgba(245,245,242,0.04)'
-    if (count === 1) return '#0A3260'   // blue-800
-    if (count === 2) return '#155BB0'   // blue-600
-    return '#3884DD'                    // blue-400
-  }
-
-  function cellTitle(count: number, dateStr: string): string {
-    const d = new Date(dateStr + 'T12:00:00Z')
-    const formatted = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' })
-    if (count === 0) return `No entries — ${formatted}`
-    return `${count} ${count === 1 ? 'entry' : 'entries'} — ${formatted}`
-  }
-
-  const CELL_SIZE = 12 // px
-  const CELL_GAP = 4   // px
-  const SPARKBAR_MAX_H = 20 // px
 
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl">
-      {/* Widget header */}
+      {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/[0.06]">
-        <p className="text-[13px] font-semibold text-[#F5F5F2] whitespace-nowrap">Activity</p>
-        {/* Less → More legend */}
+        <p className="text-[13px] font-semibold text-[#F5F5F2]">Activity</p>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-[rgba(245,245,242,0.35)]">Less</span>
-          {['rgba(245,245,242,0.04)', '#0A3260', '#155BB0', '#3884DD'].map((color, i) => (
-            <div key={i} className="w-2.5 h-2.5 rounded-sm" style={{ background: color }} />
+          {(['rgba(245,245,242,0.05)', '#0A3260', '#155BB0', '#3884DD'] as const).map((color, i) => (
+            <div key={i} className="rounded-sm" style={{ width: CELL - 3, height: CELL - 3, background: color }} />
           ))}
           <span className="text-[10px] text-[rgba(245,245,242,0.35)]">More</span>
         </div>
       </div>
 
-      <div className="p-5">
-        <div className="flex gap-3">
-          {/* Day labels column */}
-          <div className="flex flex-col pt-[calc(20px+4px+16px)] gap-[4px]">
-            {DAY_LABELS.map((label, i) => (
-              <div key={i} style={{ height: CELL_SIZE }} className="flex items-center">
-                <span className="text-[9px] text-[rgba(245,245,242,0.3)] w-6 leading-none">{label}</span>
-              </div>
-            ))}
-          </div>
-
-          {/* Grid body */}
-          <div className="flex flex-col">
-            {/* Sparkbar row */}
-            <div className="flex gap-[4px] mb-1" style={{ height: SPARKBAR_MAX_H }}>
-              {weekTotals.map((total, i) => {
-                const barH = total === 0 ? 0 : Math.max(3, Math.round((total / maxWeekTotal) * SPARKBAR_MAX_H))
-                return (
-                  <div key={i} style={{ width: CELL_SIZE }} className="flex items-end">
-                    <div
-                      style={{
-                        width: CELL_SIZE,
-                        height: total === 0 ? CELL_SIZE / 2 : barH,
-                        background: total === 0 ? 'rgba(245,245,242,0.04)' : '#0F4487',
-                        borderRadius: 2,
-                      }}
-                      title={`${total} entries this week`}
-                    />
-                  </div>
-                )
-              })}
+      <div className="overflow-x-auto px-5 pt-4 pb-5">
+        {/* Month label row — offset by the label column so columns line up */}
+        <div
+          style={{
+            display: 'flex',
+            gap: GAP,
+            paddingLeft: LABEL_W + LABEL_GAP,
+            marginBottom: 5,
+          }}
+        >
+          {monthLabels.map((label, i) => (
+            <div key={i} style={{ width: CELL, flexShrink: 0, overflow: 'visible' }}>
+              {label ? (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: 'rgba(245,245,242,0.45)',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {label}
+                </span>
+              ) : null}
             </div>
-
-            {/* Month labels row */}
-            <div className="flex gap-[4px] mb-1">
-              {monthLabels.map((label, i) => (
-                <div key={i} style={{ width: CELL_SIZE }}>
-                  <span className="text-[9px] text-[rgba(245,245,242,0.4)] leading-none whitespace-nowrap">{label}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Heatmap weeks */}
-            <div className="flex gap-[4px]">
-              {weeks.map((week, wi) => (
-                <div key={wi} className="flex flex-col gap-[4px]">
-                  {week.map(({ dateStr, count }, di) => (
-                    <div
-                      key={di}
-                      title={cellTitle(count, dateStr)}
-                      style={{
-                        width: CELL_SIZE,
-                        height: CELL_SIZE,
-                        background: cellColor(count),
-                        borderRadius: 2,
-                      }}
-                    />
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
         </div>
 
-        <p className="text-xs text-[rgba(245,245,242,0.4)] mt-3">
-          {total} {total === 1 ? 'entry' : 'entries'} contributed in the last 12 weeks
+        {/* One row per weekday — label + that day's cell across every week */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
+          {DAY_LABELS.map((label, day) => (
+            <div key={day} style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
+              {/* Day label — fixed width, right-aligned */}
+              <div
+                style={{
+                  width: LABEL_W,
+                  flexShrink: 0,
+                  textAlign: 'right',
+                  fontSize: 10,
+                  color: 'rgba(245,245,242,0.35)',
+                  lineHeight: 1,
+                  letterSpacing: '0.02em',
+                }}
+              >
+                {label}
+              </div>
+
+              {/* Cells for this weekday across all weeks */}
+              <div style={{ display: 'flex', gap: GAP }}>
+                {weeks.map((week, wi) => {
+                  const { dateStr, count } = week[day]
+                  return (
+                    <div
+                      key={wi}
+                      title={cellTitle(count, dateStr)}
+                      style={{
+                        width: CELL,
+                        height: CELL,
+                        flexShrink: 0,
+                        background: cellColor(count),
+                        borderRadius: 3,
+                      }}
+                    />
+                  )
+                })}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p
+          style={{ marginTop: 12, fontSize: 11, color: 'rgba(245,245,242,0.35)', letterSpacing: '0.01em' }}
+        >
+          {total} {total === 1 ? 'entry' : 'entries'} in the last 26 weeks
         </p>
       </div>
     </div>
