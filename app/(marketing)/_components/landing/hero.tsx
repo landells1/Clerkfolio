@@ -7,11 +7,7 @@ import { MonoLabel } from './mono-label'
 export function Hero() {
   return (
     <section className="px-6 py-16 md:px-14 lg:py-20">
-      <div className="mb-10 flex flex-wrap items-center gap-3">
-        <MonoLabel>§ 001</MonoLabel>
-        <span className="h-px w-6 bg-white/[0.08]" aria-hidden />
-        <MonoLabel>Index / home</MonoLabel>
-        <span className="h-px w-6 bg-white/[0.08]" aria-hidden />
+      <div className="mb-10">
         <MonoLabel className="text-accent">◉ Portfolio · built like a reference</MonoLabel>
       </div>
       <div className="grid items-center gap-[60px] lg:grid-cols-[minmax(0,1fr)_600px]">
