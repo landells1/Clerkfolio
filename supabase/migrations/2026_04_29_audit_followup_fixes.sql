@@ -99,7 +99,7 @@ create policy "upd_own_specialty_entry_links"
     )
   );
 
-drop index if exists public.profiles_referral_code_key;
+alter table public.profiles drop constraint if exists profiles_referral_code_key;
 drop index if exists public.profiles_stripe_customer_idx;
 drop index if exists public.profiles_stripe_sub_idx;
 
