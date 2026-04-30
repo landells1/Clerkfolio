@@ -36,10 +36,14 @@ const config: Config = {
           soft:    'rgba(245,245,242,0.55)',
           dim:     'rgba(245,245,242,0.35)',
         },
+        accent: {
+          DEFAULT: 'oklch(0.82 0.13 195)',
+          soft: 'oklch(0.82 0.13 195 / 0.15)',
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        sans: ['Geist', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
       },
       borderColor: {
         DEFAULT: 'rgba(245,245,242,0.08)',

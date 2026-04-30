@@ -2,41 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
-
-const tiers = [
-  {
-    name: 'Free',
-    price: 'GBP 0',
-    description: 'Core portfolio tools for getting started.',
-    storage: '100 MB',
-    highlight: false,
-  },
-  {
-    name: 'Student',
-    price: 'GBP 0',
-    description: 'Extra storage for verified .ac.uk users.',
-    storage: '1 GB',
-    highlight: false,
-  },
-  {
-    name: 'Pro',
-    price: 'GBP 10/year',
-    description: 'More room and fewer limits for application season.',
-    storage: '5 GB',
-    highlight: true,
-  },
-]
-
-const features = [
-  { label: 'Portfolio entries, cases, timeline, and ARCP organisation', free: true, student: true, pro: true },
-  { label: 'Personal data backup', free: true, student: true, pro: true },
-  { label: 'Storage allowance', free: '100 MB', student: '1 GB', pro: '5 GB' },
-  { label: 'PDF exports', free: '1', student: '1', pro: 'Unlimited' },
-  { label: 'Portfolio share links', free: '1', student: '1', pro: 'Unlimited' },
-  { label: 'Tracked specialties', free: '1 active', student: '1 active', pro: 'Unlimited' },
-  { label: 'Bulk import where available', free: false, student: false, pro: true },
-  { label: 'Institution-verified referral rewards', free: true, student: true, pro: true },
-]
+import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 
 export default async function UpgradePage() {
   const supabase = createClient()
@@ -54,7 +20,7 @@ export default async function UpgradePage() {
       </div>
 
       <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        {tiers.map(tier => (
+        {PRICING_TIERS.map(tier => (
           <div
             key={tier.name}
             className={`rounded-2xl border p-5 ${
@@ -108,7 +74,7 @@ export default async function UpgradePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.06]">
-              {features.map(feature => (
+              {PRICING_FEATURES.map(feature => (
                 <tr key={feature.label} className="align-top">
                   <td className="px-5 py-4 font-medium text-[#F5F5F2]">{feature.label}</td>
                   <FeatureCell value={feature.free} />
