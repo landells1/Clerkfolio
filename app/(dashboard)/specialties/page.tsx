@@ -6,8 +6,9 @@ import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties
 export default async function SpecialtiesPage({
   searchParams,
 }: {
-  searchParams: { app?: string }
+  searchParams: Promise<{ app?: string }>
 }) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
 
   const {
@@ -45,5 +46,5 @@ export default async function SpecialtiesPage({
     links = (linkData ?? []) as SpecialtyEntryLink[]
   }
 
-  return <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={searchParams.app} />
+  return <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={resolvedSearchParams.app} />
 }

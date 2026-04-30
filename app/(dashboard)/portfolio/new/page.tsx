@@ -7,8 +7,9 @@ import Link from 'next/link'
 export default async function NewEntryPage({
   searchParams,
 }: {
-  searchParams: { category?: string }
+  searchParams: Promise<{ category?: string }>
 }) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -27,7 +28,7 @@ export default async function NewEntryPage({
 
   const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
   const templates = (rawTemplates ?? []) as Template[]
-  const defaultCategory = (searchParams.category as Category) ?? undefined
+  const defaultCategory = (resolvedSearchParams.category as Category) ?? undefined
 
   return (
     <div className="p-8 max-w-2xl">

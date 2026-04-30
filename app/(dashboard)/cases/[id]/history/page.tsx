@@ -21,14 +21,15 @@ function changedFields(current: Record<string, unknown>, previous?: Record<strin
   return SUMMARY_FIELDS.filter(key => JSON.stringify(current[key]) !== JSON.stringify(previous[key]))
 }
 
-export default async function CaseHistoryPage({ params }: { params: { id: string } }) {
+export default async function CaseHistoryPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data } = await supabase
     .from('entry_revisions')
     .select('id, snapshot, created_at')
     .eq('user_id', user!.id)
-    .eq('entry_id', params.id)
+    .eq('entry_id', id)
     .eq('entry_type', 'case')
     .order('created_at', { ascending: false })
 
@@ -36,7 +37,7 @@ export default async function CaseHistoryPage({ params }: { params: { id: string
 
   return (
     <div className="max-w-3xl p-6 lg:p-8">
-      <Link href={`/cases/${params.id}`} className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back to case</Link>
+      <Link href={`/cases/${id}`} className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back to case</Link>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Version history</h1>
       <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Restore any saved version. Your current version is saved before restore.</p>
 
@@ -53,7 +54,7 @@ export default async function CaseHistoryPage({ params }: { params: { id: string
                   <p className="text-sm font-medium text-[#F5F5F2]">{new Date(revision.created_at).toLocaleString('en-GB')}</p>
                   <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">{changed.slice(0, 4).join(', ')}</p>
                 </div>
-                <RestoreVersionButton revisionId={revision.id} entryType="case" entryPath={`/cases/${params.id}`} />
+                <RestoreVersionButton revisionId={revision.id} entryType="case" entryPath={`/cases/${id}`} />
               </div>
               <dl className="mt-4 grid gap-2 sm:grid-cols-2">
                 {SUMMARY_FIELDS.map(field => (

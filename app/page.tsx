@@ -26,8 +26,9 @@ export const metadata: Metadata = {
   },
 }
 
-export default function LandingPage({ searchParams }: { searchParams?: { deleted?: string } }) {
-  const wasDeleted = searchParams?.deleted === 'true'
+export default async function LandingPage({ searchParams }: { searchParams?: Promise<{ deleted?: string }> }) {
+  const resolvedSearchParams = await searchParams
+  const wasDeleted = resolvedSearchParams?.deleted === 'true'
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0B0B0C] text-ink">

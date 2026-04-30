@@ -12,7 +12,8 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default async function CaseDetailPage({ params }: { params: { id: string } }) {
+export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -20,14 +21,14 @@ export default async function CaseDetailPage({ params }: { params: { id: string 
     supabase
       .from('cases')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .single(),
     supabase
       .from('evidence_files')
       .select('*')
-      .eq('entry_id', params.id)
+      .eq('entry_id', id)
       .order('created_at', { ascending: true }),
   ])
 

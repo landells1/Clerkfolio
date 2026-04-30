@@ -11,7 +11,8 @@ export function createServiceClient() {
 }
 
 export function createClient() {
-  const cookieStore = cookies()
+  type CookieStore = Awaited<ReturnType<typeof cookies>>
+  const cookieStore = cookies() as unknown as CookieStore
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

@@ -31,12 +31,13 @@ function fold(line: string) {
   return chunks.join('\r\n')
 }
 
-export async function GET(req: NextRequest, { params }: { params: { token: string } }) {
+export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
+  const { token } = await params
   const supabase = createServiceClient()
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('calendar_feed_token_hash', hashToken(params.token))
+    .eq('calendar_feed_token_hash', hashToken(token))
     .single()
 
   if (!profile) return NextResponse.json({ error: 'Calendar feed not found' }, { status: 404 })

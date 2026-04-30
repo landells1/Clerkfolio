@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export function GET(req: NextRequest, { params }: { params: { code: string } }) {
-  const code = params.code.trim().toUpperCase()
+export async function GET(req: NextRequest, { params }: { params: Promise<{ code: string }> }) {
+  const { code: rawCode } = await params
+  const code = rawCode.trim().toUpperCase()
   const url = req.nextUrl.clone()
   url.pathname = '/signup'
   url.search = ''

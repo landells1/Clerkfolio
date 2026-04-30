@@ -13,14 +13,15 @@ function normaliseTheme(value: string) {
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: { view?: ViewMode; category?: string; q?: string }
+  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string }>
 }) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const view = searchParams.view ?? 'categories'
-  const activeCategory = (searchParams.category as Category | undefined) ?? undefined
-  const q = searchParams.q ?? ''
+  const view = resolvedSearchParams.view ?? 'categories'
+  const activeCategory = (resolvedSearchParams.category as Category | undefined) ?? undefined
+  const q = resolvedSearchParams.q ?? ''
 
   const [{ data: entries }, { data: customThemes }] = await Promise.all([
     supabase

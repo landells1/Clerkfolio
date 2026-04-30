@@ -30,7 +30,8 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   )
 }
 
-export default async function EntryDetailPage({ params }: { params: { id: string } }) {
+export default async function EntryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -38,14 +39,14 @@ export default async function EntryDetailPage({ params }: { params: { id: string
     supabase
       .from('portfolio_entries')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .single(),
     supabase
       .from('evidence_files')
       .select('*')
-      .eq('entry_id', params.id)
+      .eq('entry_id', id)
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
