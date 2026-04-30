@@ -5,7 +5,7 @@ export function CtaFooter() {
   return (
     <footer className="border-t border-white/[0.08] px-6 py-20 md:px-14 lg:py-28">
       <div className="mx-auto max-w-4xl text-center">
-        <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">§ 007 · Begin</p>
+        <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">◉ Begin</p>
         <h2 className="text-[clamp(56px,7vw,96px)] font-medium leading-none tracking-[-0.055em]">
           Start the<br />
           <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_195),oklch(0.7_0.13_260))] bg-clip-text font-normal italic text-transparent">

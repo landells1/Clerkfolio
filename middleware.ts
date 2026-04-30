@@ -65,9 +65,11 @@ export async function middleware(request: NextRequest) {
   const alwaysAccessible =
     pathname === '/privacy' ||
     pathname === '/terms' ||
+    pathname === '/contact' ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/api/student-email/confirm') ||
+    pathname.startsWith('/api/feedback') ||
     pathname.startsWith('/api/cron/') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/r/')
