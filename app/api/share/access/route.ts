@@ -7,8 +7,6 @@ import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
 const ACCESS_RATE_LIMIT = 5
-const ACCESS_RATE_WINDOW_MS = 60_000
-const accessRateBuckets = new Map<string, { count: number; resetAt: number }>()
 
 function rawIp(req: NextRequest) {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -18,7 +16,9 @@ function rawIp(req: NextRequest) {
 
 function hashIp(req: NextRequest) {
   const ip = rawIp(req)
-  return createHash('sha256').update(`${ip}:${process.env.SHARE_IP_HASH_SALT ?? ''}`).digest('hex')
+  const salt = process.env.SHARE_IP_HASH_SALT
+  if (!salt) throw new Error('SHARE_IP_HASH_SALT is not configured')
+  return createHash('sha256').update(`${ip}:${salt}`).digest('hex')
 }
 
 function minutesAgo(minutes: number) {
@@ -32,31 +32,10 @@ function formatTag(tag: string) {
 }
 
 export async function POST(req: NextRequest) {
-  const now = Date.now()
-  const rateKey = rawIp(req)
-  const bucket = accessRateBuckets.get(rateKey)
-  if (!bucket || bucket.resetAt <= now) {
-    accessRateBuckets.set(rateKey, { count: 1, resetAt: now + ACCESS_RATE_WINDOW_MS })
-  } else if (bucket.count >= ACCESS_RATE_LIMIT) {
-    return NextResponse.json(
-      { error: 'Too many share link requests. Try again shortly.' },
-      {
-        status: 429,
-        headers: {
-          'X-RateLimit-Limit': String(ACCESS_RATE_LIMIT),
-          'X-RateLimit-Window': String(ACCESS_RATE_WINDOW_MS / 1000),
-          'Retry-After': String(Math.ceil((bucket.resetAt - now) / 1000)),
-        },
-      }
-    )
-  } else {
-    bucket.count += 1
-  }
-
   const supabase = createServiceClient()
-  const body = await req.json()
-  const token = typeof body.token === 'string' ? body.token : ''
-  const pin = typeof body.pin === 'string' ? body.pin.trim() : ''
+  const body = await req.json().catch(() => null)
+  const token = typeof body?.token === 'string' ? body.token : ''
+  const pin = typeof body?.pin === 'string' ? body.pin.trim() : ''
 
   if (!token) return NextResponse.json({ error: 'Token required' }, { status: 400 })
 
@@ -75,7 +54,35 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This share link has expired.' }, { status: 410 })
   }
 
-  const ipHash = hashIp(req)
+  let ipHash: string
+  try {
+    ipHash = hashIp(req)
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : err)
+    return NextResponse.json({ error: 'Share access is temporarily unavailable.' }, { status: 503 })
+  }
+
+  const { count: recentAttempts } = await supabase
+    .from('share_access_attempts')
+    .select('id', { count: 'exact', head: true })
+    .eq('share_link_id', link.id)
+    .eq('ip_hash', ipHash)
+    .gte('created_at', minutesAgo(1))
+
+  if ((recentAttempts ?? 0) >= ACCESS_RATE_LIMIT) {
+    return NextResponse.json(
+      { error: 'Too many share link requests. Try again shortly.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': String(ACCESS_RATE_LIMIT),
+          'X-RateLimit-Window': '60',
+          'Retry-After': '60',
+        },
+      }
+    )
+  }
+
   const { count: failedAttempts } = await supabase
     .from('share_access_attempts')
     .select('id', { count: 'exact', head: true })
@@ -89,6 +96,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (link.pin_hash && !pin) {
+    await supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: false })
     return NextResponse.json({ pinRequired: true }, { status: 401 })
   }
   if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
@@ -136,7 +144,7 @@ export async function POST(req: NextRequest) {
 
   let query = supabase
     .from('portfolio_entries')
-    .select('id, title, date, category, specialty_tags, interview_themes, notes, created_at, updated_at')
+    .select('id, title, date, category, specialty_tags, interview_themes, created_at, updated_at')
     .eq('user_id', link.user_id)
     .is('deleted_at', null)
     .order('date', { ascending: false })

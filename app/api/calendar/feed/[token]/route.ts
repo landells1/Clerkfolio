@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
+
+function hashToken(token: string) {
+  return createHash('sha256').update(token).digest('hex')
+}
 
 function escapeIcs(value: string | null | undefined) {
   return (value ?? '')
@@ -31,7 +36,7 @@ export async function GET(req: NextRequest, { params }: { params: { token: strin
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('calendar_feed_token', params.token)
+    .eq('calendar_feed_token_hash', hashToken(params.token))
     .single()
 
   if (!profile) return NextResponse.json({ error: 'Calendar feed not found' }, { status: 404 })

@@ -26,7 +26,7 @@ export default async function TimelinePage() {
       .order('due_date', { ascending: true }),
     supabase
       .from('profiles')
-      .select('calendar_feed_token')
+      .select('calendar_feed_token_hash')
       .eq('id', user!.id)
       .single(),
   ])
@@ -97,7 +97,7 @@ export default async function TimelinePage() {
       goals={(goals ?? []) as TimelineGoal[]}
       specialties={specialtyRows}
       deadlines={[...nationalRecruitmentDeadlines, ...configuredDeadlines, ...manualDeadlines]}
-      calendarFeedToken={profile?.calendar_feed_token ?? null}
+      calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
     />
   )
 }

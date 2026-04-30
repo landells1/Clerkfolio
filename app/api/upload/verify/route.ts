@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     .download(file.file_path)
 
   if (downloadError || !blob) {
-    await service.from('evidence_files').update({ scan_status: 'quarantined', scan_completed_at: new Date().toISOString() }).eq('id', file.id)
+    await service.from('evidence_files').update({ scan_status: 'quarantined', scan_provider: 'mime_only', scan_completed_at: new Date().toISOString() }).eq('id', file.id)
     return NextResponse.json({ error: 'Could not verify uploaded file' }, { status: 500 })
   }
 
@@ -47,8 +47,8 @@ export async function POST(req: NextRequest) {
 
   await service
     .from('evidence_files')
-    .update({ scan_status: scanStatus, scan_completed_at: new Date().toISOString() })
+    .update({ scan_status: scanStatus, scan_provider: 'mime_only', scan_completed_at: new Date().toISOString() })
     .eq('id', file.id)
 
-  return NextResponse.json({ ok: clean, scan_status: scanStatus })
+  return NextResponse.json({ ok: clean, scan_status: scanStatus, scan_provider: 'mime_only' })
 }

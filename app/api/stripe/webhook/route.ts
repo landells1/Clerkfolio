@@ -13,6 +13,10 @@ function getPeriodEnd(subscription: Stripe.Subscription): string | null {
   return ts ? new Date(ts * 1000).toISOString() : null
 }
 
+function hasPaidAccess(subscription: Stripe.Subscription) {
+  return subscription.status === 'active' || subscription.status === 'trialing'
+}
+
 export async function POST(request: NextRequest) {
   const body = await request.text()
   const sig = request.headers.get('stripe-signature')
@@ -53,6 +57,7 @@ export async function POST(request: NextRequest) {
       }
 
       const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+      if (!hasPaidAccess(subscription)) break
 
       const { error: activateError } = await supabase.from('profiles').update({
         tier: 'pro',
@@ -73,7 +78,7 @@ export async function POST(request: NextRequest) {
       const subscription = event.data.object as Stripe.Subscription
 
       const { error: updateError } = await supabase.from('profiles').update({
-        tier: subscription.status === 'active' ? 'pro' : 'free',
+        tier: hasPaidAccess(subscription) ? 'pro' : 'free',
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id)
 

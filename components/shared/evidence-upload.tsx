@@ -17,7 +17,7 @@ function ImagePreview({ file }: { file: File }) {
   )
 }
 
-const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx'
+const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.pptx,.txt,.heic,.heif'
 const MAX_FILE_BYTES = 50 * 1024 * 1024 // 50 MB
 
 function formatBytes(bytes: number) {
@@ -110,7 +110,7 @@ export default function EvidenceUpload({
           Click or drag files here
         </p>
         <p className="text-[10px] text-[rgba(245,245,242,0.25)]">
-          PDF, JPG, PNG, DOC, DOCX — max 50 MB per file
+          PDF, JPG, PNG, DOC, DOCX, XLSX, PPTX, TXT, HEIC - max 50 MB per file
         </p>
         <input
           ref={inputRef}

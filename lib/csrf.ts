@@ -20,7 +20,20 @@ const ALLOWED_ORIGINS = new Set(
  */
 export function validateOrigin(request: NextRequest): NextResponse | null {
   const origin = request.headers.get('origin')
-  if (!origin) return null
+  if (!origin) {
+    if (request.method === 'GET' || request.method === 'HEAD' || request.method === 'OPTIONS') return null
+
+    const referer = request.headers.get('referer')
+    if (referer) {
+      try {
+        if (ALLOWED_ORIGINS.has(new URL(referer).origin)) return null
+      } catch {
+        return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+      }
+    }
+
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
   if (ALLOWED_ORIGINS.has(origin)) return null
   return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 }

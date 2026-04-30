@@ -12,7 +12,6 @@ type SharedEntry = {
   specialty_tags: string[] | null
   specialty_tag_labels?: string[] | null
   interview_themes: string[] | null
-  notes: string | null
 }
 
 type SharePayload = {
@@ -33,6 +32,10 @@ function scopeLabel(payload: SharePayload) {
   if (payload.scope === 'full') return 'Full portfolio'
   if (payload.scope === 'theme') return `Theme: ${payload.themeSlug}`
   return `Specialty: ${payload.specialtyLabel ?? payload.specialtyKey}`
+}
+
+function pinSessionKey(token: string) {
+  return `clerkfolio-share-pin:${token}`
 }
 
 export default function PublicShareClient({ token }: { token: string }) {
@@ -58,15 +61,20 @@ export default function PublicShareClient({ token }: { token: string }) {
       return
     }
     if (!res.ok) {
+      if (res.status === 403 && nextPin) {
+        sessionStorage.removeItem(pinSessionKey(token))
+        setPinRequired(true)
+      }
       setError(json.error ?? 'This share link is unavailable.')
       return
     }
+    if (nextPin) sessionStorage.setItem(pinSessionKey(token), nextPin)
     setPayload(json as SharePayload)
     setPinRequired(false)
   }
 
   useEffect(() => {
-    load()
+    load(sessionStorage.getItem(pinSessionKey(token)) ?? '')
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 
@@ -164,7 +172,6 @@ export default function PublicShareClient({ token }: { token: string }) {
                               <h3 className="text-sm font-medium text-[#F5F5F2]">{entry.title}</h3>
                               <span className="text-xs text-[rgba(245,245,242,0.35)]">{formatDate(entry.date)}</span>
                             </div>
-                            {entry.notes && <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{entry.notes}</p>}
                             {entry.specialty_tag_labels && entry.specialty_tag_labels.length > 0 && (
                               <div className="mt-3 flex flex-wrap gap-1.5">
                                 {entry.specialty_tag_labels.map(label => (

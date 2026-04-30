@@ -67,7 +67,8 @@ export async function POST(req: NextRequest) {
   const tokenHash = hashToken(token)
   const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS * 60 * 60 * 1000).toISOString()
   const now = new Date().toISOString()
-  const confirmUrl = new URL('/api/student-email/confirm', req.nextUrl.origin)
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin
+  const confirmUrl = new URL('/api/student-email/confirm', appUrl)
   confirmUrl.searchParams.set('token', token)
 
   const { error: insertError } = await service

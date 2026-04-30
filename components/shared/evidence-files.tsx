@@ -73,6 +73,9 @@ export default function EvidenceFiles({
           (() => {
             const status = file.scan_status ?? 'clean'
             const blocked = status !== 'clean'
+            const statusLabel = status === 'clean'
+              ? file.scan_provider === 'clamav' ? ' - virus scanned' : ' - MIME verified'
+              : status === 'quarantined' ? ' - quarantined' : ' - scanning'
             return (
           <li
             key={file.id}
@@ -94,9 +97,7 @@ export default function EvidenceFiles({
               <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{file.file_name}</p>
               <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">
                 {formatBytes(file.file_size)}
-                {status === 'pending' && ' - scanning'}
-                {status === 'scanning' && ' - scanning'}
-                {status === 'quarantined' && ' - quarantined'}
+                {statusLabel}
               </p>
             </div>
             <div className="flex items-center gap-2 shrink-0">

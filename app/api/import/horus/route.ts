@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
 // Patterns that suggest patient-identifiable information
 const PII_PATTERNS = [
@@ -47,6 +48,44 @@ function buildNotes(row: { notes: string; type: string; supervisor_name: string;
   ].filter(Boolean).join('\n\n') || null
 }
 
+const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
+
+type HorusRow = {
+  date: string
+  type: string
+  title: string
+  category: Category
+  supervisor_name: string
+  supervision_level: string
+  notes: string
+  specialty_tags: string[]
+}
+
+function cleanString(value: unknown, maxLength: number) {
+  return typeof value === 'string' ? value.trim().slice(0, maxLength) : ''
+}
+
+function parseRow(value: unknown): HorusRow | null {
+  if (!value || typeof value !== 'object') return null
+  const row = value as Record<string, unknown>
+  const category = typeof row.category === 'string' && CATEGORY_VALUES.has(row.category as Category)
+    ? row.category as Category
+    : 'reflection'
+
+  return {
+    date: cleanString(row.date, 64),
+    type: cleanString(row.type, 120),
+    title: cleanString(row.title, 200),
+    category,
+    supervisor_name: cleanString(row.supervisor_name, 160),
+    supervision_level: cleanString(row.supervision_level, 160),
+    notes: cleanString(row.notes, 10000),
+    specialty_tags: Array.isArray(row.specialty_tags)
+      ? row.specialty_tags.filter((tag): tag is string => typeof tag === 'string').map(tag => tag.trim()).filter(Boolean).slice(0, 10)
+      : [],
+  }
+}
+
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
@@ -63,20 +102,12 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = await req.json()
-  const { rows, dupHandling = 'skip' } = body as {
-    rows: {
-      date: string
-      type: string
-      title: string
-      category: string
-      supervisor_name: string
-      supervision_level: string
-      notes: string
-      specialty_tags: string[]
-    }[]
-    dupHandling: 'skip' | 'import'
-  }
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+
+  const rawBody = body as Record<string, unknown>
+  const rows = rawBody.rows
+  const dupHandling = rawBody.dupHandling === 'import' ? 'import' : 'skip'
 
   if (!Array.isArray(rows)) return NextResponse.json({ error: 'rows must be an array' }, { status: 400 })
   if (rows.length > 500) {
@@ -88,7 +119,9 @@ export async function POST(req: NextRequest) {
   let blocked = 0
 
   // Scan for PII first
-  const validRows = rows.filter(row => {
+  const parsedRows = rows.map(parseRow)
+  const validRows = parsedRows.filter((row): row is HorusRow => {
+    if (!row) { skipped++; return false }
     const combined = [row.title, row.notes, row.supervisor_name].join(' ')
     if (containsPII(combined)) {
       blocked++

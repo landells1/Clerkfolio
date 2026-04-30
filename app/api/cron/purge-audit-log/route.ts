@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { validateCronSecret } from '@/lib/cron'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(request: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const cronError = validateCronSecret(request)
+  if (cronError) return cronError
 
   const supabase = createServiceClient()
   const oneYearAgo = new Date(Date.now() - 365 * 86_400_000).toISOString()

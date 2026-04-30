@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
+import { validateCronSecret } from '@/lib/cron'
+import { logBackgroundJobError } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -37,10 +39,8 @@ function preferenceAllows(prefs: Preferences, type: NotificationDraft['type']) {
 }
 
 export async function GET(req: NextRequest) {
-  const cronSecret = process.env.CRON_SECRET
-  if (!cronSecret || req.headers.get('authorization') !== `Bearer ${cronSecret}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const cronError = validateCronSecret(req)
+  if (cronError) return cronError
 
   const supabase = createServiceClient()
 
@@ -166,7 +166,8 @@ export async function GET(req: NextRequest) {
     inserted = filtered.filter(n => !existingSet.has(`${n.user_id}|${n.type}|${n.link}`))
 
     if (inserted.length > 0) {
-      await supabase.from('notifications').insert(inserted)
+      const { error: insertError } = await supabase.from('notifications').insert(inserted)
+      if (insertError) logBackgroundJobError('cron.notifications.insert', insertError, { count: inserted.length })
     }
   }
 
@@ -183,13 +184,17 @@ export async function GET(req: NextRequest) {
       const { data: { user } } = await supabase.auth.admin.getUserById(userId)
       if (!user?.email) continue
 
-      await resend.emails.send({
-        from: 'Clerkfolio <hello@clerkfolio.co.uk>',
-        to: user.email,
-        subject: userItems.length > 1 ? `${userItems.length} Clerkfolio reminders` : userItems[0].title,
-        text: notificationEmailText(profile?.first_name ?? null, userItems),
-        html: notificationEmailHtml(profile?.first_name ?? null, userItems),
-      })
+      try {
+        await resend.emails.send({
+          from: 'Clerkfolio <hello@clerkfolio.co.uk>',
+          to: user.email,
+          subject: userItems.length > 1 ? `${userItems.length} Clerkfolio reminders` : userItems[0].title,
+          text: notificationEmailText(profile?.first_name ?? null, userItems),
+          html: notificationEmailHtml(profile?.first_name ?? null, userItems),
+        })
+      } catch (error) {
+        logBackgroundJobError('cron.notifications.email', error, { userId, count: userItems.length })
+      }
     }
   }
 

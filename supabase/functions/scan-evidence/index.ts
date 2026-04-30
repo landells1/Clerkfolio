@@ -124,12 +124,13 @@ Deno.serve(async (req) => {
   const contentMatchesMime = !downloadError && file.mime_type && hasValidMagicBytes(headerBytes, file.mime_type)
   const clamStatus = contentMatchesMime ? await scanWithClamAv(fullBytes) : null
   const scanStatus = contentMatchesMime ? (clamStatus ?? 'clean') : 'quarantined'
+  const scanProvider = clamStatus ? 'clamav' : 'mime_only'
 
   const { error } = await service
     .from('evidence_files')
-    .update({ scan_status: scanStatus, scan_completed_at: new Date().toISOString() })
+    .update({ scan_status: scanStatus, scan_provider: scanProvider, scan_completed_at: new Date().toISOString() })
     .eq('id', fileId)
 
   if (error) return new Response(JSON.stringify({ error: error.message }), { status: 500 })
-  return new Response(JSON.stringify({ status: scanStatus }), { status: scanStatus === 'clean' ? 200 : 415 })
+  return new Response(JSON.stringify({ status: scanStatus, scan_provider: scanProvider }), { status: scanStatus === 'clean' ? 200 : 415 })
 })

@@ -29,6 +29,7 @@ export type EvidenceFile = {
   file_size: number
   mime_type: string | null
   scan_status?: 'pending' | 'scanning' | 'clean' | 'quarantined'
+  scan_provider?: 'clamav' | 'mime_only' | null
   created_at: string
 }
 
@@ -85,6 +86,7 @@ export async function insertEvidenceRecord(
     file_size: file.size,
     mime_type: file.type || null,
     scan_status: 'pending',
+    scan_provider: null,
   }).select('id').single()
 }
 

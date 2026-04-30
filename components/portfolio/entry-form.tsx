@@ -34,6 +34,7 @@ const TOGGLE_BTN = (active: boolean) =>
 
 const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
 const DRAFT_KEY = 'clerkfolio-entry-draft'
+const LONG_TEXT_MAX = 10000
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
@@ -244,12 +245,14 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.category) setCategory(d.category)
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
+      if (d.notes !== undefined) setNotes(d.notes)
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.interviewThemes !== undefined) setInterviewThemes(d.interviewThemes)
       if (d.auditType !== undefined) setAuditType(d.auditType)
       if (d.auditRole !== undefined) setAuditRole(d.auditRole)
       if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
       if (d.auditTrust !== undefined) setAuditTrust(d.auditTrust)
+      if (d.auditOutcome !== undefined) setAuditOutcome(d.auditOutcome)
       if (d.auditPresented !== undefined) setAuditPresented(d.auditPresented)
       if (d.teachingType !== undefined) setTeachingType(d.teachingType)
       if (d.teachingAudience !== undefined) setTeachingAudience(d.teachingAudience)
@@ -274,12 +277,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.leaderOngoing !== undefined) setLeaderOngoing(d.leaderOngoing)
       if (d.prizeBody !== undefined) setPrizeBody(d.prizeBody)
       if (d.prizeLevel !== undefined) setPrizeLevel(d.prizeLevel)
+      if (d.prizeDescription !== undefined) setPrizeDescription(d.prizeDescription)
       if (d.procName !== undefined) setProcName(d.procName)
       if (d.procSetting !== undefined) setProcSetting(d.procSetting)
       if (d.procSupervision !== undefined) setProcSupervision(d.procSupervision)
       if (d.procCount !== undefined) setProcCount(d.procCount)
       if (d.reflType !== undefined) setReflType(d.reflType)
+      if (d.reflContext !== undefined) setReflContext(d.reflContext)
+      if (d.reflSupervisor !== undefined) setReflSupervisor(d.reflSupervisor)
+      if (d.reflFreeText !== undefined) setReflFreeText(d.reflFreeText)
       if (d.reflFramework !== undefined) setReflFramework(d.reflFramework)
+      if (d.reflParts !== undefined) setReflParts(d.reflParts)
+      if (d.customFreeText !== undefined) setCustomFreeText(d.customFreeText)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -293,29 +302,31 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
-        category, title, date, specialtyTags, interviewThemes,
-        auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
+        category, title, date, notes, specialtyTags, interviewThemes,
+        auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
         confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
         pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
         leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-        prizeBody, prizeLevel,
+        prizeBody, prizeLevel, prizeDescription,
         procName, procSetting, procSupervision, procCount,
-        reflType, reflFramework,
+        reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
+        customFreeText,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
   }, [
-    mode, category, title, date, specialtyTags, interviewThemes,
-    auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
+    mode, category, title, date, notes, specialtyTags, interviewThemes,
+    auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
     confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
     pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
     leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-    prizeBody, prizeLevel,
+    prizeBody, prizeLevel, prizeDescription,
     procName, procSetting, procSupervision, procCount,
-    reflType, reflFramework,
+    reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
+    customFreeText,
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
@@ -550,7 +561,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
           </Field>
           <Field label="Notes / comments">
-            <textarea rows={3} value={notes ?? ''} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes…')} />
+            <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
             {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
           </Field>
 
@@ -584,7 +595,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   <option value="completed_loop">Completed loop</option>
                 </select>
               </Field>
-              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} onChange={e => setAuditOutcome(e.target.value)} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} /></Field>
+              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} /></Field>
               <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={setAuditPresented} />
             </div>
           )}
@@ -716,7 +727,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   </select>
                 </Field>
               </div>
-              <Field label="Description"><textarea rows={3} value={prizeDescription} onChange={e => setPrizeDescription(e.target.value)} className={INPUT} placeholder="Brief description of the prize or award" /></Field>
+              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} className={INPUT} placeholder="Brief description of the prize or award" /></Field>
             </div>
           )}
 
@@ -786,7 +797,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
               {reflFramework === 'none' && (
                 <Field label="Free text reflection">
-                  <textarea rows={6} value={reflFreeText} onChange={e => setReflFreeText(e.target.value)} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you\'d do differently…')} />
+                  <textarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setReflFreeText(e.target.value); markDirty() }} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
                   {reflFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(reflFreeText)} words</p>}
                 </Field>
               )}
@@ -797,8 +808,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                     <Field key={f.key} label={`${f.label} — ${f.hint}`}>
                       <textarea
                         rows={3}
+                        maxLength={LONG_TEXT_MAX}
                         value={reflParts[f.key] ?? ''}
-                        onChange={e => setReflParts(p => ({ ...p, [f.key]: e.target.value }))}
+                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
                         className={INPUT}
                         placeholder={f.hint}
                       />
@@ -813,8 +825,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                     <Field key={f.key} label={`${f.label} — ${f.hint}`}>
                       <textarea
                         rows={4}
+                        maxLength={LONG_TEXT_MAX}
                         value={reflParts[f.key] ?? ''}
-                        onChange={e => setReflParts(p => ({ ...p, [f.key]: e.target.value }))}
+                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
                         className={INPUT}
                         placeholder={f.hint}
                       />
@@ -829,7 +842,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           {category === 'custom' && (
             <div className="space-y-4">
               <Field label="Description">
-                <textarea rows={6} value={customFreeText} onChange={e => setCustomFreeText(e.target.value)} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words…')} />
+                <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
               </Field>
             </div>
           )}
