@@ -13,7 +13,7 @@ function ImagePreview({ file }: { file: File }) {
   if (!src) return null
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="" className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]" />
+    <img src={src} alt={`Preview of ${file.name}`} className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]" />
   )
 }
 

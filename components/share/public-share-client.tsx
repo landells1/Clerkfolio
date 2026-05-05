@@ -48,12 +48,19 @@ export default function PublicShareClient({ token }: { token: string }) {
   async function load(nextPin = '') {
     setLoading(true)
     setError(null)
-    const res = await fetch('/api/share/access', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ token, pin: nextPin }),
-    })
-    const json = await res.json()
+    let res: Response
+    try {
+      res = await fetch('/api/share/access', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, pin: nextPin }),
+      })
+    } catch {
+      setLoading(false)
+      setError('Could not reach Clerkfolio. Check your connection and try again.')
+      return
+    }
+    const json = await res.json().catch(() => ({} as { error?: string; pinRequired?: boolean }))
     setLoading(false)
 
     if (res.status === 401 && json.pinRequired) {

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
+import { completenessScore } from '@/lib/utils/completeness'
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
@@ -130,10 +131,13 @@ export default function QuickAddModal({
 
   async function checkDuplicate(val: string) {
     if (val.trim().length < 4) return
+    // Only suggest duplicates on the active (not soft-deleted) cases the user owns.
+    // RLS already restricts to the user, but we'd still see deleted-then-restored noise without the filter.
     const { data } = await supabase
       .from('cases')
       .select('title, date')
       .ilike('title', `%${val.trim()}%`)
+      .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(1)
     if (data && data.length > 0) setDuplicateWarning({ title: data[0].title, date: data[0].date })
@@ -155,19 +159,22 @@ export default function QuickAddModal({
     if (!user) { setSaving(false); return }
 
     if (type === 'case') {
-      const { error: err } = await supabase.from('cases').insert({
-        user_id: user.id,
+      const casePayload = {
         title: title.trim(),
         date,
         clinical_domain: domains[0] ?? null,
         clinical_domains: domains,
         specialty_tags: tags,
         notes: notes.trim() || null,
+      }
+      const { error: err } = await supabase.from('cases').insert({
+        user_id: user.id,
+        ...casePayload,
+        completeness_score: completenessScore(casePayload, 'case'),
       })
       if (err) { setError(err.message); setSaving(false); return }
     } else {
       const base = {
-        user_id: user.id,
         category: type,
         title: title.trim(),
         date,
@@ -188,7 +195,12 @@ export default function QuickAddModal({
         }
       }
 
-      const { error: err } = await supabase.from('portfolio_entries').insert({ ...base, ...extra })
+      const merged = { ...base, ...extra }
+      const { error: err } = await supabase.from('portfolio_entries').insert({
+        user_id: user.id,
+        ...merged,
+        completeness_score: completenessScore(merged, 'portfolio'),
+      })
       if (err) { setError(err.message); setSaving(false); return }
     }
 

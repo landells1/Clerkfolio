@@ -31,6 +31,10 @@ function formatTag(tag: string) {
   return getSpecialtyConfig(tag)?.name ?? tag
 }
 
+// Tokens are produced by createShareToken() = randomBytes(24).toString('hex') = 48 hex chars.
+// Reject malformed tokens at the edge so we don't burn a DB lookup on every junk request.
+const TOKEN_FORMAT = /^[0-9a-f]{48}$/
+
 export async function POST(req: NextRequest) {
   const supabase = createServiceClient()
   const body = await req.json().catch(() => null)
@@ -38,6 +42,9 @@ export async function POST(req: NextRequest) {
   const pin = typeof body?.pin === 'string' ? body.pin.trim() : ''
 
   if (!token) return NextResponse.json({ error: 'Token required' }, { status: 400 })
+  if (!TOKEN_FORMAT.test(token)) {
+    return NextResponse.json({ error: 'This share link is no longer available.' }, { status: 404 })
+  }
 
   const { data: link, error } = await supabase
     .from('share_links')

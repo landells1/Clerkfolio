@@ -1,3 +1,4 @@
+import { randomInt } from 'crypto'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const REFERRAL_CODE_REGEX = /^[A-Z]{5}$/
@@ -10,7 +11,7 @@ export function isFiveLetterReferralCode(code: string | null | undefined) {
 export function createFiveLetterReferralCode() {
   let code = ''
   for (let index = 0; index < 5; index += 1) {
-    code += ALPHABET[Math.floor(Math.random() * ALPHABET.length)]
+    code += ALPHABET[randomInt(0, ALPHABET.length)]
   }
   return code
 }

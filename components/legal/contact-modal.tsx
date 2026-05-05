@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 export function LegalContactButton() {
   const [open, setOpen] = useState(false)
@@ -10,6 +10,15 @@ export function LegalContactButton() {
   const [sending, setSending] = useState(false)
   const [sent, setSent] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') handleClose() }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  // handleClose is stable enough for this scoped effect
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -68,6 +77,7 @@ export function LegalContactButton() {
               </div>
               <button
                 onClick={handleClose}
+                aria-label="Close contact form"
                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(245,245,242,0.4)', fontSize: 20, lineHeight: 1, padding: 4 }}
               >
                 ×

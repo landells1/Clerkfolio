@@ -409,6 +409,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .from('entry_revisions')
         .delete()
         .in('id', revisions.slice(0, revisions.length - 50).map(row => row.id))
+        .eq('user_id', currentUser.id)
     }
   }
 
