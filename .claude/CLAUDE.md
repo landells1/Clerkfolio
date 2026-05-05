@@ -1,6 +1,6 @@
 # Clerkfolio — Project Context for Claude
 
-> **V2 work in progress.** Read `HANDOVER_V2.md` at repo root for the comprehensive V2 implementation plan from the April 2026 grill-me session. That document is the source of truth — read it before structural changes. This file covers the persistent project context that survives V2.
+> **Always read `HANDOVER.md` at the repo root first.** It is the single jumping-off point — refreshed by full-codebase audits — and links here only when you need persistent project conventions. The previous `HANDOVER_V2.md` reference has been superseded by `HANDOVER.md`.
 
 ## Session start — always do this first
 1. Run `git log --oneline -5` and `git status` to see what may have changed since the last session (Codex or other tools may have pushed commits).
@@ -88,7 +88,7 @@ Never blur these in UI. Always label distinctly.
 | `audit_log` | `user_id`, `action`, `metadata`, `created_at` — service role inserts only, 1-year auto-purge |
 | `custom_competency_themes` | User-defined themes; deletion cascades to `interview_themes[]` arrays |
 | `referrals` | `referrer_id`, `referred_id`, `status`, `reward_granted_at` |
-| `templates` | Curated (~9 trimmed) + user templates; `user_id IS NULL` = curated |
+| `templates` | Curated (~9 trimmed) + user templates; `user_id IS NULL` = curated. State-changing API in `app/api/templates/route.ts` calls `validateOrigin` for CSRF protection. |
 | `notifications` | In-app secondary log of email-sent notifications |
 
 ## RLS Policy

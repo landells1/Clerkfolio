@@ -32,12 +32,14 @@ export default function NotificationSettingsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
       const [{ data: profile }, subInfo] = await Promise.all([
-        supabase.from('profiles').select('notification_preferences').eq('id', user.id).single(),
+        // .maybeSingle() returns null on no-row instead of throwing — defensive against
+        // a brand-new auth user whose profile trigger hasn't fired yet.
+        supabase.from('profiles').select('notification_preferences').eq('id', user.id).maybeSingle(),
         fetchSubscriptionInfo(supabase, user.id),
       ])
+      setSubInfo(subInfo)
       if (!profile) return
       setPrefs({ ...DEFAULT_PREFS, ...(profile.notification_preferences ?? {}) })
-      setSubInfo(subInfo)
     }
     load()
   }, [supabase])

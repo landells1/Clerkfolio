@@ -39,7 +39,9 @@ function hasValidMagicBytes(bytes: Uint8Array, mimeType: string) {
   if (mimeType === 'application/pdf') return ascii.startsWith('%PDF')
   if (mimeType === 'image/png') return signature.startsWith('89504e470d0a1a0a')
   if (mimeType === 'image/jpeg') return signature.startsWith('ffd8ff')
-  if (mimeType === 'image/heic' || mimeType === 'image/heif') return ascii.slice(4, 8) === 'ftyp'
+  // HEIF/HEIC: bytes 4–7 are the ASCII string "ftyp" (= hex 66 74 79 70).
+  // Comparing via String.fromCharCode mojibakes any byte > 127 in the size prefix; use hex.
+  if (mimeType === 'image/heic' || mimeType === 'image/heif') return signature.slice(8, 16) === '66747970'
   if (mimeType === 'text/plain') return isText(bytes)
   if (mimeType === 'application/msword') return signature.startsWith('d0cf11e0a1b11ae1')
   if (OFFICE_OPEN_XML.has(mimeType)) return zipMagic

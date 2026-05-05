@@ -42,9 +42,16 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
 
     if (files && files.length > 0) {
+      // Supabase storage.remove() caps the array at ~1000 paths server-side.
+      // Chunk to 500 for headroom; an account with thousands of evidence files
+      // would otherwise leave orphans in the bucket after deletion.
       const paths = files.map((f: { file_path: string }) => f.file_path)
-      const { error: storageError } = await service.storage.from('evidence').remove(paths)
-      if (storageError) throw storageError
+      const CHUNK = 500
+      for (let offset = 0; offset < paths.length; offset += CHUNK) {
+        const slice = paths.slice(offset, offset + CHUNK)
+        const { error: storageError } = await service.storage.from('evidence').remove(slice)
+        if (storageError) throw storageError
+      }
     }
 
     const { error: authDeleteError } = await service.auth.admin.deleteUser(user.id)

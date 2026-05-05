@@ -109,11 +109,14 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   function markDirty() { setIsDirty(true) }
 
   async function pruneRevisions(entryId: string, entryType: 'portfolio' | 'case') {
+    const { data: { user: currentUser } } = await supabase.auth.getUser()
+    if (!currentUser) return
     const { data: revisions } = await supabase
       .from('entry_revisions')
       .select('id')
       .eq('entry_id', entryId)
       .eq('entry_type', entryType)
+      .eq('user_id', currentUser.id)
       .order('created_at', { ascending: true })
 
     if (revisions && revisions.length > 50) {
@@ -121,6 +124,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .from('entry_revisions')
         .delete()
         .in('id', revisions.slice(0, revisions.length - 50).map(row => row.id))
+        .eq('user_id', currentUser.id)
     }
   }
 
@@ -169,12 +173,18 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .eq('user_id', user.id)
         .single()
 
-      await supabase.from('entry_revisions').insert({
+      const { error: revisionError } = await supabase.from('entry_revisions').insert({
         user_id: user.id,
         entry_id: initialData!.id!,
         entry_type: 'case',
         snapshot: currentRow ?? initialData,
       })
+      // Snapshot failure shouldn't block the edit, but the user should know
+      // history wasn't recorded so they can decide whether to retry.
+      if (revisionError) {
+        console.error('Could not save revision snapshot:', revisionError.message)
+        addToast('Saved, but revision history was not recorded', 'error')
+      }
       await pruneRevisions(initialData!.id!, 'case')
       const { error } = await supabase
         .from('cases')

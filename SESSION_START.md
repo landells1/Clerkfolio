@@ -1,6 +1,6 @@
 # Clerkfolio — Session Start Context
 
-**Last full audit:** 2026-04-29 by Claude Code (claude-sonnet-4-6)
+**Last full audit:** 2026-05-05 by Claude Code (claude-opus-4-7) — see `HANDOVER.md` for findings + status. Critical fixes from this audit landed in commit on 2026-05-05.
 
 ## First thing every session
 ```bash
@@ -28,9 +28,10 @@ git push origin main
 ## Source-of-truth docs (read before structural changes)
 | File | Purpose |
 |---|---|
+| `HANDOVER.md` | Single jumping-off point — refreshed by full audits |
 | `.claude/CLAUDE.md` | Persistent project context, hard constraints, patterns |
-| `HANDOVER_V2.md` | V2 implementation plan — authoritative for V2 work |
-| `AGENTS.md` | Agentic work tracking |
+| `AGENTS.md` | Codex / agentic work tracking |
+| `CODEX_TASKS.md` | Per-task instructions for Codex (now mostly superseded by `HANDOVER.md` Stage 1 list) |
 
 ---
 
@@ -131,19 +132,16 @@ All tables have RLS enabled.
 
 ---
 
-## Known open issues (from 2026-04-29 audit — see CODEX_TASKS.md)
-1. `specialty_entry_links`: needs `CHECK (entry_type = 'portfolio')` + RLS update
-2. `pro_features_used` counter increments are not atomic (TOCTOU race)
-3. Auto-revoke email in `share/access` not wrapped in try-catch
-4. PATCH share link can accidentally un-revoke auto-revoked links
-5. Horus import + export routes lack max row/entry count limits
-6. Auth callback referral code not format-validated before DB lookup
-7. In-memory rate limiters (feedback, share/access, middleware) not distributed
-8. CSV export missing UTF-8 BOM (Excel compat)
-9. Auto-revoke view-count check uses wall-clock hour, not rolling window
-10. `subscription.ts` open-fail defaults are too permissive (grants access on DB outage)
+## Known open issues (post-audit 2026-05-05)
+The 2026-05-05 audit landed fixes for: `validateOrigin` on `/api/templates` (CSRF), Stripe webhook customer-mismatch (now 409 retry), `Math.random` → `crypto.randomInt` for referral codes, sanitised `item.link` in notification email template, fail-closed `subscription.ts`, onboarding TOCTOU upsert, share-token format prefilter, HEIC magic-byte hex check in scan-evidence Edge Function, chunked storage delete in account-delete, Horus PII patterns tightened, `purge-deleted` cron now cascades to evidence files + storage, completeness `>= 0`, evidence-file query filters, quick-add `completeness_score`, evidence preview `alt`, contact-modal Escape + aria, `engines` + `typecheck` script + `forceConsistentCasingInFileNames`, secret-scanner Stripe regex, and an SQL migration `2026_05_05_audit_rls_hardening.sql` (NOT YET APPLIED to live Supabase — apply via dashboard or `supabase db push`).
 
-Full details with file:line references in `CODEX_TASKS.md`.
+Still open (see `HANDOVER.md` §7 for the full prioritised list):
+- Calendar feed has no rate-limit / poll cap.
+- `app/api/feedback` rate-limiter is per-lambda — replace with Upstash for real protection.
+- `entry_revisions` 50-cap enforcement remains client-side; needs server-side trigger or pruning function before the user-DELETE policy can be tightened.
+- `share_links.revoked` boolean duplicates `revoked_at IS NOT NULL` — drop the bool in a follow-up.
+- `schema.sql` career-stage constraint is stale; rely on migrations until consolidated.
+- `audit_log` partitioning + scheduled `pg_cron` purge.
 
 ---
 

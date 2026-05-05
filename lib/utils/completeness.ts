@@ -27,7 +27,8 @@ function populated(entry: Record<string, unknown>, rule: string) {
   const [field, minLength] = rule.split(':')
   const value = entry[field]
   if (Array.isArray(value)) return value.length > 0
-  if (typeof value === 'number') return Number.isFinite(value) && value > 0
+  // 0 is a valid recorded count (e.g. proc_count: 0 = "tracked, none yet performed").
+  if (typeof value === 'number') return Number.isFinite(value) && value >= 0
   if (typeof value === 'string') return value.trim().length >= (minLength ? Number(minLength) : 1)
   return value != null && value !== false
 }

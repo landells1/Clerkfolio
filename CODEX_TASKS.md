@@ -1,5 +1,18 @@
 # Clerkfolio — Codex Task List
-**Audit date:** 2026-04-29  
+
+**Status: superseded by `HANDOVER.md` (2026-05-05 audit).**
+
+The bulk of the original Priority 1 / Priority 2 / Priority 3 tasks below have been
+implemented in the 2026-05-05 commit. Newly identified issues (and the still-open
+items from this list) are tracked in `HANDOVER.md` §7 alongside the prioritised
+Stage 2 feature backlog. Read that file first.
+
+This file is kept for historical reference. The Pending vs Done breakdown is in
+`SESSION_START.md` "Known open issues" — keep that section as the running ledger.
+
+---
+
+## Original audit context (2026-04-29)
 **Audited by:** Claude Code (full codebase + live Supabase schema review)
 
 Work through these in priority order. Each task is self-contained with exact file paths and line numbers. After completing a task, commit and push before moving to the next.

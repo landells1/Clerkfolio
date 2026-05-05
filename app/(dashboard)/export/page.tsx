@@ -357,7 +357,7 @@ export default function ExportPage() {
               <div className="flex items-center gap-3">
                 <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[#1B6FD9]">Select visible</button>
                 <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
-                <button onClick={handleGenerate} disabled={totalSelected === 0 || generating || (subInfo != null && !subInfo.limits.canExportPdf)} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+                <button onClick={handleGenerate} disabled={totalSelected === 0 || generating || !subInfo?.limits.canExportPdf} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
@@ -482,7 +482,7 @@ export default function ExportPage() {
                 <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
                 <p className="mt-1 text-xs text-[rgba(245,245,242,0.35)]">Optional PIN (4-8 digits)</p>
               </label>
-              <button onClick={createShareLink} disabled={shareLoading || (subInfo != null && !subInfo.limits.canCreateShareLink)} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+              <button onClick={createShareLink} disabled={shareLoading || !subInfo?.limits.canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>

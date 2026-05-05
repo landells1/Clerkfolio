@@ -14,6 +14,14 @@ function escapeHtml(value: string) {
     .replace(/"/g, '&quot;')
 }
 
+// Defends against unsafe schemes (javascript:, data:, etc.) sneaking into href.
+// Only same-origin paths starting with `/` are allowed; everything else falls back to dashboard.
+function safeRelativePath(value: string) {
+  if (typeof value !== 'string') return '/dashboard'
+  if (!value.startsWith('/') || value.startsWith('//')) return '/dashboard'
+  return value
+}
+
 export function notificationEmailText(firstName: string | null, items: NotificationItem[]) {
   const lines = items.map(item => `- ${item.title}: ${item.body}`).join('\n')
   return `Hi ${firstName || 'there'},\n\n${lines}\n\nOpen Clerkfolio: ${baseUrl}/timeline\n\nManage notification preferences: ${baseUrl}/settings/notifications`
@@ -25,7 +33,7 @@ export function notificationEmailHtml(firstName: string | null, items: Notificat
       <td style="padding:16px;border-bottom:1px solid #e7e7e3;">
         <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#111113;">${escapeHtml(item.title)}</p>
         <p style="margin:0 0 10px;font-size:14px;line-height:1.5;color:#555;">${escapeHtml(item.body)}</p>
-        <a href="${baseUrl}${item.link}" style="font-size:13px;color:#155BB0;text-decoration:none;">Open in Clerkfolio</a>
+        <a href="${baseUrl}${safeRelativePath(item.link)}" style="font-size:13px;color:#155BB0;text-decoration:none;">Open in Clerkfolio</a>
       </td>
     </tr>
   `).join('')

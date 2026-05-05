@@ -85,7 +85,7 @@ export default function EvidenceFiles({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={previewUrls[file.id]}
-                alt=""
+                alt={`Preview of ${file.file_name}`}
                 className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]"
               />
             ) : (

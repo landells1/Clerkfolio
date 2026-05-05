@@ -57,12 +57,16 @@ function mapEntitlements(row: EntitlementRow | null): SubscriptionInfo {
       referralProUntil: row?.referral_pro_until ?? null,
       studentGraduationDate: row?.student_graduation_date ?? null,
     },
+    // Fail-closed defaults: if the entitlement row exists but a particular
+    // boolean is NULL (schema drift, migration in flight), deny the gated
+    // feature instead of granting it. The RPC owns the authoritative answer;
+    // anything else is treated as "unknown, deny".
     limits: {
-      canExportPdf: row?.can_export_pdf ?? true,
-      canCreateShareLink: row?.can_create_share_link ?? true,
-      canTrackAnotherSpecialty: row?.can_track_another_specialty ?? true,
+      canExportPdf: row?.can_export_pdf ?? false,
+      canCreateShareLink: row?.can_create_share_link ?? false,
+      canTrackAnotherSpecialty: row?.can_track_another_specialty ?? false,
       canBulkImport: row?.can_bulk_import ?? false,
-      canUploadFiles: row?.can_upload_files ?? true,
+      canUploadFiles: row?.can_upload_files ?? false,
     },
   }
 }

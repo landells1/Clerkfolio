@@ -47,6 +47,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
       .from('evidence_files')
       .select('*')
       .eq('entry_id', id)
+      .eq('entry_type', 'portfolio')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])

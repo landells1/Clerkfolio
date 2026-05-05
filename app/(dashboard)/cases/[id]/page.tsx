@@ -29,6 +29,8 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
       .from('evidence_files')
       .select('*')
       .eq('entry_id', id)
+      .eq('entry_type', 'case')
+      .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
 

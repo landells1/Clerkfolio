@@ -62,25 +62,31 @@ export async function POST(req: NextRequest) {
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
 
   if (validSpecialties.length > 0) {
-    const { data: existingApps, error: existingAppsError } = await supabase
-      .from('specialty_applications')
-      .select('specialty_key')
-      .eq('user_id', user.id)
-      .in('specialty_key', validSpecialties)
-
-    if (existingAppsError) return NextResponse.json({ error: existingAppsError.message }, { status: 500 })
-
-    const existingKeys = new Set((existingApps ?? []).map(row => row.specialty_key))
-    const newSpecialties = validSpecialties.filter(key => !existingKeys.has(key))
-
-    const appRows = newSpecialties.map(key => {
+    // Upsert is atomic against the (user_id, specialty_key) unique constraint:
+    // two concurrent onboarding completes can no longer race to double-insert.
+    const appRows = validSpecialties.map(key => {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)!
       return { user_id: user.id, specialty_key: key, cycle_year: Number(config.cycleYear) || new Date().getFullYear(), bonus_claimed: false }
     })
     if (appRows.length > 0) {
-      const { error } = await supabase.from('specialty_applications').insert(appRows)
+      const { error } = await supabase
+        .from('specialty_applications')
+        .upsert(appRows, { onConflict: 'user_id,specialty_key', ignoreDuplicates: true })
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    // Only auto-create deadlines for specialties the user did not already have tracked
+    const { data: existingApps } = await supabase
+      .from('specialty_applications')
+      .select('specialty_key, created_at')
+      .eq('user_id', user.id)
+      .in('specialty_key', validSpecialties)
+
+    // Treat any specialty whose row was created in the last 60 seconds as "newly added in this onboarding pass".
+    const sixtySecondsAgo = Date.now() - 60_000
+    const newSpecialties = (existingApps ?? [])
+      .filter(row => new Date(row.created_at).getTime() >= sixtySecondsAgo)
+      .map(row => row.specialty_key)
 
     const deadlineRows = newSpecialties.flatMap(key => {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)
@@ -91,8 +97,10 @@ export async function POST(req: NextRequest) {
       ]
     })
     if (deadlineRows.length > 0) {
+      // Tolerate duplicate-key races against the partial unique index
+      // (user_id, source_specialty_key, title, due_date) WHERE is_auto = true.
       const { error } = await supabase.from('deadlines').insert(deadlineRows)
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error && error.code !== '23505') return NextResponse.json({ error: error.message }, { status: 500 })
     }
   }
 
