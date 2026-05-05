@@ -30,8 +30,7 @@ git push origin main
 |---|---|
 | `HANDOVER.md` | Single jumping-off point — refreshed by full audits |
 | `.claude/CLAUDE.md` | Persistent project context, hard constraints, patterns |
-| `AGENTS.md` | Codex / agentic work tracking |
-| `CODEX_TASKS.md` | Per-task instructions for Codex (now mostly superseded by `HANDOVER.md` Stage 1 list) |
+| `AGENTS.md` | Codex / agentic work tracking (gitignored, local-only) |
 
 ---
 

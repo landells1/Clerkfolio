@@ -237,7 +237,7 @@ The user runs Claude Code and Codex interchangeably. GitHub is shared state.
 | S1 | `lib/referrals/codes.ts:13` | `Math.random()` for referral codes — replace with `crypto.randomInt`. | pending |
 | S2 | `app/api/templates/route.ts:5,33,52` | All three handlers skip `validateOrigin` — CSRF risk. | pending |
 | S3 | `app/api/stripe/webhook/route.ts:55` | Customer-mismatch path silently returns 200; should 4xx so Stripe retries. | pending |
-| S4 | `app/api/share/access/route.ts:122–141` | Auto-revoke email send not wrapped in try/catch (CODEX_TASKS Task 1). | verify |
+| S4 | `app/api/share/access/route.ts:122–141` | Auto-revoke email send not wrapped in try/catch. | verify |
 | S5 | `lib/notifications/email-templates.ts:28` | `item.link` interpolated raw into href — assert `startsWith('/')`. | pending |
 | S6 | `lib/subscription.ts:60–66` | `mapEntitlements` defaults `canX` to `true` when row fields are NULL — fail-open. Default to `false`. | pending |
 | S7 | `app/api/onboarding/complete/route.ts:74–82` | TOCTOU on specialty insert — use `.upsert({ onConflict, ignoreDuplicates: true })`. | pending |
@@ -271,7 +271,7 @@ The user runs Claude Code and Codex interchangeably. GitHub is shared state.
 | H20 | `app/api/feedback/route.ts:22–36` | In-memory rate limiter is per-lambda (effectively absent on Vercel). |
 
 ### Medium
-M1 referral regex now validated (CODEX_TASKS Task 5 ✅).  
+M1 referral regex now validated ✅.  
 M2 No Stripe `event.id` idempotency table.  
 M3 Scrypt key length implicit.  
 M4 `marketing/pricing.ts` ↔ `subscription.ts` drift.  
@@ -387,4 +387,4 @@ Don't start work outside this list without checking whether it conflicts with th
 
 ---
 
-*Generated 2026-05-05 by full-codebase audit. The companion documents (`AGENTS.md`, `.claude/CLAUDE.md`, `SESSION_START.md`, `CODEX_TASKS.md`) remain authoritative for their narrower scopes; this file is the single jumping-off point. Update this file when the state of play changes materially.*
+*Generated 2026-05-05 by full-codebase audit. The companion documents (`AGENTS.md`, `.claude/CLAUDE.md`, `SESSION_START.md`) remain authoritative for their narrower scopes; this file is the single jumping-off point. Update this file when the state of play changes materially.*
