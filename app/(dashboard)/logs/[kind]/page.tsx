@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PersonalLogForm, { type PersonalLogKind } from '@/components/logs/personal-log-form'
 import WbaHeatmap from '@/components/logs/wba-heatmap'
+import SavedSearchBar from '@/components/search/saved-search-bar'
+import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 
 const TABS: { slug: string; kind: PersonalLogKind; label: string }[] = [
   { slug: 'training', kind: 'mandatory_training', label: 'Training' },
@@ -28,8 +30,17 @@ type PersonalLogRow = {
   notes: string | null
 }
 
-export default async function LogsKindPage({ params }: { params: Promise<{ kind: string }> }) {
+export default async function LogsKindPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ kind: string }>
+  searchParams?: Promise<{ q?: string; since?: string }>
+}) {
   const { kind: slug } = await params
+  const resolvedSearchParams = await searchParams
+  const q = resolvedSearchParams?.q ?? ''
+  const parsedQuery = parseSearchQuery([q, resolvedSearchParams?.since ? `since:${resolvedSearchParams.since}` : ''].filter(Boolean).join(' '))
   const tab = TABS.find(item => item.slug === slug)
   if (!tab) notFound()
 
@@ -42,7 +53,11 @@ export default async function LogsKindPage({ params }: { params: Promise<{ kind:
     .eq('kind', tab.kind)
     .is('deleted_at', null)
     .order('date', { ascending: false })
-  const logRows = (rows ?? []) as PersonalLogRow[]
+  const logRows = ((rows ?? []) as PersonalLogRow[]).filter(row => matchesParsedQuery({
+    ...row,
+    notes: [row.notes, row.meta?.detail].filter(Boolean).join(' '),
+    category: tab.kind,
+  }, parsedQuery))
   const rotationReflectionPrompts = tab.kind === 'rotation'
     ? logRows.filter(row => {
       const daysFromToday = Math.ceil((new Date(row.date).getTime() - Date.now()) / 86400000)
@@ -67,6 +82,13 @@ export default async function LogsKindPage({ params }: { params: Promise<{ kind:
           Conferences
         </Link>
       </div>
+
+      <form className="mb-3 flex flex-wrap gap-2">
+        <input name="q" defaultValue={q} placeholder="Search this log" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]" />
+        <input type="date" name="since" defaultValue={resolvedSearchParams?.since ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]" />
+        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+      </form>
+      <SavedSearchBar surface="logs" q={q} />
 
       {rotationReflectionPrompts.length > 0 && (
         <div className="mb-6 rounded-2xl border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 p-4">

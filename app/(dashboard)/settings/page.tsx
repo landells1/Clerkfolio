@@ -433,6 +433,8 @@ export default function SettingsPage() {
         <SettingsLink href="/settings/referrals" label="Referrals" />
         <SettingsLink href="/settings/snippets" label="Snippets" />
         <SettingsLink href="/settings/templates" label="Templates" />
+        <SettingsLink href="/settings/themes" label="Themes" />
+        <SettingsLink href="/settings/tags" label="Specialty tags" />
         <SettingsLink href="/settings/shared-links" label="Shared links" />
         <SettingsLink href="/trash" label="Trash" />
         <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">

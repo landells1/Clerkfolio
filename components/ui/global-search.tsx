@@ -38,17 +38,24 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
       setLoading(true)
       setSearchError(false)
       try {
-        const [entriesResult, casesResult] = await Promise.all([
+        const [entriesResult, casesResult, filesResult] = await Promise.all([
           supabase.from('portfolio_entries').select('id, title, category').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
           supabase.from('cases').select('id, title, clinical_domain').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+          supabase.from('evidence_files').select('entry_id, entry_type, file_name').ilike('file_name', `%${q.trim()}%`).limit(5),
         ])
-        if (entriesResult.error || casesResult.error) {
+        if (entriesResult.error || casesResult.error || filesResult.error) {
           setSearchError(true)
           setResults([])
         } else {
           const r: Result[] = [
             ...(entriesResult.data ?? []).map(e => ({ id: e.id, title: e.title, type: 'entry' as const, subtitle: e.category?.replace(/_/g, ' ') ?? 'Portfolio entry' })),
             ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
+            ...(filesResult.data ?? []).map(file => ({
+              id: file.entry_id,
+              title: file.file_name,
+              type: file.entry_type === 'case' ? 'case' as const : 'entry' as const,
+              subtitle: 'Evidence file',
+            })),
           ]
           setResults(r)
           setSelected(0)

@@ -44,6 +44,7 @@ export type PortfolioEntry = {
   specialty_tags: string[]
   notes: string | null
   pinned: boolean
+  completeness_score?: number | null
   deleted_at: string | null
   created_at: string
   updated_at: string

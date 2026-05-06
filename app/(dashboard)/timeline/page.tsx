@@ -2,10 +2,19 @@ import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 import { getSpecialtyConfig } from '@/lib/specialties'
+import SavedSearchBar from '@/components/search/saved-search-bar'
+import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 
-export default async function TimelinePage() {
+export default async function TimelinePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; since?: string }>
+}) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
+  const q = resolvedSearchParams.q ?? ''
+  const parsedQuery = parseSearchQuery([q, resolvedSearchParams.since ? `since:${resolvedSearchParams.since}` : ''].filter(Boolean).join(' '))
 
   const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }] = await Promise.all([
     supabase
@@ -92,12 +101,35 @@ export default async function TimelinePage() {
     }
   })
 
+  const filteredGoals = ((goals ?? []) as TimelineGoal[]).filter(goal => matchesParsedQuery({
+    title: goal.specific ?? goal.category,
+    notes: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join(' '),
+    date: goal.due_date,
+    category: goal.category,
+  }, parsedQuery))
+  const filteredDeadlines = [...nationalRecruitmentDeadlines, ...configuredDeadlines, ...manualDeadlines].filter(deadline => matchesParsedQuery({
+    title: deadline.title,
+    notes: deadline.details,
+    date: deadline.date,
+    category: 'deadline',
+  }, parsedQuery))
+
   return (
-    <TimelineClient
-      goals={(goals ?? []) as TimelineGoal[]}
-      specialties={specialtyRows}
-      deadlines={[...nationalRecruitmentDeadlines, ...configuredDeadlines, ...manualDeadlines]}
-      calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
-    />
+    <>
+      <div className="px-6 pt-6 lg:px-8">
+        <form className="mb-3 flex flex-wrap gap-2">
+          <input name="q" defaultValue={q} placeholder="Search timeline" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]" />
+          <input type="date" name="since" defaultValue={resolvedSearchParams.since ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]" />
+          <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+        </form>
+        <SavedSearchBar surface="timeline" q={q} />
+      </div>
+      <TimelineClient
+        goals={filteredGoals}
+        specialties={specialtyRows}
+        deadlines={filteredDeadlines}
+        calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
+      />
+    </>
   )
 }

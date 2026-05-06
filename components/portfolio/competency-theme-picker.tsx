@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 
-type CustomTheme = { id: string; name: string; slug: string }
+type CustomTheme = { id: string; name: string; slug: string; colour: string | null }
+type ThemeOption = { value: string; label: string; isCustom: boolean; colour?: string }
 
 type Props = {
   value?: string[]
@@ -34,7 +35,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
   async function loadCustomThemes() {
     const { data } = await supabase
       .from('custom_competency_themes')
-      .select('id, name, slug')
+      .select('id, name, slug, colour')
       .order('name', { ascending: true })
     setCustomThemes((data ?? []) as CustomTheme[])
   }
@@ -44,14 +45,15 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const options = useMemo(
+  const options = useMemo<ThemeOption[]>(
     () => [
       ...INTERVIEW_THEMES.map(theme => ({ value: theme, label: theme, isCustom: false })),
-      ...customThemes.map(theme => ({ value: theme.slug, label: theme.name, isCustom: true })),
+      ...customThemes.map(theme => ({ value: theme.slug, label: theme.name, isCustom: true, colour: theme.colour ?? '#1B6FD9' })),
     ],
     [customThemes]
   )
   const labelByValue = new Map(options.map(option => [option.value, option.label]))
+  const colourByValue = new Map(options.filter(option => option.isCustom).map(option => [option.value, option.colour ?? '#1B6FD9']))
 
   function toggleTheme(theme: string) {
     const next = value.includes(theme) ? value.filter(item => item !== theme) : [...value, theme]
@@ -81,8 +83,8 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
 
     const { data, error: insertError } = await supabase
       .from('custom_competency_themes')
-      .insert({ user_id: user.id, name, slug })
-      .select('id, name, slug')
+      .insert({ user_id: user.id, name, slug, colour: '#1B6FD9' })
+      .select('id, name, slug, colour')
       .single()
 
     if (insertError || !data) {
@@ -130,6 +132,39 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
     ])
   }
 
+  async function renameTheme(theme: CustomTheme) {
+    const nextName = window.prompt('Rename theme', theme.name)?.trim().slice(0, 40)
+    if (!nextName) return
+    const nextSlug = slugifyTheme(nextName)
+    if (!nextSlug || PRESET_SLUGS.has(nextSlug) || customThemes.some(item => item.slug === nextSlug && item.id !== theme.id)) {
+      setError('That theme already exists.')
+      return
+    }
+
+    const { error: updateError } = await supabase
+      .from('custom_competency_themes')
+      .update({ name: nextName, slug: nextSlug })
+      .eq('id', theme.id)
+
+    if (updateError) {
+      setError(updateError.message)
+      return
+    }
+
+    await supabase.rpc('rename_user_tag', { p_old: theme.slug, p_new: nextSlug, p_field: 'interview_themes' })
+    setCustomThemes(prev => prev.map(item => item.id === theme.id ? { ...item, name: nextName, slug: nextSlug } : item).sort((a, b) => a.name.localeCompare(b.name)))
+    onChange?.(value.map(item => item === theme.slug ? nextSlug : item))
+    onDirty?.()
+  }
+
+  async function updateThemeColour(theme: CustomTheme, colour: string) {
+    setCustomThemes(prev => prev.map(item => item.id === theme.id ? { ...item, colour } : item))
+    await supabase
+      .from('custom_competency_themes')
+      .update({ colour })
+      .eq('id', theme.id)
+  }
+
   if (manageOnly) {
     return (
       <ThemeManager
@@ -138,6 +173,8 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
         setNewTheme={setNewTheme}
         addTheme={addTheme}
         removeTheme={removeTheme}
+        renameTheme={renameTheme}
+        updateThemeColour={updateThemeColour}
         error={error}
       />
     )
@@ -174,6 +211,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               key={theme}
               type="button"
               onClick={() => toggleTheme(theme)}
+              style={colourByValue.has(theme) ? { borderColor: `${colourByValue.get(theme)}66`, backgroundColor: `${colourByValue.get(theme)}22`, color: '#F5F5F2' } : undefined}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-violet-300 border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
             >
               {labelByValue.get(theme) ?? theme} x
@@ -193,6 +231,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
                   key={theme.value}
                   type="button"
                   onClick={() => toggleTheme(theme.value)}
+                  style={theme.isCustom && active ? { borderColor: `${theme.colour}66`, backgroundColor: `${theme.colour}22`, color: '#F5F5F2' } : undefined}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     active
                       ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
@@ -233,6 +272,8 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               setNewTheme={setNewTheme}
               addTheme={addTheme}
               removeTheme={removeTheme}
+              renameTheme={renameTheme}
+              updateThemeColour={updateThemeColour}
               error={error}
             />
           </div>
@@ -248,6 +289,8 @@ function ThemeManager({
   setNewTheme,
   addTheme,
   removeTheme,
+  renameTheme,
+  updateThemeColour,
   error,
 }: {
   customThemes: CustomTheme[]
@@ -255,6 +298,8 @@ function ThemeManager({
   setNewTheme: (value: string) => void
   addTheme: () => void
   removeTheme: (theme: CustomTheme) => void
+  renameTheme: (theme: CustomTheme) => void
+  updateThemeColour: (theme: CustomTheme, colour: string) => void
   error: string | null
 }) {
   return (
@@ -277,13 +322,25 @@ function ThemeManager({
           <p className="p-4 text-sm text-[rgba(245,245,242,0.45)]">No custom themes yet.</p>
         ) : customThemes.map(theme => (
           <div key={theme.id} className="flex items-center justify-between gap-3 p-3">
-            <div>
+            <div className="min-w-0">
               <p className="text-sm font-medium text-[#F5F5F2]">{theme.name}</p>
               <p className="text-xs text-[rgba(245,245,242,0.35)]">{theme.slug}</p>
             </div>
-            <button type="button" onClick={() => removeTheme(theme)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">
-              Delete
-            </button>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={theme.colour ?? '#1B6FD9'}
+                onChange={event => updateThemeColour(theme, event.target.value)}
+                className="h-8 w-9 rounded border border-white/[0.08] bg-transparent"
+                aria-label={`Colour for ${theme.name}`}
+              />
+              <button type="button" onClick={() => renameTheme(theme)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:bg-white/[0.05]">
+                Rename
+              </button>
+              <button type="button" onClick={() => removeTheme(theme)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">
+                Delete
+              </button>
+            </div>
           </div>
         ))}
       </div>

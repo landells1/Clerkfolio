@@ -8,12 +8,18 @@ type TrashItem = {
   id: string
   title: string
   subtitle: string
+  category: string | null
   date: string
   deletedAt: string
   type: TrashItemType
 }
 
-export default async function TrashPage() {
+export default async function TrashPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ recent?: string; category?: string }>
+}) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -31,6 +37,7 @@ export default async function TrashPage() {
       id: entry.id,
       title: entry.title,
       subtitle: CATEGORIES.find(c => c.value === entry.category as Category)?.label ?? entry.category?.replace(/_/g, ' ') ?? 'Portfolio entry',
+      category: entry.category ?? null,
       date: entry.date,
       deletedAt: entry.deleted_at,
       type: 'entry' as const,
@@ -39,16 +46,24 @@ export default async function TrashPage() {
       id: c.id,
       title: c.title,
       subtitle: c.clinical_domain ?? 'Case',
+      category: null,
       date: c.date,
       deletedAt: c.deleted_at,
       type: 'case' as const,
     })),
   ].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt))
+  const recentOnly = resolvedSearchParams.recent === '7'
+  const activeCategory = resolvedSearchParams.category ?? ''
+  const filteredItems = items.filter(item => {
+    if (recentOnly && Date.now() - new Date(item.deletedAt).getTime() > 7 * 86400000) return false
+    if (activeCategory && item.category !== activeCategory) return false
+    return true
+  })
 
-  const totalItems = items.length
+  const totalItems = filteredItems.length
   const totals = {
-    entry: items.filter(item => item.type === 'entry').length,
-    case: items.filter(item => item.type === 'case').length,
+    entry: filteredItems.filter(item => item.type === 'entry').length,
+    case: filteredItems.filter(item => item.type === 'case').length,
   }
 
   return (
@@ -59,6 +74,18 @@ export default async function TrashPage() {
           {totalItems === 0 ? 'Trash is empty' : `${totalItems} deleted ${totalItems === 1 ? 'item' : 'items'}`}
         </p>
       </div>
+
+      <form className="mb-6 flex flex-wrap gap-2">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+          <input type="checkbox" name="recent" value="7" defaultChecked={recentOnly} />
+          Deleted last 7 days
+        </label>
+        <select name="category" defaultValue={activeCategory} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+          <option value="">Any category</option>
+          {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
+        </select>
+        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Filter</button>
+      </form>
 
       {totalItems > 0 && (
         <div className="grid grid-cols-2 gap-3 mb-6">
@@ -87,7 +114,7 @@ export default async function TrashPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {items.map(item => (
+          {filteredItems.map(item => (
             <TrashRow key={`${item.type}-${item.id}`} item={item} />
           ))}
         </div>
