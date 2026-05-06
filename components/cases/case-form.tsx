@@ -108,6 +108,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   function markDirty() { setIsDirty(true) }
 
+  function addPendingFiles(files: FileList | null) {
+    const nextFiles = Array.from(files ?? [])
+    if (nextFiles.length === 0) return
+    setPendingFiles(current => [...current, ...nextFiles])
+    markDirty()
+  }
+
   async function pruneRevisions(entryId: string, entryType: 'portfolio' | 'case') {
     const { data: { user: currentUser } } = await supabase.auth.getUser()
     if (!currentUser) return
@@ -205,7 +212,15 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
+    <form
+      onSubmit={handleSubmit}
+      onDragOver={event => event.preventDefault()}
+      onDrop={event => {
+        event.preventDefault()
+        addPendingFiles(event.dataTransfer.files)
+      }}
+      className="space-y-5"
+    >
       {/* Draft restored banner */}
       {draftRestored && (
         <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
@@ -305,7 +320,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       {/* Evidence uploads */}
       <div>
         <label className={LABEL}>Evidence</label>
-        <EvidenceUpload files={pendingFiles} onChange={setPendingFiles} />
+        <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
       </div>
 
       {error && (

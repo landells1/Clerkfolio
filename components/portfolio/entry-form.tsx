@@ -33,7 +33,6 @@ const TOGGLE_BTN = (active: boolean) =>
   }`
 
 const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
-const DRAFT_KEY = 'clerkfolio-entry-draft'
 const LONG_TEXT_MAX = 10000
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
@@ -80,6 +79,10 @@ function detectFramework(text: string): 'gibbs' | 'rolfe' | 'none' {
   return 'none'
 }
 
+function draftKeyForCategory(category: Category) {
+  return `clerkfolio-${category}-draft`
+}
+
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
   return (
     <div className={FIELD}>
@@ -121,6 +124,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [category, setCategory] = useState<Category>(
     initialData?.category ?? defaultCategory ?? 'audit_qip'
   )
+  const draftKey = draftKeyForCategory(category)
   const [title, setTitle] = useState(initialData?.title ?? '')
   const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
@@ -235,11 +239,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   useEffect(() => {
     if (mode !== 'create') return
     try {
-      const raw = sessionStorage.getItem(DRAFT_KEY)
+      const raw = sessionStorage.getItem(draftKey)
       if (!raw) return
       const d = JSON.parse(raw)
       if (d._expires && Date.now() > d._expires) {
-        sessionStorage.removeItem(DRAFT_KEY)
+        sessionStorage.removeItem(draftKey)
         return
       }
       if (d.category) setCategory(d.category)
@@ -301,7 +305,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+      sessionStorage.setItem(draftKey, JSON.stringify({
         category, title, date, notes, specialtyTags, interviewThemes,
         auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
@@ -326,7 +330,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     prizeBody, prizeLevel, prizeDescription,
     procName, procSetting, procSupervision, procCount,
     reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
-    customFreeText,
+    customFreeText, draftKey,
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
@@ -342,6 +346,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   }, [isDirty])
 
   function markDirty() { setIsDirty(true) }
+
+  function addPendingFiles(files: FileList | null) {
+    const nextFiles = Array.from(files ?? [])
+    if (nextFiles.length === 0) return
+    setPendingFiles(current => [...current, ...nextFiles])
+    markDirty()
+  }
 
   // Compute refl_free_text from framework state
   function getReflFreeText(): string | null {
@@ -373,7 +384,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   }
 
   function resetForm() {
-    sessionStorage.removeItem(DRAFT_KEY)
+    sessionStorage.removeItem(draftKey)
     setDraftRestored(false)
     setCategory(defaultCategory ?? 'audit_qip')
     setTitle('')
@@ -441,7 +452,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           return
         }
       }
-      sessionStorage.removeItem(DRAFT_KEY)
+      sessionStorage.removeItem(draftKey)
       setIsDirty(false)
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
@@ -502,7 +513,15 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form
+        onSubmit={handleSubmit}
+        onDragOver={event => event.preventDefault()}
+        onDrop={event => {
+          event.preventDefault()
+          addPendingFiles(event.dataTransfer.files)
+        }}
+        className="space-y-8"
+      >
         {/* Draft restored banner */}
         {draftRestored && (
           <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
@@ -852,7 +871,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
           <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">Evidence</h3>
-          <EvidenceUpload files={pendingFiles} onChange={setPendingFiles} />
+          <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
         </div>
 
         {error && (

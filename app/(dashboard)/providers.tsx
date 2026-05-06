@@ -2,7 +2,8 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import ToastProvider from '@/components/ui/toast-provider'
 import QuickAddModal from '@/components/dashboard/quick-add-modal'
-import GlobalSearch from '@/components/ui/global-search'
+import CommandPalette from '@/components/ui/command-palette'
+import Cheatsheet from '@/components/ui/cheatsheet'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
 type QuickAddInitial = { type?: EntryType; domain?: string; domains?: string[]; tags?: string[] }
@@ -19,6 +20,7 @@ export default function DashboardProviders({ children, userInterests }: { childr
   const [open, setOpen] = useState(false)
   const [initial, setInitial] = useState<QuickAddInitial | undefined>()
   const [searchOpen, setSearchOpen] = useState(false)
+  const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
 
   const openQuickAdd = useCallback((init?: QuickAddInitial) => {
     setInitial(init)
@@ -30,16 +32,54 @@ export default function DashboardProviders({ children, userInterests }: { childr
   }, [])
 
   useEffect(() => {
+    let gTimer: ReturnType<typeof setTimeout> | null = null
+    let waitingForGo = false
+
     function onKey(e: KeyboardEvent) {
-      if (e.key !== 'n' && e.key !== 'N') return
       if (e.metaKey || e.ctrlKey || e.altKey) return
       const tag = (document.activeElement as HTMLElement)?.tagName
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || (document.activeElement as HTMLElement)?.isContentEditable) return
-      e.preventDefault()
-      openQuickAdd()
+
+      if (e.key === '?') {
+        e.preventDefault()
+        setCheatsheetOpen(true)
+        return
+      }
+
+      if (e.key === 'n' || e.key === 'N') {
+        e.preventDefault()
+        openQuickAdd()
+        return
+      }
+
+      if (e.key === 'g') {
+        waitingForGo = true
+        if (gTimer) clearTimeout(gTimer)
+        gTimer = setTimeout(() => { waitingForGo = false }, 1000)
+        return
+      }
+
+      if (waitingForGo) {
+        const routes: Record<string, string> = {
+          d: '/dashboard',
+          p: '/portfolio',
+          c: '/cases',
+          s: '/specialties',
+        }
+        const route = routes[e.key.toLowerCase()]
+        if (route) {
+          e.preventDefault()
+          window.location.assign(route)
+        }
+        waitingForGo = false
+        if (gTimer) clearTimeout(gTimer)
+      }
     }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      if (gTimer) clearTimeout(gTimer)
+    }
   }, [openQuickAdd])
 
   useEffect(() => {
@@ -59,7 +99,8 @@ export default function DashboardProviders({ children, userInterests }: { childr
         <ToastProvider>
           {children}
           {open && <QuickAddModal onClose={() => setOpen(false)} userInterests={userInterests} initialValues={initial} />}
-          {searchOpen && <GlobalSearch onClose={() => setSearchOpen(false)} />}
+          {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} />}
+          {cheatsheetOpen && <Cheatsheet onClose={() => setCheatsheetOpen(false)} />}
         </ToastProvider>
       </QuickAddContext.Provider>
     </SearchContext.Provider>

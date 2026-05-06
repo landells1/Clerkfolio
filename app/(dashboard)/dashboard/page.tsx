@@ -12,6 +12,7 @@ import SpecialtyRadar from '@/components/dashboard/specialty-radar'
 import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
 import EmptyDayPrompt from '@/components/dashboard/empty-day-prompt'
 import AnniversaryBanner from '@/components/dashboard/anniversary-banner'
+import ResumeDraftsCard from '@/components/dashboard/resume-drafts-card'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
@@ -212,6 +213,7 @@ export default async function DashboardPage() {
       )}
 
       {!hasEntryToday && <EmptyDayPrompt />}
+      <ResumeDraftsCard />
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 mb-6">
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">

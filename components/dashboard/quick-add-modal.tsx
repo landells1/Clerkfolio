@@ -216,8 +216,8 @@ export default function QuickAddModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 shadow-2xl transition-transform sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>

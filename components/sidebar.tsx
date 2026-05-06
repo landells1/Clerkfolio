@@ -165,8 +165,9 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   async function handleLogout() {
     setLoggingOut(true)
     // Clear client-side draft storage so clinical notes don't linger after logout.
-    sessionStorage.removeItem('clerkfolio-case-draft')
-    sessionStorage.removeItem('clerkfolio-entry-draft')
+    Object.keys(sessionStorage)
+      .filter(key => /^clerkfolio-.*-draft$/.test(key))
+      .forEach(key => sessionStorage.removeItem(key))
     // Tell the service worker to drop its cache so authenticated pages aren't
     // served offline after the user logs out.
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {

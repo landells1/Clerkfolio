@@ -3,6 +3,7 @@
   "short_name": "Clerkfolio",
   "description": "Medical portfolio tracker for UK doctors and students",
   "start_url": "/dashboard",
+  "scope": "/",
   "display": "standalone",
   "background_color": "#0B0B0C",
   "theme_color": "#1B6FD9",
@@ -10,12 +11,6 @@
   "lang": "en-GB",
   "categories": ["medical", "productivity"],
   "icons": [
-    {
-      "src": "/icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    },
     {
       "src": "/icon-192",
       "sizes": "192x192",

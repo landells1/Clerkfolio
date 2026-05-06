@@ -11,6 +11,15 @@ type Result = {
   subtitle: string
 }
 
+const COMMANDS = [
+  { keys: 'g d', label: 'Dashboard', href: '/dashboard' },
+  { keys: 'g p', label: 'Portfolio', href: '/portfolio' },
+  { keys: 'g c', label: 'Cases', href: '/cases' },
+  { keys: 'g s', label: 'Specialties', href: '/specialties' },
+  { keys: 'n', label: 'New entry', href: '/portfolio/new' },
+  { keys: '?', label: 'Cheatsheet', href: '#' },
+]
+
 export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
@@ -86,7 +95,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             type="text"
             value={q}
             onChange={e => setQ(e.target.value)}
-            placeholder="Search portfolio and cases..."
+            placeholder="Search entries or run a command..."
             className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none"
           />
           <kbd className="text-[10px] text-[rgba(245,245,242,0.3)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
@@ -119,7 +128,22 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
 
         {q.trim().length < 2 && (
           <div className="px-4 py-3">
-            <p className="text-xs text-[rgba(245,245,242,0.3)]">Type to search across your portfolio and cases</p>
+            <p className="mb-3 text-xs text-[rgba(245,245,242,0.3)]">Type to search across your portfolio and cases</p>
+            <div className="grid gap-1">
+              {COMMANDS.map(command => (
+                <button
+                  key={command.keys}
+                  onClick={() => {
+                    if (command.href !== '#') router.push(command.href)
+                    onClose()
+                  }}
+                  className="flex min-h-[36px] items-center justify-between rounded-lg px-2 text-left text-xs text-[rgba(245,245,242,0.58)] hover:bg-white/[0.04] hover:text-[#F5F5F2]"
+                >
+                  <span>{command.label}</span>
+                  <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[rgba(245,245,242,0.45)]">{command.keys}</kbd>
+                </button>
+              ))}
+            </div>
           </div>
         )}
       </div>
