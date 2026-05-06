@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import EntryCard from '@/components/portfolio/entry-card'
+import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
 import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 
 type ViewMode = 'categories' | 'themes' | 'all'
@@ -23,7 +24,7 @@ export default async function PortfolioPage({
   const activeCategory = (resolvedSearchParams.category as Category | undefined) ?? undefined
   const q = resolvedSearchParams.q ?? ''
 
-  const [{ data: entries }, { data: customThemes }] = await Promise.all([
+  const [{ data: entries }, { data: customThemes }, { data: trackedSpecialtyRows }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -37,6 +38,11 @@ export default async function PortfolioPage({
       .select('name, slug')
       .eq('user_id', user!.id)
       .order('name', { ascending: true }),
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id)
+      .eq('is_active', true),
   ])
 
   const allEntries = ((entries ?? []) as PortfolioEntry[]).filter(entry => {
@@ -54,6 +60,7 @@ export default async function PortfolioPage({
     ...INTERVIEW_THEMES.map(name => ({ name, slug: normaliseTheme(name) })),
     ...(customThemes ?? []).map(theme => ({ name: theme.name, slug: normaliseTheme(theme.slug) })),
   ]
+  const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)
 
   return (
     <div className="p-6 lg:p-8">
@@ -116,8 +123,8 @@ export default async function PortfolioPage({
           )}
         </div>
       ) : (
-        <div className="space-y-3">
-          {allEntries.map(entry => <EntryCard key={entry.id} entry={entry} />)}
+        <div>
+          <PortfolioListClient entries={allEntries} userInterests={trackedSpecialtyKeys} />
           {allEntries.length === 0 && <EmptyPortfolio />}
         </div>
       )}

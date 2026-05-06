@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, isMedStudentStage, type SubscriptionInfo } from '@/lib/subscription'
+import { grantFoundationGiftIfEligible, isFoundationStage } from '@/lib/billing/foundation-gift'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 
@@ -19,13 +20,29 @@ const CAREER_STAGES = [
   { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
 ]
 
+type ProfileState = {
+  first_name: string
+  last_name: string
+  career_stage: string
+  student_graduation_date: string
+  referral_code: string
+  foundation_gift_granted_at: string
+}
+
 export default function SettingsPage() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const searchParams = useSearchParams()
   const { addToast } = useToast()
 
-  const [profile, setProfile] = useState({ first_name: '', last_name: '', career_stage: '', student_graduation_date: '', referral_code: '' })
+  const [profile, setProfile] = useState<ProfileState>({
+    first_name: '',
+    last_name: '',
+    career_stage: '',
+    student_graduation_date: '',
+    referral_code: '',
+    foundation_gift_granted_at: '',
+  })
   const [studentEmail, setStudentEmail] = useState({
     email: '',
     verified: false,
@@ -35,6 +52,7 @@ export default function SettingsPage() {
   })
   const [email, setEmail] = useState('')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
+  const [accountCreatedAt, setAccountCreatedAt] = useState('')
   const [loading, setLoading] = useState(true)
   const [savingProfile, setSavingProfile] = useState(false)
   const [sendingStudentEmail, setSendingStudentEmail] = useState(false)
@@ -57,10 +75,11 @@ export default function SettingsPage() {
       if (!user) return
 
       setEmail(user.email ?? '')
+      setAccountCreatedAt(user.created_at ?? '')
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -81,6 +100,7 @@ export default function SettingsPage() {
           career_stage: data.career_stage ?? '',
           student_graduation_date: data.student_graduation_date ?? '',
           referral_code: referralCode,
+          foundation_gift_granted_at: data.foundation_gift_granted_at ?? '',
         })
         setSubInfo(subInfo)
         setStudentEmail({
@@ -106,12 +126,21 @@ export default function SettingsPage() {
 
   async function saveProfile(next = profile) {
     setSavingProfile(true)
+    const previousProfile = profile
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const payload = {
+      first_name: next.first_name,
+      last_name: next.last_name,
+      career_stage: next.career_stage,
+      student_graduation_date: next.student_graduation_date,
+      referral_code: next.referral_code,
+    }
+
     const { error } = await supabase
       .from('profiles')
-      .update(next)
+      .update(payload)
       .eq('id', user.id)
 
     setSavingProfile(false)
@@ -119,10 +148,26 @@ export default function SettingsPage() {
       addToast('Failed to save settings', 'error')
       return
     }
-    setProfile(next)
+    let updatedProfile = next
+    const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
+    if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at) {
+      const gift = await grantFoundationGiftIfEligible(supabase, user.id, previousProfile.career_stage)
+      if (gift.granted) {
+        updatedProfile = {
+          ...updatedProfile,
+          foundation_gift_granted_at: gift.foundationGiftGrantedAt ?? updatedProfile.foundation_gift_granted_at,
+        }
+      }
+    }
+
+    setProfile(updatedProfile)
     const refreshed = await fetchSubscriptionInfo(supabase, user.id)
     setSubInfo(refreshed)
-    addToast('Settings saved', 'success')
+    if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at && updatedProfile.foundation_gift_granted_at) {
+      addToast('Welcome to foundation - 3 months of Pro added on us', 'success')
+    } else {
+      addToast('Settings saved', 'success')
+    }
     router.refresh()
   }
 
@@ -282,7 +327,14 @@ export default function SettingsPage() {
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Profile</h2>
+        <div className="mb-5 flex items-center gap-2">
+          <h2 className="text-base font-semibold text-[#F5F5F2]">{profileDisplayName(profile) || 'Profile'}</h2>
+          {isLoyalAccount(accountCreatedAt) && (
+            <span title="One year on Clerkfolio" aria-label="One year on Clerkfolio" className="text-sm">
+              🎓
+            </span>
+          )}
+        </div>
         <form
           onSubmit={e => {
             e.preventDefault()
@@ -499,6 +551,17 @@ function planLabel(subInfo: SubscriptionInfo) {
 function formatQuota(mb: number) {
   if (mb >= 1024) return `${mb / 1024} GB`
   return `${mb} MB`
+}
+
+function profileDisplayName(profile: Pick<ProfileState, 'first_name' | 'last_name'>) {
+  return [profile.first_name, profile.last_name].filter(Boolean).join(' ')
+}
+
+function isLoyalAccount(createdAt: string) {
+  if (!createdAt) return false
+  const created = new Date(createdAt).getTime()
+  if (Number.isNaN(created)) return false
+  return Date.now() - created >= 365 * 24 * 60 * 60 * 1000
 }
 
 function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; verified: boolean; verifiedAt: string; dueAt: string } }) {

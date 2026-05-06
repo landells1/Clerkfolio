@@ -19,8 +19,8 @@ export const PRICING_TIERS = [
   },
   {
     name: 'Pro',
-    price: 'GBP 10/year',
-    marketingPrice: 'GBP 10 per year',
+    price: '£10/year',
+    marketingPrice: '£10 per year',
     description: 'More room and fewer limits for application season.',
     marketingDescription: 'For application season and beyond.',
     storage: '5 GB',
@@ -35,13 +35,14 @@ export const PRICING_FEATURES = [
   { label: 'PDF exports', free: '1', student: '1', pro: 'Unlimited' },
   { label: 'Portfolio share links', free: '1', student: '1', pro: 'Unlimited' },
   { label: 'Tracked specialties', free: '1 active', student: '1 active', pro: 'Unlimited' },
+  { label: 'Bulk entry operations', free: true, student: true, pro: true },
   { label: 'Bulk import where available', free: false, student: false, pro: true },
   { label: 'Institution-verified referral rewards', free: true, student: true, pro: true },
 ] as const
 
 export const MARKETING_PRICING_FEATURES = {
-  Free: ['100 MB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Full data backup'],
-  Student: ['1 GB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Full data backup'],
+  Free: ['100 MB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Bulk entry operations', 'Full data backup'],
+  Student: ['1 GB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Bulk entry operations', 'Full data backup'],
   Pro: [
     '5 GB storage',
     'Unlimited PDF exports',

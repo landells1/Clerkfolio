@@ -6,6 +6,7 @@ export interface SubscriptionInfo {
   tier: Tier
   isPro: boolean
   isStudent: boolean
+  isMedStudent: boolean
   storageQuotaMB: number
   usage: {
     pdfExportsUsed: number
@@ -22,6 +23,10 @@ export interface SubscriptionInfo {
     canBulkImport: boolean
     canUploadFiles: boolean
   }
+}
+
+export function isMedStudentStage(careerStage: string | null | undefined) {
+  return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6'].includes(careerStage ?? '')
 }
 
 type EntitlementRow = {
@@ -42,12 +47,13 @@ type EntitlementRow = {
   can_upload_files: boolean | null
 }
 
-function mapEntitlements(row: EntitlementRow | null): SubscriptionInfo {
+function mapEntitlements(row: EntitlementRow | null, careerStage?: string | null): SubscriptionInfo {
   const tier = row?.tier ?? 'free'
   return {
     tier,
     isPro: row?.is_pro ?? false,
     isStudent: row?.is_student ?? false,
+    isMedStudent: isMedStudentStage(careerStage),
     storageQuotaMB: row?.storage_quota_mb ?? 100,
     usage: {
       pdfExportsUsed: row?.pdf_exports_used ?? 0,
@@ -85,6 +91,7 @@ export async function fetchSubscriptionInfo(
       tier: 'free',
       isPro: false,
       isStudent: false,
+      isMedStudent: false,
       storageQuotaMB: 100,
       usage: {
         pdfExportsUsed: 0,
@@ -104,5 +111,11 @@ export async function fetchSubscriptionInfo(
     }
   }
 
-  return mapEntitlements(data as EntitlementRow | null)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('career_stage')
+    .eq('id', userId)
+    .maybeSingle<{ career_stage: string | null }>()
+
+  return mapEntitlements(data as EntitlementRow | null, profile?.career_stage ?? null)
 }

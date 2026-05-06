@@ -31,7 +31,7 @@ export default async function ReferralsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-2">Referrals</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)]">Both accounts get one month of Pro when the referred user completes onboarding and both users have verified institutional emails.</p>
+          <p className="text-sm text-[rgba(245,245,242,0.45)]">Both accounts get one month of Pro when the referred user completes onboarding and both users have verified institutional emails. Referrers can earn up to 6 months total.</p>
         </div>
       </div>
 
@@ -53,7 +53,7 @@ export default async function ReferralsPage() {
         <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.45)] mb-2">Your referral link</p>
         <div className="rounded-xl bg-[#0B0B0C] border border-white/[0.08] p-4 font-mono text-sm text-[#F5F5F2] break-all">{url}</div>
         <p className="mt-3 text-sm text-[rgba(245,245,242,0.45)]">
-          {completed} completed referrals. {pending} pending. {proUntil ? `Referral Pro until ${new Date(proUntil).toLocaleDateString('en-GB')}.` : 'No referral Pro time active.'}
+          {completed} completed referrals. {pending} pending. 1 month per friend, up to 6 months lifetime. {proUntil ? `Referral Pro until ${new Date(proUntil).toLocaleDateString('en-GB')}.` : 'No referral Pro time active.'}
         </p>
       </section>
 

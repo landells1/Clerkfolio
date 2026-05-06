@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const REFERRAL_REWARD_DAYS = 30
-const MAX_REWARDED_REFERRALS_PER_YEAR = 5
+const MAX_LIFETIME_REFERRAL_REWARDS = 6
 
 type ProfileForReward = {
   id: string
@@ -80,17 +80,13 @@ export async function grantEligibleReferralReward(service: SupabaseClient, refer
     return { granted: false, reason: 'referrer_not_eligible' }
   }
 
-  const oneYearAgo = new Date()
-  oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1)
-
   const { count } = await service
     .from('referrals')
     .select('id', { count: 'exact', head: true })
     .eq('referrer_id', referrer.id)
     .eq('status', 'completed')
-    .gte('reward_granted_at', oneYearAgo.toISOString())
 
-  if ((count ?? 0) >= MAX_REWARDED_REFERRALS_PER_YEAR) {
+  if ((count ?? 0) >= MAX_LIFETIME_REFERRAL_REWARDS) {
     return { granted: false, reason: 'referrer_cap_reached' }
   }
 

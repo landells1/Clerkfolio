@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
+import MemberDiscountCard from '@/components/upgrade/member-discount-card'
 import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 
 export default async function UpgradePage() {
@@ -18,6 +19,18 @@ export default async function UpgradePage() {
           Compare what each tier includes. Your current plan is <span className="font-medium text-[#F5F5F2]">{planLabel(subInfo.tier)}</span>.
         </p>
       </div>
+
+      {subInfo.isMedStudent && (
+        <section className="mb-6 rounded-2xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 p-5">
+          <h2 className="text-sm font-semibold text-[#F5F5F2]">Pro is optional for medical students</h2>
+          <p className="mt-2 text-sm leading-6 text-[rgba(245,245,242,0.68)]">
+            Pro is optional for medical students - most stay on the free / student tier until they graduate.
+            Upgrade now if you want extra storage or unlimited share links.
+          </p>
+        </section>
+      )}
+
+      <MemberDiscountCard />
 
       <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {PRICING_TIERS.map(tier => (
