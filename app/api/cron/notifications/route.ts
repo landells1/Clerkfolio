@@ -4,6 +4,7 @@ import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
 import { validateCronSecret } from '@/lib/cron'
 import { logBackgroundJobError } from '@/lib/monitoring'
+import { getSpecialtyConfig } from '@/lib/specialties'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 30
@@ -85,7 +86,7 @@ export async function GET(req: NextRequest) {
       ? `theme ${link.theme_slug ?? 'portfolio'}`
       : link.scope === 'full'
         ? 'full portfolio'
-        : link.specialty_key ?? 'portfolio'
+        : (getSpecialtyConfig(link.specialty_key ?? '')?.name ?? link.specialty_key ?? 'portfolio')
     drafts.push({
       user_id: link.user_id,
       type: 'share_link_expiring',

@@ -10,6 +10,25 @@ export async function GET(req: NextRequest) {
   const entryId = req.nextUrl.searchParams.get('entry_id')
   if (!entryId) return NextResponse.json({ error: 'entry_id required' }, { status: 400 })
 
+  // Verify the entry belongs to the authenticated user before serving evidence
+  const { data: portfolioEntry } = await supabase
+    .from('portfolio_entries')
+    .select('id', { head: true, count: 'exact' })
+    .eq('id', entryId)
+    .eq('user_id', user.id)
+    .maybeSingle()
+  const { data: caseEntry } = portfolioEntry
+    ? { data: null }
+    : await supabase
+        .from('cases')
+        .select('id', { head: true, count: 'exact' })
+        .eq('id', entryId)
+        .eq('user_id', user.id)
+        .maybeSingle()
+  if (!portfolioEntry && !caseEntry) {
+    return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
+  }
+
   const { data: files, error } = await supabase
     .from('evidence_files')
     .select('file_path, file_name')

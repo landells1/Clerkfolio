@@ -215,7 +215,7 @@ export default function ExportPage() {
     }
     setGenerating(true)
     setError(null)
-    const exportEntryIds = themeFilter
+    const exportEntryIds = (categoryFilter !== 'all' || themeFilter)
       ? Array.from(selectedEntryIds).filter(id => visible.some(entry => entry.id === id))
       : Array.from(selectedEntryIds)
     const res = await fetch('/api/export', {

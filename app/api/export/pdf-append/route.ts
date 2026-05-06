@@ -16,7 +16,13 @@ export async function POST(req: NextRequest) {
 
   const form = await req.formData()
   const file = form.get('pdf')
-  const entryIds = JSON.parse(String(form.get('entryIds') ?? '[]')) as string[]
+  let entryIds: string[]
+  try {
+    const parsed = JSON.parse(String(form.get('entryIds') ?? '[]'))
+    entryIds = Array.isArray(parsed) ? parsed : []
+  } catch {
+    return NextResponse.json({ error: 'Invalid entryIds format.' }, { status: 400 })
+  }
 
   if (!(file instanceof File) || file.type !== 'application/pdf') {
     return NextResponse.json({ error: 'Upload an existing PDF.' }, { status: 400 })

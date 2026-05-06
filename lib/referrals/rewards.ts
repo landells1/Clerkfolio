@@ -101,6 +101,21 @@ export async function grantEligibleReferralReward(service: SupabaseClient, refer
     reward_granted_at: now,
   }, { onConflict: 'referred_id' })
 
+  // Compensating check: re-count after insert to catch concurrent grants
+  const { count: postCount } = await service
+    .from('referrals')
+    .select('id', { count: 'exact', head: true })
+    .eq('referrer_id', referrer.id)
+    .eq('status', 'completed')
+
+  if ((postCount ?? 0) > MAX_LIFETIME_REFERRAL_REWARDS) {
+    await service.from('referrals')
+      .update({ status: 'pending', reward_granted_at: null })
+      .eq('referred_id', referredUserId)
+      .eq('referrer_id', referrer.id)
+    return { granted: false, reason: 'referrer_cap_reached' }
+  }
+
   await Promise.all([
     service.from('profiles').update({
       pro_features_used: mergeUsage(referred.pro_features_used, referredUntil),

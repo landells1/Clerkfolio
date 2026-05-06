@@ -389,11 +389,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     switch (category) {
       case 'audit_qip': return { ...base, audit_type: auditType, audit_role: auditRole || null, audit_cycle_stage: auditCycleStage || null, audit_trust: auditTrust || null, audit_outcome: auditOutcome || null, audit_presented: auditPresented }
       case 'teaching': return { ...base, teaching_type: teachingType || null, teaching_audience: teachingAudience || null, teaching_setting: teachingSetting || null, teaching_event: teachingEvent || null, teaching_invited: teachingInvited }
-      case 'conference': return { ...base, conf_type: confType, conf_event_name: confEventName || null, conf_attendance: confAttendance || null, conf_level: confLevel || null, conf_cpd_hours: confCpdHours ? parseFloat(confCpdHours) : null, conf_certificate: confCertificate }
+      case 'conference': return { ...base, conf_type: confType, conf_event_name: confEventName || null, conf_attendance: confAttendance || null, conf_level: confLevel || null, conf_cpd_hours: confCpdHours ? (v => isNaN(v) ? null : v)(parseFloat(confCpdHours)) : null, conf_certificate: confCertificate }
       case 'publication': return { ...base, pub_type: pubType || null, pub_journal: pubJournal || null, pub_authors: pubAuthors || null, pub_status: pubStatus || null, pub_doi: pubDoi || null }
       case 'leadership': return { ...base, leader_role: leaderRole || null, leader_organisation: leaderOrg || null, leader_start_date: leaderStart || null, leader_end_date: leaderOngoing ? null : (leaderEnd || null), leader_ongoing: leaderOngoing }
       case 'prize': return { ...base, prize_body: prizeBody || null, prize_level: prizeLevel || null, prize_description: prizeDescription || null }
-      case 'procedure': return { ...base, proc_name: procName || null, proc_setting: procSetting || null, proc_supervision: procSupervision || null, proc_count: procCount ? parseInt(procCount) : null }
+      case 'procedure': return { ...base, proc_name: procName || null, proc_setting: procSetting || null, proc_supervision: procSupervision || null, proc_count: procCount ? (v => isNaN(v) ? null : v)(parseInt(procCount, 10)) : null }
       case 'reflection': return { ...base, refl_type: reflType || null, refl_framework: reflFramework === 'none' ? null : reflFramework, refl_clinical_context: reflContext || null, refl_supervisor: reflSupervisor || null, refl_free_text: getReflFreeText() }
       case 'custom': return { ...base, custom_free_text: customFreeText || null }
     }
@@ -647,8 +647,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <div className="space-y-4">
               <Field label="Type">
                 <div className="flex gap-2">
-                  <button type="button" className={TOGGLE_BTN(auditType === 'audit')} onClick={() => setAuditType('audit')}>Audit</button>
-                  <button type="button" className={TOGGLE_BTN(auditType === 'qip')} onClick={() => setAuditType('qip')}>QIP</button>
+                  <button type="button" className={TOGGLE_BTN(auditType === 'audit')} onClick={() => { setAuditType('audit'); markDirty() }}>Audit</button>
+                  <button type="button" className={TOGGLE_BTN(auditType === 'qip')} onClick={() => { setAuditType('qip'); markDirty() }}>QIP</button>
                 </div>
               </Field>
               <div className={GRID2}>
@@ -682,7 +682,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 </div>
               </Field>
               <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
-              <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={setAuditPresented} />
+              <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={v => { setAuditPresented(v); markDirty() }} />
             </div>
           )}
 
@@ -718,7 +718,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 </Field>
                 <Field label="Event / organisation"><input type="text" value={teachingEvent} onChange={e => setTeachingEvent(e.target.value)} className={INPUT} placeholder="e.g. BMA Regional day" /></Field>
               </div>
-              <CheckboxField label="Invited (not submitted)" checked={teachingInvited} onChange={setTeachingInvited} />
+              <CheckboxField label="Invited (not submitted)" checked={teachingInvited} onChange={v => { setTeachingInvited(v); markDirty() }} />
             </div>
           )}
 
@@ -727,8 +727,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <div className="space-y-4">
               <Field label="Type">
                 <div className="flex gap-2">
-                  <button type="button" className={TOGGLE_BTN(confType === 'conference')} onClick={() => setConfType('conference')}>Conference</button>
-                  <button type="button" className={TOGGLE_BTN(confType === 'course')} onClick={() => setConfType('course')}>Course</button>
+                  <button type="button" className={TOGGLE_BTN(confType === 'conference')} onClick={() => { setConfType('conference'); markDirty() }}>Conference</button>
+                  <button type="button" className={TOGGLE_BTN(confType === 'course')} onClick={() => { setConfType('course'); markDirty() }}>Course</button>
                 </div>
               </Field>
               <div className={GRID2}>
@@ -751,7 +751,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 </Field>
                 <Field label="CPD hours"><input type="number" min="0" step="0.5" value={confCpdHours} onChange={e => setConfCpdHours(e.target.value)} className={INPUT} placeholder="e.g. 6" /></Field>
               </div>
-              <CheckboxField label="Certificate received" checked={confCertificate} onChange={setConfCertificate} />
+              <CheckboxField label="Certificate received" checked={confCertificate} onChange={v => { setConfCertificate(v); markDirty() }} />
             </div>
           )}
 
@@ -797,7 +797,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   <Field label="End date"><input type="date" value={leaderEnd} onChange={e => setLeaderEnd(e.target.value)} className={INPUT} /></Field>
                 )}
               </div>
-              <CheckboxField label="Ongoing role" checked={leaderOngoing} onChange={setLeaderOngoing} />
+              <CheckboxField label="Ongoing role" checked={leaderOngoing} onChange={v => { setLeaderOngoing(v); markDirty() }} />
             </div>
           )}
 
@@ -827,8 +827,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               <div className={GRID2}>
                 <Field label="Supervision level">
                   <div className="flex gap-2">
-                    <button type="button" className={TOGGLE_BTN(procSupervision === 'supervised')} onClick={() => setProcSupervision('supervised')}>Supervised</button>
-                    <button type="button" className={TOGGLE_BTN(procSupervision === 'unsupervised')} onClick={() => setProcSupervision('unsupervised')}>Unsupervised</button>
+                    <button type="button" className={TOGGLE_BTN(procSupervision === 'supervised')} onClick={() => { setProcSupervision('supervised'); markDirty() }}>Supervised</button>
+                    <button type="button" className={TOGGLE_BTN(procSupervision === 'unsupervised')} onClick={() => { setProcSupervision('unsupervised'); markDirty() }}>Unsupervised</button>
                   </div>
                 </Field>
                 <Field label="Number performed"><input type="number" min="1" value={procCount} onChange={e => setProcCount(e.target.value)} className={INPUT} placeholder="e.g. 3" /></Field>
