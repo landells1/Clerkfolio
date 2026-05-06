@@ -90,7 +90,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         {/* Specialty tags */}
         {c.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Application tags</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Application tags</p>
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
@@ -104,7 +104,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         {/* Notes */}
         {c.notes && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">Notes</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-3">Notes</p>
             <MarkdownRenderer value={c.notes} />
           </div>
         )}
@@ -117,7 +117,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         )}
 
         {/* Metadata */}
-        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.25)] font-mono">
+        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.55)] font-mono">
           <span>Added {formatDate(c.created_at)}</span>
           <span>Updated {formatDate(c.updated_at)}</span>
         </div>

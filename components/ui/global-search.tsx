@@ -103,9 +103,9 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search entries or run a command..."
-            className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none"
+            className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
           />
-          <kbd className="text-[10px] text-[rgba(245,245,242,0.3)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
+          <kbd className="text-[10px] text-[rgba(245,245,242,0.55)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
         </div>
 
         {/* Results */}
@@ -135,7 +135,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
 
         {q.trim().length < 2 && (
           <div className="px-4 py-3">
-            <p className="mb-3 text-xs text-[rgba(245,245,242,0.3)]">Type to search across your portfolio and cases</p>
+            <p className="mb-3 text-xs text-[rgba(245,245,242,0.55)]">Type to search across your portfolio and cases</p>
             <div className="grid gap-1">
               {COMMANDS.map(command => (
                 <button

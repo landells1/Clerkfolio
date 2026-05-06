@@ -30,6 +30,10 @@ type ProfileState = {
   timezone: string
   public_slug: string
   public_showcase_enabled: boolean
+  display_prefs: {
+    high_contrast?: boolean
+    dyslexic_font?: boolean
+  }
 }
 
 export default function SettingsPage() {
@@ -48,6 +52,7 @@ export default function SettingsPage() {
     timezone: 'Europe/London',
     public_slug: '',
     public_showcase_enabled: false,
+    display_prefs: {},
   })
   const [studentEmail, setStudentEmail] = useState({
     email: '',
@@ -86,7 +91,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, public_slug, public_showcase_enabled, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, public_slug, public_showcase_enabled, display_prefs, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -111,6 +116,7 @@ export default function SettingsPage() {
           timezone: data.timezone ?? 'Europe/London',
           public_slug: data.public_slug ?? '',
           public_showcase_enabled: data.public_showcase_enabled ?? false,
+          display_prefs: data.display_prefs ?? {},
         })
         setSubInfo(subInfo)
         setStudentEmail({
@@ -150,6 +156,7 @@ export default function SettingsPage() {
       timezone: next.timezone,
       public_slug: publicSlug || null,
       public_showcase_enabled: next.public_showcase_enabled,
+      display_prefs: next.display_prefs,
     }
 
     const { error } = await supabase
@@ -300,6 +307,14 @@ export default function SettingsPage() {
     router.push('/?deleted=true')
   }
 
+  function setDisplayPref(key: 'high_contrast' | 'dyslexic_font', value: boolean) {
+    const nextPrefs = { ...profile.display_prefs, [key]: value }
+    setProfile(p => ({ ...p, display_prefs: nextPrefs }))
+    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    document.body.classList.toggle('theme-high-contrast', Boolean(nextPrefs.high_contrast))
+    document.body.classList.toggle('font-dyslexic', Boolean(nextPrefs.dyslexic_font))
+  }
+
   if (loading) {
     return <div className="p-8 text-sm text-[rgba(245,245,242,0.45)]">Loading settings...</div>
   }
@@ -312,6 +327,8 @@ export default function SettingsPage() {
     ['/settings/tags', 'Specialty tags'],
     ['/settings/shared-links', 'Shared links'],
     ['/settings/api', 'API access'],
+    ['/settings/audit-log', 'Audit log'],
+    ['/settings/sessions', 'Sessions'],
     ['/trash', 'Trash'],
   ].filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
 
@@ -440,6 +457,32 @@ export default function SettingsPage() {
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[#F5F5F2] mb-4">Accessibility</h2>
+        <div className="space-y-3">
+          <label className="flex items-center justify-between gap-4 text-sm text-[rgba(245,245,242,0.72)]">
+            High contrast
+            <input
+              type="checkbox"
+              checked={Boolean(profile.display_prefs.high_contrast)}
+              onChange={e => setDisplayPref('high_contrast', e.target.checked)}
+            />
+          </label>
+          <label className="flex items-center justify-between gap-4 text-sm text-[rgba(245,245,242,0.72)]">
+            Dyslexic-friendly font
+            <input
+              type="checkbox"
+              checked={Boolean(profile.display_prefs.dyslexic_font)}
+              onChange={e => setDisplayPref('dyslexic_font', e.target.checked)}
+            />
+          </label>
+        </div>
+        <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+          Save display preferences
+        </button>
+        <p className="mt-4 text-xs text-[rgba(245,245,242,0.55)]">Data encrypted at rest by Supabase, eu-west-2.</p>
+      </section>
+
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
         {subInfo && (
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -491,7 +534,7 @@ export default function SettingsPage() {
             {sendingStudentEmail ? 'Sending...' : studentEmail.verified ? 'Re-verify' : 'Send verification'}
           </button>
         </form>
-        <p className="mt-3 text-xs text-[rgba(245,245,242,0.38)]">
+        <p className="mt-3 text-xs text-[rgba(245,245,242,0.55)]">
           Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
           {studentEmail.sentAt && !studentEmail.verified ? ' Check your institution inbox for the verification link.' : ''}
         </p>
@@ -642,7 +685,7 @@ function isLoyalAccount(createdAt: string) {
 
 function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; verified: boolean; verifiedAt: string; dueAt: string } }) {
   if (!studentEmail.email) {
-    return <span className="text-xs text-[rgba(245,245,242,0.35)]">Not added</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">Not added</span>
   }
 
   if (!studentEmail.verified) {

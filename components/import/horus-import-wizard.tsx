@@ -202,11 +202,11 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
               step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]'
               : step > s ? 'bg-emerald-500 text-[#0B0B0C]'
-              : 'bg-white/[0.06] text-[rgba(245,245,242,0.35)]'
+              : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'
             }`}>
               {step > s ? 'OK' : s}
             </div>
-            <span className={`text-xs font-medium ${step === s ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.35)]'}`}>
+            <span className={`text-xs font-medium ${step === s ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.55)]'}`}>
               {['Upload', 'Preview', 'Configure', 'Done'][idx]}
             </span>
             {idx < 3 && <div className="w-8 h-px bg-white/[0.08] mx-1" />}
@@ -231,13 +231,13 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
               dragging ? 'border-[#1B6FD9] bg-[#1B6FD9]/5' : 'border-white/[0.08] hover:border-white/[0.2]'
             }`}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
             <div className="text-center">
               <p className="text-sm font-medium text-[rgba(245,245,242,0.7)]">Drop CSV here, or click to browse</p>
-              <p className="text-xs text-[rgba(245,245,242,0.35)] mt-1">.csv files only - Horus supervised learning event export preferred</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">.csv files only - Horus supervised learning event export preferred</p>
             </div>
             <input
               ref={fileRef}
@@ -282,7 +282,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             </div>
             <div className="flex gap-2 shrink-0">
               <button onClick={() => toggleAll(true)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">Select all</button>
-              <span className="text-[rgba(245,245,242,0.2)]">-</span>
+              <span className="text-[rgba(245,245,242,0.55)]">-</span>
               <button onClick={() => toggleAll(false)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">None</button>
             </div>
           </div>
@@ -325,11 +325,11 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                       </td>
                       <td className="px-3 py-2.5 text-[rgba(245,245,242,0.55)] whitespace-nowrap font-mono">{row.date || '-'}</td>
                       <td className="px-3 py-2.5 text-[rgba(245,245,242,0.8)] max-w-[200px] truncate">
-                        {row.title || <span className="italic text-[rgba(245,245,242,0.3)]">no title</span>}
+                        {row.title || <span className="italic text-[rgba(245,245,242,0.55)]">no title</span>}
                       </td>
                       <td className="px-3 py-2.5">
                         <span className="text-[rgba(245,245,242,0.4)]">{row.type || '-'}</span>
-                        {row.type && <span className="mx-1 text-[rgba(245,245,242,0.2)]">/</span>}
+                        {row.type && <span className="mx-1 text-[rgba(245,245,242,0.55)]">/</span>}
                         <span className="text-[rgba(245,245,242,0.6)] capitalize">{row.mappedCategory}</span>
                       </td>
                       <td className="px-3 py-2.5 text-[rgba(245,245,242,0.4)] truncate max-w-[120px]">{row.supervisor || '-'}</td>
@@ -429,7 +429,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             >
               {importing ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full motion-safe:animate-spin" />
                   Importing...
                 </>
               ) : (

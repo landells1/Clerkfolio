@@ -105,7 +105,7 @@ export default function SaveTemplateButton({ entry }: Props) {
               onChange={e => setName(e.target.value)}
               autoFocus
               maxLength={100}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors mb-4"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors mb-4"
             />
             <div className="flex gap-2">
               <button onClick={() => setOpen(false)} className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] rounded-xl py-2.5 text-sm transition-colors">

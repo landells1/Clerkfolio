@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -8,7 +8,7 @@ import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
@@ -243,13 +243,13 @@ export default function QuickAddModal({
               }
             />
             {type === 'case' && (
-              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.35)]">Anonymised entries only - no patient identifiers</p>
+              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.55)]">Anonymised entries only - no patient identifiers</p>
             )}
 
             {/* Auto-tag suggestions */}
             {suggestedTags.length > 0 && (
               <div className="flex flex-wrap gap-1.5 mt-2">
-                <span className="text-[10px] text-[rgba(245,245,242,0.35)] self-center">Suggested:</span>
+                <span className="text-[10px] text-[rgba(245,245,242,0.55)] self-center">Suggested:</span>
                 {suggestedTags.map(t => (
                   <button
                     key={t}
@@ -344,7 +344,7 @@ export default function QuickAddModal({
                   value={reflFreeText}
                   onChange={e => setReflFreeText(e.target.value)}
                   placeholder="What happened, what you learnt..."
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
                 />
               </div>
             </>
@@ -408,13 +408,13 @@ export default function QuickAddModal({
 
           {/* Comments / notes - shared */}
           <div>
-            <label className={LABEL}>Comments <span className="normal-case font-normal text-[rgba(245,245,242,0.3)]">(optional)</span></label>
+            <label className={LABEL}>Comments <span className="normal-case font-normal text-[rgba(245,245,242,0.55)]">(optional)</span></label>
             <textarea
               rows={3}
               value={notes}
               onChange={e => setNotes(e.target.value)}
               placeholder="Any notes, learning points, or comments..."
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
             />
           </div>
 

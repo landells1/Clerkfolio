@@ -321,7 +321,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <div className="mt-auto pt-3 space-y-0.5">
             <button
               onClick={() => { openSearch(); setMobileOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[rgba(245,245,242,0.35)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -371,7 +371,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
           >
             {loggingOut ? (
-              <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full animate-spin flex-shrink-0" />
+              <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full motion-safe:animate-spin flex-shrink-0" />
             ) : (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -434,7 +434,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     required
                     value={feedback.name}
                     onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="Dr Jane Smith"
                   />
                 </div>
@@ -445,7 +445,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     required
                     value={feedback.email}
                     onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -456,7 +456,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     rows={4}
                     value={feedback.comment}
                     onChange={e => setFeedback(f => ({ ...f, comment: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
                     placeholder="Tell us what's working, what isn't, or what you'd love to see…"
                   />
                 </div>
@@ -575,11 +575,11 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
             <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.04]">
               {loading ? (
                 <div className="flex items-center justify-center py-10">
-                  <div className="w-4 h-4 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-sm text-[rgba(245,245,242,0.35)]">No unread notifications</p>
+                  <p className="text-sm text-[rgba(245,245,242,0.55)]">No unread notifications</p>
                 </div>
               ) : (
                 notifications.map(n => (
@@ -593,7 +593,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-[#F5F5F2] leading-snug">{n.title}</p>
                         {n.body && <p className="text-xs text-[rgba(245,245,242,0.45)] mt-0.5 leading-snug">{n.body}</p>}
-                        <p className="text-[10px] text-[rgba(245,245,242,0.3)] mt-1">{timeAgo(n.created_at)}</p>
+                        <p className="text-[10px] text-[rgba(245,245,242,0.55)] mt-1">{timeAgo(n.created_at)}</p>
                       </div>
                       <span className="w-1.5 h-1.5 rounded-full bg-[#1B6FD9] mt-1.5 shrink-0" />
                     </div>

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -68,7 +68,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
             height="14"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="rgba(245,245,242,0.35)"
+            stroke="rgba(245,245,242,0.55)"
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -81,7 +81,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
           type="text"
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder="Search entries…"
+          placeholder="Search entries�"
           className={`${inputClass} w-full pl-9`}
         />
       </div>
@@ -94,7 +94,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
       >
         <option value="">Newest first</option>
         <option value="date_asc">Oldest first</option>
-        <option value="title_asc">Title A→Z</option>
+        <option value="title_asc">Title A?Z</option>
       </select>
     </div>
   )

@@ -63,7 +63,7 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
         </div>
         <button
           onClick={handleRemove}
-          className="ml-2 shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.3)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+          className="ml-2 shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.55)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
           aria-label="Remove specialty"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -88,7 +88,7 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
           target="_blank"
           rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-xs text-[rgba(245,245,242,0.35)] hover:text-[rgba(245,245,242,0.6)] transition-colors"
+          className="flex items-center gap-1 text-xs text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)] transition-colors"
         >
           {config.isOfficial ? 'Official criteria' : 'Unofficial criteria — verify with official person spec'}
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

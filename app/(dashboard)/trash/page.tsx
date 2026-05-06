@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import TrashActions from '@/components/trash/trash-actions'
+import EmptyTrashButton from '@/components/trash/empty-trash-button'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
 type TrashItemType = 'entry' | 'case'
@@ -88,9 +89,12 @@ export default async function TrashPage({
       </form>
 
       {totalItems > 0 && (
-        <div className="grid grid-cols-2 gap-3 mb-6">
-          <TrashStat label="Portfolio" value={totals.entry} />
-          <TrashStat label="Cases" value={totals.case} />
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+          <div className="grid flex-1 grid-cols-2 gap-3">
+            <TrashStat label="Portfolio" value={totals.entry} />
+            <TrashStat label="Cases" value={totals.case} />
+          </div>
+          <EmptyTrashButton />
         </div>
       )}
 
@@ -106,7 +110,7 @@ export default async function TrashPage({
       {totalItems === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
             </svg>
           </div>
@@ -145,7 +149,7 @@ function TrashRow({ item }: { item: TrashItem }) {
           </span>
           <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{item.title}</p>
         </div>
-        <p className="text-xs text-[rgba(245,245,242,0.35)] capitalize">
+        <p className="text-xs text-[rgba(245,245,242,0.55)] capitalize">
           {item.subtitle} · {entryDate} · Deleted {deletedDate}
         </p>
       </div>

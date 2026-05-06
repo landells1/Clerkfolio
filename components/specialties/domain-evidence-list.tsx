@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
@@ -21,7 +21,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
     onRemove(linkId) // update UI only after confirmed DB delete
   }
 
-  // Evidence-only domains have no scoring — suppress points labels and counting indicators.
+  // Evidence-only domains have no scoring � suppress points labels and counting indicators.
   const isEvidenceOnly = !!domain.isEvidenceOnly || domain.maxPoints === 0
 
   const sorted =
@@ -45,7 +45,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
         {sorted.map(link => {
           const isCounting = !isEvidenceOnly && domain.scoringRule === 'highest' && link.points_claimed === highestPoints
           const isClaimed = link.is_checkbox && !link.entry_type
-          const entryIcon = link.entry_type === 'case' ? '💼' : '📄'
+          const entryIcon = link.entry_type === 'case' ? '??' : '??'
 
           return (
             <div
@@ -58,7 +58,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
             >
               <span className="shrink-0 text-base leading-none mt-0.5">
                 {isClaimed ? (
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1B6FD9' : 'rgba(245,245,242,0.3)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1B6FD9' : 'rgba(245,245,242,0.55)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : link.entry_type ? entryIcon : null}
@@ -80,11 +80,11 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                     </span>
                   )}
                   {isClaimed ? (
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.3)] text-xs">
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs">
                       Self-claimed
                     </span>
                   ) : link.entry_type ? (
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.35)] text-xs capitalize">
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs capitalize">
                       {link.entry_type}
                     </span>
                   ) : null}
@@ -95,19 +95,19 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                       rel="noopener noreferrer"
                       className="text-xs text-[#1B6FD9] hover:underline"
                     >
-                      View →
+                      View ?
                     </a>
                   )}
                 </div>
                 {!isEvidenceOnly && domain.scoringRule === 'highest' && (
-                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)]'}`}>
-                    {isCounting ? '✓ Counting' : 'Not counting (lower score)'}
+                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'}`}>
+                    {isCounting ? '? Counting' : 'Not counting (lower score)'}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => handleRemove(link.id)}
-                className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.3)] hover:text-red-400 hover:bg-red-500/10 transition-all"
+                className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.55)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                 aria-label="Remove link"
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

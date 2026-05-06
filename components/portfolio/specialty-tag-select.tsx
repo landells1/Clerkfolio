@@ -1,4 +1,4 @@
-ï»¿'use client'
+'use client'
 
 import { useState, useRef, useEffect } from 'react'
 import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/specialties'
@@ -91,17 +91,17 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
           value={search}
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
-          placeholder={value.length === 0 ? (trackedOnly ? 'Select programmesâ€¦' : 'Search specialtiesâ€¦') : ''}
-          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] outline-none"
+          placeholder={value.length === 0 ? (trackedOnly ? 'Select programmes…' : 'Search specialties…') : ''}
+          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
         />
       </div>
 
       {/* Dropdown */}
       {open && (
         <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
-          {/* Section header â€” only in non-tracked mode when there are user interests */}
+          {/* Section header — only in non-tracked mode when there are user interests */}
           {!trackedOnly && userInterests.length > 0 && (
-            <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider border-b border-white/[0.06]">
+            <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties
             </div>
           )}
@@ -109,11 +109,11 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
             {trackedOnly && userInterests.length === 0 ? (
               /* Empty state when no programmes tracked */
               <div className="px-3 py-4 text-center">
-                <p className="text-sm text-[rgba(245,245,242,0.35)] mb-1">No tracked programmes</p>
-                <p className="text-xs text-[rgba(245,245,242,0.25)]">Add specialties in the Specialties tab first.</p>
+                <p className="text-sm text-[rgba(245,245,242,0.55)] mb-1">No tracked programmes</p>
+                <p className="text-xs text-[rgba(245,245,242,0.55)]">Add specialties in the Specialties tab first.</p>
               </div>
             ) : sorted.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.35)]">No matches</div>
+              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.55)]">No matches</div>
             ) : (
               sorted.map((s, i) => {
                 const isInterest = !trackedOnly && userInterests.includes(s)
@@ -123,7 +123,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
                 return (
                   <div key={s}>
                     {showDivider && (
-                      <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider border-t border-white/[0.06]">
+                      <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-t border-white/[0.06]">
                         All specialties
                       </div>
                     )}

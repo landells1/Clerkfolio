@@ -116,7 +116,7 @@ export default function ActivityFeed({
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${colour.bg} ${colour.text}`}>{label}</span>
-                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(e.date ?? e.created_at)}</span>
+                    <span className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">{relativeDate(e.date ?? e.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -149,7 +149,7 @@ export default function ActivityFeed({
                     )}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-[10px] text-[rgba(245,245,242,0.25)] font-mono">{relativeDate(c.date ?? c.created_at)}</span>
+                    <span className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">{relativeDate(c.date ?? c.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -180,7 +180,7 @@ export default function ActivityFeed({
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[rgba(245,245,242,0.35)] uppercase tracking-wide">Essentials</span>
+                            <span className="text-[10px] text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Essentials</span>
                             <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.essentialsMet}/{s.essentialsTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
@@ -192,7 +192,7 @@ export default function ActivityFeed({
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[rgba(245,245,242,0.35)] uppercase tracking-wide">Desirables</span>
+                            <span className="text-[10px] text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Desirables</span>
                             <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.desirablesEvidenced}/{s.desirablesTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
@@ -210,7 +210,7 @@ export default function ActivityFeed({
                       <div className="flex items-center justify-between mb-1.5">
                         <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
                         <span className="text-xs font-mono text-[rgba(245,245,242,0.4)]">
-                          {s.score}<span className="text-[rgba(245,245,242,0.25)]">/{s.maxScore} pts</span>
+                          {s.score}<span className="text-[rgba(245,245,242,0.55)]">/{s.maxScore} pts</span>
                         </span>
                       </div>
                       <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
@@ -240,7 +240,7 @@ function EmptyState({ icon, text, href, cta }: { icon: React.ReactNode; text: st
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
       <div className="text-[rgba(245,245,242,0.15)]">{icon}</div>
-      <p className="text-sm text-[rgba(245,245,242,0.35)]">{text}</p>
+      <p className="text-sm text-[rgba(245,245,242,0.55)]">{text}</p>
       <Link href={href} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">{cta}</Link>
     </div>
   )

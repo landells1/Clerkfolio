@@ -39,7 +39,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             {entry.pinned && (
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-[rgba(245,245,242,0.3)] shrink-0" aria-label="Pinned">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" className="text-[rgba(245,245,242,0.55)] shrink-0" aria-label="Pinned">
                 <path d="M12 2a1 1 0 0 1 .707.293l9 9a1 1 0 0 1-1.414 1.414L19 11.414V19a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7.586l-1.293 1.293a1 1 0 0 1-1.414-1.414l9-9A1 1 0 0 1 12 2z" />
               </svg>
             )}
@@ -52,7 +52,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
               </span>
             ))}
             {entry.specialty_tags.length > 2 && (
-              <span className="text-[10px] text-[rgba(245,245,242,0.35)]">+{entry.specialty_tags.length - 2}</span>
+              <span className="text-[10px] text-[rgba(245,245,242,0.55)]">+{entry.specialty_tags.length - 2}</span>
             )}
             {(entry.interview_ready_for ?? []).slice(0, 2).map(target => (
               <span key={target} className="inline-flex items-center rounded border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
@@ -64,13 +64,13 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
           {subtitle && <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 truncate capitalize">{subtitle}</p>}
         </div>
         <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
-          <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono" title={entry.date}>{relativeDate(entry.date)}</p>
+          <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono" title={entry.date}>{relativeDate(entry.date)}</p>
           <div className="flex items-center gap-1.5">
             <span
               title={missing.length === 0 ? 'Complete' : `Missing: ${missing.join(', ')}`}
               className={`w-1.5 h-1.5 rounded-full shrink-0 ${completeness === 'green' ? 'bg-emerald-400' : completeness === 'amber' ? 'bg-amber-400' : 'bg-red-400'}`}
             />
-            <svg className="w-4 h-4 text-[rgba(245,245,242,0.2)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4 text-[rgba(245,245,242,0.55)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
           </div>

@@ -1,4 +1,4 @@
-Ôªø'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -147,7 +147,7 @@ export function LinkEvidenceModal({
             <>
               {/* Search */}
               <div className="relative mb-3">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
                 <input
@@ -156,10 +156,10 @@ export function LinkEvidenceModal({
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search portfolio entries..."
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                 />
                 {searching && (
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
                 )}
               </div>
 
@@ -175,15 +175,15 @@ export function LinkEvidenceModal({
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[#F5F5F2] font-medium truncate">{result.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-[rgba(245,245,242,0.35)]">
+                          <span className="text-xs text-[rgba(245,245,242,0.55)]">
                             {new Date(result.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.35)] text-xs capitalize">
+                          <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs capitalize">
                             {result.type}
                           </span>
                         </div>
                       </div>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.25)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-1">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
@@ -192,13 +192,13 @@ export function LinkEvidenceModal({
               )}
 
               {query && !searching && results.length === 0 && (
-                <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-6">
+                <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-6">
                   No matching entries found.
                 </p>
               )}
 
               {!query && (
-                <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-6">
+                <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-6">
                   Start typing to search your portfolio entries.
                 </p>
               )}
@@ -211,9 +211,9 @@ export function LinkEvidenceModal({
                   onClick={() => setSelectedResult(null)}
                   className="text-xs text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
                 >
-                  ‚Üê Back
+                  ? Back
                 </button>
-                <span className="text-[rgba(245,245,242,0.2)]">|</span>
+                <span className="text-[rgba(245,245,242,0.55)]">|</span>
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="text-xs shrink-0 text-[rgba(245,245,242,0.45)]">Entry</span>
                   <span className="text-sm text-[#F5F5F2] font-medium truncate">{selectedResult.title}</span>
@@ -223,7 +223,7 @@ export function LinkEvidenceModal({
               {noBands ? (
                 <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
                   <p className="text-xs text-[rgba(245,245,242,0.55)] leading-relaxed">
-                    This domain is evidence-only ‚Äî no scoring bands. Linking this entry will
+                    This domain is evidence-only ó no scoring bands. Linking this entry will
                     mark the domain as evidenced.
                   </p>
                 </div>
@@ -237,7 +237,7 @@ export function LinkEvidenceModal({
                     onChange={e => setSelectedBand(e.target.value)}
                     className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
                   >
-                    <option value="">Select a band‚Ä¶</option>
+                    <option value="">Select a bandÖ</option>
                     {domain.bands.map(band => (
                       <option key={band.label} value={band.label}>
                         {band.label} ({band.points} pts)
@@ -258,7 +258,7 @@ export function LinkEvidenceModal({
               disabled={!canLink || linking}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              {linking ? 'Linking‚Ä¶' : 'Link evidence'}
+              {linking ? 'LinkingÖ' : 'Link evidence'}
             </button>
           </div>
         )}

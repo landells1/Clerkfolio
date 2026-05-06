@@ -112,7 +112,7 @@ export default async function PortfolioPage({
       <form className="mb-3 flex flex-wrap gap-2">
         <input type="hidden" name="view" value={view} />
         {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
-        <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]" />
+        <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]" />
         <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
           <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
           Green only
@@ -171,7 +171,7 @@ export default async function PortfolioPage({
                 <details open>
                   <summary className="cursor-pointer text-sm font-semibold text-[#F5F5F2]">
                     {theme.colour && <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: theme.colour }} />}
-                    {theme.name} <span className="text-[rgba(245,245,242,0.35)]">({matching.length})</span>
+                    {theme.name} <span className="text-[rgba(245,245,242,0.55)]">({matching.length})</span>
                   </summary>
                   <div className="mt-4 space-y-3">
                     {matching.map(entry => <EntryCard key={entry.id} entry={entry} />)}

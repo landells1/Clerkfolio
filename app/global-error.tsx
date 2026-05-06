@@ -17,7 +17,7 @@ export default function GlobalError({
     <html lang="en">
       <body style={{ margin: 0, background: '#0B0B0C', color: '#F5F5F2', fontFamily: '"Inter", -apple-system, system-ui, sans-serif' }}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.35)', letterSpacing: 1.5, marginBottom: 24 }}>
+          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>
             § CRITICAL ERROR
           </div>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 500, letterSpacing: -2, margin: 0, marginBottom: 16, lineHeight: 1, textAlign: 'center' }}>
@@ -29,7 +29,7 @@ export default function GlobalError({
             if this keeps happening.
           </p>
           {error.digest && (
-            <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.25)', marginBottom: 32, letterSpacing: 1 }}>
+            <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', marginBottom: 32, letterSpacing: 1 }}>
               Error reference: {error.digest}
             </p>
           )}

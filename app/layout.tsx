@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { Analytics } from '@vercel/analytics/next'
+import PreferencesApplier from '@/components/accessibility/preferences-applier'
 
 export const metadata: Metadata = {
   title: 'Clerkfolio - Medical Portfolio Tracker',
@@ -53,7 +54,9 @@ export default function RootLayout({
         />
       </head>
       <body>
-        {children}
+        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <PreferencesApplier />
+        <div id="main-content">{children}</div>
         <Analytics />
       </body>
     </html>

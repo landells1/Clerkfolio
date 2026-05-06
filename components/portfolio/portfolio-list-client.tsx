@@ -154,7 +154,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           <div className="flex items-center gap-3">
             <button onClick={selectAll} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">Select all</button>
             <button onClick={deselectAll} className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">Deselect all</button>
-            <span className="text-xs text-[rgba(245,245,242,0.35)]">{selected.size} selected</span>
+            <span className="text-xs text-[rgba(245,245,242,0.55)]">{selected.size} selected</span>
           </div>
         </div>
       )}

@@ -28,7 +28,7 @@ export function CompareView({ applications, links }: Props) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <div className="w-16 h-16 rounded-2xl bg-[#141416] border border-white/[0.08] flex items-center justify-center mb-4">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="7" height="18" /><rect x="14" y="3" width="7" height="18" />
           </svg>
         </div>
@@ -108,7 +108,7 @@ export function CompareView({ applications, links }: Props) {
         <div className="grid grid-cols-3 border-b border-white/[0.08]">
           <div className="p-4 text-center">
             <p className="font-semibold text-[#F5F5F2] text-sm">{leftConfig?.name ?? '—'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">
+            <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
               {leftConfig?.cycleYear}
               {leftConfig && isEvidenceBased(leftConfig) && ' · Evidence-based'}
             </p>
@@ -118,7 +118,7 @@ export function CompareView({ applications, links }: Props) {
           </div>
           <div className="p-4 text-center">
             <p className="font-semibold text-[#F5F5F2] text-sm">{rightConfig?.name ?? '—'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">
+            <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
               {rightConfig?.cycleYear}
               {rightConfig && isEvidenceBased(rightConfig) && ' · Evidence-based'}
             </p>
@@ -197,7 +197,7 @@ function domainMetric(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): Dom
 
 function DomainCell({ metric, highlight }: { metric: DomainMetric | null; highlight: boolean }) {
   if (metric === null) {
-    return <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">—</span>
   }
   if (metric.kind === 'points') {
     return (
@@ -208,7 +208,7 @@ function DomainCell({ metric, highlight }: { metric: DomainMetric | null; highli
   }
   // evidence
   if (!metric.hasEvidence) {
-    return <span className="text-xs text-[rgba(245,245,242,0.3)]">Not yet</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">Not yet</span>
   }
   return (
     <span className={`text-xs font-semibold flex items-center gap-1 ${highlight ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
@@ -230,7 +230,7 @@ function TotalCell({
   links: SpecialtyEntryLink[]
 }) {
   if (!config || !app) {
-    return <span className="text-xs text-[rgba(245,245,242,0.2)]">—</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">—</span>
   }
   if (isEvidenceBased(config)) {
     const { essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal } = getEvidenceProgress(config, links)
@@ -250,7 +250,7 @@ function TotalCell({
   return (
     <span className="text-base font-bold text-[#F5F5F2]">
       {total}
-      <span className="text-xs font-normal text-[rgba(245,245,242,0.35)] ml-1">/ {config.totalMax}</span>
+      <span className="text-xs font-normal text-[rgba(245,245,242,0.55)] ml-1">/ {config.totalMax}</span>
     </span>
   )
 }

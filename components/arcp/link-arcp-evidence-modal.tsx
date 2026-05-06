@@ -93,19 +93,19 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search portfolio entries..."
-            className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9]"
+            className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9]"
           />
-          {searching && <p className="py-4 text-xs text-[rgba(245,245,242,0.35)]">Searching...</p>}
+          {searching && <p className="py-4 text-xs text-[rgba(245,245,242,0.55)]">Searching...</p>}
           <div className="mt-4 space-y-2">
             {results.map(result => (
               <button key={result.id} onClick={() => handleLink(result)} disabled={linking} className="w-full min-h-[44px] rounded-xl bg-[#0B0B0C] border border-white/[0.06] p-3 text-left hover:border-[#1B6FD9]/40 disabled:opacity-50">
                 <p className="text-sm font-medium text-[#F5F5F2]">{result.title}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.35)]">{new Date(result.date).toLocaleDateString('en-GB')}</p>
+                <p className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(result.date).toLocaleDateString('en-GB')}</p>
               </button>
             ))}
           </div>
-          {!query && <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-8">Start typing to search your portfolio entries.</p>}
-          {query && !searching && results.length === 0 && <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-8">No matching portfolio entries found.</p>}
+          {!query && <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-8">Start typing to search your portfolio entries.</p>}
+          {query && !searching && results.length === 0 && <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-8">No matching portfolio entries found.</p>}
         </div>
       </div>
     </div>

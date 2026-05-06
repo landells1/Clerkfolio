@@ -117,7 +117,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search cases"
-            className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]"
+            className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]"
           />
           <button onClick={() => setFiltersOpen(true)} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">
             Filters
@@ -130,7 +130,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           <button onClick={cancelSelect} className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD]">Cancel selection</button>
           <div className="flex items-center gap-3">
             <button onClick={() => setSelected(new Set(filtered.map(c => c.id)))} className="text-xs text-[#1B6FD9] hover:text-[#3884DD]">Select all</button>
-            <span className="text-xs text-[rgba(245,245,242,0.35)]">{selected.size} selected</span>
+            <span className="text-xs text-[rgba(245,245,242,0.55)]">{selected.size} selected</span>
           </div>
         </div>
       )}
@@ -242,7 +242,7 @@ function JournalCaseCard({ c, pinned, selected, selectMode, onToggle }: { c: Cas
               <h3 className="truncate text-base font-semibold text-[#F5F5F2]">{c.title}</h3>
               <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{firstSentence(c.notes)}</p>
             </div>
-            <time className="shrink-0 text-xs text-[rgba(245,245,242,0.38)]">{new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+            <time className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
           </div>
         </Link>
         {selectMode && <button onClick={onToggle} className="absolute inset-0 z-10" aria-label="Toggle case selection" />}

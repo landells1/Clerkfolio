@@ -76,11 +76,11 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/[0.06]">
         <p className="text-[13px] font-semibold text-[#F5F5F2]">Activity</p>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-[rgba(245,245,242,0.35)]">Less</span>
+          <span className="text-[10px] text-[rgba(245,245,242,0.55)]">Less</span>
           {(['rgba(245,245,242,0.05)', '#0A3260', '#155BB0', '#3884DD'] as const).map((color, i) => (
             <div key={i} className="rounded-sm" style={{ width: CELL - 3, height: CELL - 3, background: color }} />
           ))}
-          <span className="text-[10px] text-[rgba(245,245,242,0.35)]">More</span>
+          <span className="text-[10px] text-[rgba(245,245,242,0.55)]">More</span>
         </div>
       </div>
 
@@ -124,7 +124,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
                   flexShrink: 0,
                   textAlign: 'right',
                   fontSize: 10,
-                  color: 'rgba(245,245,242,0.35)',
+                  color: 'rgba(245,245,242,0.55)',
                   lineHeight: 1,
                   letterSpacing: '0.02em',
                 }}
@@ -156,7 +156,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         </div>
 
         <p
-          style={{ marginTop: 12, fontSize: 11, color: 'rgba(245,245,242,0.35)', letterSpacing: '0.01em' }}
+          style={{ marginTop: 12, fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: '0.01em' }}
         >
           {total} {total === 1 ? 'entry' : 'entries'} in the last year
         </p>

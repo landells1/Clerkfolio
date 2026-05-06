@@ -102,7 +102,7 @@ export default function PublicShareClient({ token }: { token: string }) {
             <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
           {payload && (
-            <p className="text-xs text-[rgba(245,245,242,0.35)]">
+            <p className="text-xs text-[rgba(245,245,242,0.55)]">
               Read-only - expires {formatDate(payload.expiresAt)}
             </p>
           )}
@@ -149,7 +149,7 @@ export default function PublicShareClient({ token }: { token: string }) {
           <>
             <PrintHeader userName={payload.ownerName} />
             <section className="mb-8">
-              <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">{scopeLabel(payload)}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">{scopeLabel(payload)}</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight">{payload.ownerName}</h1>
               <p className="mt-2 text-sm text-[rgba(245,245,242,0.45)]">
                 {payload.entries.length} shared portfolio {payload.entries.length === 1 ? 'entry' : 'entries'}
@@ -177,7 +177,7 @@ export default function PublicShareClient({ token }: { token: string }) {
                           <article key={entry.id} className="p-4">
                             <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
                               <h3 className="text-sm font-medium text-[#F5F5F2]">{entry.title}</h3>
-                              <span className="text-xs text-[rgba(245,245,242,0.35)]">{formatDate(entry.date)}</span>
+                              <span className="text-xs text-[rgba(245,245,242,0.55)]">{formatDate(entry.date)}</span>
                             </div>
                             {entry.specialty_tag_labels && entry.specialty_tag_labels.length > 0 && (
                               <div className="mt-3 flex flex-wrap gap-1.5">

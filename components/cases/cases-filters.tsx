@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
@@ -89,7 +89,7 @@ export default function CasesFilters({
       {/* Search input */}
       <div className="relative flex-1 min-w-48">
         <span className="pointer-events-none absolute inset-y-0 left-3.5 flex items-center">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" />
             <line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -98,7 +98,7 @@ export default function CasesFilters({
           type="text"
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder="Search cases…"
+          placeholder="Search cases�"
           className={`${inputClass} w-full pl-9`}
         />
       </div>
@@ -139,7 +139,7 @@ export default function CasesFilters({
       >
         <option value="">Newest first</option>
         <option value="date_asc">Oldest first</option>
-        <option value="title_asc">Title A→Z</option>
+        <option value="title_asc">Title A?Z</option>
       </select>
     </div>
   )

@@ -64,7 +64,7 @@ export default async function ReferralsPage() {
           <div key={ref.id} className="p-4 flex items-center justify-between gap-4">
             <div>
               <p className="text-sm font-medium text-[#F5F5F2] capitalize">{ref.status}</p>
-              <p className="text-xs text-[rgba(245,245,242,0.35)]">{new Date(ref.created_at).toLocaleDateString('en-GB')}</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(ref.created_at).toLocaleDateString('en-GB')}</p>
             </div>
             {ref.reward_granted_at && <span className="text-xs text-[#1B6FD9]">Reward granted</span>}
           </div>

@@ -304,7 +304,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             </span>
           </div>
           <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isMet ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'
+            isMet ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'
           }`}>
             {isMet ? (
               <>
@@ -362,7 +362,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
-            <p className="text-xs text-[rgba(245,245,242,0.3)]">Optional</p>
+            <p className="text-xs text-[rgba(245,245,242,0.55)]">Optional</p>
           </div>
 
           <div className="flex gap-2 mb-3">
@@ -390,7 +390,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {supportingEvidence.length > 0 ? (
             <DomainEvidenceList domain={domain} links={supportingEvidence} onRemove={handleRemoveLink} />
           ) : (
-            <p className="text-xs text-[rgba(245,245,242,0.3)] italic">
+            <p className="text-xs text-[rgba(245,245,242,0.55)] italic">
               Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
             </p>
           )}
@@ -434,7 +434,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             </span>
           </div>
           <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isEvidenced ? 'text-[#1B6FD9]' : desirableEvidence.length > 0 ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'
+            isEvidenced ? 'text-[#1B6FD9]' : desirableEvidence.length > 0 ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'
           }`}>
             {isEvidenced ? (
               <>
@@ -492,7 +492,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
-            <p className="text-xs text-[rgba(245,245,242,0.3)]">Optional</p>
+            <p className="text-xs text-[rgba(245,245,242,0.55)]">Optional</p>
           </div>
 
           <div className="flex gap-2 mb-3">
@@ -520,7 +520,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {desirableEvidence.length > 0 ? (
             <DomainEvidenceList domain={domain} links={desirableEvidence} onRemove={handleRemoveLink} />
           ) : (
-            <p className="text-xs text-[rgba(245,245,242,0.3)] italic">
+            <p className="text-xs text-[rgba(245,245,242,0.55)] italic">
               Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
             </p>
           )}
@@ -655,7 +655,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Scoring bands</p>
-              <p className="text-xs text-[rgba(245,245,242,0.3)]">Tick to claim</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">Tick to claim</p>
             </div>
             <div className="space-y-1">
               {domain.bands.map(band => {
@@ -681,7 +681,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                     <span className={`text-xs flex-1 leading-snug ${isChecked ? 'text-[rgba(245,245,242,0.8)]' : 'text-[rgba(245,245,242,0.5)]'}`}>
                       {band.label}
                     </span>
-                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.35)]'}`}>
+                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'}`}>
                       {band.points} pts
                     </span>
                   </div>
@@ -693,7 +693,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {/* Separator */}
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-[rgba(245,245,242,0.25)]">or link evidence</span>
+            <span className="text-xs text-[rgba(245,245,242,0.55)]">or link evidence</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -730,7 +730,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           )}
 
           {links.length === 0 && (
-            <p className="text-center text-xs text-[rgba(245,245,242,0.3)] py-4">
+            <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-4">
               No evidence linked yet. Link existing entries or log new evidence above.
             </p>
           )}

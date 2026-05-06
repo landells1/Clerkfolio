@@ -22,7 +22,7 @@ function BarView({ sorted, max, columns = 1 }: { sorted: [string, number][]; max
                 style={{ width: `${Math.round((count / max) * 100)}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-[rgba(245,245,242,0.35)] w-5 text-right shrink-0">
+            <span className="text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right shrink-0">
               {count}
             </span>
           </div>
@@ -44,7 +44,7 @@ function BarView({ sorted, max, columns = 1 }: { sorted: [string, number][]; max
               style={{ width: `${Math.round((count / max) * 100)}%` }}
             />
           </div>
-          <span className="text-xs font-mono text-[rgba(245,245,242,0.35)] w-5 text-right shrink-0">
+          <span className="text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right shrink-0">
             {count}
           </span>
         </div>
@@ -99,7 +99,7 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
           `${cx + maxR * 0.75 * Math.cos(a)},${cy + maxR * 0.75 * Math.sin(a)}`
         ).join(' ')}
         fill="none"
-        stroke="rgba(245,245,242,0.32)"
+        stroke="rgba(245,245,242,0.55)"
         strokeWidth="1.2"
         strokeDasharray="4 4"
       />
@@ -139,7 +139,7 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
               {area}
             </text>
             <text x={lx} y={countY} textAnchor={anchor} fontSize={countSize}
-              fill="rgba(245,245,242,0.35)" fontFamily="monospace">
+              fill="rgba(245,245,242,0.55)" fontFamily="monospace">
               {count}
             </text>
           </g>
@@ -181,7 +181,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
             <button
               onClick={() => handleSetView('bar')}
               title="Bar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)] hover:text-[rgba(245,245,242,0.6)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -190,7 +190,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
             <button
               onClick={() => handleSetView('radar')}
               title="Radar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.3)] hover:text-[rgba(245,245,242,0.6)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 19 7 19 17 12 22 5 17 5 7"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="5" y1="7" x2="19" y2="17"/><line x1="19" y1="7" x2="5" y2="17"/>
@@ -202,7 +202,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
 
       <div className="mt-4">
         {sorted.length === 0 ? (
-          <p className="text-xs text-[rgba(245,245,242,0.35)] text-center py-6">
+          <p className="text-xs text-[rgba(245,245,242,0.55)] text-center py-6">
             Log cases with a clinical area set to see coverage here
           </p>
         ) : view === 'radar' ? (

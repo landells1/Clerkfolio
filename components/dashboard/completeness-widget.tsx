@@ -39,7 +39,7 @@ export default function CompletenessWidget({ catMap, totalCases, specialtyCount 
       {/* Widget header */}
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/[0.06]">
         <p className="text-[13px] font-semibold text-[#F5F5F2] whitespace-nowrap">Portfolio completeness</p>
-        <span className="text-[11px] text-[rgba(245,245,242,0.35)]">{label}</span>
+        <span className="text-[11px] text-[rgba(245,245,242,0.55)]">{label}</span>
       </div>
 
       {/* Body */}

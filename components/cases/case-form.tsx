@@ -19,9 +19,9 @@ type Props = {
   userInterests?: string[]
 }
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
-const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
+const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.55)] mt-1 text-right'
 const DRAFT_KEY = 'clerkfolio-case-draft'
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
@@ -270,7 +270,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           className={INPUT}
           placeholder="Brief description — no patient identifiers"
         />
-        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
+        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
           Do not include patient names, dates of birth, or NHS numbers.
         </p>
       </div>
@@ -296,7 +296,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           onChange={v => { setClinicalDomains(v); markDirty() }}
           onFocus={() => markDirty()}
         />
-        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
+        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
           The medical setting of this encounter — used to filter and organise your cases.
         </p>
       </div>
@@ -324,7 +324,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
             ))}
           </div>
         )}
-        <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
+        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
           Which of your tracked programmes can you use this case for?
         </p>
       </div>
@@ -382,7 +382,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       {uploading && (
         <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
           <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1B6FD9] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+            <div className="h-full bg-[#1B6FD9] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
           </div>
           <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
         </div>

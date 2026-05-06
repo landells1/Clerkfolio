@@ -50,12 +50,12 @@ export default function UpcomingTimeline({ items }: { items: UpcomingTimelineIte
       </div>
       <div className="space-y-2">
         {visibleItems.length === 0 ? (
-          <p className="text-sm text-[rgba(245,245,242,0.35)]">No upcoming timeline items.</p>
+          <p className="text-sm text-[rgba(245,245,242,0.55)]">No upcoming timeline items.</p>
         ) : visibleItems.map(item => (
           <div key={`${item.type}-${item.id}-${item.date}`} className="flex items-center justify-between gap-3 rounded-lg bg-[#0B0B0C] border border-white/[0.06] px-3 py-2">
             <div className="min-w-0">
               <p className="truncate text-sm text-[#F5F5F2]">{item.title}</p>
-              <p className="text-[11px] text-[rgba(245,245,242,0.35)]">{item.type}</p>
+              <p className="text-[11px] text-[rgba(245,245,242,0.55)]">{item.type}</p>
             </div>
             <div className="shrink-0 flex items-center gap-2">
               <span className="text-xs text-[rgba(245,245,242,0.45)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>

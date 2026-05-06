@@ -85,17 +85,17 @@ export default function TemplatesSettingsPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
         </div>
       ) : templates.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
             </svg>
           </div>
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No personal templates yet</p>
-          <p className="text-xs text-[rgba(245,245,242,0.3)] mb-6 max-w-xs">
+          <p className="text-xs text-[rgba(245,245,242,0.55)] mb-6 max-w-xs">
             Open any portfolio entry and click the &quot;Template&quot; button in the actions row to save it as a personal template.
           </p>
           <Link href="/portfolio" className="flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
@@ -149,7 +149,7 @@ export default function TemplatesSettingsPage() {
                           </button>
                           <button
                             onClick={() => handleDelete(t.id)}
-                            className="text-xs text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors"
+                            className="text-xs text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors"
                           >
                             Delete
                           </button>

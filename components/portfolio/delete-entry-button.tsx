@@ -48,7 +48,7 @@ export default function DeleteEntryButton({ id }: { id: string }) {
             Cancel
           </button>
         </div>
-        <p className="text-xs text-[rgba(245,245,242,0.35)]">Moved to trash. Recover from the Trash page.</p>
+        <p className="text-xs text-[rgba(245,245,242,0.55)]">Moved to trash. Recover from the Trash page.</p>
       </div>
     )
   }

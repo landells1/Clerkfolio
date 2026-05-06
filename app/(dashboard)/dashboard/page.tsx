@@ -353,7 +353,7 @@ function DashboardSection({ title, defaultOpen, children }: { title: string; def
     <details className="group" open={defaultOpen}>
       <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]">
         {title}
-        <span className="text-[rgba(245,245,242,0.35)] group-open:rotate-90 transition-transform">&gt;</span>
+        <span className="text-[rgba(245,245,242,0.55)] group-open:rotate-90 transition-transform">&gt;</span>
       </summary>
       <div className="pt-4">{children}</div>
     </details>
@@ -364,7 +364,7 @@ function SpecialtyProgress({ rows }: { rows: { id: string; label: string; percen
   return (
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl divide-y divide-white/[0.06]">
       {rows.length === 0 ? (
-        <p className="p-5 text-sm text-[rgba(245,245,242,0.35)]">No tracked specialties.</p>
+        <p className="p-5 text-sm text-[rgba(245,245,242,0.55)]">No tracked specialties.</p>
       ) : rows.map(row => (
         <div key={row.id} className="grid grid-cols-1 sm:grid-cols-[1fr_160px_90px] gap-3 p-4 items-center">
           <p className="text-sm font-medium text-[#F5F5F2]">{row.label}</p>

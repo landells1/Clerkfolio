@@ -49,7 +49,7 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
             </defs>
             <CartesianGrid stroke="rgba(245,245,242,0.06)" vertical={false} />
             <XAxis dataKey="month" tick={{ fill: 'rgba(245,245,242,0.42)', fontSize: 11 }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fill: 'rgba(245,245,242,0.35)', fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <YAxis tick={{ fill: 'rgba(245,245,242,0.55)', fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
             <Tooltip
               contentStyle={{ background: '#141416', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#F5F5F2' }}
               labelStyle={{ color: '#F5F5F2' }}

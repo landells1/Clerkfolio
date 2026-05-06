@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supabase/storage'
@@ -65,7 +65,7 @@ export default function EvidenceFiles({
 
   return (
     <div>
-      <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">
+      <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-3">
         Evidence ({files.length} {files.length === 1 ? 'file' : 'files'})
       </p>
       <ul className="space-y-2">
@@ -89,13 +89,13 @@ export default function EvidenceFiles({
                 className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]"
               />
             ) : (
-              <svg className="shrink-0 text-[rgba(245,245,242,0.35)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="shrink-0 text-[rgba(245,245,242,0.55)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
               </svg>
             )}
             <div className="flex-1 min-w-0">
               <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{file.file_name}</p>
-              <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">
+              <p className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">
                 {formatBytes(file.file_size)}
                 {statusLabel}
               </p>
@@ -117,11 +117,11 @@ export default function EvidenceFiles({
                       disabled={deleting === file.id}
                       className="text-[10px] text-red-400 hover:text-red-300 font-medium disabled:opacity-50"
                     >
-                      {deleting === file.id ? '…' : 'Yes'}
+                      {deleting === file.id ? '�' : 'Yes'}
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-[10px] text-[rgba(245,245,242,0.35)] hover:text-[rgba(245,245,242,0.6)]"
+                      className="text-[10px] text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]"
                     >
                       No
                     </button>
@@ -130,7 +130,7 @@ export default function EvidenceFiles({
                   <button
                     onClick={() => setConfirmDeleteId(file.id)}
                     disabled={deleting === file.id}
-                    className="text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors disabled:opacity-50"
+                    className="text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors disabled:opacity-50"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6" />

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useRef, useState } from 'react'
 
@@ -101,7 +101,7 @@ export default function EvidenceUpload({
             : 'border-white/[0.1] hover:border-[#1B6FD9]/50 hover:bg-[#1B6FD9]/5 cursor-pointer'
         }`}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.35)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
           <polyline points="17 8 12 3 7 8" />
           <line x1="12" y1="3" x2="12" y2="15" />
@@ -109,7 +109,7 @@ export default function EvidenceUpload({
         <p className="text-xs text-[rgba(245,245,242,0.4)]">
           Click or drag files here
         </p>
-        <p className="text-[10px] text-[rgba(245,245,242,0.25)]">
+        <p className="text-[10px] text-[rgba(245,245,242,0.55)]">
           PDF, JPG, PNG, DOC, DOCX, XLSX, PPTX, TXT, HEIC - max 50 MB per file
         </p>
         <input
@@ -134,12 +134,12 @@ export default function EvidenceUpload({
               }
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{f.name}</p>
-                <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono">{formatBytes(f.size)}</p>
+                <p className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">{formatBytes(f.size)}</p>
               </div>
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="shrink-0 text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-colors"
+                className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />

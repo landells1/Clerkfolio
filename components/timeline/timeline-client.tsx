@@ -314,7 +314,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
             <h2 className="text-lg font-semibold text-[#F5F5F2]">{month.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</h2>
             <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="min-h-[44px] px-3 text-[rgba(245,245,242,0.65)]">Next</button>
           </div>
-          <div className="grid grid-cols-7 border-b border-white/[0.08] text-xs text-[rgba(245,245,242,0.35)]">
+          <div className="grid grid-cols-7 border-b border-white/[0.08] text-xs text-[rgba(245,245,242,0.55)]">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <div key={day} className="p-3">{day}</div>)}
           </div>
           <div className="grid grid-cols-7">
@@ -323,7 +323,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
               const muted = monthKey(day) !== monthKey(month)
               return (
                 <div key={day.toISOString()} className={`min-h-28 border-r border-b border-white/[0.06] p-2 ${muted ? 'bg-black/10' : ''}`}>
-                  <p className={`text-xs mb-2 ${muted ? 'text-[rgba(245,245,242,0.2)]' : 'text-[rgba(245,245,242,0.5)]'}`}>{day.getDate()}</p>
+                  <p className={`text-xs mb-2 ${muted ? 'text-[rgba(245,245,242,0.55)]' : 'text-[rgba(245,245,242,0.5)]'}`}>{day.getDate()}</p>
                   <div className="space-y-1">
                     {dayItems.slice(0, 3).map(item => (
                       <button key={item.id} type="button" onClick={() => setSelectedItem(item)} className="block w-full truncate rounded px-2 py-1 text-left text-[11px] text-white" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : '#6B7280' }}>
@@ -406,23 +406,23 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <div className="w-full sm:max-w-lg bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{selectedItem.type}</p>
+                <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.55)]">{selectedItem.type}</p>
                 <h2 className="mt-1 text-lg font-semibold text-[#F5F5F2]">{selectedItem.title}</h2>
               </div>
               <button type="button" onClick={() => setSelectedItem(null)} className="min-h-[36px] px-3 text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Close</button>
             </div>
             <dl className="mt-5 space-y-3 text-sm">
               <div>
-                <dt className="text-xs text-[rgba(245,245,242,0.35)]">Date</dt>
+                <dt className="text-xs text-[rgba(245,245,242,0.55)]">Date</dt>
                 <dd className="text-[#F5F5F2]">{new Date(selectedItem.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</dd>
               </div>
               <div>
-                <dt className="text-xs text-[rgba(245,245,242,0.35)]">Group</dt>
+                <dt className="text-xs text-[rgba(245,245,242,0.55)]">Group</dt>
                 <dd className="text-[#F5F5F2]">{selectedItem.specialtyName}</dd>
               </div>
               {(selectedItem.location || selectedItem.details) && (
                 <div>
-                  <dt className="text-xs text-[rgba(245,245,242,0.35)]">Details</dt>
+                  <dt className="text-xs text-[rgba(245,245,242,0.55)]">Details</dt>
                   <dd className="whitespace-pre-line text-[rgba(245,245,242,0.7)]">{[selectedItem.location, selectedItem.details].filter(Boolean).join('\n\n')}</dd>
                 </div>
               )}
@@ -456,12 +456,12 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: R
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : '#6B7280' }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-[#F5F5F2]">{item.title}</p>
-                  <p className="text-xs text-[rgba(245,245,242,0.35)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                   {(item.location || item.details) && (
                     <p className="mt-1 line-clamp-2 text-xs text-[rgba(245,245,242,0.42)]">{[item.location, item.details].filter(Boolean).join(' - ')}</p>
                   )}
                 </div>
-                <span className="text-[10px] uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{item.type}</span>
+                <span className="text-[10px] uppercase tracking-wide text-[rgba(245,245,242,0.55)]">{item.type}</span>
               </button>
             ))}
           </div>

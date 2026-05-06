@@ -244,7 +244,7 @@ export function SpecialtyDetail({
       {/* Source citation */}
       <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2">
         {!config.isOfficial && <span className="text-amber-400">⚠️</span>}
-        <p className="text-xs text-[rgba(245,245,242,0.35)]">
+        <p className="text-xs text-[rgba(245,245,242,0.55)]">
           {evidenceBased ? 'Person specification: ' : 'Scoring criteria: '}
           <a
             href={config.source}
@@ -478,7 +478,7 @@ function PointsLayoutTabs({
           <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
             Scoring
           </span>
-          <span className="text-xs text-[rgba(245,245,242,0.35)] flex-1">
+          <span className="text-xs text-[rgba(245,245,242,0.55)] flex-1">
             Self-assessment for shortlisting
           </span>
         </div>
@@ -581,7 +581,7 @@ function DomainGroup({
         <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
           {title}
         </span>
-        <span className="text-xs text-[rgba(245,245,242,0.35)] flex-1">{subtitle}</span>
+        <span className="text-xs text-[rgba(245,245,242,0.55)] flex-1">{subtitle}</span>
         {onTickAll && (
           <button
             onClick={onTickAll}
@@ -755,7 +755,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
               Anyone with the link can view your evidence — no account needed.
             </p>
           </div>
-          <button onClick={onClose} className="shrink-0 text-[rgba(245,245,242,0.3)] hover:text-[#F5F5F2] transition-colors mt-0.5">
+          <button onClick={onClose} className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors mt-0.5">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -764,7 +764,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
           </div>
         ) : link ? (
           <div className="space-y-4">
@@ -809,7 +809,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
               </button>
             </div>
             {/* Manage all links */}
-            <p className="text-xs text-[rgba(245,245,242,0.3)] text-center">
+            <p className="text-xs text-[rgba(245,245,242,0.55)] text-center">
               Manage all shared links in{' '}
               <a href="/settings/shared-links" className="text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] underline transition-colors">
                 Settings → Shared links
@@ -851,7 +851,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
             >
               {generating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full motion-safe:animate-spin" />
                   Generating…
                 </>
               ) : (

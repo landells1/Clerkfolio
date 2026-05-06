@@ -97,6 +97,7 @@ export default function ExportPage() {
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [backupLoading, setBackupLoading] = useState(false)
+  const [includeEvidenceBackup, setIncludeEvidenceBackup] = useState(true)
   const [appendPdfFile, setAppendPdfFile] = useState<File | null>(null)
   const [appendingPdf, setAppendingPdf] = useState(false)
   const [selectedFields, setSelectedFields] = useState<string[]>(EXPORT_FIELDS.map(field => field.value))
@@ -235,7 +236,11 @@ export default function ExportPage() {
   async function handleBackup() {
     setBackupLoading(true)
     setError(null)
-    const res = await fetch('/api/account/export', { method: 'POST' })
+    const res = await fetch('/api/account/export', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ includeEvidence: includeEvidenceBackup }),
+    })
     setBackupLoading(false)
     if (!res.ok) {
       const json = await res.json()
@@ -372,7 +377,7 @@ export default function ExportPage() {
 
       {tab !== 'backup' && (
         <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Target specialty</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
             {portfolioTags.map(({ tag, count }) => (
               <button key={tag} onClick={() => setSpecialty(tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
@@ -393,7 +398,7 @@ export default function ExportPage() {
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
           <aside className="space-y-4">
             <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Format</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Format</p>
               <div className="flex gap-2">
                 {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
                   <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)]'}`}>
@@ -405,7 +410,7 @@ export default function ExportPage() {
 
             {format === 'pdf' && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Template</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Template</p>
                 <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
                   <option value="default">Default</option>
                   <option value="foundation">Foundation portfolio</option>
@@ -417,7 +422,7 @@ export default function ExportPage() {
 
             {themes.length > 0 && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Theme filter</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Theme filter</p>
                 <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
                   <option value="">Any theme</option>
                   {themes.map(theme => <option key={theme} value={theme}>{theme}</option>)}
@@ -427,7 +432,7 @@ export default function ExportPage() {
 
             {loadedSpecialty && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Category</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Category</p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => setCategoryFilter('all')} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === 'all' ? 'border-white/[0.15] bg-white/[0.1] text-[#F5F5F2]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.5)]'}`}>All</button>
                   {CATEGORIES.filter(c => categoriesPresent.includes(c.value)).map(cat => (
@@ -438,7 +443,7 @@ export default function ExportPage() {
             )}
 
             <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Fields</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Fields</p>
               <div className="space-y-2">
                 {EXPORT_FIELDS.map(field => (
                   <label key={field.value} className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
@@ -455,7 +460,7 @@ export default function ExportPage() {
 
             {format === 'pdf' && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Append PDF</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Append PDF</p>
                 <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[rgba(245,245,242,0.55)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[#F5F5F2]" />
                 <button onClick={handleAppendPdf} disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf} className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:opacity-40">
                   {appendingPdf ? 'Appending...' : 'Append selected'}
@@ -466,7 +471,7 @@ export default function ExportPage() {
 
           <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
             <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">
+              <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">
                 {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
               </p>
               <div className="flex items-center gap-3">
@@ -500,7 +505,7 @@ export default function ExportPage() {
                         </div>
                         {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[rgba(245,245,242,0.4)]">{entrySubtitle(entry)}</p>}
                       </div>
-                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)]">{formatDate(entry.date)}</span>
+                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{formatDate(entry.date)}</span>
                       <button
                         type="button"
                         onClick={e => {
@@ -532,7 +537,7 @@ export default function ExportPage() {
                         </div>
                         {areas.length > 0 && <p className="truncate text-xs text-[rgba(245,245,242,0.4)]">{areas.join(' - ')}</p>}
                       </div>
-                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)]">{formatDate(c.date)}</span>
+                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{formatDate(c.date)}</span>
                     </label>
                   )
                 })}
@@ -548,6 +553,10 @@ export default function ExportPage() {
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">
             Download a ZIP containing your profile, portfolio entries, cases, deadlines, goals, specialty scoring links, templates, and evidence files.
           </p>
+          <label className="mt-4 flex items-center gap-2 text-sm text-[rgba(245,245,242,0.72)]">
+            <input type="checkbox" checked={includeEvidenceBackup} onChange={e => setIncludeEvidenceBackup(e.target.checked)} />
+            Include evidence files
+          </label>
           <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
@@ -612,7 +621,7 @@ export default function ExportPage() {
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">PIN</span>
                 <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
-                <p className="mt-1 text-xs text-[rgba(245,245,242,0.35)]">Optional PIN (4-8 digits)</p>
+                <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">Optional PIN (4-8 digits)</p>
               </label>
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">View webhook</span>

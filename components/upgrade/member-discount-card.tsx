@@ -34,7 +34,7 @@ export default function MemberDiscountCard() {
             Manual code
             <input
               placeholder="Enter code at Stripe checkout"
-              className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none placeholder:text-[rgba(245,245,242,0.3)] focus:border-[#1B6FD9]"
+              className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none placeholder:text-[rgba(245,245,242,0.55)] focus:border-[#1B6FD9]"
             />
           </label>
         </div>

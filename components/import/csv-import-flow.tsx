@@ -238,7 +238,7 @@ export default function CsvImportFlow() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
         {([1, 2, 3, 4] as Step[]).map(s => (
-          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.35)]'}`}>
+          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'}`}>
             {s === 1 ? 'Upload' : s === 2 ? 'Map' : s === 3 ? 'Preview' : 'Done'}
           </span>
         ))}

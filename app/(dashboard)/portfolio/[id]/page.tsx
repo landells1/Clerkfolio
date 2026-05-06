@@ -25,7 +25,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">{label}</span>
+      <span className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">{label}</span>
       <span className="text-sm text-[rgba(245,245,242,0.8)] capitalize">{display.replace(/_/g, ' ')}</span>
     </div>
   )
@@ -108,7 +108,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         {/* Application tags */}
         {entry.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Application tags</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Application tags</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
@@ -121,7 +121,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
 
         {/* Category-specific fields */}
         <div className="border-t border-white/[0.06] pt-5">
-          <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-4">Details</p>
+          <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-4">Details</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {entry.category === 'audit_qip' && <>
               <DetailRow label="Type" value={entry.audit_type} />
@@ -179,25 +179,25 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         {/* Long-form text fields */}
         {entry.category === 'audit_qip' && entry.audit_outcome && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Outcome</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Outcome</p>
             <MarkdownRenderer value={entry.audit_outcome} />
           </div>
         )}
         {entry.category === 'prize' && entry.prize_description && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.prize_description} />
           </div>
         )}
         {entry.category === 'reflection' && entry.refl_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Reflection</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Reflection</p>
             <MarkdownRenderer value={entry.refl_free_text} />
           </div>
         )}
         {entry.category === 'custom' && entry.custom_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.custom_free_text} />
           </div>
         )}
@@ -205,7 +205,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         {/* Notes */}
         {entry.notes && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Notes</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Notes</p>
             <MarkdownRenderer value={entry.notes} />
           </div>
         )}
@@ -222,7 +222,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         ) : null}
 
         {/* Metadata */}
-        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.25)] font-mono">
+        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.55)] font-mono">
           <span>Added {formatDate(entry.created_at)}</span>
           <span>Updated {formatDate(entry.updated_at)}</span>
         </div>

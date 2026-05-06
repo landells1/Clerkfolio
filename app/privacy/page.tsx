@@ -236,6 +236,7 @@ export default function PrivacyPage() {
             endpoints. No online service can guarantee perfect security, so you should use a strong unique password and
             avoid entering sensitive information that Clerkfolio does not need.
           </p>
+          <p>Data encrypted at rest by Supabase, eu-west-2.</p>
         </Section>
 
         <Section title="Changes to this policy">

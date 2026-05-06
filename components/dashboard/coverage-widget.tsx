@@ -14,7 +14,7 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/[0.06]">
         <div>
           <h3 className="text-sm font-semibold text-[#F5F5F2]">Portfolio coverage</h3>
-          <p className="text-xs text-[rgba(245,245,242,0.35)] mt-0.5">{total} {total === 1 ? 'entry' : 'entries'} total</p>
+          <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">{total} {total === 1 ? 'entry' : 'entries'} total</p>
         </div>
         <Link href="/portfolio" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
           View all →
@@ -41,7 +41,7 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="shrink-0 text-xs font-mono text-[rgba(245,245,242,0.35)] w-5 text-right">
+              <span className="shrink-0 text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right">
                 {count}
               </span>
             </Link>

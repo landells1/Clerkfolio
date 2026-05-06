@@ -16,7 +16,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
       `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://js.stripe.com https://va.vercel-insights.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
-      "font-src 'self'",
+      "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
       "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://va.vercel-insights.com",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
@@ -25,6 +25,18 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
     ].join('; ')
   )
   return response
+}
+
+async function sha256Hex(value: string) {
+  const data = new TextEncoder().encode(value)
+  const digest = await crypto.subtle.digest('SHA-256', data)
+  return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('')
+}
+
+function requestIp(request: NextRequest) {
+  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || request.headers.get('x-real-ip')
+    || 'unknown'
 }
 
 export async function middleware(request: NextRequest) {
@@ -89,6 +101,36 @@ export async function middleware(request: NextRequest) {
 
   // ── Refresh session — required for Supabase SSR ─────────────────────────────
   const { data: { user } } = await supabase.auth.getUser()
+
+  if (user && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SHARE_IP_HASH_SALT) {
+    const admin = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY,
+      { cookies: { getAll: () => [], setAll: () => {} } }
+    )
+    const userAgent = request.headers.get('user-agent') ?? 'unknown'
+    const ipHash = await sha256Hex(`${requestIp(request)}:${process.env.SHARE_IP_HASH_SALT}`)
+    const { data: existing } = await admin
+      .from('session_fingerprints')
+      .select('id, revoked_at')
+      .eq('user_id', user.id)
+      .eq('ip_hash', ipHash)
+      .eq('user_agent', userAgent)
+      .maybeSingle()
+
+    if (existing?.revoked_at) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      url.searchParams.set('session', 'revoked')
+      return applySecurityHeaders(NextResponse.redirect(url))
+    }
+
+    if (existing?.id) {
+      await admin.from('session_fingerprints').update({ last_seen_at: new Date().toISOString() }).eq('id', existing.id)
+    } else {
+      await admin.from('session_fingerprints').insert({ user_id: user.id, ip_hash: ipHash, user_agent: userAgent })
+    }
+  }
 
   // ── Routes where unauthenticated access is permitted ────────────────────────
   const unauthAllowed = new Set([

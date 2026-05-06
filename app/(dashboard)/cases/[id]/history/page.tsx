@@ -54,12 +54,19 @@ export default async function CaseHistoryPage({ params }: { params: Promise<{ id
                   <p className="text-sm font-medium text-[#F5F5F2]">{new Date(revision.created_at).toLocaleString('en-GB')}</p>
                   <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">{changed.slice(0, 4).join(', ')}</p>
                 </div>
-                <RestoreVersionButton revisionId={revision.id} entryType="case" entryPath={`/cases/${id}`} />
+                <div className="flex flex-wrap items-center gap-2">
+                  {revisions[index + 1] && (
+                    <Link href={`/cases/${id}/history/diff?a=${revisions[index + 1].id}&b=${revision.id}`} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.72)]">
+                      Diff
+                    </Link>
+                  )}
+                  <RestoreVersionButton revisionId={revision.id} entryType="case" entryPath={`/cases/${id}`} />
+                </div>
               </div>
               <dl className="mt-4 grid gap-2 sm:grid-cols-2">
                 {SUMMARY_FIELDS.map(field => (
                   <div key={field} className="rounded-lg bg-[#0B0B0C] p-3">
-                    <dt className="text-[10px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.32)]">{field.replace(/_/g, ' ')}</dt>
+                    <dt className="text-[10px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">{field.replace(/_/g, ' ')}</dt>
                     <dd className="mt-1 line-clamp-3 text-xs text-[rgba(245,245,242,0.62)]">{formatValue(revision.snapshot[field])}</dd>
                   </div>
                 ))}

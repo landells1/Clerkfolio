@@ -49,7 +49,7 @@ export default async function SpecialtyComparePage() {
                   <td className="p-3 text-[rgba(245,245,242,0.72)]">{label}</td>
                   {configs.map(({ app, config }) => {
                     const domain = config!.domains.find(item => item.label === label)
-                    if (!domain) return <td key={app.id} className="p-3 text-[rgba(245,245,242,0.25)]">-</td>
+                    if (!domain) return <td key={app.id} className="p-3 text-[rgba(245,245,242,0.55)]">-</td>
                     const domainLinks = linkRows.filter(link => link.application_id === app.id && link.domain_key === domain.key)
                     const score = calculateDomainScore(domain, domainLinks)
                     const target = Math.ceil(domain.maxPoints * 0.75)

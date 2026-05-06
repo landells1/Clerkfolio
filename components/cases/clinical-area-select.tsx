@@ -69,14 +69,14 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => { setOpen(true); onFocus?.() }}
           placeholder={value.length === 0 ? 'Select clinical areas…' : ''}
-          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] outline-none"
+          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
         />
         {value.length === 0 && (
           <svg
             className="flex-shrink-0 transition-transform duration-150 pointer-events-none"
             style={{ transform: open ? 'rotate(180deg)' : 'none' }}
             width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(245,245,242,0.35)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           >
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -87,7 +87,7 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
         <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
           <div className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.35)]">No matches</div>
+              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.55)]">No matches</div>
             ) : (
               filtered.map(d => {
                 const selected = value.includes(d)

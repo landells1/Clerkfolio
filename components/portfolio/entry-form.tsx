@@ -22,7 +22,7 @@ type Props = {
   templates?: Template[]
 }
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
+const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 const FIELD = 'flex flex-col gap-1'
@@ -34,7 +34,7 @@ const TOGGLE_BTN = (active: boolean) =>
       : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
   }`
 
-const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.3)] mt-1 text-right'
+const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.55)] mt-1 text-right'
 const LONG_TEXT_MAX = 10000
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
@@ -575,7 +575,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <button
                   type="button"
                   onClick={() => setTemplatePickerOpen(true)}
-                  className="mb-1 text-xs font-medium text-[rgba(245,245,242,0.38)] transition-colors hover:text-[#F5F5F2]"
+                  className="mb-1 text-xs font-medium text-[rgba(245,245,242,0.55)] transition-colors hover:text-[#F5F5F2]"
                 >
                   Use template
                 </button>
@@ -602,7 +602,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Common fields */}
         <div className="space-y-4">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">General</h3>
+          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">General</h3>
           <Field label="Title">
             <input type="text" required maxLength={200} value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder={ph('title', 'Give this entry a clear title')} />
           </Field>
@@ -638,7 +638,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Category-specific fields */}
         <div className="space-y-4 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
             {CATEGORIES.find(c => c.value === category)?.label} details
           </h3>
 
@@ -954,7 +954,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider">Evidence</h3>
+          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">Evidence</h3>
           <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
         </div>
 
@@ -987,7 +987,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {uploading && (
           <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-              <div className="h-full bg-[#1B6FD9] rounded-full animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+              <div className="h-full bg-[#1B6FD9] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
             </div>
             <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
           </div>
@@ -1011,7 +1011,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {/* Personal templates */}
               {personalTemplates.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Your templates</p>
+                  <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Your templates</p>
                   <div className="grid grid-cols-2 gap-2">
                     {personalTemplates.map(t => (
                       <button
@@ -1034,7 +1034,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 if (!ts || ts.length === 0) return null
                 return (
                   <div key={cat.value}>
-                    <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">{cat.label}</p>
+                    <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">{cat.label}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {ts.map(t => (
                         <button

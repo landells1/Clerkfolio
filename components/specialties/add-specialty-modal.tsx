@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -71,7 +71,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
 
       if (insertError) throw insertError
       const inserted = rows?.[0]
-      if (!inserted) throw new Error('No data returned — check your session and try again.')
+      if (!inserted) throw new Error('No data returned � check your session and try again.')
 
       // Auto-populate application window deadlines if the config has verified dates
       const config = SPECIALTY_CONFIGS.find(c => c.key === key)
@@ -161,7 +161,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
               <p className="text-xs text-[rgba(245,245,242,0.4)]">
                 Select a specialty to begin tracking your application score.
                 {!isPro && (
-                  <span className="ml-1 text-[rgba(245,245,242,0.3)]">
+                  <span className="ml-1 text-[rgba(245,245,242,0.55)]">
                     ({activeCount}/{FREE_SPECIALTY_LIMIT} free slots used)
                   </span>
                 )}
@@ -211,7 +211,7 @@ function SpecialtyGroup({
         <span className="text-[10px] font-semibold text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
           {title}
         </span>
-        <span className="text-[10px] text-[rgba(245,245,242,0.3)]">
+        <span className="text-[10px] text-[rgba(245,245,242,0.55)]">
           {subtitle}
         </span>
       </div>
@@ -274,7 +274,7 @@ function SpecialtyCard({
             : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
         </p>
         {!config.isOfficial && (
-          <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
+          <p className="text-xs text-amber-400/70 mt-1">?? Verify with official person spec</p>
         )}
       </div>
       <svg
@@ -282,7 +282,7 @@ function SpecialtyCard({
         height="16"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="rgba(245,245,242,0.3)"
+        stroke="rgba(245,245,242,0.55)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"

@@ -76,7 +76,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
           href="https://www.fparcp.co.uk/employers/curriculum"
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-xs text-[rgba(245,245,242,0.3)] hover:text-[rgba(245,245,242,0.6)] transition-colors flex items-center gap-1"
+          className="shrink-0 text-xs text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)] transition-colors flex items-center gap-1"
         >
           FP Curriculum
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -98,7 +98,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
                 <h2 className="text-xs font-semibold text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
                   {ARCP_CATEGORY_LABELS[cat]}
                 </h2>
-                <span className="text-xs text-[rgba(245,245,242,0.3)] font-mono">{catLinked}/{caps.length}</span>
+                <span className="text-xs text-[rgba(245,245,242,0.55)] font-mono">{catLinked}/{caps.length}</span>
               </div>
               <div className="space-y-2">
                 {caps.map(cap => (

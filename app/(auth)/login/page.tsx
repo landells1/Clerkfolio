@@ -56,7 +56,7 @@ function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             placeholder="you@example.com"
           />
         </div>
@@ -76,7 +76,7 @@ function LoginForm() {
             autoComplete="current-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             placeholder="••••••••"
           />
         </div>
@@ -96,7 +96,7 @@ function LoginForm() {
         </button>
       </form>
 
-      <p className="text-center text-sm text-[rgba(245,245,242,0.35)] mt-6">
+      <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
         Don&apos;t have an account?{' '}
         <Link href="/signup" className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
           Sign up free
@@ -108,7 +108,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center text-sm text-[rgba(245,245,242,0.35)]">Loading…</div>}>
+    <Suspense fallback={<div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center text-sm text-[rgba(245,245,242,0.55)]">Loading…</div>}>
       <LoginForm />
     </Suspense>
   )

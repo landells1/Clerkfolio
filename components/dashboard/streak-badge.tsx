@@ -13,7 +13,7 @@ export default function StreakBadge({ streak, activeWeeks = [] }: StreakBadgePro
 
   if (currentStreak === 0) {
     return (
-      <div className="text-xs text-[rgba(245,245,242,0.35)]">
+      <div className="text-xs text-[rgba(245,245,242,0.55)]">
         <p>Log this week to start a streak</p>
         {activeWeeks.length > 0 && <p className="mt-1">{activeWeeksThisYear} active weeks this year</p>}
       </div>
@@ -36,7 +36,7 @@ export default function StreakBadge({ streak, activeWeeks = [] }: StreakBadgePro
       <div className="flex flex-col leading-none">
         <span className="text-2xl font-bold leading-none text-[#F5F5F2]">{currentStreak}</span>
         <span className={`mt-0.5 text-xs ${onFire ? 'text-amber-400/70' : 'text-[rgba(245,245,242,0.4)]'}`}>wk streak</span>
-        <span className="mt-1 text-[10px] text-[rgba(245,245,242,0.35)]">{activeWeeksThisYear} active weeks YTD</span>
+        <span className="mt-1 text-[10px] text-[rgba(245,245,242,0.55)]">{activeWeeksThisYear} active weeks YTD</span>
       </div>
     </div>
   )

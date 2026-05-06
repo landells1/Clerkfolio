@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -132,7 +132,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               {activeApplications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
                   <div className="w-16 h-16 rounded-2xl bg-[#141416] border border-white/[0.08] flex items-center justify-center mb-4">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
                       <rect x="9" y="3" width="6" height="4" rx="1" />
                       <path d="M9 12h6M9 16h4" />
@@ -197,7 +197,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           {archivedApplications.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-24 text-center">
               <p className="text-sm text-[rgba(245,245,242,0.4)]">No archived applications yet.</p>
-              <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
+              <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
                 Previous cycles appear here when you start a new cycle for the same specialty.
               </p>
             </div>
@@ -215,10 +215,10 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold text-[#F5F5F2] text-base">{config.name}</h3>
                         <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs font-medium">{config.cycleYear}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-white/[0.04] text-[rgba(245,245,242,0.3)] text-xs font-medium border border-white/[0.06]">Archived</span>
+                        <span className="px-2 py-0.5 rounded-md bg-white/[0.04] text-[rgba(245,245,242,0.55)] text-xs font-medium border border-white/[0.06]">Archived</span>
                       </div>
                       {app.archived_at && (
-                        <p className="text-xs text-[rgba(245,245,242,0.3)] mb-2">
+                        <p className="text-xs text-[rgba(245,245,242,0.55)] mb-2">
                           Archived {new Date(app.archived_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                       )}
@@ -310,7 +310,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
       >
         {loading ? 'Starting...' : 'Start new cycle'}
       </button>
-      <button onClick={() => setDismissed(true)} className="shrink-0 text-[rgba(245,245,242,0.3)] hover:text-[#F5F5F2] transition-colors">
+      <button onClick={() => setDismissed(true)} className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>

@@ -104,12 +104,12 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-[rgba(245,245,242,0.35)] font-mono">{pct}%</span>
+              <span className="text-xs text-[rgba(245,245,242,0.55)] font-mono">{pct}%</span>
             </div>
           )}
           <button
             onClick={e => { e.stopPropagation(); handleDismiss() }}
-            className="text-[rgba(245,245,242,0.3)] hover:text-[#F5F5F2] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
             aria-label="Dismiss checklist"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -117,7 +117,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
             </svg>
           </button>
           <svg
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
           >
             <polyline points="18 15 12 9 6 15"/>
@@ -148,7 +148,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
                   )}
                 </button>
                 {/* Label */}
-                <span className={`flex-1 text-sm transition-colors ${done ? 'line-through text-[rgba(245,245,242,0.3)]' : 'text-[rgba(245,245,242,0.75)]'}`}>
+                <span className={`flex-1 text-sm transition-colors ${done ? 'line-through text-[rgba(245,245,242,0.55)]' : 'text-[rgba(245,245,242,0.75)]'}`}>
                   {item.label}
                 </span>
                 {/* Arrow link */}

@@ -98,7 +98,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
             Link
           </button>
           <svg
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)"
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)"
             strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`transition-transform ${expanded ? 'rotate-90' : ''}`}
           >
@@ -112,11 +112,11 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
         <div className="border-t border-white/[0.04]">
           {loadingEntries ? (
             <div className="flex items-center justify-center py-6">
-              <div className="w-4 h-4 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
             </div>
           ) : links.length === 0 ? (
             <div className="px-4 py-5 text-center">
-              <p className="text-xs text-[rgba(245,245,242,0.35)]">No evidence linked yet.</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">No evidence linked yet.</p>
               <button
                 onClick={() => setModalOpen(true)}
                 className="mt-2 text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors"
@@ -145,7 +145,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                         <p className="text-sm text-[rgba(245,245,242,0.5)] truncate">{link.entry_id.slice(0, 8)}…</p>
                       )}
                       {detail && (
-                        <p className="text-[10px] text-[rgba(245,245,242,0.3)] font-mono mt-0.5">
+                        <p className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono mt-0.5">
                           {new Date(detail.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                         </p>
                       )}
@@ -153,7 +153,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                     <button
                       onClick={() => handleUnlink(link.id)}
                       disabled={unlinking === link.id}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.3)] hover:text-red-400 transition-all disabled:opacity-30"
+                      className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-all disabled:opacity-30"
                       title="Remove link"
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

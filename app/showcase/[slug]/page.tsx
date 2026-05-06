@@ -52,10 +52,10 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
             <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{categoryLabel(entry.category)}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">{categoryLabel(entry.category)}</p>
                   <h2 className="mt-1 text-lg font-semibold">{entry.title}</h2>
                 </div>
-                <time className="text-xs text-[rgba(245,245,242,0.38)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+                <time className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
               </div>
               {entry.notes && <p className="whitespace-pre-line text-sm leading-relaxed text-[rgba(245,245,242,0.68)]">{entry.notes}</p>}
               {entry.specialty_tags?.length ? (

@@ -41,7 +41,7 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
         </div>
         <Link href="/timeline" className="text-xs text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Timeline</Link>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[rgba(245,245,242,0.35)]">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[rgba(245,245,242,0.55)]">
         {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
       </div>
       <div className="mt-2 grid grid-cols-7 gap-1">

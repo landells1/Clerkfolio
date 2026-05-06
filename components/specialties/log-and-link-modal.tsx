@@ -1,4 +1,4 @@
-ï»¿'use client'
+'use client'
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -163,7 +163,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                 </svg>
               </div>
               <p className="text-[#F5F5F2] font-medium">Entry logged and linked!</p>
-              <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Closingâ€¦</p>
+              <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Closing…</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" id="log-link-form">
@@ -185,7 +185,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. National conference oral presentation"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                 />
               </div>
 
@@ -219,7 +219,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                           : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.5)] border-white/[0.08] hover:border-white/[0.16]'
                       }`}
                     >
-                      {t === 'portfolio' ? 'ðŸ“„ Portfolio Entry' : 'ðŸ’¼ Case'}
+                      {t === 'portfolio' ? '?? Portfolio Entry' : '?? Case'}
                     </button>
                   ))}
                 </div>
@@ -258,18 +258,18 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               {/* Notes */}
               <div>
                 <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
-                  Notes <span className="text-[rgba(245,245,242,0.25)]">(optional)</span>
+                  Notes <span className="text-[rgba(245,245,242,0.55)]">(optional)</span>
                 </label>
                 <textarea
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   rows={3}
-                  placeholder="Any additional detailsâ€¦"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
+                  placeholder="Any additional details…"
+                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
                 />
               </div>
 
-              {/* Band selection â€” hidden for evidence-only domains */}
+              {/* Band selection — hidden for evidence-only domains */}
               {!noBands && (
                 <div>
                   <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
@@ -281,7 +281,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                     required
                     className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
                   >
-                    <option value="">Select the scoring band this evidence qualifies forâ€¦</option>
+                    <option value="">Select the scoring band this evidence qualifies for…</option>
                     {domain.bands.map(band => (
                       <option key={band.label} value={band.label}>
                         {band.label} ({band.points} pts)
@@ -303,7 +303,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               disabled={!canSubmit || submitting}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              {submitting ? 'Savingâ€¦' : 'Log & link evidence'}
+              {submitting ? 'Saving…' : 'Log & link evidence'}
             </button>
           </div>
         )}

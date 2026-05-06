@@ -74,18 +74,18 @@ export default function SharedLinksPage() {
 
       {loading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full animate-spin" />
+          <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
         </div>
       ) : links.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.3)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
               <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
             </svg>
           </div>
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No active shared links</p>
-          <p className="text-xs text-[rgba(245,245,242,0.3)] max-w-xs">
+          <p className="text-xs text-[rgba(245,245,242,0.55)] max-w-xs">
             Open a specialty tracker and click &quot;Share&quot; to generate a read-only link for your evidence view.
           </p>
         </div>
@@ -105,7 +105,7 @@ export default function SharedLinksPage() {
                     <p className="text-sm font-medium text-[#F5F5F2]">
                       {config ? `${config.name} ${config.cycleYear}` : link.specialty_key ?? 'Full portfolio'}
                     </p>
-                    <p className="text-xs text-[rgba(245,245,242,0.35)] font-mono mt-0.5 truncate">{url}</p>
+                    <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono mt-0.5 truncate">{url}</p>
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
                     {isExpired ? (

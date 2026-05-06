@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
           Check your inbox and follow the link.
         </p>
         <Link href="/login" className="text-sm text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
-          ← Back to login
+          ? Back to login
         </Link>
       </div>
     )
@@ -68,7 +68,7 @@ export default function ResetPasswordPage() {
             autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             placeholder="you@example.com"
           />
         </div>
@@ -84,13 +84,13 @@ export default function ResetPasswordPage() {
           disabled={loading}
           className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
-          {loading ? 'Sending…' : 'Send reset link'}
+          {loading ? 'Sending�' : 'Send reset link'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-[rgba(245,245,242,0.35)] mt-6">
+      <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
         <Link href="/login" className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
-          ← Back to login
+          ? Back to login
         </Link>
       </p>
     </div>

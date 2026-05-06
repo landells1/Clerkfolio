@@ -184,7 +184,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
     <div>
       <div className="flex items-center justify-between mb-1.5">
         <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
-          Competency themes <span className="normal-case font-normal text-[rgba(245,245,242,0.35)]">(optional)</span>
+          Competency themes <span className="normal-case font-normal text-[rgba(245,245,242,0.55)]">(optional)</span>
         </label>
         <div className="flex items-center gap-3">
           <button
@@ -217,7 +217,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               {labelByValue.get(theme) ?? theme} x
             </button>
           ))}
-          <button type="button" onClick={() => setOpen(true)} className="text-[11px] text-[rgba(245,245,242,0.35)] hover:text-[#F5F5F2] px-1">edit</button>
+          <button type="button" onClick={() => setOpen(true)} className="text-[11px] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] px-1">edit</button>
         </div>
       )}
 
@@ -324,7 +324,7 @@ function ThemeManager({
           <div key={theme.id} className="flex items-center justify-between gap-3 p-3">
             <div className="min-w-0">
               <p className="text-sm font-medium text-[#F5F5F2]">{theme.name}</p>
-              <p className="text-xs text-[rgba(245,245,242,0.35)]">{theme.slug}</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">{theme.slug}</p>
             </div>
             <div className="flex items-center gap-2">
               <input

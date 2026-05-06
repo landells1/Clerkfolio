@@ -111,14 +111,14 @@ export default function OnboardingPage() {
             <div className="h-1 w-28 overflow-hidden rounded-full bg-white/[0.08]">
               <div className="h-full rounded-full bg-[#1B6FD9] transition-all" style={{ width: `${progress}%` }} />
             </div>
-            <span className="text-xs text-[rgba(245,245,242,0.35)]">{stepIndex + 1} / {steps.length}</span>
+            <span className="text-xs text-[rgba(245,245,242,0.55)]">{stepIndex + 1} / {steps.length}</span>
           </div>
         </div>
       </header>
 
       <main className="mx-auto flex max-w-4xl flex-col px-5 py-10">
         <div className="mb-8">
-          <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Account setup</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Account setup</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
             {step === 'profile' && 'Set up your portfolio profile'}
             {step === 'specialties' && 'Choose your first tracked specialty'}
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
                       <span className="text-sm font-medium">{config.name}</span>
                       <span className={`h-4 w-4 rounded-full border ${selected ? 'border-[#1B6FD9] bg-[#1B6FD9]' : 'border-white/[0.18]'}`} />
                     </div>
-                    <p className="mt-2 text-xs text-[rgba(245,245,242,0.38)]">{config.cycleYear}</p>
+                    <p className="mt-2 text-xs text-[rgba(245,245,242,0.55)]">{config.cycleYear}</p>
                   </button>
                 )
               })}

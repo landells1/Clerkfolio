@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const body = await req.json().catch(() => ({}))
+  const includeEvidence = body?.includeEvidence !== false
 
   const zip = new JSZip()
   const dateStr = new Date().toISOString().split('T')[0]
@@ -51,7 +53,9 @@ export async function POST(req: NextRequest) {
     supabase.from('specialty_applications').select('*').eq('user_id', user.id),
     supabase.from('arcp_entry_links').select('*').eq('user_id', user.id),
     supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`),
-    supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean'),
+    includeEvidence
+      ? supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean')
+      : Promise.resolve({ data: [] }),
   ])
 
   const appIds = (specialtyApps ?? []).map(a => a.id)
@@ -75,7 +79,9 @@ export async function POST(req: NextRequest) {
       templates: templates?.length ?? 0,
       evidence_files: evidenceFiles?.length ?? 0,
     },
-    import_notes: 'Files in raw/ preserve database-shaped records. Files in readable/ add display labels for human review. Evidence binaries are grouped by entry id in evidence/.',
+    import_notes: includeEvidence
+      ? 'Files in raw/ preserve database-shaped records. Files in readable/ add display labels for human review. Evidence binaries are grouped by entry id in evidence/.'
+      : 'Files in raw/ preserve database-shaped records. Evidence binaries were excluded from this export.',
   }
 
   root.file('manifest.json', JSON.stringify(manifest, null, 2))

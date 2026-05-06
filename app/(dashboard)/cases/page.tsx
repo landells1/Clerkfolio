@@ -92,7 +92,7 @@ export default async function CasesPage({
       </div>
 
       <form className="mb-3 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search cases" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.3)] outline-none focus:border-[#1B6FD9]" />
+        <input name="q" defaultValue={q} placeholder="Search cases" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]" />
         <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
           <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
           Green only
@@ -137,7 +137,7 @@ export default async function CasesPage({
       {filteredCases.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">{cases?.length ? 'No cases match these filters' : 'No cases logged yet'}</p>
-          <p className="text-xs text-[rgba(245,245,242,0.3)] mb-6 max-w-xs">Start logging anonymised clinical cases. They will appear here as a journal timeline.</p>
+          <p className="text-xs text-[rgba(245,245,242,0.55)] mb-6 max-w-xs">Start logging anonymised clinical cases. They will appear here as a journal timeline.</p>
           <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
             Log your first case
           </Link>
