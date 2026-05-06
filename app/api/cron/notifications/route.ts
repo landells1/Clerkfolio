@@ -10,7 +10,7 @@ export const maxDuration = 30
 
 type NotificationDraft = {
   user_id: string
-  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window_open' | 'student_verification_expiring'
+  type: 'deadline_due' | 'share_link_expiring' | 'activity_nudge' | 'application_window_open' | 'student_verification_expiring' | 'mandatory_training_expiring'
   title: string
   body: string
   link: string
@@ -31,7 +31,7 @@ function daysUntil(date: string) {
 }
 
 function preferenceAllows(prefs: Preferences, type: NotificationDraft['type']) {
-  if (type === 'deadline_due' || type === 'student_verification_expiring') return prefs.deadlines !== false
+  if (type === 'deadline_due' || type === 'student_verification_expiring' || type === 'mandatory_training_expiring') return prefs.deadlines !== false
   if (type === 'share_link_expiring') return prefs.share_link_expiring !== false
   if (type === 'activity_nudge') return prefs.activity_nudge === true
   if (type === 'application_window_open') return prefs.application_window !== false
@@ -112,6 +112,25 @@ export async function GET(req: NextRequest) {
         ? 'Re-verify your student email today to keep your student features active.'
         : `Re-verify your student email within ${daysLeft} day${daysLeft !== 1 ? 's' : ''} to keep your student features active.`,
       link: '/settings',
+    })
+  })
+
+  const { data: expiringTraining } = await supabase
+    .from('personal_log')
+    .select('user_id, title, expires_at')
+    .eq('kind', 'mandatory_training')
+    .is('deleted_at', null)
+    .gte('expires_at', todayStr)
+    .lte('expires_at', in30Str)
+
+  expiringTraining?.forEach(item => {
+    const daysLeft = daysUntil(item.expires_at)
+    drafts.push({
+      user_id: item.user_id,
+      type: 'mandatory_training_expiring',
+      title: `Training expiring: ${item.title}`,
+      body: daysLeft <= 0 ? 'Expires today' : `Expires in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}`,
+      link: '/logs/training',
     })
   })
 

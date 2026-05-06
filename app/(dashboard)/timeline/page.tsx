@@ -10,7 +10,7 @@ export default async function TimelinePage() {
   const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }] = await Promise.all([
     supabase
       .from('goals')
-      .select('id, category, target_count, due_date, specialty_application_id, created_at')
+      .select('id, category, target_count, due_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
       .eq('user_id', user!.id)
       .order('due_date', { ascending: true }),
     supabase

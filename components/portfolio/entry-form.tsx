@@ -640,12 +640,30 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <Field label="Trust / hospital"><input type="text" value={auditTrust} onChange={e => setAuditTrust(e.target.value)} className={INPUT} placeholder="e.g. Royal London" /></Field>
               </div>
               <Field label="Cycle stage">
-                <select value={auditCycleStage} onChange={e => setAuditCycleStage(e.target.value)} className={SELECT}>
-                  <option value="">Select…</option>
-                  <option value="1st_cycle">1st cycle</option>
-                  <option value="re_audit">Re-audit</option>
-                  <option value="completed_loop">Completed loop</option>
-                </select>
+                <div className="grid gap-2 sm:grid-cols-3">
+                  {[
+                    { value: '1st_cycle', label: 'Round 1', hint: 'Baseline audit' },
+                    { value: 're_audit', label: 'Round 2', hint: 'Re-audit after change' },
+                    { value: 'completed_loop', label: 'Closed loop', hint: 'Action completed' },
+                  ].map(stage => (
+                    <button
+                      key={stage.value}
+                      type="button"
+                      onClick={() => {
+                        setAuditCycleStage(stage.value)
+                        markDirty()
+                      }}
+                      className={`rounded-xl border px-3 py-3 text-left transition-colors ${
+                        auditCycleStage === stage.value
+                          ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/10'
+                          : 'border-white/[0.08] bg-[#0B0B0C] hover:border-white/[0.16]'
+                      }`}
+                    >
+                      <span className="block text-sm font-medium text-[#F5F5F2]">{stage.label}</span>
+                      <span className="mt-1 block text-xs text-[rgba(245,245,242,0.45)]">{stage.hint}</span>
+                    </button>
+                  ))}
+                </div>
               </Field>
               <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
               <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={setAuditPresented} />

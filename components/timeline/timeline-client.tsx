@@ -12,6 +12,11 @@ export type TimelineGoal = {
   target_count: number
   due_date: string | null
   specialty_application_id: string | null
+  specific: string | null
+  measurable: string | null
+  achievable: string | null
+  relevant: string | null
+  time_bound: string | null
   created_at: string
 }
 
@@ -77,7 +82,17 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   const [month, setMonth] = useState(new Date())
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [showEventForm, setShowEventForm] = useState(false)
-  const [goalForm, setGoalForm] = useState({ category: 'custom', target_count: '1', due_date: iso(new Date()), specialty_application_id: '' })
+  const [goalForm, setGoalForm] = useState({
+    category: 'custom',
+    target_count: '1',
+    due_date: iso(new Date()),
+    specialty_application_id: '',
+    specific: '',
+    measurable: '',
+    achievable: '',
+    relevant: '',
+    time_bound: '',
+  })
   const [eventForm, setEventForm] = useState({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
   const [calendarToken, setCalendarToken] = useState<string | null>(null)
   const [hasCalendarFeed, setHasCalendarFeed] = useState(calendarFeedExists)
@@ -92,9 +107,9 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         const specialty = specialties.find(row => row.id === goal.specialty_application_id)
         return {
           id: `goal-${goal.id}`,
-          title: `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
+          title: goal.specific || `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
           date: goal.due_date!,
-          details: null,
+          details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n') || null,
           location: null,
           sourceUrl: null,
           sourceLabel: null,
@@ -137,6 +152,11 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       target_count: Number(goalForm.target_count) || 1,
       due_date: goalForm.due_date,
       specialty_application_id: goalForm.specialty_application_id || null,
+      specific: goalForm.specific.trim() || null,
+      measurable: goalForm.measurable.trim() || null,
+      achievable: goalForm.achievable.trim() || null,
+      relevant: goalForm.relevant.trim() || null,
+      time_bound: goalForm.time_bound.trim() || null,
       start_date: iso(new Date()),
     })
     if (error) {
@@ -145,6 +165,17 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     }
     addToast('Goal added', 'success')
     setShowGoalForm(false)
+    setGoalForm({
+      category: 'custom',
+      target_count: '1',
+      due_date: iso(new Date()),
+      specialty_application_id: '',
+      specific: '',
+      measurable: '',
+      achievable: '',
+      relevant: '',
+      time_bound: '',
+    })
     router.refresh()
   }
 
@@ -324,6 +355,24 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
               <option value="">Other</option>
               {specialties.map(specialty => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}
             </select>
+            <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.45)]">SMART detail</p>
+              {[
+                ['specific', 'Specific: what exactly will you complete?'],
+                ['measurable', 'Measurable: how will you know it is done?'],
+                ['achievable', 'Achievable: what makes it realistic?'],
+                ['relevant', 'Relevant: why does it matter now?'],
+                ['time_bound', 'Time-bound: what is the checkpoint?'],
+              ].map(([key, placeholder]) => (
+                <input
+                  key={key}
+                  value={goalForm[key as keyof typeof goalForm]}
+                  onChange={e => setGoalForm(f => ({ ...f, [key]: e.target.value }))}
+                  placeholder={placeholder}
+                  className="w-full min-h-[40px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]"
+                />
+              ))}
+            </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowGoalForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>
               <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-[#0B0B0C] rounded-lg px-4 py-2.5 text-sm font-semibold">Add goal</button>
