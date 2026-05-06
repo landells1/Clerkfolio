@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -49,7 +49,7 @@ export default function SessionsPage() {
   }
 
   return (
-    <div className="max-w-4xl p-6 lg:p-8">
+    <div className="max-w-4xl mx-auto p-6 lg:p-8">
       <Link href="/settings" className="text-sm text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]">Back to settings</Link>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Sessions</h1>
       <div className="mt-6 space-y-3">

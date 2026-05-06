@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import HorusImportWizard from '@/components/import/horus-import-wizard'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
@@ -24,7 +24,7 @@ export default async function ImportPage() {
   }))
 
   return (
-    <div className="p-6 sm:p-8 max-w-5xl">
+    <div className="p-6 sm:p-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
         <Link href="/dashboard" className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -48,7 +48,7 @@ export default async function ImportPage() {
       ) : (
         <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-6">
           <h2 className="text-lg font-semibold text-[#F5F5F2]">Bulk import is a Pro feature</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[rgba(245,245,242,0.52)]">
+          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[rgba(245,245,242,0.52)]">
             CSV and Horus imports are available on Pro. Free accounts can still add cases and portfolio entries manually.
           </p>
           <Link

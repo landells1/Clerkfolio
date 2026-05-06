@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import Link from 'next/link'
@@ -37,7 +37,7 @@ export default function JsonImportPage() {
   }
 
   return (
-    <div className="p-6 sm:p-8 max-w-3xl">
+    <div className="p-6 sm:p-8 max-w-3xl mx-auto">
       <div className="mb-8 flex items-center gap-3">
         <Link href="/import" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back</Link>
         <div>

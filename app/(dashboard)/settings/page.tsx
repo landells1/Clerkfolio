@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
@@ -333,7 +333,7 @@ export default function SettingsPage() {
   ].filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
 
   return (
-    <div className="p-6 lg:p-8 max-w-3xl">
+    <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Settings</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your profile, plan, data, and preferences.</p>
@@ -355,7 +355,7 @@ export default function SettingsPage() {
           </select>
         </div>
         {subInfo?.tier === 'student' && (
-          <label className="mt-5 block max-w-xs text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+          <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
             Expected graduation date
             <input
               type="date"
@@ -728,7 +728,7 @@ function ConfirmModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <div className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
+      <div className="w-full sm:max-w-md mx-auto bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">{title}</h2>
         <p className="text-sm text-[rgba(245,245,242,0.5)] leading-relaxed mb-6">{body}</p>
         {confirmationRequired && (

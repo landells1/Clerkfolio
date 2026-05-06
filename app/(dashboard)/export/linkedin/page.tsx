@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import LinkedInSnippets from '@/components/export/linkedin-snippets'
 
@@ -15,7 +15,7 @@ export default async function LinkedInExportPage() {
     : { data: [] }
 
   return (
-    <div className="max-w-3xl p-6 lg:p-8">
+    <div className="max-w-3xl mx-auto p-6 lg:p-8">
       <div className="mb-8 flex items-center gap-3">
         <Link href="/export" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back</Link>
         <div>

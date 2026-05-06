@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 
@@ -27,7 +27,7 @@ export default async function CvGeneratorPage({
   const rows = (entries ?? []) as PortfolioEntry[]
 
   return (
-    <div className="max-w-5xl p-6 lg:p-8">
+    <div className="max-w-5xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <Link href="/export" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Export</Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">CV generator</h1>

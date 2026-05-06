@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+﻿import { createClient } from '@/lib/supabase/server'
 import ARCPPageClient from '@/components/arcp/arcp-page-client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 
@@ -19,7 +19,7 @@ export default async function ARCPPage() {
   ])
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">ARCP Evidence</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">

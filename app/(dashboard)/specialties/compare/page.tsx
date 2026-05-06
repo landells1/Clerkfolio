@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { calculateDomainScore, getSpecialtyConfig, type SpecialtyApplication, type SpecialtyEntryLink } from '@/lib/specialties'
 
@@ -26,7 +26,7 @@ export default async function SpecialtyComparePage() {
   const domainLabels = Array.from(new Set(configs.flatMap(item => item.config!.domains.map(domain => domain.label))))
 
   return (
-    <div className="max-w-6xl p-6 lg:p-8">
+    <div className="max-w-6xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <Link href="/specialties" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Specialties</Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Specialty comparison</h1>

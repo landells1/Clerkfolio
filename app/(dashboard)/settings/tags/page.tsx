@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import Link from 'next/link'
 import { useState } from 'react'
@@ -32,7 +32,7 @@ export default function TagsSettingsPage() {
   }
 
   return (
-    <div className="max-w-3xl p-6 lg:p-8">
+    <div className="max-w-3xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <Link href="/settings" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Settings</Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Specialty tags</h1>

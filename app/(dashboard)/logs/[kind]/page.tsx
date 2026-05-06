@@ -68,7 +68,7 @@ export default async function LogsKindPage({
     : []
 
   return (
-    <PullToRefresh className="max-w-5xl p-6 lg:p-8">
+    <PullToRefresh className="max-w-5xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Logs</h1>
         <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Training, CPD, WBA, meetings, exams, OOP, and rotations.</p>

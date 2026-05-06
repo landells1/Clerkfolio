@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -105,7 +105,7 @@ export default function ApiSettingsPage() {
   }
 
   return (
-    <div className="p-8 max-w-3xl">
+    <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-8 flex items-center gap-3">
         <Link href="/settings" className="text-[rgba(245,245,242,0.4)] transition-colors hover:text-[#F5F5F2]">
           Back

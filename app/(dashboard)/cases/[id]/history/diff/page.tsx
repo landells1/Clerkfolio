@@ -35,7 +35,7 @@ export default async function CaseDiffPage({
   const changes = a && b ? diffLines(renderSnapshot(a.snapshot), renderSnapshot(b.snapshot)) : []
 
   return (
-    <div className="max-w-5xl p-6 lg:p-8">
+    <div className="max-w-5xl mx-auto p-6 lg:p-8">
       <Link href={`/cases/${id}/history`} className="text-sm text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]">Back to history</Link>
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Revision diff</h1>
       <div className="mt-6 overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">

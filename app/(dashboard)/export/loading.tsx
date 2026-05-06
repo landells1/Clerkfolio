@@ -1,8 +1,8 @@
-import { Skeleton } from '@/components/ui/skeleton'
+﻿import { Skeleton } from '@/components/ui/skeleton'
 
 export default function ExportLoading() {
   return (
-    <div className="p-6 lg:p-8 max-w-4xl">
+    <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <Skeleton className="h-4 w-20 mb-6" />
       <div className="flex items-start justify-between mb-8 gap-4">
         <div className="space-y-2">

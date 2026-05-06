@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -346,7 +346,7 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="max-w-5xl p-6 lg:p-8">
+    <div className="max-w-5xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <Link href="/portfolio" className="text-sm text-[rgba(245,245,242,0.45)] transition-colors hover:text-[#F5F5F2]">Back to portfolio</Link>
       </div>
@@ -556,7 +556,7 @@ export default function ExportPage() {
       {tab === 'backup' && (
         <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
           <h2 className="text-lg font-semibold text-[#F5F5F2]">Full data backup</h2>
-          <p className="mt-2 max-w-2xl text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">
+          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">
             Download a ZIP containing your profile, portfolio entries, cases, deadlines, goals, specialty scoring links, templates, and evidence files.
           </p>
           <label className="mt-4 flex items-center gap-2 text-sm text-[rgba(245,245,242,0.72)]">

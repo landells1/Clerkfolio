@@ -215,7 +215,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <PullToRefresh className="p-6 lg:p-8 max-w-6xl">
+    <PullToRefresh className="p-6 lg:p-8 max-w-6xl mx-auto w-full">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Dashboard</h1>
@@ -248,64 +248,67 @@ export default async function DashboardPage() {
       {!hasEntryToday && <EmptyDayPrompt />}
       <ResumeDraftsCard />
 
-      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
-        <ActivityHeatmap dates={heatmapDates} />
-        <CalendarWidget items={calendarItems} />
-      </div>
+      {/* Two-column layout on wide screens: main content left, widgets right */}
+      <div className="xl:grid xl:grid-cols-[1fr_300px] xl:gap-6 xl:items-start">
 
-      <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 mb-6">
-        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-          <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">Quick add</p>
-          <QuickAddButton userInterests={trackedSpecialtyKeys} />
-        </div>
-        <UpcomingTimeline items={upcomingItems} />
-      </div>
+        {/* Main content column */}
+        <div className="space-y-5 min-w-0">
+          <ActivityHeatmap dates={heatmapDates} />
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 mb-6">
-        <StatCard label="Portfolio entries" value={allEntries?.length ?? 0} href="/portfolio" />
-        <StatCard label="Cases logged" value={allCases?.length ?? 0} href="/cases" />
-        <StatCard label="Timeline items" value={upcomingItems.length} href="/timeline" />
-      </div>
-
-      <div className="space-y-5">
-        <DashboardSection title="Trends" defaultOpen>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <EntriesOverTime data={entriesOverTime} />
-            <TimeSinceCard rows={timeSinceRows} />
+          <div className="grid grid-cols-3 gap-4">
+            <StatCard label="Portfolio entries" value={allEntries?.length ?? 0} href="/portfolio" />
+            <StatCard label="Cases logged" value={allCases?.length ?? 0} href="/cases" />
+            <StatCard label="Timeline items" value={upcomingItems.length} href="/timeline" />
           </div>
-        </DashboardSection>
 
-        <DashboardSection title="Portfolio" defaultOpen>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <CoverageWidget counts={coverageCounts} />
-            <CareerTimeline stage={profile?.career_stage} />
-          </div>
-        </DashboardSection>
-
-        {(rotations ?? []).length > 0 && (
-          <DashboardSection title="Rotations" defaultOpen>
-            <RotationSummaryCards
-              rotations={(rotations ?? []) as { id: string; title: string; date: string; meta: { detail?: string } | null }[]}
-              entries={(allEntries ?? []) as { date: string }[]}
-              cases={(allCases ?? []) as { date: string }[]}
-            />
+          <DashboardSection title="Trends" defaultOpen>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <EntriesOverTime data={entriesOverTime} />
+              <TimeSinceCard rows={timeSinceRows} />
+            </div>
           </DashboardSection>
-        )}
 
-        <DashboardSection title="Specialty progress" defaultOpen>
-          <SpecialtyProgress rows={specialtyProgressRows} />
-        </DashboardSection>
+          <DashboardSection title="Portfolio" defaultOpen>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <CoverageWidget counts={coverageCounts} />
+              <CareerTimeline stage={profile?.career_stage} />
+            </div>
+          </DashboardSection>
 
+          {(rotations ?? []).length > 0 && (
+            <DashboardSection title="Rotations" defaultOpen>
+              <RotationSummaryCards
+                rotations={(rotations ?? []) as { id: string; title: string; date: string; meta: { detail?: string } | null }[]}
+                entries={(allEntries ?? []) as { date: string }[]}
+                cases={(allCases ?? []) as { date: string }[]}
+              />
+            </DashboardSection>
+          )}
+
+          <DashboardSection title="Specialty progress" defaultOpen>
+            <SpecialtyProgress rows={specialtyProgressRows} />
+          </DashboardSection>
+
+          <DashboardSection title="Clinical areas">
+            <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
+          </DashboardSection>
+        </div>
+
+        {/* Right widgets column */}
+        <div className="space-y-4 mt-5 xl:mt-0">
+          <CalendarWidget items={calendarItems} />
+          <UpcomingTimeline items={upcomingItems} />
+        </div>
+      </div>
+
+      {/* Recent activity — full width */}
+      <div className="mt-5">
         <DashboardSection title="Recent activity">
           <ActivityFeed
             entries={(recentEntries ?? []) as PortfolioEntry[]}
             cases={(recentCases ?? []) as Case[]}
             specialtyScores={specialtyScores}
           />
-        </DashboardSection>
-
-        <DashboardSection title="Clinical areas">
-          <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
         </DashboardSection>
       </div>
     </PullToRefresh>

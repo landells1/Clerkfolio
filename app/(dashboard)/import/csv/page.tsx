@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import CsvImportFlow from '@/components/import/csv-import-flow'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
@@ -9,7 +9,7 @@ export default async function CsvImportPage() {
   const sub = user ? await fetchSubscriptionInfo(supabase, user.id) : null
 
   return (
-    <div className="p-6 sm:p-8 max-w-5xl">
+    <div className="p-6 sm:p-8 max-w-5xl mx-auto">
       <div className="mb-8 flex items-center gap-3">
         <Link href="/import" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back</Link>
         <div>
