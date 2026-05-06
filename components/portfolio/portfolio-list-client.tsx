@@ -16,7 +16,7 @@ type Props = {
 export default function PortfolioListClient({ entries, userInterests }: Props) {
   const router = useRouter()
   const supabase = createClient()
-  const { addToast } = useToast()
+  const { addToast, addUndoToast } = useToast()
 
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -63,8 +63,12 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       .update({ deleted_at: new Date().toISOString() })
       .in('id', Array.from(selected))
     setTrashing(false)
+    const ids = Array.from(selected)
     if (error) { addToast('Failed to trash entries', 'error'); return }
-    addToast(`${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} moved to trash`, 'success')
+    addUndoToast(`${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} moved to trash`, async () => {
+      await supabase.from('portfolio_entries').update({ deleted_at: null }).in('id', ids)
+      router.refresh()
+    })
     setSelected(new Set()); setSelectMode(false)
     router.refresh()
   }

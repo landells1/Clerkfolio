@@ -453,6 +453,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'portfolio') }
 
     if (mode === 'create') {
+      const { count: existingInCategory } = await supabase
+        .from('portfolio_entries')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', user.id)
+        .eq('category', category)
+        .is('deleted_at', null)
       const { data, error } = await supabase
         .from('portfolio_entries')
         .insert({ ...scoredPayload, user_id: user.id })
@@ -470,6 +476,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       }
       sessionStorage.removeItem(draftKey)
       setIsDirty(false)
+      if ((existingInCategory ?? 0) === 0) {
+        import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
+        await supabase.from('profiles').update({ first_per_category: { [category]: new Date().toISOString() } }).eq('id', user.id)
+      }
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
     } else {
@@ -531,6 +541,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     <>
       <form
         onSubmit={handleSubmit}
+        onPaste={event => {
+          const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
+          if (files.length === 0) return
+          setPendingFiles(current => [...current, ...files])
+          markDirty()
+        }}
         onDragOver={event => event.preventDefault()}
         onDrop={event => {
           event.preventDefault()

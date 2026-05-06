@@ -99,7 +99,7 @@ export async function POST(req: NextRequest) {
   const subInfo = await fetchSubscriptionInfo(supabase, user.id)
   if (!subInfo.limits.canCreateShareLink) {
     return NextResponse.json(
-      { error: 'You have used your free share link. Upgrade to Pro to create more.' },
+      { error: 'limit_reached', limit: 1, used: subInfo.usage.shareLinksUsed, upgrade_url: '/upgrade' },
       { status: 403 }
     )
   }

@@ -1,10 +1,11 @@
-export function relativeDate(isoDate: string): string {
+export function relativeDate(isoDate: string, timezone = 'Europe/London'): string {
   const date = new Date(isoDate.includes('T') ? isoDate : isoDate + 'T12:00:00Z')
   const now = new Date()
 
-  // Compare local calendar dates so BST/timezone doesn't shift "yesterday" to "today"
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-  const startOfDate  = new Date(date.getFullYear(), date.getMonth(), date.getDate())
+  const todayParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(now)
+  const dateParts = new Intl.DateTimeFormat('en-CA', { timeZone: timezone, year: 'numeric', month: '2-digit', day: '2-digit' }).format(date)
+  const startOfToday = new Date(`${todayParts}T00:00:00Z`)
+  const startOfDate = new Date(`${dateParts}T00:00:00Z`)
   const diffDays = Math.round((startOfToday.getTime() - startOfDate.getTime()) / 86400000)
 
   if (diffDays < 0)  return 'In the future'

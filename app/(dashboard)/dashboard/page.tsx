@@ -18,7 +18,13 @@ import TimeSinceCard, { buildTimeSinceRows } from '@/components/dashboard/time-s
 import CalendarWidget, { type CalendarWidgetItem } from '@/components/dashboard/calendar-widget'
 import CareerTimeline from '@/components/dashboard/career-timeline'
 import RotationSummaryCards from '@/components/logs/rotation-summary-cards'
+import ChangelogModal from '@/components/dashboard/changelog-modal'
+import DemoStarterCard from '@/components/dashboard/demo-starter-card'
+import CareerWelcomeCard from '@/components/dashboard/career-welcome-card'
+import GuidedTour from '@/components/dashboard/guided-tour'
 import { londonDateKey } from '@/lib/engagement/streaks'
+import { CHANGELOG } from '@/lib/changelog'
+import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
 import type { Category, PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
@@ -60,7 +66,7 @@ export default async function DashboardPage() {
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('first_name, career_stage, created_at, last_anniversary_seen_year, streak_cache, onboarding_checklist_dismissed, onboarding_checklist_completed_items')
+      .select('first_name, career_stage, created_at, last_anniversary_seen_year, streak_cache, onboarding_checklist_dismissed, onboarding_checklist_completed_items, changelog_seen_at, guided_tour_step, demo_dismissed_at')
       .eq('id', user!.id)
       .single(),
     supabase
@@ -129,6 +135,8 @@ export default async function DashboardPage() {
       .order('date', { ascending: false })
       .limit(8),
   ])
+  const seededDemos = await ensureDemoStarterPack(supabase, user!.id, profile?.demo_dismissed_at)
+  const changelogEntries = CHANGELOG.filter(entry => !profile?.changelog_seen_at || new Date(entry.date).getTime() > new Date(profile.changelog_seen_at).getTime())
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
   const { data: specialtyLinksRaw } = applicationIds.length > 0
@@ -223,6 +231,10 @@ export default async function DashboardPage() {
       {showAnniversary && (
         <AnniversaryBanner userId={user!.id} year={anniversaryYear} />
       )}
+      <ChangelogModal userId={user!.id} entries={changelogEntries} />
+      <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />
+      <CareerWelcomeCard stage={profile?.career_stage} />
+      <DemoStarterCard show={seededDemos} />
 
       {profile && !profile.onboarding_checklist_dismissed && (
         <OnboardingChecklist

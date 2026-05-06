@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
   ])
 
   if (!subInfo.limits.canExportPdf) {
-    return NextResponse.json({ error: 'subscription_required' }, { status: 403 })
+    return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
   }
 
   const body = await request.json()

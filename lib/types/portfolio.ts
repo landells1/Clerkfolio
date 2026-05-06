@@ -45,6 +45,7 @@ export type PortfolioEntry = {
   notes: string | null
   pinned: boolean
   completeness_score?: number | null
+  is_demo?: boolean | null
   deleted_at: string | null
   created_at: string
   updated_at: string

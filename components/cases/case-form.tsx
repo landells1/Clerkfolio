@@ -223,6 +223,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   return (
     <form
       onSubmit={handleSubmit}
+      onPaste={event => {
+        const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
+        if (files.length === 0) return
+        setPendingFiles(current => [...current, ...files])
+        markDirty()
+      }}
       onDragOver={event => event.preventDefault()}
       onDrop={event => {
         event.preventDefault()

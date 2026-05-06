@@ -27,6 +27,7 @@ type ProfileState = {
   student_graduation_date: string
   referral_code: string
   foundation_gift_granted_at: string
+  timezone: string
 }
 
 export default function SettingsPage() {
@@ -42,6 +43,7 @@ export default function SettingsPage() {
     student_graduation_date: '',
     referral_code: '',
     foundation_gift_granted_at: '',
+    timezone: 'Europe/London',
   })
   const [studentEmail, setStudentEmail] = useState({
     email: '',
@@ -64,6 +66,7 @@ export default function SettingsPage() {
   const [exportLoading, setExportLoading] = useState(false)
   const [billingLoading, setBillingLoading] = useState(false)
   const [origin, setOrigin] = useState('')
+  const [settingsSearch, setSettingsSearch] = useState('')
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -79,7 +82,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -101,6 +104,7 @@ export default function SettingsPage() {
           student_graduation_date: data.student_graduation_date ?? '',
           referral_code: referralCode,
           foundation_gift_granted_at: data.foundation_gift_granted_at ?? '',
+          timezone: data.timezone ?? 'Europe/London',
         })
         setSubInfo(subInfo)
         setStudentEmail({
@@ -136,6 +140,7 @@ export default function SettingsPage() {
       career_stage: next.career_stage,
       student_graduation_date: next.student_graduation_date,
       referral_code: next.referral_code,
+      timezone: next.timezone,
     }
 
     const { error } = await supabase
@@ -289,6 +294,16 @@ export default function SettingsPage() {
   if (loading) {
     return <div className="p-8 text-sm text-[rgba(245,245,242,0.45)]">Loading settings...</div>
   }
+  const settingsLinks = [
+    ['/settings/notifications', 'Notifications'],
+    ['/settings/referrals', 'Referrals'],
+    ['/settings/snippets', 'Snippets'],
+    ['/settings/templates', 'Templates'],
+    ['/settings/themes', 'Themes'],
+    ['/settings/tags', 'Specialty tags'],
+    ['/settings/shared-links', 'Shared links'],
+    ['/trash', 'Trash'],
+  ].filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl">
@@ -364,6 +379,15 @@ export default function SettingsPage() {
             Email
             <input value={email} disabled className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.45)] normal-case tracking-normal" />
           </label>
+          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            Timezone
+            <select value={profile.timezone} onChange={e => setProfile(p => ({ ...p, timezone: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal">
+              <option value="Europe/London">Europe/London</option>
+              <option value="UTC">UTC</option>
+              <option value="Europe/Dublin">Europe/Dublin</option>
+              <option value="Europe/Paris">Europe/Paris</option>
+            </select>
+          </label>
           <button disabled={savingProfile} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
             {savingProfile ? 'Saving...' : 'Save profile'}
           </button>
@@ -429,14 +453,8 @@ export default function SettingsPage() {
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        <SettingsLink href="/settings/notifications" label="Notifications" />
-        <SettingsLink href="/settings/referrals" label="Referrals" />
-        <SettingsLink href="/settings/snippets" label="Snippets" />
-        <SettingsLink href="/settings/templates" label="Templates" />
-        <SettingsLink href="/settings/themes" label="Themes" />
-        <SettingsLink href="/settings/tags" label="Specialty tags" />
-        <SettingsLink href="/settings/shared-links" label="Shared links" />
-        <SettingsLink href="/trash" label="Trash" />
+        <input value={settingsSearch} onChange={e => setSettingsSearch(e.target.value)} placeholder="Search settings" className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] sm:col-span-2" />
+        {settingsLinks.map(([href, label]) => <SettingsLink key={href} href={href} label={label} />)}
         <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
           Restart tutorial
         </button>

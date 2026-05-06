@@ -209,7 +209,7 @@ export default function ExportPage() {
     setGenerating(false)
     if (!res.ok) {
       const json = await res.json()
-      setError(json.error ?? 'Export failed. Please try again.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free PDF export. Upgrade or delete one to free a slot.` : json.error ?? 'Export failed. Please try again.')
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
@@ -260,7 +260,7 @@ export default function ExportPage() {
     const json = await res.json()
     setShareLoading(false)
     if (!res.ok) {
-      setError(json.error ?? 'Could not create share link.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
       return
     }
     setShareLinks(prev => [json as ShareLink, ...prev])
