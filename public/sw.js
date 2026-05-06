@@ -1,7 +1,8 @@
-const STATIC_CACHE = 'clerkfolio-static-v3'
+const STATIC_CACHE = 'clerkfolio-static-v4'
 const SHELL_CACHE = 'clerkfolio-shell-v1'
 const API_CACHE = 'clerkfolio-api-v1'
 const SHELL_PATHS = new Set(['/dashboard', '/cases', '/portfolio'])
+const OFFLINE_LATEST_PATH = '/api/offline/latest'
 
 const CACHEABLE_STATIC = (url) => {
   if (url.pathname.startsWith('/_next/static/')) return true
@@ -27,6 +28,16 @@ self.addEventListener('message', (event) => {
       caches.delete(SHELL_CACHE),
       caches.delete(API_CACHE),
     ]))
+  }
+  if (event.data?.type === 'WARM_OFFLINE_LATEST') {
+    event.waitUntil(
+      fetch(OFFLINE_LATEST_PATH)
+        .then((response) => {
+          if (!response.ok) return
+          return caches.open(API_CACHE).then((cache) => cache.put(OFFLINE_LATEST_PATH, response.clone()))
+        })
+        .catch(() => undefined)
+    )
   }
 })
 

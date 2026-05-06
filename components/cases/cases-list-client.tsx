@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import type { Case } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
+import SwipeToDelete from '@/components/ui/swipe-to-delete'
 
 type Props = {
   cases: Case[]
@@ -93,6 +94,19 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     router.refresh()
   }
 
+  async function swipeTrash(c: Case) {
+    const { error } = await supabase
+      .from('cases')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', c.id)
+    if (error) {
+      addToast('Failed to trash case', 'error')
+      return
+    }
+    addToast('Case moved to trash', 'success')
+    router.refresh()
+  }
+
   async function bulkAddTags() {
     if (bulkTags.length === 0) return
     setBusy(true)
@@ -140,7 +154,11 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           <section>
             <h2 className="mb-3 text-sm font-semibold text-[#F5F5F2]">Pinned</h2>
             <div className="space-y-3">
-              {pinned.map(c => <JournalCaseCard key={c.id} c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />)}
+              {pinned.map(c => (
+                <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
+                  <JournalCaseCard c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+                </SwipeToDelete>
+              ))}
             </div>
           </section>
         )}
@@ -149,7 +167,11 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           <section key={month} className="relative border-l border-white/[0.08] pl-5">
             <h2 className="sticky top-16 z-10 -ml-5 mb-3 bg-[#0B0B0C] py-1 pl-5 text-sm font-semibold text-[rgba(245,245,242,0.72)]">{month}</h2>
             <div className="space-y-3">
-              {monthCases.map(c => <JournalCaseCard key={c.id} c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />)}
+              {monthCases.map(c => (
+                <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
+                  <JournalCaseCard c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+                </SwipeToDelete>
+              ))}
             </div>
           </section>
         ))}
@@ -160,8 +182,8 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       </div>
 
       {filtersOpen && (
-        <div className="fixed inset-0 z-50 flex justify-end bg-black/60" onClick={() => setFiltersOpen(false)}>
-          <div className="h-full w-full max-w-md bg-[#141416] border-l border-white/[0.08] p-6 sm:rounded-l-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:justify-end" onClick={() => setFiltersOpen(false)}>
+          <div className="max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/[0.08] bg-[#141416] p-6 sm:h-full sm:max-h-none sm:rounded-l-2xl sm:rounded-tr-none sm:border-l sm:border-t-0" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-[#F5F5F2]">Filters</h2>
               <button onClick={() => setFiltersOpen(false)} className="min-h-[44px] px-3 text-[rgba(245,245,242,0.55)]">Close</button>
@@ -195,8 +217,8 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       )}
 
       {tagModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4" onClick={() => setTagModalOpen(false)}>
-          <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#141416] p-6" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setTagModalOpen(false)}>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <h2 className="mb-2 text-base font-semibold text-[#F5F5F2]">Add specialty tag</h2>
             <p className="mb-3 text-xs text-[rgba(245,245,242,0.4)]">Adding to {selected.size} {selected.size === 1 ? 'case' : 'cases'}.</p>
             <SpecialtyTagSelect value={bulkTags} onChange={setBulkTags} userInterests={userInterests} trackedOnly />

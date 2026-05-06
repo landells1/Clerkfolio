@@ -1,19 +1,8 @@
-import { createClient } from '@/lib/supabase/server'
-import TrashActions from '@/components/trash/trash-actions'
+﻿import { createClient } from '@/lib/supabase/server'
+import TrashRow, { type TrashItem } from '@/components/trash/trash-row'
 import EmptyTrashButton from '@/components/trash/empty-trash-button'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-
-type TrashItemType = 'entry' | 'case'
-
-type TrashItem = {
-  id: string
-  title: string
-  subtitle: string
-  category: string | null
-  date: string
-  deletedAt: string
-  type: TrashItemType
-}
+import PullToRefresh from '@/components/ui/pull-to-refresh'
 
 export default async function TrashPage({
   searchParams,
@@ -68,7 +57,7 @@ export default async function TrashPage({
   }
 
   return (
-    <div className="p-8 max-w-4xl">
+    <PullToRefresh className="p-8 max-w-4xl">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Trash</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
@@ -123,7 +112,7 @@ export default async function TrashPage({
           ))}
         </div>
       )}
-    </div>
+    </PullToRefresh>
   )
 }
 
@@ -132,28 +121,6 @@ function TrashStat({ label, value }: { label: string; value: number }) {
     <div className="bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
       <p className="text-xs text-[rgba(245,245,242,0.4)] mb-1">{label}</p>
       <p className="text-xl font-semibold text-[#F5F5F2]">{value}</p>
-    </div>
-  )
-}
-
-function TrashRow({ item }: { item: TrashItem }) {
-  const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
-  return (
-    <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[rgba(245,245,242,0.5)]">
-            {typeLabel}
-          </span>
-          <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{item.title}</p>
-        </div>
-        <p className="text-xs text-[rgba(245,245,242,0.55)] capitalize">
-          {item.subtitle} · {entryDate} · Deleted {deletedDate}
-        </p>
-      </div>
-      <TrashActions id={item.id} type={item.type} />
     </div>
   )
 }

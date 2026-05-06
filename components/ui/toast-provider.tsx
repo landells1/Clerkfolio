@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
@@ -22,10 +22,17 @@ export function useToast() {
   return useContext(ToastContext)
 }
 
+function maybeVibrateForSave(message: string, type: ToastType) {
+  if (type !== 'success') return
+  if (!/(saved|logged|updated)/i.test(message)) return
+  navigator.vibrate?.(30)
+}
+
 export default function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([])
 
   const addToast = useCallback((message: string, type: ToastType = 'info') => {
+    maybeVibrateForSave(message, type)
     const id = Math.random().toString(36).slice(2)
     setToasts(prev => [...prev, { id, message, type }])
     setTimeout(() => {
@@ -44,7 +51,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   return (
     <ToastContext.Provider value={{ addToast, addUndoToast }}>
       {children}
-      {/* Toast stack � fixed top-right */}
+      {/* Toast stack — fixed top-right */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" aria-live="polite">
         {toasts.map(toast => (
           <ToastItem

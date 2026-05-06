@@ -1,7 +1,8 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supabase/storage'
+import ImageLightbox, { type LightboxImage } from '@/components/ui/image-lightbox'
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -20,6 +21,7 @@ export default function EvidenceFiles({
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   // Signed URLs for image previews (loaded once on mount)
   const [previewUrls, setPreviewUrls] = useState<Record<string, string>>({})
 
@@ -63,6 +65,15 @@ export default function EvidenceFiles({
 
   if (files.length === 0) return null
 
+  const lightboxImages: (LightboxImage & { id: string })[] = files
+    .filter(file => previewUrls[file.id])
+    .map(file => ({
+      id: file.id,
+      src: previewUrls[file.id],
+      alt: `Preview of ${file.file_name}`,
+      name: file.file_name,
+    }))
+
   return (
     <div>
       <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-3">
@@ -82,12 +93,19 @@ export default function EvidenceFiles({
             className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3.5 py-2.5"
           >
             {previewUrls[file.id] ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                src={previewUrls[file.id]}
-                alt={`Preview of ${file.file_name}`}
-                className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]"
-              />
+              <button
+                type="button"
+                onClick={() => setLightboxIndex(Math.max(0, lightboxImages.findIndex(image => image.id === file.id)))}
+                className="flex-shrink-0 rounded border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-[#1B6FD9]"
+                aria-label={`Open preview of ${file.file_name}`}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewUrls[file.id]}
+                  alt={`Preview of ${file.file_name}`}
+                  className="w-9 h-9 rounded object-cover"
+                />
+              </button>
             ) : (
               <svg className="shrink-0 text-[rgba(245,245,242,0.55)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
@@ -117,7 +135,7 @@ export default function EvidenceFiles({
                       disabled={deleting === file.id}
                       className="text-[10px] text-red-400 hover:text-red-300 font-medium disabled:opacity-50"
                     >
-                      {deleting === file.id ? '�' : 'Yes'}
+                      {deleting === file.id ? '…' : 'Yes'}
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
@@ -147,6 +165,13 @@ export default function EvidenceFiles({
           })()
         ))}
       </ul>
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={lightboxImages}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
+      )}
     </div>
   )
 }

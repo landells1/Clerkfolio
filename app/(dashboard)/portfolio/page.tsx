@@ -5,6 +5,7 @@ import EntryCard from '@/components/portfolio/entry-card'
 import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
 import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 import SavedSearchBar from '@/components/search/saved-search-bar'
+import PullToRefresh from '@/components/ui/pull-to-refresh'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
 
@@ -97,7 +98,7 @@ export default async function PortfolioPage({
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)
 
   return (
-    <div className="p-6 lg:p-8">
+    <PullToRefresh className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Portfolio</h1>
@@ -190,7 +191,7 @@ export default async function PortfolioPage({
           {allEntries.length === 0 && <EmptyPortfolio />}
         </div>
       )}
-    </div>
+    </PullToRefresh>
   )
 }
 

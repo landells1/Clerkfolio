@@ -10,6 +10,15 @@
   "orientation": "portrait-primary",
   "lang": "en-GB",
   "categories": ["medical", "productivity"],
+  "share_target": {
+    "action": "/portfolio/new",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
   "icons": [
     {
       "src": "/icon-192",

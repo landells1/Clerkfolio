@@ -4,6 +4,7 @@ import CasesListClient from '@/components/cases/cases-list-client'
 import DraftResumeBanner from '@/components/cases/draft-resume-banner'
 import type { Case } from '@/lib/types/cases'
 import SavedSearchBar from '@/components/search/saved-search-bar'
+import PullToRefresh from '@/components/ui/pull-to-refresh'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
 
@@ -79,7 +80,7 @@ export default async function CasesPage({
   const total = allCasesMeta?.length ?? 0
 
   return (
-    <div className="p-6 lg:p-8">
+    <PullToRefresh className="p-6 lg:p-8">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Cases</h1>
@@ -145,6 +146,6 @@ export default async function CasesPage({
       ) : (
         <CasesListClient cases={filteredCases} userInterests={trackedSpecialtyKeys} />
       )}
-    </div>
+    </PullToRefresh>
   )
 }

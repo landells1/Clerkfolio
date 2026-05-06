@@ -4,6 +4,8 @@ import { createClient } from '@/lib/supabase/server'
 import PersonalLogForm, { type PersonalLogKind } from '@/components/logs/personal-log-form'
 import WbaHeatmap from '@/components/logs/wba-heatmap'
 import SavedSearchBar from '@/components/search/saved-search-bar'
+import LogList from '@/components/logs/log-list'
+import PullToRefresh from '@/components/ui/pull-to-refresh'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 
 const TABS: { slug: string; kind: PersonalLogKind; label: string }[] = [
@@ -66,7 +68,7 @@ export default async function LogsKindPage({
     : []
 
   return (
-    <div className="max-w-5xl p-6 lg:p-8">
+    <PullToRefresh className="max-w-5xl p-6 lg:p-8">
       <div className="mb-6">
         <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Logs</h1>
         <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Training, CPD, WBA, meetings, exams, OOP, and rotations.</p>
@@ -108,23 +110,7 @@ export default async function LogsKindPage({
           {logRows.length === 0 ? (
             <p className="p-6 text-sm text-[rgba(245,245,242,0.45)]">No entries yet.</p>
           ) : (
-            <div className="divide-y divide-white/[0.06]">
-              {logRows.map(row => (
-                <div key={row.id} className="p-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h2 className="text-sm font-semibold text-[#F5F5F2]">{row.title}</h2>
-                      <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">{new Date(row.date).toLocaleDateString('en-GB')}</p>
-                    </div>
-                    {row.expires_at && <span className="rounded bg-amber-400/10 px-2 py-1 text-xs text-amber-300">Expires {new Date(row.expires_at).toLocaleDateString('en-GB')}</span>}
-                  </div>
-                  <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">
-                    {[row.cpd_hours ? `${row.cpd_hours} CPD h` : '', row.score ? `Score ${row.score}` : '', row.attempts ? `${row.attempts} attempts` : '', row.cost_pence ? `GBP ${(row.cost_pence / 100).toFixed(2)}` : '', row.meta?.detail ?? ''].filter(Boolean).join(' - ')}
-                  </p>
-                  {row.notes && <p className="mt-2 text-sm leading-6 text-[rgba(245,245,242,0.58)]">{row.notes}</p>}
-                </div>
-              ))}
-            </div>
+            <LogList rows={logRows} />
           )}
         </section>
       </div>
@@ -134,6 +120,6 @@ export default async function LogsKindPage({
           <WbaHeatmap rows={logRows.map(row => ({ title: row.title, meta: row.meta }))} />
         </div>
       )}
-    </div>
+    </PullToRefresh>
   )
 }

@@ -4,6 +4,7 @@ import ToastProvider from '@/components/ui/toast-provider'
 import QuickAddModal from '@/components/dashboard/quick-add-modal'
 import CommandPalette from '@/components/ui/command-palette'
 import Cheatsheet from '@/components/ui/cheatsheet'
+import OfflineCachePrimer from '@/components/offline/offline-cache-primer'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
 type QuickAddInitial = { type?: EntryType; domain?: string; domains?: string[]; tags?: string[] }
@@ -97,6 +98,7 @@ export default function DashboardProviders({ children, userInterests }: { childr
     <SearchContext.Provider value={{ openSearch }}>
       <QuickAddContext.Provider value={{ openQuickAdd }}>
         <ToastProvider>
+          <OfflineCachePrimer />
           {children}
           {open && <QuickAddModal onClose={() => setOpen(false)} userInterests={userInterests} initialValues={initial} />}
           {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} />}

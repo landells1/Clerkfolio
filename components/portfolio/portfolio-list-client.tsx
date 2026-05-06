@@ -7,6 +7,7 @@ import EntryCard from './entry-card'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import SpecialtyTagSelect from './specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
+import SwipeToDelete from '@/components/ui/swipe-to-delete'
 
 type Props = {
   entries: PortfolioEntry[]
@@ -70,6 +71,22 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       router.refresh()
     })
     setSelected(new Set()); setSelectMode(false)
+    router.refresh()
+  }
+
+  async function handleSwipeTrash(entry: PortfolioEntry) {
+    const { error } = await supabase
+      .from('portfolio_entries')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', entry.id)
+    if (error) {
+      addToast('Failed to trash entry', 'error')
+      return
+    }
+    addUndoToast('Entry moved to trash', async () => {
+      await supabase.from('portfolio_entries').update({ deleted_at: null }).eq('id', entry.id)
+      router.refresh()
+    })
     router.refresh()
   }
 
@@ -162,7 +179,14 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       {/* Entry list */}
       <div className="flex flex-col gap-3">
         {entries.map(entry => (
-          <div key={entry.id} className="relative group/row flex items-stretch">
+          <SwipeToDelete
+            key={entry.id}
+            disabled={selectMode}
+            title="Move entry to trash?"
+            description={entry.title}
+            onConfirm={() => handleSwipeTrash(entry)}
+          >
+          <div className="relative group/row flex items-stretch">
             {/* Checkbox column — always reserves space, fades in on hover */}
             <div
               className={`flex-shrink-0 w-10 flex items-center justify-center cursor-pointer z-20 transition-opacity ${
@@ -197,6 +221,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               )}
             </div>
           </div>
+          </SwipeToDelete>
         ))}
       </div>
 
@@ -259,8 +284,8 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
       {/* Recategorise modal */}
       {categoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setCategoryModalOpen(false)}>
-          <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setCategoryModalOpen(false)}>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-[#F5F5F2]">Recategorise entries</h2>
               <button onClick={() => setCategoryModalOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
@@ -299,8 +324,8 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
       {/* Add tag modal */}
       {tagModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setTagModalOpen(false)}>
-          <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setTagModalOpen(false)}>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-base font-semibold text-[#F5F5F2]">Add specialty tag</h2>
               <button onClick={() => setTagModalOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">

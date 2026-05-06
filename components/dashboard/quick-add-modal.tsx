@@ -7,6 +7,7 @@ import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
+import { useToast } from '@/components/ui/toast-provider'
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
@@ -46,6 +47,7 @@ export default function QuickAddModal({
 }) {
   const router = useRouter()
   const supabase = createClient()
+  const { addToast } = useToast()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -169,6 +171,7 @@ export default function QuickAddModal({
     }
 
     router.refresh()
+    addToast(type === 'case' ? 'Case logged' : 'Entry saved', 'success')
     onClose()
   }
 

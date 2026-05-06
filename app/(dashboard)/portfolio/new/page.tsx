@@ -1,13 +1,13 @@
 import { createClient } from '@/lib/supabase/server'
 import EntryForm from '@/components/portfolio/entry-form'
-import { type Category } from '@/lib/types/portfolio'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import type { Template } from '@/lib/types/templates'
 import Link from 'next/link'
 
 export default async function NewEntryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>
+  searchParams: Promise<{ category?: string; title?: string; text?: string; url?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = createClient()
@@ -28,7 +28,12 @@ export default async function NewEntryPage({
 
   const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
   const templates = (rawTemplates ?? []) as Template[]
-  const defaultCategory = (resolvedSearchParams.category as Category) ?? undefined
+  const requestedCategory = resolvedSearchParams.category
+  const sharedTitle = resolvedSearchParams.title?.slice(0, 200).trim() ?? ''
+  const sharedNotes = [resolvedSearchParams.text, resolvedSearchParams.url].filter(Boolean).join('\n\n').trim()
+  const defaultCategory = CATEGORIES.some(category => category.value === requestedCategory)
+    ? requestedCategory as Category
+    : sharedTitle || sharedNotes ? 'custom' : undefined
 
   return (
     <div className="p-8 max-w-2xl">
@@ -51,6 +56,12 @@ export default async function NewEntryPage({
         <EntryForm
           mode="create"
           defaultCategory={defaultCategory}
+          initialData={sharedTitle || sharedNotes ? {
+            category: defaultCategory,
+            title: sharedTitle || 'Shared item',
+            notes: sharedNotes || null,
+            custom_free_text: sharedNotes || null,
+          } : undefined}
           userInterests={specialtyKeys}
           templates={templates}
         />

@@ -22,6 +22,7 @@ import ChangelogModal from '@/components/dashboard/changelog-modal'
 import DemoStarterCard from '@/components/dashboard/demo-starter-card'
 import CareerWelcomeCard from '@/components/dashboard/career-welcome-card'
 import GuidedTour from '@/components/dashboard/guided-tour'
+import PullToRefresh from '@/components/ui/pull-to-refresh'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
 import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
@@ -214,7 +215,7 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 lg:p-8 max-w-6xl">
+    <PullToRefresh className="p-6 lg:p-8 max-w-6xl">
       <div className="flex items-start justify-between mb-8 gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Dashboard</h1>
@@ -307,7 +308,7 @@ export default async function DashboardPage() {
           <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
         </DashboardSection>
       </div>
-    </div>
+    </PullToRefresh>
   )
 }
 
