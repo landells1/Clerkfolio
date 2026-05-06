@@ -143,7 +143,12 @@ export default async function DashboardPage() {
   const { data: specialtyLinksRaw } = applicationIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
     : { data: [] as SpecialtyEntryLink[] }
-  const specialtyLinks = (specialtyLinksRaw ?? []) as SpecialtyEntryLink[]
+  // Filter out links whose portfolio entry has since been deleted — allEntries already
+  // excludes soft-deleted rows so this catches orphaned links from deleted entries.
+  const activeEntryIds = new Set((allEntries ?? []).map(e => e.id))
+  const specialtyLinks = (specialtyLinksRaw ?? []).filter(
+    link => activeEntryIds.has(link.entry_id)
+  ) as SpecialtyEntryLink[]
 
   const coverageCounts = Object.entries(
     (allEntries ?? []).reduce((acc: Record<string, number>, entry) => {
@@ -246,7 +251,6 @@ export default async function DashboardPage() {
       )}
 
       {!hasEntryToday && <EmptyDayPrompt />}
-      <ResumeDraftsCard />
 
       {/* Two-column layout on wide screens: main content left, widgets right */}
       <div className="xl:grid xl:grid-cols-[1fr_300px] xl:gap-6 xl:items-start">
@@ -285,10 +289,6 @@ export default async function DashboardPage() {
             </DashboardSection>
           )}
 
-          <DashboardSection title="Specialty progress" defaultOpen>
-            <SpecialtyProgress rows={specialtyProgressRows} />
-          </DashboardSection>
-
           <DashboardSection title="Clinical areas">
             <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
           </DashboardSection>
@@ -296,8 +296,12 @@ export default async function DashboardPage() {
 
         {/* Right widgets column */}
         <div className="space-y-4 mt-5 xl:mt-0">
+          <ResumeDraftsCard />
           <CalendarWidget items={calendarItems} />
           <UpcomingTimeline items={upcomingItems} />
+          {specialtyProgressRows.length > 0 && (
+            <SpecialtyProgressPanel rows={specialtyProgressRows} />
+          )}
         </div>
       </div>
 
@@ -364,20 +368,29 @@ function DashboardSection({ title, defaultOpen, children }: { title: string; def
   )
 }
 
-function SpecialtyProgress({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number }[] }) {
+/** Compact specialty progress panel for the right column */
+function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number }[] }) {
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl divide-y divide-white/[0.06]">
-      {rows.length === 0 ? (
-        <p className="p-5 text-sm text-[rgba(245,245,242,0.55)]">No tracked specialties.</p>
-      ) : rows.map(row => (
-        <div key={row.id} className="grid grid-cols-1 sm:grid-cols-[1fr_160px_90px] gap-3 p-4 items-center">
-          <p className="text-sm font-medium text-[#F5F5F2]">{row.label}</p>
-          <div className="h-2 rounded-full bg-white/[0.08] overflow-hidden">
-            <div className="h-full bg-[#1B6FD9]" style={{ width: `${row.percent}%` }} />
+    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
+        <p className="text-sm font-semibold text-[#F5F5F2]">Specialty progress</p>
+      </div>
+      <div className="divide-y divide-white/[0.06]">
+        {rows.map(row => (
+          <div key={row.id} className="px-4 py-3 space-y-1.5">
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm font-medium text-[#F5F5F2] truncate">{row.label}</p>
+              <span className="shrink-0 text-xs tabular-nums text-[rgba(245,245,242,0.5)]">{row.percent}%</span>
+            </div>
+            <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
+              <div className="h-full rounded-full bg-[#1B6FD9] transition-all" style={{ width: `${row.percent}%` }} />
+            </div>
+            <p className="text-[11px] text-[rgba(245,245,242,0.35)]">
+              {row.entryCount} {row.entryCount === 1 ? 'entry' : 'entries'} linked
+            </p>
           </div>
-          <p className="text-xs text-[rgba(245,245,242,0.45)] sm:text-right">{row.percent}% / {row.entryCount} entries</p>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   )
 }
