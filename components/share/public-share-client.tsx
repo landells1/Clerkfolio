@@ -30,7 +30,7 @@ function formatDate(value: string) {
 
 function scopeLabel(payload: SharePayload) {
   if (payload.scope === 'full') return 'Full portfolio'
-  if (payload.scope === 'theme') return `Theme: ${payload.themeSlug}`
+  if (payload.scope === 'theme') return `Theme: ${payload.themeSlug?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'unknown'}`
   return `Specialty: ${payload.specialtyLabel ?? payload.specialtyKey}`
 }
 

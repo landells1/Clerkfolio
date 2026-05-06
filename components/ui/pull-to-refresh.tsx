@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 
 type PullToRefreshProps = {
   children: React.ReactNode
@@ -14,8 +14,15 @@ export default function PullToRefresh({ children, className = '', threshold = 60
   const rootRef = useRef<HTMLDivElement | null>(null)
   const startYRef = useRef(0)
   const activeRef = useRef(false)
+  const refreshTimerRef = useRef<number | null>(null)
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
+
+  useEffect(() => {
+    return () => {
+      if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current)
+    }
+  }, [])
 
   function scroller() {
     return rootRef.current?.closest('main') ?? document.scrollingElement
@@ -47,7 +54,8 @@ export default function PullToRefresh({ children, className = '', threshold = 60
       setRefreshing(true)
       setPull(threshold)
       router.refresh()
-      window.setTimeout(() => {
+      if (refreshTimerRef.current) window.clearTimeout(refreshTimerRef.current)
+      refreshTimerRef.current = window.setTimeout(() => {
         setRefreshing(false)
         setPull(0)
       }, 700)

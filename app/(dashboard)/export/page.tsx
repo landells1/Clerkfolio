@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
@@ -115,6 +115,11 @@ export default function ExportPage() {
   const [customExpiry, setCustomExpiry] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const copyTimerRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    return () => { if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current) }
+  }, [])
 
   useEffect(() => {
     async function load() {
@@ -336,7 +341,8 @@ export default function ExportPage() {
     const url = `${window.location.origin}/share/${token}`
     await navigator.clipboard.writeText(url)
     setCopiedToken(token)
-    setTimeout(() => setCopiedToken(null), 1500)
+    if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = window.setTimeout(() => setCopiedToken(null), 1500)
   }
 
   return (

@@ -282,8 +282,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           type="date"
           required
           value={date}
-          onChange={e => setDate(e.target.value)}
-          onFocus={() => markDirty()}
+          onChange={e => { setDate(e.target.value); markDirty() }}
           className={INPUT}
         />
       </div>

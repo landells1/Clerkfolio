@@ -183,7 +183,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     e.preventDefault()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
-    const specialty = specialties.find(row => row.id === eventForm.source_specialty_key)
+    const specialty = specialties.find(row => row.key === eventForm.source_specialty_key)
     const { error } = await supabase.from('deadlines').insert({
       user_id: user.id,
       title: eventForm.title.trim(),
@@ -391,7 +391,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
             <textarea value={eventForm.details} onChange={e => setEventForm(f => ({ ...f, details: e.target.value }))} placeholder="Details" rows={4} className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2.5 text-[#F5F5F2]" />
             <select value={eventForm.source_specialty_key} onChange={e => setEventForm(f => ({ ...f, source_specialty_key: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">
               <option value="">Other</option>
-              {specialties.map(specialty => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}
+              {specialties.map(specialty => <option key={specialty.id} value={specialty.key}>{specialty.name}</option>)}
             </select>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowEventForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>

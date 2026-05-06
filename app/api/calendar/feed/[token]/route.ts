@@ -4,6 +4,22 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 
+const rlMap = new Map<string, { count: number; resetAt: number }>()
+const RL_WINDOW = 60_000
+const RL_MAX = 20
+
+function checkRateLimit(key: string): boolean {
+  const now = Date.now()
+  const entry = rlMap.get(key)
+  if (!entry || entry.resetAt < now) {
+    rlMap.set(key, { count: 1, resetAt: now + RL_WINDOW })
+    return true
+  }
+  if (entry.count >= RL_MAX) return false
+  entry.count++
+  return true
+}
+
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
@@ -33,6 +49,11 @@ function fold(line: string) {
 
 export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
+
+  if (!checkRateLimit(token)) {
+    return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
+  }
+
   const supabase = createServiceClient()
   const { data: profile } = await supabase
     .from('profiles')

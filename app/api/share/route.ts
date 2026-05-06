@@ -151,6 +151,24 @@ export async function POST(req: NextRequest) {
       p_user_id: user.id,
       p_feature: 'share_links_used',
     })
+
+    // Compensating check: race condition where two concurrent requests both
+    // pass the pre-insert limit check. Count actual active links and revoke
+    // the just-created one if we're now over the free limit.
+    const { count: actualCount } = await supabase
+      .from('share_links')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', user.id)
+      .is('revoked_at', null)
+      .gt('expires_at', new Date().toISOString())
+
+    if ((actualCount ?? 0) > 1) {
+      await supabase.from('share_links').delete().eq('id', data.id)
+      return NextResponse.json(
+        { error: 'limit_reached', limit: 1, used: actualCount, upgrade_url: '/upgrade' },
+        { status: 403 }
+      )
+    }
   }
 
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) {

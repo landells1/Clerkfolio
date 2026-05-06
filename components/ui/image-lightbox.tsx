@@ -17,17 +17,19 @@ type ImageLightboxProps = {
 export default function ImageLightbox({ images, initialIndex, onClose }: ImageLightboxProps) {
   const [index, setIndex] = useState(initialIndex)
   const touchStartRef = useRef<number | null>(null)
+  const onCloseRef = useRef(onClose)
+  onCloseRef.current = onClose
   const current = images[index]
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape') onClose()
+      if (event.key === 'Escape') onCloseRef.current()
       if (event.key === 'ArrowLeft') setIndex(prev => (prev - 1 + images.length) % images.length)
       if (event.key === 'ArrowRight') setIndex(prev => (prev + 1) % images.length)
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
-  }, [images.length, onClose])
+  }, [images.length])
 
   if (!current) return null
 

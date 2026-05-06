@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
@@ -86,6 +86,7 @@ export default function QuickAddModal({
 
   // Duplicate detection
   const [duplicateWarning, setDuplicateWarning] = useState<{ title: string; date: string } | null>(null)
+  const dupCheckVersion = useRef(0)
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -96,9 +97,8 @@ export default function QuickAddModal({
   }, [title, tags])
 
   async function checkDuplicate(val: string) {
-    if (val.trim().length < 4) return
-    // Only suggest duplicates on the active (not soft-deleted) cases the user owns.
-    // RLS already restricts to the user, but we'd still see deleted-then-restored noise without the filter.
+    if (val.trim().length < 4) { setDuplicateWarning(null); return }
+    const version = ++dupCheckVersion.current
     const { data } = await supabase
       .from('cases')
       .select('title, date')
@@ -106,7 +106,9 @@ export default function QuickAddModal({
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(1)
-    if (data && data.length > 0) setDuplicateWarning({ title: data[0].title, date: data[0].date })
+    if (version === dupCheckVersion.current && data && data.length > 0) {
+      setDuplicateWarning({ title: data[0].title, date: data[0].date })
+    }
   }
 
   function handleTypeChange(t: EntryType) {

@@ -45,7 +45,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
         {sorted.map(link => {
           const isCounting = !isEvidenceOnly && domain.scoringRule === 'highest' && link.points_claimed === highestPoints
           const isClaimed = link.is_checkbox && !link.entry_type
-          const entryIcon = link.entry_type === 'case' ? '??' : '??'
+          const entryIcon = '??'
 
           return (
             <div
@@ -90,7 +90,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   ) : null}
                   {!isClaimed && link.entry_id && link.entry_type && (
                     <a
-                      href={`/${link.entry_type === 'case' ? 'cases' : 'portfolio'}/${link.entry_id}`}
+                      href={`/portfolio/${link.entry_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-[#1B6FD9] hover:underline"

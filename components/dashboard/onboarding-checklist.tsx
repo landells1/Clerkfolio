@@ -46,12 +46,13 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
     // All done — celebrate then auto-dismiss
     if (next.length === ITEMS.length) {
       setCelebrating(true)
-      setTimeout(async () => {
+      setTimeout(() => {
         setDismissed(true)
-        await supabase
+        supabase
           .from('profiles')
           .update({ onboarding_checklist_dismissed: true })
           .eq('id', userId)
+          .then(({ error }) => { if (error) console.error('checklist dismiss:', error.message) })
       }, 3000)
     }
   }

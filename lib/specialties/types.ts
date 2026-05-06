@@ -79,7 +79,7 @@ export type SpecialtyEntryLink = {
   application_id: string
   domain_key: string
   entry_id: string | null
-  entry_type: 'portfolio' | 'case' | null
+  entry_type: 'portfolio' | null
   band_label: string
   points_claimed: number
   is_checkbox: boolean
