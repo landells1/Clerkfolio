@@ -1,20 +1,26 @@
-// Server component — no 'use client'
+// Server component - no 'use client'
+
+import { activeWeeksYearToDate, currentStreakFromActiveWeeks } from '@/lib/engagement/streaks'
 
 interface StreakBadgeProps {
-  streak: number
+  streak?: number
+  activeWeeks?: string[]
 }
 
-export default function StreakBadge({ streak }: StreakBadgeProps) {
-  if (streak === 0) {
+export default function StreakBadge({ streak, activeWeeks = [] }: StreakBadgeProps) {
+  const currentStreak = streak ?? currentStreakFromActiveWeeks(activeWeeks)
+  const activeWeeksThisYear = activeWeeksYearToDate(activeWeeks)
+
+  if (currentStreak === 0) {
     return (
-      <span className="text-xs text-[rgba(245,245,242,0.35)]">
-        Log this week to start a streak
-      </span>
+      <div className="text-xs text-[rgba(245,245,242,0.35)]">
+        <p>Log this week to start a streak</p>
+        {activeWeeks.length > 0 && <p className="mt-1">{activeWeeksThisYear} active weeks this year</p>}
+      </div>
     )
   }
 
-  const onFire = streak >= 4
-  const label = 'week streak'
+  const onFire = currentStreak >= 4
 
   return (
     <div className="flex items-center gap-1.5">
@@ -28,8 +34,9 @@ export default function StreakBadge({ streak }: StreakBadgeProps) {
         <path d="M12 2C9 7 6 9.5 6 14a6 6 0 0 0 12 0c0-3-1.5-5.5-3-7-0.5 2-1.5 3-2 3-1 0-1.5-2-1-4z" />
       </svg>
       <div className="flex flex-col leading-none">
-        <span className="text-2xl font-bold text-[#F5F5F2] leading-none">{streak}</span>
-        <span className={`text-xs mt-0.5 ${onFire ? 'text-amber-400/70' : 'text-[rgba(245,245,242,0.4)]'}`}>{label}</span>
+        <span className="text-2xl font-bold leading-none text-[#F5F5F2]">{currentStreak}</span>
+        <span className={`mt-0.5 text-xs ${onFire ? 'text-amber-400/70' : 'text-[rgba(245,245,242,0.4)]'}`}>wk streak</span>
+        <span className="mt-1 text-[10px] text-[rgba(245,245,242,0.35)]">{activeWeeksThisYear} active weeks YTD</span>
       </div>
     </div>
   )

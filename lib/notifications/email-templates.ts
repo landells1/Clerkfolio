@@ -4,6 +4,16 @@ type NotificationItem = {
   link: string
 }
 
+type DigestSummary = {
+  entryCount: number
+  green: number
+  amber: number
+  red: number
+  specialtyTags: string[]
+  currentStreak: number
+  activeWeeksYtd: number
+}
+
 const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://clerkfolio.co.uk'
 
 function escapeHtml(value: string) {
@@ -65,6 +75,88 @@ export function notificationEmailHtml(firstName: string | null, items: Notificat
       </table>
     </body>
   </html>`
+}
+
+export function weeklyDigestEmail(firstName: string | null, summary: DigestSummary) {
+  return digestEmail({
+    firstName,
+    title: 'Your weekly Clerkfolio digest',
+    intro: 'Here is what you logged this week.',
+    summary,
+  })
+}
+
+export function monthlyDigestEmail(firstName: string | null, monthLabel: string, summary: DigestSummary) {
+  return digestEmail({
+    firstName,
+    title: `${monthLabel} in Clerkfolio`,
+    intro: `Here is your end-of-month portfolio snapshot for ${monthLabel}.`,
+    summary,
+  })
+}
+
+function digestEmail({
+  firstName,
+  title,
+  intro,
+  summary,
+}: {
+  firstName: string | null
+  title: string
+  intro: string
+  summary: DigestSummary
+}) {
+  const tags = summary.specialtyTags.length > 0 ? summary.specialtyTags.join(', ') : 'No specialty tags used'
+  const text = [
+    `Hi ${firstName || 'there'},`,
+    '',
+    intro,
+    '',
+    `Entries logged: ${summary.entryCount}`,
+    `Completeness mix: ${summary.green} green, ${summary.amber} amber, ${summary.red} red`,
+    `Specialty tags: ${tags}`,
+    `Your streak: ${summary.currentStreak} week${summary.currentStreak === 1 ? '' : 's'} current, ${summary.activeWeeksYtd} active week${summary.activeWeeksYtd === 1 ? '' : 's'} this year`,
+    '',
+    `Open Clerkfolio: ${baseUrl}/dashboard`,
+    `Manage notification preferences: ${baseUrl}/settings/notifications`,
+  ].join('\n')
+
+  const html = `<!doctype html>
+  <html>
+    <body style="margin:0;background:#f6f6f3;font-family:Inter,Arial,sans-serif;color:#111113;">
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f6f3;padding:28px 12px;">
+        <tr>
+          <td align="center">
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #e7e7e3;border-radius:14px;overflow:hidden;">
+              <tr>
+                <td style="padding:22px 24px;border-bottom:1px solid #e7e7e3;">
+                  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#155BB0;">Clerkfolio</p>
+                  <h1 style="margin:0;font-size:20px;line-height:1.25;color:#111113;">${escapeHtml(title)}</h1>
+                  <p style="margin:8px 0 0;font-size:14px;color:#555;">Hi ${escapeHtml(firstName || 'there')}, ${escapeHtml(intro)}</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:18px 24px;">
+                  <p style="margin:0 0 10px;font-size:14px;color:#555;">Entries logged: <strong style="color:#111113;">${summary.entryCount}</strong></p>
+                  <p style="margin:0 0 10px;font-size:14px;color:#555;">Completeness: ${summary.green} green, ${summary.amber} amber, ${summary.red} red</p>
+                  <p style="margin:0 0 10px;font-size:14px;color:#555;">Specialty tags: ${escapeHtml(tags)}</p>
+                  <p style="margin:0;font-size:14px;color:#555;">Your streak: ${summary.currentStreak} current week${summary.currentStreak === 1 ? '' : 's'}; ${summary.activeWeeksYtd} active week${summary.activeWeeksYtd === 1 ? '' : 's'} this year.</p>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding:18px 24px;background:#fafafa;">
+                  <a href="${baseUrl}/dashboard" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open dashboard</a>
+                  <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage digest emails from Clerkfolio settings.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </body>
+  </html>`
+
+  return { text, html }
 }
 
 export function buildAutoRevokeEmail({

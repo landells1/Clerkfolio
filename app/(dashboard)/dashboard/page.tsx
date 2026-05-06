@@ -10,6 +10,9 @@ import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
 import StreakBadge from '@/components/dashboard/streak-badge'
 import SpecialtyRadar from '@/components/dashboard/specialty-radar'
 import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
+import EmptyDayPrompt from '@/components/dashboard/empty-day-prompt'
+import AnniversaryBanner from '@/components/dashboard/anniversary-banner'
+import { londonDateKey } from '@/lib/engagement/streaks'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
@@ -22,34 +25,6 @@ const CAREER_STAGE_LABELS: Record<string, string> = {
   FY1:      'Foundation Year 1',
   FY2:      'Foundation Year 2',
   POST_FY:  'Core / Specialty Training',
-}
-
-function computeWeeklyStreak(allDates: string[]): number {
-  function getWeekStart(dateStr: string): string {
-    const d = new Date(dateStr + 'T12:00:00Z')
-    const day = d.getUTCDay()
-    const diff = day === 0 ? -6 : 1 - day
-    const mon = new Date(d)
-    mon.setUTCDate(d.getUTCDate() + diff)
-    return mon.toISOString().split('T')[0]
-  }
-
-  const weekSet = new Set(allDates.map(getWeekStart))
-  const today = new Date().toISOString().split('T')[0]
-  let cursor = new Date(today + 'T12:00:00Z')
-  let ws = getWeekStart(today)
-  if (!weekSet.has(ws)) {
-    cursor.setUTCDate(cursor.getUTCDate() - 7)
-    ws = getWeekStart(cursor.toISOString().split('T')[0])
-  }
-
-  let streak = 0
-  while (weekSet.has(ws)) {
-    streak++
-    cursor.setUTCDate(cursor.getUTCDate() - 7)
-    ws = getWeekStart(cursor.toISOString().split('T')[0])
-  }
-  return streak
 }
 
 export default async function DashboardPage() {
@@ -75,12 +50,10 @@ export default async function DashboardPage() {
     { data: goals },
     { data: recentPortfolioForHeatmap },
     { data: recentCasesForHeatmap },
-    { data: allPortfolioDates },
-    { data: allCaseDates },
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('first_name, career_stage, onboarding_checklist_dismissed, onboarding_checklist_completed_items')
+      .select('first_name, career_stage, created_at, last_anniversary_seen_year, streak_cache, onboarding_checklist_dismissed, onboarding_checklist_completed_items')
       .eq('id', user!.id)
       .single(),
     supabase
@@ -140,16 +113,6 @@ export default async function DashboardPage() {
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .gte('created_at', cutoffStr),
-    supabase
-      .from('portfolio_entries')
-      .select('date')
-      .eq('user_id', user!.id)
-      .is('deleted_at', null),
-    supabase
-      .from('cases')
-      .select('date')
-      .eq('user_id', user!.id)
-      .is('deleted_at', null),
   ])
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
@@ -177,10 +140,16 @@ export default async function DashboardPage() {
     ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
     ...(recentCasesForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
   ]
-  const streakDates = [
-    ...(allPortfolioDates ?? []).map((e: { date: string }) => e.date).filter(Boolean),
-    ...(allCaseDates ?? []).map((e: { date: string }) => e.date).filter(Boolean),
-  ]
+  const activeWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
+  const todayLondon = londonDateKey(new Date())
+  const hasEntryToday = [
+    ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at),
+    ...(recentCasesForHeatmap ?? []).map((e: { created_at: string }) => e.created_at),
+  ].some(createdAt => londonDateKey(createdAt) === todayLondon)
+  const anniversaryYear = profile?.created_at
+    ? Math.floor((Date.now() - new Date(profile.created_at).getTime()) / (365 * 24 * 60 * 60 * 1000))
+    : 0
+  const showAnniversary = anniversaryYear > (profile?.last_anniversary_seen_year ?? 0)
 
   const upcomingItems = [
     ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const })),
@@ -225,10 +194,14 @@ export default async function DashboardPage() {
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-4 shrink-0">
-          <StreakBadge streak={computeWeeklyStreak(streakDates)} />
+          <StreakBadge activeWeeks={activeWeeks} />
           <QuickAddButton userInterests={trackedSpecialtyKeys} />
         </div>
       </div>
+
+      {showAnniversary && (
+        <AnniversaryBanner userId={user!.id} year={anniversaryYear} />
+      )}
 
       {profile && !profile.onboarding_checklist_dismissed && (
         <OnboardingChecklist
@@ -237,6 +210,8 @@ export default async function DashboardPage() {
           accountCreatedAt={user!.created_at}
         />
       )}
+
+      {!hasEntryToday && <EmptyDayPrompt />}
 
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 mb-6">
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
@@ -258,7 +233,7 @@ export default async function DashboardPage() {
             <ActivityHeatmap dates={heatmapDates} />
             <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
               <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">Current streak</p>
-              <StreakBadge streak={computeWeeklyStreak(streakDates)} />
+              <StreakBadge activeWeeks={activeWeeks} />
             </div>
           </div>
         </DashboardSection>

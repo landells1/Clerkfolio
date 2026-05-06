@@ -6,6 +6,18 @@
       "schedule": "0 9 * * *"
     },
     {
+      "path": "/api/cron/weekly-digest",
+      "schedule": "0 9 * * 6"
+    },
+    {
+      "path": "/api/cron/monthly-digest",
+      "schedule": "0 9 1 * *"
+    },
+    {
+      "path": "/api/cron/streak-cache",
+      "schedule": "0 2 * * *"
+    },
+    {
       "path": "/api/cron/purge-deleted",
       "schedule": "0 2 * * *"
     },

@@ -11,6 +11,8 @@ const DEFAULT_PREFS = {
   share_link_expiring: true,
   activity_nudge: false,
   application_window: true,
+  weekly_digest: true,
+  monthly_digest: true,
 }
 
 const OPTIONS = [
@@ -18,6 +20,8 @@ const OPTIONS = [
   { key: 'share_link_expiring', label: 'Share link expiry' },
   { key: 'activity_nudge', label: 'Activity nudge' },
   { key: 'application_window', label: 'Application windows' },
+  { key: 'weekly_digest', label: 'Weekly digest' },
+  { key: 'monthly_digest', label: 'Monthly digest' },
 ] as const
 
 export default function NotificationSettingsPage() {
@@ -86,6 +90,8 @@ export default function NotificationSettingsPage() {
               share_link_expiring: checked,
               activity_nudge: false,
               application_window: checked,
+              weekly_digest: checked,
+              monthly_digest: checked,
             })}
           />
         ) : (
