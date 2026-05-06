@@ -8,7 +8,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 // Show Mon / Wed / Fri, blank for other rows
 const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', '']
 
-const WEEKS     = 26
+const WEEKS     = 52
 const CELL      = 16  // px — cell width & height
 const GAP       = 3   // px — gap between cells
 const LABEL_W   = 24  // px — day-label column width
@@ -158,7 +158,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         <p
           style={{ marginTop: 12, fontSize: 11, color: 'rgba(245,245,242,0.35)', letterSpacing: '0.01em' }}
         >
-          {total} {total === 1 ? 'entry' : 'entries'} in the last 26 weeks
+          {total} {total === 1 ? 'entry' : 'entries'} in the last year
         </p>
       </div>
     </div>

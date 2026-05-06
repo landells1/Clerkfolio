@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import { SpecialtiesShell } from '@/components/specialties/specialties-shell'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
@@ -46,5 +47,16 @@ export default async function SpecialtiesPage({
     links = (linkData ?? []) as SpecialtyEntryLink[]
   }
 
-  return <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={resolvedSearchParams.app} />
+  return (
+    <>
+      {apps.filter(app => app.is_active).length >= 2 && (
+        <div className="px-6 pt-6 lg:px-8">
+          <Link href="/specialties/compare" className="inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+            Compare specialties
+          </Link>
+        </div>
+      )}
+      <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={resolvedSearchParams.app} />
+    </>
+  )
 }

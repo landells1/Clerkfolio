@@ -13,8 +13,13 @@ import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
 import EmptyDayPrompt from '@/components/dashboard/empty-day-prompt'
 import AnniversaryBanner from '@/components/dashboard/anniversary-banner'
 import ResumeDraftsCard from '@/components/dashboard/resume-drafts-card'
+import EntriesOverTime, { type EntriesOverTimeBucket } from '@/components/dashboard/entries-over-time'
+import TimeSinceCard, { buildTimeSinceRows } from '@/components/dashboard/time-since-card'
+import CalendarWidget, { type CalendarWidgetItem } from '@/components/dashboard/calendar-widget'
+import CareerTimeline from '@/components/dashboard/career-timeline'
+import RotationSummaryCards from '@/components/logs/rotation-summary-cards'
 import { londonDateKey } from '@/lib/engagement/streaks'
-import type { PortfolioEntry } from '@/lib/types/portfolio'
+import type { Category, PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
 const CAREER_STAGE_LABELS: Record<string, string> = {
@@ -33,7 +38,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
 
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 182) // 26 weeks to match heatmap window
+  cutoff.setDate(cutoff.getDate() - 364) // 52 weeks to match heatmap window
   const cutoffStr = cutoff.toISOString()
   const today = new Date().toISOString().split('T')[0]
   const in30 = new Date()
@@ -51,6 +56,7 @@ export default async function DashboardPage() {
     { data: goals },
     { data: recentPortfolioForHeatmap },
     { data: recentCasesForHeatmap },
+    { data: rotations },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -114,6 +120,14 @@ export default async function DashboardPage() {
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .gte('created_at', cutoffStr),
+    supabase
+      .from('personal_log')
+      .select('id, title, date, meta')
+      .eq('user_id', user!.id)
+      .eq('kind', 'rotation')
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+      .limit(8),
   ])
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
@@ -183,7 +197,13 @@ export default async function DashboardPage() {
   }))
 
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
-  const entryVolume = buildEntryVolume(allEntries ?? [])
+  const entriesOverTime = buildEntriesOverTime(allEntries ?? [], allCases ?? [])
+  const timeSinceRows = buildTimeSinceRows((allEntries ?? []) as { category: Category; created_at: string }[], (allCases ?? []) as { created_at: string }[])
+  const calendarItems: CalendarWidgetItem[] = [
+    ...(allEntries ?? []).map(entry => ({ date: entry.date, type: 'entry' as const })),
+    ...(allCases ?? []).map(c => ({ date: c.date, type: 'case' as const })),
+    ...(deadlines ?? []).map(deadline => ({ date: deadline.due_date, type: 'deadline' as const, title: deadline.title })),
+  ]
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
@@ -215,6 +235,11 @@ export default async function DashboardPage() {
       {!hasEntryToday && <EmptyDayPrompt />}
       <ResumeDraftsCard />
 
+      <div className="mb-6 grid grid-cols-1 gap-4 lg:grid-cols-[1fr_320px]">
+        <ActivityHeatmap dates={heatmapDates} />
+        <CalendarWidget items={calendarItems} />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-[240px_1fr] gap-4 mb-6">
         <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
           <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">Quick add</p>
@@ -230,22 +255,29 @@ export default async function DashboardPage() {
       </div>
 
       <div className="space-y-5">
-        <DashboardSection title="Activity" defaultOpen>
-          <div className="grid grid-cols-1 lg:grid-cols-[1fr_220px] gap-4">
-            <ActivityHeatmap dates={heatmapDates} />
-            <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-              <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">Current streak</p>
-              <StreakBadge activeWeeks={activeWeeks} />
-            </div>
+        <DashboardSection title="Trends" defaultOpen>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <EntriesOverTime data={entriesOverTime} />
+            <TimeSinceCard rows={timeSinceRows} />
           </div>
         </DashboardSection>
 
         <DashboardSection title="Portfolio" defaultOpen>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <CoverageWidget counts={coverageCounts} />
-            <EntryVolumeChart data={entryVolume} />
+            <CareerTimeline stage={profile?.career_stage} />
           </div>
         </DashboardSection>
+
+        {(rotations ?? []).length > 0 && (
+          <DashboardSection title="Rotations" defaultOpen>
+            <RotationSummaryCards
+              rotations={(rotations ?? []) as { id: string; title: string; date: string; meta: { detail?: string } | null }[]}
+              entries={(allEntries ?? []) as { date: string }[]}
+              cases={(allCases ?? []) as { date: string }[]}
+            />
+          </DashboardSection>
+        )}
 
         <DashboardSection title="Specialty progress" defaultOpen>
           <SpecialtyProgress rows={specialtyProgressRows} />
@@ -267,20 +299,41 @@ export default async function DashboardPage() {
   )
 }
 
-function buildEntryVolume(entries: { created_at: string }[]) {
+function buildEntriesOverTime(entries: { category: string; created_at: string }[], cases: { created_at: string }[]): EntriesOverTimeBucket[] {
   const now = new Date()
   const months = Array.from({ length: 12 }, (_, index) => {
     const date = new Date(now.getFullYear(), now.getMonth() - (11 - index), 1)
     const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
-    return { key, label: date.toLocaleDateString('en-GB', { month: 'short' }), count: 0 }
+    return {
+      key,
+      month: date.toLocaleDateString('en-GB', { month: 'short' }),
+      cases: 0,
+      audit_qip: 0,
+      teaching: 0,
+      conference: 0,
+      publication: 0,
+      leadership: 0,
+      prize: 0,
+      procedure: 0,
+      reflection: 0,
+      custom: 0,
+    }
   })
   const byKey = Object.fromEntries(months.map(month => [month.key, month]))
   entries.forEach(entry => {
     const d = new Date(entry.created_at)
     const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    if (byKey[key]) byKey[key].count += 1
+    const bucket = byKey[key]
+    if (bucket && entry.category in bucket) {
+      bucket[entry.category as Category] += 1
+    }
   })
-  return months
+  cases.forEach(item => {
+    const d = new Date(item.created_at)
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    if (byKey[key]) byKey[key].cases += 1
+  })
+  return months.map(({ key: _key, ...bucket }) => bucket)
 }
 
 function DashboardSection({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
@@ -292,23 +345,6 @@ function DashboardSection({ title, defaultOpen, children }: { title: string; def
       </summary>
       <div className="pt-4">{children}</div>
     </details>
-  )
-}
-
-function EntryVolumeChart({ data }: { data: { label: string; count: number }[] }) {
-  const max = Math.max(1, ...data.map(item => item.count))
-  return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-      <p className="text-sm font-semibold text-[#F5F5F2] mb-4">Entry volume over time</p>
-      <div className="flex items-end gap-2 h-44">
-        {data.map(item => (
-          <div key={item.label} className="flex-1 flex flex-col items-center gap-2">
-            <div className="w-full rounded-t bg-[#1B6FD9]" style={{ height: `${Math.max(6, (item.count / max) * 140)}px` }} />
-            <span className="text-[10px] text-[rgba(245,245,242,0.35)]">{item.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
   )
 }
 

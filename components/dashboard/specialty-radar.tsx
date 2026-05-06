@@ -95,6 +95,15 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
           stroke="rgba(245,245,242,0.08)" strokeWidth="1" />
       ))}
       <polygon
+        points={angles.map(a =>
+          `${cx + maxR * 0.75 * Math.cos(a)},${cy + maxR * 0.75 * Math.sin(a)}`
+        ).join(' ')}
+        fill="none"
+        stroke="rgba(245,245,242,0.32)"
+        strokeWidth="1.2"
+        strokeDasharray="4 4"
+      />
+      <polygon
         points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
         fill="rgba(27,111,217,0.18)"
         stroke="#1B6FD9"
