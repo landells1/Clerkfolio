@@ -2,99 +2,190 @@
 
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Papa from 'papaparse'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 
 type ImportTarget = 'portfolio' | 'cases'
+type Step = 1 | 2 | 3 | 4
+type PresetKey = 'horus' | 'microguide' | 'nhs_learn' | 'custom'
+type FieldKey = 'title' | 'category' | 'date' | 'notes' | 'specialty_tags' | 'clinical_domain' | 'refl_free_text'
 
-const TARGETS: { value: ImportTarget; label: string; description: string }[] = [
-  { value: 'portfolio', label: 'Portfolio entries', description: 'Achievements, reflections, teaching, audits, publications, and custom evidence.' },
-  { value: 'cases', label: 'Cases', description: 'Anonymised clinical case notes only.' },
-]
+const CATEGORY_VALUES = new Set(CATEGORIES.map(c => c.value))
 
-const REQUIRED_HEADERS: Record<ImportTarget, string[]> = {
-  portfolio: ['title'],
-  cases: ['title'],
-}
-
-const TEMPLATE_ROWS: Record<ImportTarget, string[][]> = {
+const FIELD_OPTIONS: Record<ImportTarget, { value: FieldKey; label: string; required?: boolean }[]> = {
   portfolio: [
-    ['title', 'category', 'date', 'notes', 'specialty_tags'],
-    ['Presented QIP at governance meeting', 'audit_qip', '2026-03-12', 'Reduced missed VTE assessments after a checklist intervention.', 'imt_2026;cst_2026'],
+    { value: 'title', label: 'Title', required: true },
+    { value: 'category', label: 'Category' },
+    { value: 'date', label: 'Date' },
+    { value: 'notes', label: 'Notes' },
+    { value: 'refl_free_text', label: 'Reflection text' },
+    { value: 'specialty_tags', label: 'Specialty tags' },
   ],
   cases: [
-    ['title', 'date', 'clinical_domain', 'notes', 'specialty_tags'],
-    ['Acute abdomen clerking', '2026-04-01', 'General Surgery', 'Anonymised reflection on assessment, escalation, and safety-netting.', 'cst_2026'],
+    { value: 'title', label: 'Title', required: true },
+    { value: 'date', label: 'Date' },
+    { value: 'clinical_domain', label: 'Clinical domain' },
+    { value: 'notes', label: 'Notes' },
+    { value: 'specialty_tags', label: 'Specialty tags' },
   ],
 }
 
-const CATEGORY_VALUES: Set<string> = new Set(CATEGORIES.map(c => c.value))
-
-function parseCSV(text: string): string[][] {
-  const rows: string[][] = []
-  let row: string[] = []
-  let cell = ''
-  let quoted = false
-
-  for (let i = 0; i < text.length; i++) {
-    const char = text[i]
-    const next = text[i + 1]
-    if (char === '"' && quoted && next === '"') {
-      cell += '"'
-      i++
-    } else if (char === '"') {
-      quoted = !quoted
-    } else if (char === ',' && !quoted) {
-      row.push(cell.trim())
-      cell = ''
-    } else if ((char === '\n' || char === '\r') && !quoted) {
-      if (char === '\r' && next === '\n') i++
-      row.push(cell.trim())
-      if (row.some(Boolean)) rows.push(row)
-      row = []
-      cell = ''
-    } else {
-      cell += char
-    }
-  }
-
-  row.push(cell.trim())
-  if (row.some(Boolean)) rows.push(row)
-  return rows
+const PRESETS: Record<PresetKey, {
+  label: string
+  target: ImportTarget
+  defaultCategory?: Category
+  candidates: Partial<Record<FieldKey, string[]>>
+}> = {
+  horus: {
+    label: 'Horus',
+    target: 'portfolio',
+    defaultCategory: 'reflection',
+    candidates: {
+      title: ['title', 'subject', 'case / problem', 'case/problem', 'topic', 'summary'],
+      category: ['category', 'type', 'assessment type', 'event type', 'activity type'],
+      date: ['date', 'event date', 'completion date', 'signed date'],
+      notes: ['comments', 'feedback', 'learning points', 'notes'],
+      refl_free_text: ['reflection', 'reflective notes'],
+      specialty_tags: ['specialty_tags', 'specialty', 'tags'],
+    },
+  },
+  microguide: {
+    label: 'MicroGuide',
+    target: 'portfolio',
+    defaultCategory: 'custom',
+    candidates: {
+      title: ['title', 'guideline', 'topic', 'activity', 'module'],
+      date: ['date', 'completed_at', 'completion date'],
+      notes: ['notes', 'reflection', 'learning points', 'description'],
+      specialty_tags: ['specialty', 'tags'],
+    },
+  },
+  nhs_learn: {
+    label: 'NHS Learn',
+    target: 'portfolio',
+    defaultCategory: 'teaching',
+    candidates: {
+      title: ['course title', 'activity title', 'learning item', 'title'],
+      date: ['completion date', 'date completed', 'completed', 'date'],
+      notes: ['description', 'learning outcome', 'notes'],
+      specialty_tags: ['specialty', 'tags'],
+    },
+  },
+  custom: {
+    label: 'Custom',
+    target: 'portfolio',
+    defaultCategory: 'custom',
+    candidates: {
+      title: ['title', 'name', 'summary'],
+      category: ['category', 'type'],
+      date: ['date'],
+      notes: ['notes', 'description'],
+      clinical_domain: ['clinical_domain', 'clinical domain', 'domain'],
+      specialty_tags: ['specialty_tags', 'tags'],
+    },
+  },
 }
 
-function normaliseCategory(value: string): Category {
-  const cleaned = value.trim().toLowerCase().replace(/\s+/g, '_')
-  return CATEGORY_VALUES.has(cleaned) ? cleaned as Category : 'custom'
+function normaliseHeader(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function autoMap(headers: string[], preset: PresetKey, target: ImportTarget) {
+  const lower = headers.map(normaliseHeader)
+  const candidates = PRESETS[preset].candidates
+  const next: Partial<Record<FieldKey, string>> = {}
+
+  FIELD_OPTIONS[target].forEach(field => {
+    const matches = candidates[field.value] ?? [field.value]
+    const index = matches.map(normaliseHeader).map(candidate => lower.indexOf(candidate)).find(i => i >= 0)
+    if (index !== undefined && index >= 0) next[field.value] = headers[index]
+  })
+
+  return next
+}
+
+function normaliseCategory(value: string | undefined, fallback: Category): Category {
+  const cleaned = (value ?? '').trim().toLowerCase().replace(/\s+/g, '_')
+  return CATEGORY_VALUES.has(cleaned as Category) ? cleaned as Category : fallback
 }
 
 function splitTags(value: string | undefined) {
   return (value ?? '').split(/[;,]/).map(v => v.trim()).filter(Boolean)
 }
 
+function isoDate(value: string | undefined) {
+  if (!value) return new Date().toISOString().split('T')[0]
+  const dmy = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
+  if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
+  const iso = value.match(/^\d{4}-\d{2}-\d{2}$/)
+  if (iso) return value
+  const parsed = new Date(value)
+  return Number.isNaN(parsed.getTime()) ? new Date().toISOString().split('T')[0] : parsed.toISOString().split('T')[0]
+}
+
 export default function CsvImportFlow() {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const { addToast } = useToast()
+  const [step, setStep] = useState<Step>(1)
   const [target, setTarget] = useState<ImportTarget>('portfolio')
+  const [preset, setPreset] = useState<PresetKey>('custom')
   const [headers, setHeaders] = useState<string[]>([])
   const [rows, setRows] = useState<Record<string, string>[]>([])
+  const [mapping, setMapping] = useState<Partial<Record<FieldKey, string>>>({})
   const [importing, setImporting] = useState(false)
 
-  async function handleFile(file: File) {
-    const text = await file.text()
-    const parsed = parseCSV(text)
-    const nextHeaders = (parsed[0] ?? []).map(h => h.trim().toLowerCase().replace(/\s+/g, '_'))
-    const nextRows = parsed.slice(1).map(row => Object.fromEntries(nextHeaders.map((header, index) => [header, row[index] ?? ''])))
-    setHeaders(nextHeaders)
-    setRows(nextRows)
+  function applyPreset(nextPreset: PresetKey, nextTarget = PRESETS[nextPreset].target) {
+    setPreset(nextPreset)
+    setTarget(nextTarget)
+    setMapping(autoMap(headers, nextPreset, nextTarget))
   }
 
+  function handleFile(file: File) {
+    Papa.parse<Record<string, string>>(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: result => {
+        const nextHeaders = result.meta.fields ?? []
+        setHeaders(nextHeaders)
+        setRows(result.data)
+        const detectedPreset: PresetKey = nextHeaders.some(h => /supervisor|assessor|mini-cex|cbd/i.test(h)) ? 'horus' : preset
+        setPreset(detectedPreset)
+        setTarget(PRESETS[detectedPreset].target)
+        setMapping(autoMap(nextHeaders, detectedPreset, PRESETS[detectedPreset].target))
+        setStep(2)
+      },
+      error: err => addToast(`Failed to parse CSV: ${err.message}`, 'error'),
+    })
+  }
+
+  const preview = rows.slice(0, 10).map(row => {
+    const get = (field: FieldKey) => mapping[field] ? row[mapping[field]!] : ''
+    if (target === 'portfolio') {
+      return {
+        title: get('title'),
+        category: normaliseCategory(get('category'), PRESETS[preset].defaultCategory ?? 'custom'),
+        date: isoDate(get('date')),
+        notes: get('notes'),
+        refl_free_text: get('refl_free_text'),
+        specialty_tags: splitTags(get('specialty_tags')),
+      }
+    }
+    return {
+      title: get('title'),
+      date: isoDate(get('date')),
+      clinical_domain: get('clinical_domain'),
+      notes: get('notes'),
+      specialty_tags: splitTags(get('specialty_tags')),
+    }
+  })
+
   async function importRows() {
-    const missing = REQUIRED_HEADERS[target].filter(header => !headers.includes(header))
-    if (missing.length > 0) {
-      addToast(`Missing required header: ${missing.join(', ')}`, 'error')
+    if (!mapping.title) {
+      addToast('Map a title column before importing.', 'error')
+      setStep(2)
       return
     }
 
@@ -105,83 +196,144 @@ export default function CsvImportFlow() {
       return
     }
 
-    const payload = rows.map(row => {
-      if (target === 'portfolio') {
+    const getValue = (row: Record<string, string>, field: FieldKey) => mapping[field] ? row[mapping[field]!] : ''
+    const payload = rows
+      .filter(row => getValue(row, 'title')?.trim())
+      .map(row => {
+        if (target === 'portfolio') {
+          return {
+            user_id: user.id,
+            title: getValue(row, 'title').trim(),
+            category: normaliseCategory(getValue(row, 'category'), PRESETS[preset].defaultCategory ?? 'custom'),
+            date: isoDate(getValue(row, 'date')),
+            notes: getValue(row, 'notes') || null,
+            refl_free_text: getValue(row, 'refl_free_text') || null,
+            specialty_tags: splitTags(getValue(row, 'specialty_tags')),
+            interview_themes: [],
+          }
+        }
         return {
           user_id: user.id,
-          title: row.title,
-          category: normaliseCategory(row.category ?? ''),
-          date: row.date || new Date().toISOString().split('T')[0],
-          notes: row.notes ?? '',
-          specialty_tags: splitTags(row.specialty_tags),
+          title: getValue(row, 'title').trim(),
+          date: isoDate(getValue(row, 'date')),
+          clinical_domain: getValue(row, 'clinical_domain') || null,
+          clinical_domains: getValue(row, 'clinical_domain') ? [getValue(row, 'clinical_domain')] : [],
+          notes: getValue(row, 'notes') || null,
+          specialty_tags: splitTags(getValue(row, 'specialty_tags')),
           interview_themes: [],
         }
-      }
-      return {
-        user_id: user.id,
-        title: row.title,
-        date: row.date || new Date().toISOString().split('T')[0],
-        clinical_domain: row.clinical_domain ?? '',
-        notes: row.notes ?? '',
-        specialty_tags: splitTags(row.specialty_tags),
-        interview_themes: [],
-      }
-    })
+      })
 
     const { error } = await supabase.from(target === 'portfolio' ? 'portfolio_entries' : 'cases').insert(payload)
     setImporting(false)
     if (error) {
-      addToast('Import failed. Check the CSV format and try again.', 'error')
+      addToast('Import failed. Check the column mapping and try again.', 'error')
       return
     }
     addToast(`Imported ${payload.length} ${target === 'portfolio' ? 'portfolio entries' : 'cases'}`, 'success')
-    router.push(target === 'portfolio' ? '/portfolio' : '/cases')
+    setStep(4)
   }
-
-  const template = TEMPLATE_ROWS[target].map(row => row.map(cell => `"${cell.replace(/"/g, '""')}"`).join(',')).join('\n')
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {TARGETS.map(item => (
-          <button
-            key={item.value}
-            onClick={() => { setTarget(item.value); setHeaders([]); setRows([]) }}
-            className={`min-h-[44px] text-left rounded-xl border p-4 ${target === item.value ? 'border-[#1B6FD9] bg-[#1B6FD9]/10' : 'border-white/[0.08] bg-[#141416]'}`}
-          >
-            <p className="text-sm font-semibold text-[#F5F5F2]">{item.label}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.45)] mt-1">{item.description}</p>
-          </button>
+      <div className="flex flex-wrap items-center gap-2">
+        {([1, 2, 3, 4] as Step[]).map(s => (
+          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.35)]'}`}>
+            {s === 1 ? 'Upload' : s === 2 ? 'Map' : s === 3 ? 'Preview' : 'Done'}
+          </span>
         ))}
       </div>
 
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-        <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide mb-2">CSV file</label>
-        <input
-          type="file"
-          accept=".csv,text/csv"
-          onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
-          className="block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#0B0B0C]"
-        />
-      </div>
+      {step === 1 && (
+        <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+          <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            CSV file
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
+              className="mt-3 block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#0B0B0C]"
+            />
+          </label>
+        </section>
+      )}
 
-      <details className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-        <summary className="cursor-pointer text-sm font-medium text-[#F5F5F2]">Template CSV</summary>
-        <pre className="mt-4 overflow-x-auto rounded-lg bg-[#0B0B0C] p-4 text-xs text-[rgba(245,245,242,0.65)]">{template}</pre>
-      </details>
+      {step === 2 && (
+        <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Preset
+              <select value={preset} onChange={e => applyPreset(e.target.value as PresetKey)} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+                {Object.entries(PRESETS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Import as
+              <select value={target} onChange={e => { const next = e.target.value as ImportTarget; setTarget(next); setMapping(autoMap(headers, preset, next)) }} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+                <option value="portfolio">Portfolio entries</option>
+                <option value="cases">Cases</option>
+              </select>
+            </label>
+          </div>
 
-      {rows.length > 0 && (
-        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#F5F5F2]">{rows.length} rows ready</p>
-              <p className="text-xs text-[rgba(245,245,242,0.4)]">Headers: {headers.join(', ')}</p>
-            </div>
-            <button onClick={importRows} disabled={importing} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
-              {importing ? 'Importing...' : 'Import rows'}
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            {FIELD_OPTIONS[target].map(field => (
+              <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+                {field.label}{field.required ? ' *' : ''}
+                <select
+                  value={mapping[field.value] ?? ''}
+                  onChange={e => setMapping(current => ({ ...current, [field.value]: e.target.value || undefined }))}
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]"
+                >
+                  <option value="">Not mapped</option>
+                  {headers.map(header => <option key={header} value={header}>{header}</option>)}
+                </select>
+              </label>
+            ))}
+          </div>
+          <button onClick={() => setStep(3)} className="mt-6 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">Preview rows</button>
+        </section>
+      )}
+
+      {step === 3 && (
+        <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
+          <div className="border-b border-white/[0.06] px-5 py-4">
+            <p className="text-sm font-semibold text-[#F5F5F2]">{rows.length} rows parsed</p>
+          </div>
+          <div className="max-h-96 overflow-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-[#0B0B0C] text-[rgba(245,245,242,0.45)]">
+                <tr>
+                  {Object.keys(preview[0] ?? { title: '', date: '' }).map(key => <th key={key} className="px-4 py-3 font-medium">{key}</th>)}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.04] text-[rgba(245,245,242,0.72)]">
+                {preview.map((row, index) => (
+                  <tr key={index}>
+                    {Object.values(row).map((value, valueIndex) => (
+                      <td key={valueIndex} className="max-w-56 truncate px-4 py-3">{Array.isArray(value) ? value.join('; ') : String(value ?? '')}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="flex flex-wrap gap-2 p-5">
+            <button onClick={() => setStep(2)} className="min-h-[44px] rounded-xl border border-white/[0.08] px-5 text-sm font-medium text-[#F5F5F2]">Back</button>
+            <button onClick={importRows} disabled={importing} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+              {importing ? 'Importing...' : 'Commit import'}
             </button>
           </div>
-        </div>
+        </section>
+      )}
+
+      {step === 4 && (
+        <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6">
+          <p className="text-sm font-semibold text-emerald-200">Import complete</p>
+          <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">
+            Open imported records
+          </button>
+        </section>
       )}
     </div>
   )

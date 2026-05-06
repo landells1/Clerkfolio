@@ -20,6 +20,17 @@ const EXPIRY_PRESETS = [
   { label: 'Custom', days: null },
 ]
 
+const EXPORT_FIELDS = [
+  { value: 'record_type', label: 'Type' },
+  { value: 'id', label: 'ID' },
+  { value: 'title', label: 'Title' },
+  { value: 'category_or_area', label: 'Category / area' },
+  { value: 'date', label: 'Date' },
+  { value: 'specialty_tags', label: 'Specialty tags' },
+  { value: 'notes', label: 'Notes' },
+  { value: 'created_at', label: 'Created' },
+]
+
 type ShareLink = {
   id: string
   token: string
@@ -86,6 +97,9 @@ export default function ExportPage() {
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [backupLoading, setBackupLoading] = useState(false)
+  const [appendPdfFile, setAppendPdfFile] = useState<File | null>(null)
+  const [appendingPdf, setAppendingPdf] = useState(false)
+  const [selectedFields, setSelectedFields] = useState<string[]>(EXPORT_FIELDS.map(field => field.value))
   const [error, setError] = useState<string | null>(null)
 
   const [shareLinks, setShareLinks] = useState<ShareLink[]>([])
@@ -206,7 +220,7 @@ export default function ExportPage() {
     const res = await fetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty, format, template: pdfTemplate, theme: themeFilter || null }),
+      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty, format, template: pdfTemplate, theme: themeFilter || null, fields: selectedFields }),
     })
     setGenerating(false)
     if (!res.ok) {
@@ -230,6 +244,33 @@ export default function ExportPage() {
     }
     const dateStr = new Date().toISOString().split('T')[0]
     await downloadBlob(res, `clerkfolio-export-${dateStr}.zip`)
+  }
+
+  async function handleAppendPdf() {
+    if (!appendPdfFile || selectedEntryIds.size === 0) return
+    setAppendingPdf(true)
+    setError(null)
+    const form = new FormData()
+    form.set('pdf', appendPdfFile)
+    form.set('entryIds', JSON.stringify(Array.from(selectedEntryIds)))
+    const res = await fetch('/api/export/pdf-append', { method: 'POST', body: form })
+    setAppendingPdf(false)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setError(json.error ?? 'Could not append entries to PDF.')
+      return
+    }
+    await downloadBlob(res, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
+  async function downloadEvidenceZip(entryId: string, title: string) {
+    const res = await fetch(`/api/export/evidence?entry_id=${entryId}`)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setError(json.error ?? 'No evidence files available for that entry.')
+      return
+    }
+    await downloadBlob(res, `evidence-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || entryId}.zip`)
   }
 
   async function createShareLink() {
@@ -312,6 +353,9 @@ export default function ExportPage() {
         <Link href="/export/cv" className="rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-2 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
           CV generator
         </Link>
+        <Link href="/export/linkedin" className="rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-2 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+          LinkedIn snippets
+        </Link>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-white/[0.08] bg-[#141416] p-1.5">
@@ -392,6 +436,32 @@ export default function ExportPage() {
                 </div>
               </div>
             )}
+
+            <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Fields</p>
+              <div className="space-y-2">
+                {EXPORT_FIELDS.map(field => (
+                  <label key={field.value} className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                    <input
+                      type="checkbox"
+                      checked={selectedFields.includes(field.value)}
+                      onChange={e => setSelectedFields(current => e.target.checked ? [...current, field.value] : current.filter(value => value !== field.value))}
+                    />
+                    {field.label}
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {format === 'pdf' && (
+              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Append PDF</p>
+                <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[rgba(245,245,242,0.55)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[#F5F5F2]" />
+                <button onClick={handleAppendPdf} disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf} className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:opacity-40">
+                  {appendingPdf ? 'Appending...' : 'Append selected'}
+                </button>
+              </div>
+            )}
           </aside>
 
           <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
@@ -431,6 +501,17 @@ export default function ExportPage() {
                         {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[rgba(245,245,242,0.4)]">{entrySubtitle(entry)}</p>}
                       </div>
                       <span className="shrink-0 text-xs text-[rgba(245,245,242,0.3)]">{formatDate(entry.date)}</span>
+                      <button
+                        type="button"
+                        onClick={e => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          downloadEvidenceZip(entry.id, entry.title)
+                        }}
+                        className="shrink-0 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]"
+                      >
+                        Evidence ZIP
+                      </button>
                     </label>
                   )
                 })}
@@ -472,6 +553,9 @@ export default function ExportPage() {
           </button>
           <a href="/api/export/year-review" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
             Year in review PDF
+          </a>
+          <a href="/api/export/markdown" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+            Reflections MD
           </a>
         </section>
       )}

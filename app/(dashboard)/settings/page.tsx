@@ -28,6 +28,8 @@ type ProfileState = {
   referral_code: string
   foundation_gift_granted_at: string
   timezone: string
+  public_slug: string
+  public_showcase_enabled: boolean
 }
 
 export default function SettingsPage() {
@@ -44,6 +46,8 @@ export default function SettingsPage() {
     referral_code: '',
     foundation_gift_granted_at: '',
     timezone: 'Europe/London',
+    public_slug: '',
+    public_showcase_enabled: false,
   })
   const [studentEmail, setStudentEmail] = useState({
     email: '',
@@ -82,7 +86,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, public_slug, public_showcase_enabled, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -105,6 +109,8 @@ export default function SettingsPage() {
           referral_code: referralCode,
           foundation_gift_granted_at: data.foundation_gift_granted_at ?? '',
           timezone: data.timezone ?? 'Europe/London',
+          public_slug: data.public_slug ?? '',
+          public_showcase_enabled: data.public_showcase_enabled ?? false,
         })
         setSubInfo(subInfo)
         setStudentEmail({
@@ -134,6 +140,7 @@ export default function SettingsPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
 
+    const publicSlug = normalisePublicSlug(next.public_slug)
     const payload = {
       first_name: next.first_name,
       last_name: next.last_name,
@@ -141,6 +148,8 @@ export default function SettingsPage() {
       student_graduation_date: next.student_graduation_date,
       referral_code: next.referral_code,
       timezone: next.timezone,
+      public_slug: publicSlug || null,
+      public_showcase_enabled: next.public_showcase_enabled,
     }
 
     const { error } = await supabase
@@ -153,7 +162,7 @@ export default function SettingsPage() {
       addToast('Failed to save settings', 'error')
       return
     }
-    let updatedProfile = next
+    let updatedProfile = { ...next, public_slug: publicSlug }
     const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
     if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at) {
       const gift = await grantFoundationGiftIfEligible(supabase, user.id, previousProfile.career_stage)
@@ -396,6 +405,41 @@ export default function SettingsPage() {
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-[#F5F5F2]">Public showcase</h2>
+            <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
+              {profile.public_slug ? `${profile.public_slug}.clerkfolio.site` : 'Choose a public slug'}
+            </p>
+          </div>
+          <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+            <input
+              type="checkbox"
+              checked={profile.public_showcase_enabled}
+              onChange={e => setProfile(p => ({ ...p, public_showcase_enabled: e.target.checked }))}
+            />
+            Enabled
+          </label>
+        </div>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <input
+            value={profile.public_slug}
+            onChange={e => setProfile(p => ({ ...p, public_slug: e.target.value }))}
+            placeholder="dr-test"
+            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+          />
+          <button onClick={() => saveProfile()} disabled={savingProfile} className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+            Save showcase
+          </button>
+        </div>
+        {profile.public_slug && (
+          <Link href={`/showcase/${normalisePublicSlug(profile.public_slug)}`} className="mt-3 inline-flex text-sm text-[#1B6FD9] hover:text-[#6AA8FF]">
+            Preview showcase
+          </Link>
+        )}
+      </section>
+
+      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
         {subInfo && (
           <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
@@ -577,6 +621,16 @@ function formatQuota(mb: number) {
 
 function profileDisplayName(profile: Pick<ProfileState, 'first_name' | 'last_name'>) {
   return [profile.first_name, profile.last_name].filter(Boolean).join(' ')
+}
+
+function normalisePublicSlug(value: string) {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 63)
 }
 
 function isLoyalAccount(createdAt: string) {

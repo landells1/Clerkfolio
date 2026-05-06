@@ -16,6 +16,9 @@ const PDF_TEMPLATES = {
   st_application: stApplicationTemplate,
 } as const
 
+const EXPORT_FIELDS = ['record_type', 'id', 'title', 'category_or_area', 'date', 'specialty_tags', 'notes', 'created_at'] as const
+type ExportField = typeof EXPORT_FIELDS[number]
+
 function formatTag(tag: string): string {
   const config = getSpecialtyConfig(tag)
   return config ? config.name : tag
@@ -23,6 +26,12 @@ function formatTag(tag: string): string {
 
 function formatTags(tags: string[] | null | undefined) {
   return (tags ?? []).map(formatTag)
+}
+
+function parseFields(value: unknown): ExportField[] {
+  if (!Array.isArray(value)) return [...EXPORT_FIELDS]
+  const set = new Set(value.filter((field): field is ExportField => EXPORT_FIELDS.includes(field as ExportField)))
+  return set.size > 0 ? EXPORT_FIELDS.filter(field => set.has(field)) : [...EXPORT_FIELDS]
 }
 
 export async function POST(request: NextRequest) {
@@ -48,7 +57,8 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { entryIds, caseIds, specialty, format, template, theme } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null }
+  const { entryIds, caseIds, specialty, format, template, theme, fields } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null; fields?: string[] }
+  const selectedFields = parseFields(fields)
 
   if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
     return NextResponse.json({ error: 'Maximum 500 items per export. Use filters to narrow your selection.' }, { status: 400 })
@@ -104,18 +114,18 @@ export async function POST(request: NextRequest) {
         key: specialty || null,
         label: specialtyDisplay,
       },
-      portfolio_entries: filteredEntries,
-      cases: cases ?? [],
+      portfolio_entries: filteredEntries.map(entry => selectJsonFields('portfolio_entry', entry, selectedFields)),
+      cases: (cases ?? []).map(c => selectJsonFields('case', c, selectedFields)),
       readable: {
-        portfolio_entries: filteredEntries.map(entry => ({
+        portfolio_entries: filteredEntries.map(entry => selectJsonFields('portfolio_entry', {
           ...entry,
           specialty_tag_labels: formatTags(entry.specialty_tags),
-        })),
-        cases: (cases ?? []).map(c => ({
+        }, selectedFields)),
+        cases: (cases ?? []).map(c => selectJsonFields('case', {
           ...c,
           specialty_tag_labels: formatTags(c.specialty_tags),
           clinical_area_labels: c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : [],
-        })),
+        }, selectedFields)),
       },
     }
     return new NextResponse(JSON.stringify(payload, null, 2), {
@@ -130,7 +140,7 @@ export async function POST(request: NextRequest) {
   // ── CSV export ───────────────────────────────────────────────────────────────
   if (format === 'csv') {
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.csv`
-    const csv = '\uFEFF' + toCsv(filteredEntries, cases ?? [])
+    const csv = '\uFEFF' + toCsv(filteredEntries, cases ?? [], selectedFields)
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -187,34 +197,44 @@ export async function POST(request: NextRequest) {
 type CsvEntry = { id?: string; title?: string; category?: string; date?: string; specialty_tags?: string[]; notes?: string; created_at?: string }
 type CsvCase = { id?: string; title?: string; date?: string; clinical_domain?: string | null; clinical_domains?: string[]; specialty_tags?: string[]; notes?: string | null; created_at?: string }
 
-function toCsv(entries: CsvEntry[], cases: CsvCase[]): string {
-  const FIELDS = ['record_type', 'id', 'title', 'category_or_area', 'date', 'specialty_tags', 'notes', 'created_at'] as const
+function selectJsonFields(recordType: 'portfolio_entry' | 'case', row: Record<string, unknown>, fields: ExportField[]) {
+  const next: Record<string, unknown> = {}
+  fields.forEach(field => {
+    if (field === 'record_type') next.record_type = recordType
+    else if (field === 'category_or_area') {
+      if (recordType === 'portfolio_entry') next.category = row.category
+      else {
+        next.clinical_domain = row.clinical_domain
+        next.clinical_domains = row.clinical_domains
+      }
+    } else {
+      next[field] = row[field]
+    }
+  })
+  return next
+}
+
+function toCsv(entries: CsvEntry[], cases: CsvCase[], fields: ExportField[]): string {
   // Prefix leading formula characters so Excel/Sheets cannot execute them.
   const FORMULA_CHARS = /^[=+\-@\t\r]/
   const escape = (v: string) => {
     const safe = FORMULA_CHARS.test(v) ? `'${v}` : v
     return `"${safe.replace(/"/g, '""')}"`
   }
-  const header = FIELDS.join(',')
-  const rows = entries.map(e => [
-    escape('portfolio_entry'),
-    escape(e.id ?? ''),
-    escape(e.title ?? ''),
-    escape(e.category ?? ''),
-    escape(e.date ?? ''),
-    escape(formatTags(e.specialty_tags).join(';')),
-    escape(e.notes ?? ''),
-    escape(e.created_at ?? ''),
-  ].join(','))
-  const caseRows = cases.map(c => [
-    escape('case'),
-    escape(c.id ?? ''),
-    escape(c.title ?? ''),
-    escape((c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(';')),
-    escape(c.date ?? ''),
-    escape(formatTags(c.specialty_tags).join(';')),
-    escape(c.notes ?? ''),
-    escape(c.created_at ?? ''),
-  ].join(','))
+  const entryValue = (e: CsvEntry, field: ExportField) => {
+    if (field === 'record_type') return 'portfolio_entry'
+    if (field === 'category_or_area') return e.category ?? ''
+    if (field === 'specialty_tags') return formatTags(e.specialty_tags).join(';')
+    return String(e[field as keyof CsvEntry] ?? '')
+  }
+  const caseValue = (c: CsvCase, field: ExportField) => {
+    if (field === 'record_type') return 'case'
+    if (field === 'category_or_area') return (c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []).join(';')
+    if (field === 'specialty_tags') return formatTags(c.specialty_tags).join(';')
+    return String(c[field as keyof CsvCase] ?? '')
+  }
+  const header = fields.join(',')
+  const rows = entries.map(e => fields.map(field => escape(entryValue(e, field))).join(','))
+  const caseRows = cases.map(c => fields.map(field => escape(caseValue(c, field))).join(','))
   return [header, ...rows, ...caseRows].join('\n')
 }

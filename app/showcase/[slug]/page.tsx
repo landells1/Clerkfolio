@@ -1,0 +1,76 @@
+import { notFound } from 'next/navigation'
+import { createServiceClient } from '@/lib/supabase/server'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { getSpecialtyConfig } from '@/lib/specialties'
+
+type Entry = {
+  id: string
+  title: string
+  category: Category
+  date: string
+  notes: string | null
+  specialty_tags: string[] | null
+}
+
+function categoryLabel(category: Category) {
+  return CATEGORIES.find(item => item.value === category)?.label ?? category
+}
+
+export default async function ShowcasePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params
+  const supabase = createServiceClient()
+
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id, first_name, last_name, public_slug, public_showcase_enabled')
+    .eq('public_slug', slug)
+    .eq('public_showcase_enabled', true)
+    .maybeSingle()
+
+  if (!profile) notFound()
+
+  const { data: entries } = await supabase
+    .from('portfolio_entries')
+    .select('id, title, category, date, notes, specialty_tags')
+    .eq('user_id', profile.id)
+    .is('deleted_at', null)
+    .order('date', { ascending: false })
+
+  const ownerName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Clerkfolio user'
+
+  return (
+    <main className="min-h-screen bg-[#0B0B0C] text-[#F5F5F2]">
+      <div className="mx-auto max-w-4xl px-6 py-10">
+        <header className="mb-8 border-b border-white/[0.08] pb-6">
+          <p className="text-xs font-medium uppercase tracking-wider text-[#1B6FD9]">Clerkfolio showcase</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight">{ownerName}</h1>
+          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{entries?.length ?? 0} portfolio entries</p>
+        </header>
+
+        <div className="space-y-4">
+          {((entries ?? []) as Entry[]).map(entry => (
+            <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.35)]">{categoryLabel(entry.category)}</p>
+                  <h2 className="mt-1 text-lg font-semibold">{entry.title}</h2>
+                </div>
+                <time className="text-xs text-[rgba(245,245,242,0.38)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+              </div>
+              {entry.notes && <p className="whitespace-pre-line text-sm leading-relaxed text-[rgba(245,245,242,0.68)]">{entry.notes}</p>}
+              {entry.specialty_tags?.length ? (
+                <div className="mt-4 flex flex-wrap gap-2">
+                  {entry.specialty_tags.map(tag => (
+                    <span key={tag} className="rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-[rgba(245,245,242,0.55)]">
+                      {getSpecialtyConfig(tag)?.name ?? tag}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+            </article>
+          ))}
+        </div>
+      </div>
+    </main>
+  )
+}
