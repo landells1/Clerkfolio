@@ -31,6 +31,31 @@ function formatTag(tag: string) {
   return getSpecialtyConfig(tag)?.name ?? tag
 }
 
+async function sendShareViewWebhook(
+  url: string,
+  payload: { token: string; scope: string; viewed_at: string; ip_hash: string }
+) {
+  try {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return
+
+    const controller = new AbortController()
+    const timeout = setTimeout(() => controller.abort(), 3000)
+    try {
+      await fetch(parsed.toString(), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        signal: controller.signal,
+      })
+    } finally {
+      clearTimeout(timeout)
+    }
+  } catch (err) {
+    console.error('share view webhook failed:', err)
+  }
+}
+
 // Tokens are produced by createShareToken() = randomBytes(24).toString('hex') = 48 hex chars.
 // Reject malformed tokens at the edge so we don't burn a DB lookup on every junk request.
 const TOKEN_FORMAT = /^[0-9a-f]{48}$/
@@ -48,7 +73,7 @@ export async function POST(req: NextRequest) {
 
   const { data: link, error } = await supabase
     .from('share_links')
-    .select('id, user_id, token, scope, specialty_key, theme_slug, expires_at, revoked, revoked_at, pin_hash, view_count, hide_notes, hide_reflection, redact_tags, created_at')
+    .select('id, user_id, token, scope, specialty_key, theme_slug, expires_at, revoked, revoked_at, pin_hash, view_count, hide_notes, hide_reflection, redact_tags, view_webhook_url, created_at')
     .eq('token', token)
     .maybeSingle()
 
@@ -170,9 +195,13 @@ export async function POST(req: NextRequest) {
 
   if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
 
+  const viewedAt = new Date().toISOString()
+  const { error: viewError } = await supabase
+    .from('share_views')
+    .insert({ share_link_id: link.id, ip_hash: ipHash, viewed_at: viewedAt })
+
   await Promise.allSettled([
     supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: true }),
-    supabase.from('share_views').insert({ share_link_id: link.id, ip_hash: ipHash }),
     supabase.rpc('increment_share_link_view_count', { p_link_id: link.id }),
     supabase.from('audit_log').insert({
       user_id: link.user_id,
@@ -180,6 +209,15 @@ export async function POST(req: NextRequest) {
       metadata: { share_link_id: link.id, scope: link.scope },
     }),
   ])
+
+  if (!viewError && link.view_webhook_url) {
+    await sendShareViewWebhook(link.view_webhook_url, {
+      token: link.token,
+      scope: link.scope,
+      viewed_at: viewedAt,
+      ip_hash: ipHash,
+    })
+  }
 
   return NextResponse.json({
     ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio user',

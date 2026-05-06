@@ -28,6 +28,22 @@ function parseExpiry(value: unknown) {
   return parsed.toISOString()
 }
 
+function parseWebhookUrl(value: unknown) {
+  const raw = typeof value === 'string' ? value.trim() : ''
+  if (!raw) return { url: null as string | null }
+  if (raw.length > 2048) return { error: 'Webhook URL is too long.' }
+
+  try {
+    const url = new URL(raw)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') {
+      return { error: 'Webhook URL must start with http:// or https://.' }
+    }
+    return { url: url.toString() }
+  } catch {
+    return { error: 'Enter a valid webhook URL.' }
+  }
+}
+
 async function verifyShareScope(
   supabase: ReturnType<typeof createClient>,
   userId: string,
@@ -60,7 +76,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('share_links')
-    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, revoked_at, created_at')
+    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, view_webhook_url, revoked_at, created_at')
     .eq('user_id', user.id)
     .eq('revoked', false)
     .is('revoked_at', null)
@@ -88,9 +104,13 @@ export async function POST(req: NextRequest) {
     : null
   const expiry = parseExpiry(body.expires_at)
   const pin = normalizePin(body.pin)
+  const webhook = parseWebhookUrl(body.view_webhook_url)
 
   if (!expiry) {
     return NextResponse.json({ error: 'Expiry must be between tomorrow and 90 days from now.' }, { status: 400 })
+  }
+  if ('error' in webhook) {
+    return NextResponse.json({ error: webhook.error }, { status: 400 })
   }
 
   const scopeError = await verifyShareScope(supabase, user.id, scope, specialtyKey, themeSlug)
@@ -117,10 +137,11 @@ export async function POST(req: NextRequest) {
       hide_notes: body.hide_notes === true,
       hide_reflection: body.hide_reflection === true,
       redact_tags: body.redact_tags === true,
+      view_webhook_url: webhook.url,
       revoked: false,
       revoked_at: null,
     })
-    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, created_at')
+    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, view_webhook_url, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

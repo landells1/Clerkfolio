@@ -49,6 +49,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     .eq('completed', false)
     .order('due_date', { ascending: true })
 
+  const { data: goals } = await supabase
+    .from('goals')
+    .select('id, category, target_count, due_date, specific, measurable, achievable, relevant, time_bound, created_at')
+    .eq('user_id', profile.id)
+    .not('due_date', 'is', null)
+    .order('due_date', { ascending: true })
+
   const { data: specialties } = await supabase
     .from('specialty_applications')
     .select('id, specialty_key')
@@ -81,7 +88,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     }),
   ]
 
-  const events = [...configuredDeadlines, ...(deadlines ?? [])].flatMap(deadline => {
+  const goalEvents = (goals ?? []).map(goal => ({
+    id: `goal-${goal.id}`,
+    title: goal.specific || `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
+    due_date: goal.due_date!,
+    details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n'),
+    location: null,
+    updated_at: null,
+    created_at: goal.created_at,
+  }))
+
+  const events = [...configuredDeadlines, ...(deadlines ?? []), ...goalEvents].flatMap(deadline => {
     const start = icsDate(deadline.due_date)
     const endDate = new Date(deadline.due_date)
     endDate.setDate(endDate.getDate() + 1)

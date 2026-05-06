@@ -31,6 +31,7 @@ type ShareLink = {
   hide_notes?: boolean
   hide_reflection?: boolean
   redact_tags?: boolean
+  view_webhook_url?: string | null
   created_at: string
 }
 type TrackedApp = { id: string; specialty_key: string }
@@ -94,6 +95,7 @@ export default function ExportPage() {
   const [hideNotes, setHideNotes] = useState(false)
   const [hideReflection, setHideReflection] = useState(false)
   const [redactTags, setRedactTags] = useState(false)
+  const [viewWebhookUrl, setViewWebhookUrl] = useState('')
   const [expiryPreset, setExpiryPreset] = useState<number | null>(30)
   const [customExpiry, setCustomExpiry] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
@@ -255,6 +257,7 @@ export default function ExportPage() {
         hide_notes: hideNotes,
         hide_reflection: hideReflection,
         redact_tags: redactTags,
+        view_webhook_url: viewWebhookUrl.trim() || null,
       }),
     })
     const json = await res.json()
@@ -265,6 +268,7 @@ export default function ExportPage() {
     }
     setShareLinks(prev => [json as ShareLink, ...prev])
     setSharePin('')
+    setViewWebhookUrl('')
   }
 
   async function revokeShareLink(id: string) {
@@ -526,6 +530,15 @@ export default function ExportPage() {
                 <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
                 <p className="mt-1 text-xs text-[rgba(245,245,242,0.35)]">Optional PIN (4-8 digits)</p>
               </label>
+              <label className="block">
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">View webhook</span>
+                <input
+                  value={viewWebhookUrl}
+                  onChange={e => setViewWebhookUrl(e.target.value)}
+                  placeholder="https://example.com/share-viewed"
+                  className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]"
+                />
+              </label>
               <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-3">
                 <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
                   <input type="checkbox" checked={hideNotes} onChange={e => setHideNotes(e.target.checked)} />
@@ -560,6 +573,7 @@ export default function ExportPage() {
                       <div>
                         <p className="text-sm font-medium text-[#F5F5F2]">{shareLabel(link)}</p>
                         <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
+                        {link.view_webhook_url && <p className="mt-1 text-xs text-emerald-300">Webhook enabled</p>}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>

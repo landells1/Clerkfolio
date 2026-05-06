@@ -302,6 +302,7 @@ export default function SettingsPage() {
     ['/settings/themes', 'Themes'],
     ['/settings/tags', 'Specialty tags'],
     ['/settings/shared-links', 'Shared links'],
+    ['/settings/api', 'API access'],
     ['/trash', 'Trash'],
   ].filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
 
