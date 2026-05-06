@@ -163,7 +163,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                 </svg>
               </div>
               <p className="text-[#F5F5F2] font-medium">Entry logged and linked!</p>
-              <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Closing…</p>
+              <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Closingâ€¦</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" id="log-link-form">
@@ -264,12 +264,12 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   rows={3}
-                  placeholder="Any additional details…"
+                  placeholder="Any additional detailsâ€¦"
                   className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
                 />
               </div>
 
-              {/* Band selection — hidden for evidence-only domains */}
+              {/* Band selection â€” hidden for evidence-only domains */}
               {!noBands && (
                 <div>
                   <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
@@ -281,7 +281,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                     required
                     className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
                   >
-                    <option value="">Select the scoring band this evidence qualifies for…</option>
+                    <option value="">Select the scoring band this evidence qualifies forâ€¦</option>
                     {domain.bands.map(band => (
                       <option key={band.label} value={band.label}>
                         {band.label} ({band.points} pts)
@@ -303,7 +303,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               disabled={!canSubmit || submitting}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              {submitting ? 'Saving…' : 'Log & link evidence'}
+              {submitting ? 'Savingâ€¦' : 'Log & link evidence'}
             </button>
           </div>
         )}

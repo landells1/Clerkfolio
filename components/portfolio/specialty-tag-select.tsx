@@ -91,7 +91,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
           value={search}
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => setOpen(true)}
-          placeholder={value.length === 0 ? (trackedOnly ? 'Select programmes…' : 'Search specialties…') : ''}
+          placeholder={value.length === 0 ? (trackedOnly ? 'Select programmesâ€¦' : 'Search specialtiesâ€¦') : ''}
           className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
         />
       </div>
@@ -99,7 +99,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
       {/* Dropdown */}
       {open && (
         <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
-          {/* Section header — only in non-tracked mode when there are user interests */}
+          {/* Section header â€” only in non-tracked mode when there are user interests */}
           {!trackedOnly && userInterests.length > 0 && (
             <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties

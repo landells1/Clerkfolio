@@ -71,7 +71,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
 
       if (insertError) throw insertError
       const inserted = rows?.[0]
-      if (!inserted) throw new Error('No data returned — check your session and try again.')
+      if (!inserted) throw new Error('No data returned â€” check your session and try again.')
 
       // Auto-populate application window deadlines if the config has verified dates
       const config = SPECIALTY_CONFIGS.find(c => c.key === key)

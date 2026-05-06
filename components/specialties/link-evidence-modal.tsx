@@ -223,7 +223,7 @@ export function LinkEvidenceModal({
               {noBands ? (
                 <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
                   <p className="text-xs text-[rgba(245,245,242,0.55)] leading-relaxed">
-                    This domain is evidence-only — no scoring bands. Linking this entry will
+                    This domain is evidence-only â€” no scoring bands. Linking this entry will
                     mark the domain as evidenced.
                   </p>
                 </div>
@@ -237,7 +237,7 @@ export function LinkEvidenceModal({
                     onChange={e => setSelectedBand(e.target.value)}
                     className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
                   >
-                    <option value="">Select a band…</option>
+                    <option value="">Select a bandâ€¦</option>
                     {domain.bands.map(band => (
                       <option key={band.label} value={band.label}>
                         {band.label} ({band.points} pts)
@@ -258,7 +258,7 @@ export function LinkEvidenceModal({
               disabled={!canLink || linking}
               className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
             >
-              {linking ? 'Linking…' : 'Link evidence'}
+              {linking ? 'Linkingâ€¦' : 'Link evidence'}
             </button>
           </div>
         )}
