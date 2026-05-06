@@ -98,7 +98,7 @@ export default function CasesFilters({
           type="text"
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder="Search cases…"
+          placeholder="Search casesâ€¦"
           className={`${inputClass} w-full pl-9`}
         />
       </div>

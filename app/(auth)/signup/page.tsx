@@ -143,7 +143,7 @@ export default function SignupPage() {
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
-            placeholder="••••••••"
+            placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
           />
         </div>
 
@@ -158,7 +158,7 @@ export default function SignupPage() {
           disabled={loading}
           className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-[#0B0B0C] font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
-          {loading ? 'Creating account…' : 'Create account ?'}
+          {loading ? 'Creating accountâ€¦' : 'Create account ?'}
         </button>
       </form>
 

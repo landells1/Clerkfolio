@@ -10,7 +10,7 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] px-4 text-center">
-      <p className="text-xs font-mono text-[rgba(245,245,242,0.55)] tracking-widest mb-6">ง ERROR</p>
+      <p className="text-xs font-mono text-[rgba(245,245,242,0.55)] tracking-widest mb-6">ยง ERROR</p>
       <h2 className="text-2xl font-medium tracking-tight mb-3">Something went wrong</h2>
       <p className="text-[rgba(245,245,242,0.5)] text-sm mb-8 max-w-sm leading-relaxed">
         An unexpected error occurred loading this page. Your data is safe.

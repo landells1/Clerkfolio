@@ -81,7 +81,7 @@ export default function PortfolioFilters({ defaultQ = '', defaultSort = '' }: Pr
           type="text"
           value={q}
           onChange={e => setQ(e.target.value)}
-          placeholder="Search entries…"
+          placeholder="Search entriesâ€¦"
           className={`${inputClass} w-full pl-9`}
         />
       </div>
