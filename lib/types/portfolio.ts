@@ -98,6 +98,7 @@ export type PortfolioEntry = {
 
   // Reflections & CBDs/DOPs
   refl_type?: string | null
+  refl_framework?: string | null
   refl_clinical_context?: string | null
   refl_supervisor?: string | null
   refl_free_text?: string | null

@@ -7,6 +7,7 @@ import LogSimilarButton from '@/components/cases/log-similar-button'
 import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
 import PinCaseButton from '@/components/cases/pin-case-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
+import MarkdownRenderer from '@/components/ui/markdown-renderer'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -104,7 +105,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
         {c.notes && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-3">Notes</p>
-            <p className="text-sm text-[rgba(245,245,242,0.75)] leading-relaxed whitespace-pre-wrap">{c.notes}</p>
+            <MarkdownRenderer value={c.notes} />
           </div>
         )}
 

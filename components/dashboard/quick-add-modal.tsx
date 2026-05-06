@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { completenessScore } from '@/lib/utils/completeness'
+import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.25)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
@@ -32,34 +33,6 @@ const REFLECTION_TYPES = ['CBD', 'DOP', 'Mini-CEX', 'Personal reflection']
 const SUPERVISION_LEVELS: { id: string; label: string }[] = [
   { id: 'Supervised', label: 'Supervised' },
   { id: 'Unsupervised', label: 'Unsupervised' },
-]
-
-const KEYWORD_TAG_MAP: [string[], string][] = [
-  [['cardio', 'cardiac', 'heart', 'mi ', 'stemi', 'nstemi', 'af ', 'atrial', 'chest pain', 'angina'], 'Cardiology'],
-  [['resp', 'lung', 'pneum', 'asthma', 'copd', 'pleural', 'breathless', 'sob', 'shortness', 'haemoptysis'], 'Respiratory Medicine'],
-  [['neuro', 'stroke', 'tia', 'seizure', 'epilep', 'headache', ' ms ', 'parkinson', 'neuropath'], 'Neurology'],
-  [['gastro', 'bowel', 'abdomen', 'abdo', 'liver', 'hepat', 'colonoscopy', 'endoscopy', 'ibd', 'crohn', 'colitis'], 'Gastroenterology'],
-  [['surg', 'appendix', 'hernia', 'laparoscop', 'laparotomy', 'cholecyst', 'bowel obstruct'], 'General Surgery'],
-  [['paeds', 'paediatric', 'pediatric', 'child', 'neonatal', 'infant'], 'Paediatrics'],
-  [['psych', 'mental health', 'depression', 'anxiety', 'schizophrenia', 'bipolar', 'psychos'], 'Psychiatry'],
-  [['ortho', 'fracture', 'bone', 'joint', 'knee', 'hip', 'shoulder', 'spine'], 'Orthopaedics'],
-  [['derm', 'skin', 'rash', 'eczema', 'psoriasis', 'cellulitis', 'wound'], 'Dermatology'],
-  [['renal', 'kidney', 'aki', 'ckd', 'dialysis', 'nephr'], 'Nephrology'],
-  [['diabet', 'dka', 'thyroid', 'adrenal', 'endocrin', 'insulin', 'hba1c'], 'Endocrinology & Diabetes'],
-  [['haem', 'anaemia', 'anemia', 'lymphoma', 'leukaemia', 'transfusion', 'coagulat'], 'Clinical Haematology'],
-  [['rheuma', 'arthritis', 'lupus', 'vasculitis', 'gout', 'fibromyalg'], 'Rheumatology'],
-  [['itu', 'icu', 'critical care', 'ventilat', 'intubat', 'septic shock'], 'Critical Care / ITU'],
-  [['a&e', 'trauma', 'resus', 'triage'], 'Emergency Medicine'],
-  [['obstet', 'gynae', 'obstetric', 'gynaecol', 'pregnancy', 'maternal', 'antenatal'], 'Obstetrics & Gynaecology'],
-  [['oncol', 'cancer', 'chemotherapy', 'radiotherapy', 'tumour', 'metastas'], 'Oncology'],
-  [['palliative', 'end of life', 'eol', 'hospice', 'syringe driver'], 'Palliative Care'],
-  [['urol', 'bladder', 'prostate', 'renal calcul'], 'Urology'],
-  [['ophthal', 'retina', 'glaucoma', 'cataract', 'visual'], 'Ophthalmology'],
-  [['radiol', 'mri', 'ct scan', 'ultrasound', 'x-ray', 'imaging', 'angio'], 'Radiology'],
-  [['geriat', 'elderly', 'frailty', 'dementia', 'falls', 'delirium'], 'Geriatric Medicine'],
-  [['infect', 'antibiotic', 'hiv', 'tuberculosis', 'septicaemia', 'bacteraemia'], 'Infectious Diseases'],
-  [['anaesth', 'intubat', 'airway', 'sedation', 'regional block'], 'Anaesthetics'],
-  [['vasc', 'aorta', 'aaa', 'pvd', 'dvt', 'pe ', 'pulmonary embol'], 'Vascular Surgery'],
 ]
 
 export default function QuickAddModal({
@@ -115,16 +88,7 @@ export default function QuickAddModal({
   useEffect(() => {
     const timer = setTimeout(() => {
       if (title.trim().length < 3) { setSuggestedTags([]); return }
-      const lower = title.toLowerCase()
-      const found: string[] = []
-      for (const [keywords, tag] of KEYWORD_TAG_MAP) {
-        if (tags.includes(tag)) continue
-        if (keywords.some(k => lower.includes(k))) {
-          found.push(tag)
-          if (found.length >= 3) break
-        }
-      }
-      setSuggestedTags(found)
+      setSuggestedTags(suggestTagsForText(title, tags))
     }, 400)
     return () => clearTimeout(timer)
   }, [title, tags])

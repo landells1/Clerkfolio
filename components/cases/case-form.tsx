@@ -11,6 +11,7 @@ import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
+import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -44,6 +45,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         : []
   )
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [interviewThemes, setInterviewThemes] = useState<string[]>((initialData as { interview_themes?: string[] })?.interview_themes ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
@@ -107,6 +109,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   }, [isDirty])
 
   function markDirty() { setIsDirty(true) }
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSuggestedTags(suggestTagsForText(`${title} ${notes}`, specialtyTags))
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [notes, specialtyTags, title])
 
   function addPendingFiles(files: FileList | null) {
     const nextFiles = Array.from(files ?? [])
@@ -295,6 +304,20 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           userInterests={userInterests}
           trackedOnly
         />
+        {suggestedTags.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {suggestedTags.map(tag => (
+              <button
+                key={tag}
+                type="button"
+                onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
+                className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+              >
+                + {tag}
+              </button>
+            ))}
+          </div>
+        )}
         <p className="text-xs text-[rgba(245,245,242,0.3)] mt-1">
           Which of your tracked programmes can you use this case for?
         </p>

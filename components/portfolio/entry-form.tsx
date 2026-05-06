@@ -8,9 +8,11 @@ import type { Template } from '@/lib/types/templates'
 import SpecialtyTagSelect from './specialty-tag-select'
 import CompetencyThemePicker from './competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
+import CategoryGuide from '@/components/portfolio/category-guide'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
+import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -51,16 +53,21 @@ const ROLFE_FIELDS = [
   { key: 'so_what', label: 'So What?', hint: 'What does this mean for you/the patient?' },
   { key: 'now_what', label: 'Now What?', hint: 'What will you do differently?' },
 ]
+const DRISCOLL_FIELDS = [
+  { key: 'what', label: 'What?', hint: 'What happened?' },
+  { key: 'so_what', label: 'So What?', hint: 'Why was this significant?' },
+  { key: 'now_what', label: 'Now What?', hint: 'What action will you take?' },
+]
 
 function buildFrameworkText(framework: string, parts: Record<string, string>): string {
-  const fields = framework === 'gibbs' ? GIBBS_FIELDS : ROLFE_FIELDS
+  const fields = framework === 'gibbs' ? GIBBS_FIELDS : framework === 'driscoll' ? DRISCOLL_FIELDS : ROLFE_FIELDS
   return fields
     .map(f => `**${f.label}:**\n${parts[f.key] ?? ''}`)
     .join('\n\n')
 }
 
 function parseFrameworkText(framework: string, text: string): Record<string, string> {
-  const fields = framework === 'gibbs' ? GIBBS_FIELDS : ROLFE_FIELDS
+  const fields = framework === 'gibbs' ? GIBBS_FIELDS : framework === 'driscoll' ? DRISCOLL_FIELDS : ROLFE_FIELDS
   const result: Record<string, string> = {}
   fields.forEach((f, i) => {
     const start = text.indexOf(`**${f.label}:**\n`)
@@ -73,7 +80,7 @@ function parseFrameworkText(framework: string, text: string): Record<string, str
   return result
 }
 
-function detectFramework(text: string): 'gibbs' | 'rolfe' | 'none' {
+function detectFramework(text: string): 'gibbs' | 'rolfe' | 'driscoll' | 'none' {
   if (text.includes('**Description:**') && text.includes('**Action Plan:**')) return 'gibbs'
   if (text.includes('**What?:**') && text.includes('**Now What?:**')) return 'rolfe'
   return 'none'
@@ -129,6 +136,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
 
   // Template guidance placeholders — overridden when a template is applied
@@ -190,8 +198,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [reflFreeText, setReflFreeText] = useState(initialData?.refl_free_text ?? '')
 
   // Reflection framework
-  const initialFw = initialData?.refl_free_text ? detectFramework(initialData.refl_free_text) : 'none'
-  const [reflFramework, setReflFramework] = useState<'none' | 'gibbs' | 'rolfe'>(initialFw)
+  const initialFw = (initialData?.refl_framework as 'none' | 'gibbs' | 'rolfe' | 'driscoll' | undefined)
+    ?? (initialData?.refl_free_text ? detectFramework(initialData.refl_free_text) : 'none')
+  const [reflFramework, setReflFramework] = useState<'none' | 'gibbs' | 'rolfe' | 'driscoll'>(initialFw)
   const [reflParts, setReflParts] = useState<Record<string, string>>(() => {
     if (initialFw !== 'none' && initialData?.refl_free_text) {
       return parseFrameworkText(initialFw, initialData.refl_free_text)
@@ -347,6 +356,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   function markDirty() { setIsDirty(true) }
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSuggestedTags(suggestTagsForText(`${title} ${notes}`, specialtyTags))
+    }, 250)
+    return () => clearTimeout(timer)
+  }, [notes, specialtyTags, title])
+
   function addPendingFiles(files: FileList | null) {
     const nextFiles = Array.from(files ?? [])
     if (nextFiles.length === 0) return
@@ -378,7 +394,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       case 'leadership': return { ...base, leader_role: leaderRole || null, leader_organisation: leaderOrg || null, leader_start_date: leaderStart || null, leader_end_date: leaderOngoing ? null : (leaderEnd || null), leader_ongoing: leaderOngoing }
       case 'prize': return { ...base, prize_body: prizeBody || null, prize_level: prizeLevel || null, prize_description: prizeDescription || null }
       case 'procedure': return { ...base, proc_name: procName || null, proc_setting: procSetting || null, proc_supervision: procSupervision || null, proc_count: procCount ? parseInt(procCount) : null }
-      case 'reflection': return { ...base, refl_type: reflType || null, refl_clinical_context: reflContext || null, refl_supervisor: reflSupervisor || null, refl_free_text: getReflFreeText() }
+      case 'reflection': return { ...base, refl_type: reflType || null, refl_framework: reflFramework === 'none' ? null : reflFramework, refl_clinical_context: reflContext || null, refl_supervisor: reflSupervisor || null, refl_free_text: getReflFreeText() }
       case 'custom': return { ...base, custom_free_text: customFreeText || null }
     }
   }
@@ -532,6 +548,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
         )}
 
+        <CategoryGuide category={category} />
+
         {/* Category selector */}
         {mode === 'create' && (
           <div>
@@ -579,6 +597,20 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
           <Field label="Application tags">
             <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
+            {suggestedTags.length > 0 && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {suggestedTags.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
+                    className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+                  >
+                    + {tag}
+                  </button>
+                ))}
+              </div>
+            )}
           </Field>
           <Field label="Notes / comments">
             <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
@@ -615,7 +647,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   <option value="completed_loop">Completed loop</option>
                 </select>
               </Field>
-              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} /></Field>
+              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
               <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={setAuditPresented} />
             </div>
           )}
@@ -747,7 +779,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   </select>
                 </Field>
               </div>
-              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} className={INPUT} placeholder="Brief description of the prize or award" /></Field>
+              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} className={INPUT} placeholder="Brief description of the prize or award" />{prizeDescription && <p className={WORD_COUNT_CLASS}>{wordCount(prizeDescription)} words</p>}</Field>
             </div>
           )}
 
@@ -791,7 +823,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               <div>
                 <label className={LABEL}>Reflection framework</label>
                 <div className="flex gap-2">
-                  {(['none', 'gibbs', 'rolfe'] as const).map(fw => (
+                  {(['none', 'gibbs', 'driscoll', 'rolfe'] as const).map(fw => (
                     <button
                       key={fw}
                       type="button"
@@ -809,7 +841,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                           : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
                       }`}
                     >
-                      {fw === 'none' ? 'No framework' : fw === 'gibbs' ? "Gibbs' Cycle" : 'Rolfe (What/So What/Now What)'}
+                      {fw === 'none' ? 'No framework' : fw === 'gibbs' ? "Gibbs' Cycle" : fw === 'driscoll' ? 'Driscoll' : 'Rolfe'}
                     </button>
                   ))}
                 </div>
@@ -855,6 +887,23 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   ))}
                 </div>
               )}
+
+              {reflFramework === 'driscoll' && (
+                <div className="space-y-3">
+                  {DRISCOLL_FIELDS.map(f => (
+                    <Field key={f.key} label={`${f.label} - ${f.hint}`}>
+                      <textarea
+                        rows={4}
+                        maxLength={LONG_TEXT_MAX}
+                        value={reflParts[f.key] ?? ''}
+                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
+                        className={INPUT}
+                        placeholder={f.hint}
+                      />
+                    </Field>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -863,6 +912,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <div className="space-y-4">
               <Field label="Description">
                 <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
+                {customFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(customFreeText)} words</p>}
               </Field>
             </div>
           )}

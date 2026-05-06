@@ -431,6 +431,7 @@ export default function SettingsPage() {
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <SettingsLink href="/settings/notifications" label="Notifications" />
         <SettingsLink href="/settings/referrals" label="Referrals" />
+        <SettingsLink href="/settings/snippets" label="Snippets" />
         <SettingsLink href="/settings/templates" label="Templates" />
         <SettingsLink href="/settings/shared-links" label="Shared links" />
         <SettingsLink href="/trash" label="Trash" />

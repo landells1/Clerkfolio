@@ -9,6 +9,7 @@ import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
 import PinEntryButton from '@/components/portfolio/pin-entry-button'
 import SaveTemplateButton from '@/components/portfolio/save-template-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
+import MarkdownRenderer from '@/components/ui/markdown-renderer'
 
 function formatTag(tag: string): string {
   const config = getSpecialtyConfig(tag)
@@ -179,25 +180,25 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         {entry.category === 'audit_qip' && entry.audit_outcome && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Outcome</p>
-            <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.audit_outcome}</p>
+            <MarkdownRenderer value={entry.audit_outcome} />
           </div>
         )}
         {entry.category === 'prize' && entry.prize_description && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Description</p>
-            <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.prize_description}</p>
+            <MarkdownRenderer value={entry.prize_description} />
           </div>
         )}
         {entry.category === 'reflection' && entry.refl_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Reflection</p>
-            <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.refl_free_text}</p>
+            <MarkdownRenderer value={entry.refl_free_text} />
           </div>
         )}
         {entry.category === 'custom' && entry.custom_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Description</p>
-            <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.custom_free_text}</p>
+            <MarkdownRenderer value={entry.custom_free_text} />
           </div>
         )}
 
@@ -205,7 +206,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
         {entry.notes && (
           <div className="border-t border-white/[0.06] pt-5">
             <p className="text-[10px] font-medium text-[rgba(245,245,242,0.35)] uppercase tracking-wider mb-2">Notes</p>
-            <p className="text-sm text-[rgba(245,245,242,0.7)] leading-relaxed whitespace-pre-wrap">{entry.notes}</p>
+            <MarkdownRenderer value={entry.notes} />
           </div>
         )}
 
