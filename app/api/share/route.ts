@@ -60,7 +60,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('share_links')
-    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, revoked_at, created_at')
+    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, revoked_at, created_at')
     .eq('user_id', user.id)
     .eq('revoked', false)
     .is('revoked_at', null)
@@ -114,10 +114,13 @@ export async function POST(req: NextRequest) {
       theme_slug: scope === 'theme' ? themeSlug : null,
       expires_at: expiry,
       pin_hash: pin ? hashPin(pin) : null,
+      hide_notes: body.hide_notes === true,
+      hide_reflection: body.hide_reflection === true,
+      redact_tags: body.redact_tags === true,
       revoked: false,
       revoked_at: null,
     })
-    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, created_at')
+    .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, created_at')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

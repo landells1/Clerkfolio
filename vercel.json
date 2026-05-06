@@ -18,6 +18,10 @@
       "schedule": "0 2 * * *"
     },
     {
+      "path": "/api/cron/year-in-review",
+      "schedule": "0 9 2 1 *"
+    },
+    {
       "path": "/api/cron/purge-deleted",
       "schedule": "0 2 * * *"
     },

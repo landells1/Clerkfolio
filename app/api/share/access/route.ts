@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
 
   const { data: link, error } = await supabase
     .from('share_links')
-    .select('id, user_id, token, scope, specialty_key, theme_slug, expires_at, revoked, revoked_at, pin_hash, view_count, created_at')
+    .select('id, user_id, token, scope, specialty_key, theme_slug, expires_at, revoked, revoked_at, pin_hash, view_count, hide_notes, hide_reflection, redact_tags, created_at')
     .eq('token', token)
     .maybeSingle()
 
@@ -151,7 +151,7 @@ export async function POST(req: NextRequest) {
 
   let query = supabase
     .from('portfolio_entries')
-    .select('id, title, date, category, specialty_tags, interview_themes, created_at, updated_at')
+    .select('id, title, date, category, specialty_tags, interview_themes, notes, refl_free_text, created_at, updated_at')
     .eq('user_id', link.user_id)
     .is('deleted_at', null)
     .order('date', { ascending: false })
@@ -190,7 +190,11 @@ export async function POST(req: NextRequest) {
     expiresAt: link.expires_at,
     entries: (entries ?? []).map(entry => ({
       ...entry,
-      specialty_tag_labels: (entry.specialty_tags ?? []).map(formatTag),
+      notes: link.hide_notes ? null : entry.notes,
+      refl_free_text: link.hide_reflection ? null : entry.refl_free_text,
+      specialty_tags: link.redact_tags ? [] : entry.specialty_tags,
+      specialty_tag_labels: link.redact_tags ? [] : (entry.specialty_tags ?? []).map(formatTag),
     })),
+    watermark: link.pin_hash ? 'PIN-protected viewer' : null,
   })
 }

@@ -13,6 +13,7 @@ export type Case = {
   created_at: string
   updated_at: string
   interview_themes?: string[]
+  interview_ready_for?: string[]
 }
 
 export type NewCase = Omit<Case, 'id' | 'user_id' | 'created_at' | 'updated_at'>

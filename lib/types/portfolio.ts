@@ -109,6 +109,7 @@ export type PortfolioEntry = {
 
   // Interview themes
   interview_themes?: string[]
+  interview_ready_for?: string[]
 }
 
 export type NewPortfolioEntry = Omit<PortfolioEntry, 'id' | 'user_id' | 'pinned' | 'deleted_at' | 'created_at' | 'updated_at'>

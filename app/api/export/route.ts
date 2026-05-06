@@ -6,6 +6,15 @@ import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import React, { type ReactElement } from 'react'
+import { foundationPortfolioTemplate } from '@/lib/pdf/foundation-portfolio'
+import { mrcpTemplate } from '@/lib/pdf/mrcp'
+import { stApplicationTemplate } from '@/lib/pdf/st-application'
+
+const PDF_TEMPLATES = {
+  foundation: foundationPortfolioTemplate,
+  mrcp: mrcpTemplate,
+  st_application: stApplicationTemplate,
+} as const
 
 function formatTag(tag: string): string {
   const config = getSpecialtyConfig(tag)
@@ -39,7 +48,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { entryIds, caseIds, specialty, format } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json' }
+  const { entryIds, caseIds, specialty, format, template, theme } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null }
 
   if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
     return NextResponse.json({ error: 'Maximum 500 items per export. Use filters to narrow your selection.' }, { status: 400 })
@@ -74,6 +83,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to fetch export data' }, { status: 500 })
   }
 
+  const filteredEntries = theme
+    ? (entries ?? []).filter(entry => (entry.interview_themes ?? []).includes(theme))
+    : (entries ?? [])
   const specialtyDisplay = formatTag(specialty || 'Portfolio')
   const safeSpecialty = ((specialty || 'portfolio')
     .replace(/[^a-zA-Z0-9]/g, '-')
@@ -92,10 +104,10 @@ export async function POST(request: NextRequest) {
         key: specialty || null,
         label: specialtyDisplay,
       },
-      portfolio_entries: entries ?? [],
+      portfolio_entries: filteredEntries,
       cases: cases ?? [],
       readable: {
-        portfolio_entries: (entries ?? []).map(entry => ({
+        portfolio_entries: filteredEntries.map(entry => ({
           ...entry,
           specialty_tag_labels: formatTags(entry.specialty_tags),
         })),
@@ -118,7 +130,7 @@ export async function POST(request: NextRequest) {
   // ── CSV export ───────────────────────────────────────────────────────────────
   if (format === 'csv') {
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.csv`
-    const csv = '\uFEFF' + toCsv(entries ?? [], cases ?? [])
+    const csv = '\uFEFF' + toCsv(filteredEntries, cases ?? [])
     return new NextResponse(csv, {
       status: 200,
       headers: {
@@ -129,7 +141,7 @@ export async function POST(request: NextRequest) {
   }
 
   // ── PDF export (default) ─────────────────────────────────────────────────────
-  if (!entries?.length) {
+  if (!filteredEntries.length) {
     return NextResponse.json({ error: 'PDF exports currently require at least one portfolio entry. Use CSV or JSON to export cases.' }, { status: 400 })
   }
 
@@ -137,11 +149,15 @@ export async function POST(request: NextRequest) {
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 
   try {
+    const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
     const element = React.createElement(PortfolioPDF, {
-      entries,
+      entries: filteredEntries,
       userName,
       specialty: specialtyDisplay,
       exportedAt,
+      templateName: selectedTemplate?.name,
+      templateSubtitle: selectedTemplate?.subtitle,
+      templateAccent: selectedTemplate?.accent,
     }) as unknown as ReactElement<DocumentProps>
 
     const buffer = await renderToBuffer(element)

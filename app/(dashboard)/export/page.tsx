@@ -10,6 +10,7 @@ import { getSpecialtyConfig } from '@/lib/specialties'
 
 type Tab = 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
+type PdfTemplate = 'default' | 'foundation' | 'mrcp' | 'st_application'
 type ShareScope = 'specialty' | 'theme' | 'full'
 
 const EXPIRY_PRESETS = [
@@ -27,6 +28,9 @@ type ShareLink = {
   theme_slug: string | null
   expires_at: string
   view_count: number
+  hide_notes?: boolean
+  hide_reflection?: boolean
+  redact_tags?: boolean
   created_at: string
 }
 type TrackedApp = { id: string; specialty_key: string }
@@ -70,6 +74,8 @@ export default function ExportPage() {
   const [trackedApps, setTrackedApps] = useState<TrackedApp[]>([])
   const [specialty, setSpecialty] = useState('')
   const [format, setFormat] = useState<ExportFormat>('pdf')
+  const [pdfTemplate, setPdfTemplate] = useState<PdfTemplate>('default')
+  const [themeFilter, setThemeFilter] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<Category | 'all'>('all')
   const [entries, setEntries] = useState<PortfolioEntry[]>([])
   const [cases, setCases] = useState<Case[]>([])
@@ -85,6 +91,9 @@ export default function ExportPage() {
   const [shareScope, setShareScope] = useState<ShareScope>('specialty')
   const [shareTheme, setShareTheme] = useState('')
   const [sharePin, setSharePin] = useState('')
+  const [hideNotes, setHideNotes] = useState(false)
+  const [hideReflection, setHideReflection] = useState(false)
+  const [redactTags, setRedactTags] = useState(false)
   const [expiryPreset, setExpiryPreset] = useState<number | null>(30)
   const [customExpiry, setCustomExpiry] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
@@ -159,7 +168,8 @@ export default function ExportPage() {
     return () => { cancelled = true }
   }, [specialty, supabase])
 
-  const visible = categoryFilter === 'all' ? entries : entries.filter(e => e.category === categoryFilter)
+  const visible = (categoryFilter === 'all' ? entries : entries.filter(e => e.category === categoryFilter))
+    .filter(e => !themeFilter || (e.interview_themes ?? []).includes(themeFilter))
   const visibleCases = categoryFilter === 'all' ? cases : []
   const categoriesPresent = Array.from(new Set(entries.map(e => e.category))) as Category[]
   const exportCaseIds = categoryFilter === 'all' ? selectedCaseIds : new Set<string>()
@@ -188,10 +198,13 @@ export default function ExportPage() {
     }
     setGenerating(true)
     setError(null)
+    const exportEntryIds = themeFilter
+      ? Array.from(selectedEntryIds).filter(id => visible.some(entry => entry.id === id))
+      : Array.from(selectedEntryIds)
     const res = await fetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryIds: Array.from(selectedEntryIds), caseIds: Array.from(exportCaseIds), specialty, format }),
+      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty, format, template: pdfTemplate, theme: themeFilter || null }),
     })
     setGenerating(false)
     if (!res.ok) {
@@ -239,6 +252,9 @@ export default function ExportPage() {
         theme_slug: shareScope === 'theme' ? shareTheme : null,
         expires_at: expiresAt,
         pin: sharePin || null,
+        hide_notes: hideNotes,
+        hide_reflection: hideReflection,
+        redact_tags: redactTags,
       }),
     })
     const json = await res.json()
@@ -289,6 +305,9 @@ export default function ExportPage() {
             Free plan limits active
           </Link>
         )}
+        <Link href="/export/cv" className="rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-2 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+          CV generator
+        </Link>
       </div>
 
       <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-white/[0.08] bg-[#141416] p-1.5">
@@ -335,6 +354,28 @@ export default function ExportPage() {
                 ))}
               </div>
             </div>
+
+            {format === 'pdf' && (
+              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Template</p>
+                <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+                  <option value="default">Default</option>
+                  <option value="foundation">Foundation portfolio</option>
+                  <option value="mrcp">MRCP</option>
+                  <option value="st_application">ST application</option>
+                </select>
+              </div>
+            )}
+
+            {themes.length > 0 && (
+              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.35)]">Theme filter</p>
+                <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+                  <option value="">Any theme</option>
+                  {themes.map(theme => <option key={theme} value={theme}>{theme}</option>)}
+                </select>
+              </div>
+            )}
 
             {loadedSpecialty && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
@@ -425,6 +466,9 @@ export default function ExportPage() {
           <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
+          <a href="/api/export/year-review" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+            Year in review PDF
+          </a>
         </section>
       )}
 
@@ -482,6 +526,20 @@ export default function ExportPage() {
                 <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
                 <p className="mt-1 text-xs text-[rgba(245,245,242,0.35)]">Optional PIN (4-8 digits)</p>
               </label>
+              <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-3">
+                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                  <input type="checkbox" checked={hideNotes} onChange={e => setHideNotes(e.target.checked)} />
+                  Hide notes
+                </label>
+                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                  <input type="checkbox" checked={hideReflection} onChange={e => setHideReflection(e.target.checked)} />
+                  Hide reflection text
+                </label>
+                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                  <input type="checkbox" checked={redactTags} onChange={e => setRedactTags(e.target.checked)} />
+                  Redact tags
+                </label>
+              </div>
               <button onClick={createShareLink} disabled={shareLoading || !subInfo?.limits.canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>

@@ -17,7 +17,7 @@ function normaliseTheme(value: string) {
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string }>
+  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string; ready?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = createClient()
@@ -32,11 +32,12 @@ export default async function PortfolioPage({
   const hasMinScore = minScore !== undefined && Number.isFinite(minScore)
   const hasMaxScore = maxScore !== undefined && Number.isFinite(maxScore)
   const missing = resolvedSearchParams.missing ?? ''
+  const readyFilter = resolvedSearchParams.ready ?? ''
 
   const [{ data: entries }, { data: customThemes }, { data: trackedSpecialtyRows }, { data: evidenceFiles }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, completeness_score, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes')
+      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, completeness_score, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes, interview_ready_for')
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .order('pinned', { ascending: false })
@@ -74,6 +75,7 @@ export default async function PortfolioPage({
 
   const allEntries = ((entries ?? []) as PortfolioEntry[]).filter(entry => {
     if (view === 'categories' && activeCategory && entry.category !== activeCategory) return false
+    if (readyFilter && !(entry.interview_ready_for ?? []).includes(readyFilter)) return false
     const scoredEntry = entry.completeness_score ?? completenessScore(entry, 'portfolio')
     if (!matchesParsedQuery(
       { ...entry, file_names: fileNamesByEntry.get(entry.id) ?? [] },
@@ -121,6 +123,11 @@ export default async function PortfolioPage({
           <option value="specialty tags">Missing tags</option>
           <option value="audit cycle stage">Missing audit stage</option>
           <option value="date">Missing date</option>
+        </select>
+        <select name="ready" defaultValue={readyFilter} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+          <option value="">Any portfolio</option>
+          <option value="imt">Interview-ready: IMT</option>
+          <option value="st_application">Interview-ready: ST application</option>
         </select>
         <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
           Min

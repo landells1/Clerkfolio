@@ -44,6 +44,11 @@ const s = StyleSheet.create({
   footer: { position: 'absolute', bottom: 28, left: 52, right: 52, flexDirection: 'row', justifyContent: 'space-between' },
   footerText: { fontSize: 7, color: '#aaaaaa' },
   pageNum: { fontSize: 7, color: '#aaaaaa' },
+  coverTitle: { fontSize: 28, fontFamily: 'Helvetica-Bold', color: '#111111', marginTop: 150, marginBottom: 12 },
+  coverSubtitle: { fontSize: 12, color: '#555555', marginBottom: 36 },
+  coverRule: { height: 4, width: 180, marginBottom: 30 },
+  tocRow: { flexDirection: 'row', justifyContent: 'space-between', borderBottom: '0.5pt solid #eeeeee', paddingVertical: 5 },
+  tocText: { fontSize: 9, color: '#333333' },
 })
 
 // ── Category ordering + labels ───────────────────────────────────────────────
@@ -160,9 +165,12 @@ export type ExportDocProps = {
   userName: string
   specialty: string
   exportedAt: string
+  templateName?: string
+  templateSubtitle?: string
+  templateAccent?: string
 }
 
-export default function PortfolioPDF({ entries, userName, specialty, exportedAt }: ExportDocProps) {
+export default function PortfolioPDF({ entries, userName, specialty, exportedAt, templateName, templateSubtitle, templateAccent = '#1B6FD9' }: ExportDocProps) {
   // Group by category in canonical order
   const grouped: Partial<Record<Category, PortfolioEntry[]>> = {}
   for (const e of entries) {
@@ -174,6 +182,25 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt 
 
   return (
     <Document title={`Clerkfolio Export — ${specialty}`} author={userName}>
+      {templateName && (
+        <Page size="A4" style={s.page}>
+          <Text style={s.brand}>CLERKFOLIO</Text>
+          <Text style={s.coverTitle}>{templateName}</Text>
+          <View style={[s.coverRule, { backgroundColor: templateAccent }]} />
+          <Text style={s.coverSubtitle}>{templateSubtitle}</Text>
+          <Text style={s.headerName}>{userName}</Text>
+          <Text style={s.headerSpecialty}>{specialty} · Exported {exportedAt}</Text>
+          <View style={{ marginTop: 52 }}>
+            <Text style={s.catTitle}>Contents</Text>
+            {sections.map(cat => (
+              <View key={cat} style={s.tocRow}>
+                <Text style={s.tocText}>{CAT_LABELS[cat]}</Text>
+                <Text style={s.tocText}>{grouped[cat]!.length}</Text>
+              </View>
+            ))}
+          </View>
+        </Page>
+      )}
       <Page size="A4" style={s.page}>
         {/* Header */}
         <View style={s.header} fixed>
