@@ -23,7 +23,6 @@ export function Pricing() {
                   : 'border-white/[0.08] bg-[#141416]'
               }`}
             >
-              {tier.highlight ? <span className="absolute right-5 top-[-10px] rounded border border-blue-500/45 bg-[#0B0B0C] px-2 py-1 font-mono text-[10px] uppercase tracking-[0.14em] text-[#6AA8FF]">Recommended</span> : null}
               <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tier.name}</p>
               <h3 className="mt-4 text-3xl font-medium tracking-[-0.03em]">{tier.marketingPrice}</h3>
               <p className="mt-2 text-sm leading-6 text-ink-soft">{tier.marketingDescription}</p>

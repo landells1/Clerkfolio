@@ -32,8 +32,8 @@ const TEACHING_TYPES = ['Taught session', 'Grand round', 'Poster', 'Oral present
 const TEACHING_AUDIENCES = ['Students', 'Peers', 'Consultants', 'Public']
 const REFLECTION_TYPES = ['CBD', 'DOP', 'Mini-CEX', 'Personal reflection']
 const SUPERVISION_LEVELS: { id: string; label: string }[] = [
-  { id: 'Supervised', label: 'Supervised' },
-  { id: 'Unsupervised', label: 'Unsupervised' },
+  { id: 'supervised', label: 'Supervised' },
+  { id: 'unsupervised', label: 'Unsupervised' },
 ]
 
 export default function QuickAddModal({
@@ -75,7 +75,7 @@ export default function QuickAddModal({
 
   // Procedure-specific
   const [procName, setProcName] = useState('')
-  const [procSupervision, setProcSupervision] = useState('Supervised')
+  const [procSupervision, setProcSupervision] = useState('supervised')
   const [procCount, setProcCount] = useState<number>(1)
 
   // Shared notes/comments

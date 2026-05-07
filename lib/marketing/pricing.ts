@@ -1,8 +1,8 @@
 export const PRICING_TIERS = [
   {
     name: 'Free',
-    price: 'GBP 0',
-    marketingPrice: 'GBP 0 forever',
+    price: 'Free',
+    marketingPrice: 'Free forever',
     description: 'Core portfolio tools for getting started.',
     marketingDescription: 'Everything you need to log a portfolio.',
     storage: '100 MB',
@@ -10,8 +10,8 @@ export const PRICING_TIERS = [
   },
   {
     name: 'Student',
-    price: 'GBP 0',
-    marketingPrice: 'GBP 0 verified .ac.uk',
+    price: 'Free',
+    marketingPrice: 'Free with verified .ac.uk',
     description: 'Extra storage for verified .ac.uk users.',
     marketingDescription: "More room while you're still studying.",
     storage: '1 GB',

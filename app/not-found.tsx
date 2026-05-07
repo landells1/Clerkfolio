@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 export default function NotFound() {
   return (
     <div style={{ background: '#0B0B0C', color: '#F5F5F2', minHeight: '100vh', fontFamily: '"Inter", -apple-system, system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>§ 404 · NOT FOUND</div>
+      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>404 · NOT FOUND</div>
       <h1 style={{ fontSize: 'clamp(48px, 8vw, 96px)', fontWeight: 500, letterSpacing: -3, margin: 0, marginBottom: 20, lineHeight: 1 }}>
         Lost in the{' '}
         <span style={{ background: 'linear-gradient(100deg, oklch(0.82 0.13 195) 0%, oklch(0.7 0.13 250) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontStyle: 'italic', fontWeight: 400 }}>

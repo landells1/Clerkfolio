@@ -10,7 +10,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
 
   return (
     <div style={{ background: '#0B0B0C', color: '#F5F5F2', minHeight: '100vh', fontFamily: '"Inter", -apple-system, system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>§ ERROR · UNEXPECTED</div>
+      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>ERROR · UNEXPECTED</div>
       <h1 style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontWeight: 500, letterSpacing: -2, margin: 0, marginBottom: 20, lineHeight: 1, textAlign: 'center' }}>
         Something went{' '}
         <span style={{ background: 'linear-gradient(100deg, oklch(0.75 0.15 30) 0%, oklch(0.65 0.15 20) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontStyle: 'italic', fontWeight: 400 }}>
