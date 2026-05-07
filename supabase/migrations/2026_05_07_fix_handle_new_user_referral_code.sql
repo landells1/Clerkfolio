@@ -1,43 +1,23 @@
--- Follow-up hardening from the full security audit.
-
--- Calendar feeds: store only token hashes. Existing plaintext tokens are
--- migrated once, then cleared.
-alter table public.profiles
-  add column if not exists calendar_feed_token_hash text;
-
-update public.profiles
-set calendar_feed_token_hash = encode(extensions.digest(calendar_feed_token, 'sha256'), 'hex')
-where calendar_feed_token is not null
-  and calendar_feed_token_hash is null;
-
-update public.profiles
-set calendar_feed_token = null
-where calendar_feed_token is not null;
-
-create unique index if not exists profiles_calendar_feed_token_hash_idx
-  on public.profiles(calendar_feed_token_hash)
-  where calendar_feed_token_hash is not null;
-
--- Upload verification: distinguish real AV scans from MIME/magic-byte fallback.
-alter table public.evidence_files
-  add column if not exists scan_provider text
-    check (scan_provider in ('clamav', 'mime_only'));
-
--- New signups must verify institutional email before receiving Student tier.
--- Referral code uses generate_referral_code() (5 uppercase letters) to match
+-- Fix handle_new_user: generate a 5-letter uppercase referral code to match
 -- the profiles_referral_code_format_check constraint ('^[A-Z]{5}$').
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
+--
+-- Root cause: 2026_04_30_audit_security_followups.sql re-introduced
+-- encode(gen_random_bytes(6),'hex') which produces a 12-char lowercase hex
+-- string — always violating the constraint, breaking every new user signup.
+-- 2026_04_29_five_letter_referral_codes.sql had fixed this, but was undone.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = 'public'
+AS $$
 declare
   v_referral_code text;
   v_referrer_id uuid;
   v_career_stage text;
   v_bytes bytea;
 begin
+  -- Generate 5 random uppercase letters (A-Z) matching constraint ^[A-Z]{5}$
   v_bytes := extensions.gen_random_bytes(5);
   v_referral_code :=
     chr(65 + (get_byte(v_bytes, 0) % 26)) ||
@@ -45,6 +25,7 @@ begin
     chr(65 + (get_byte(v_bytes, 2) % 26)) ||
     chr(65 + (get_byte(v_bytes, 3) % 26)) ||
     chr(65 + (get_byte(v_bytes, 4) % 26));
+
   v_career_stage := nullif(new.raw_user_meta_data->>'career_stage', '');
 
   if v_career_stage not in ('Y1','Y2','Y3','Y4','Y5','Y5_PLUS','Y6','FY1','FY2','POST_FY','Y1-2','Y3-4','Y5-6') then
