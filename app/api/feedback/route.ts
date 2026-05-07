@@ -17,9 +17,17 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254
 }
 
-// In-memory rate limiter: max 5 submissions per IP per 15 minutes
-// Per-instance only — adequate for a small SaaS; replace with Redis/Upstash for multi-region scale
-const rateLimitMap = new Map<string, { count: number; resetAt: number }>()
+// In-memory rate limiter: max 5 submissions per IP per 15 minutes.
+// IMPORTANT: scope is a single Vercel lambda instance. With Vercel's regional
+// fan-out a determined attacker hitting fresh containers can bypass it. This
+// is acceptable for a low-volume feedback form but MUST be swapped for a
+// shared store (Upstash Redis / Supabase RPC) before any growth in traffic.
+// The map is hung off globalThis so module HMR in dev doesn't reset it.
+const RATE_LIMIT_GLOBAL_KEY = '__clerkfolio_feedback_rate_limit__'
+const globalScope = globalThis as Record<string, unknown>
+const rateLimitMap: Map<string, { count: number; resetAt: number }> =
+  (globalScope[RATE_LIMIT_GLOBAL_KEY] as Map<string, { count: number; resetAt: number }>) ??
+  (globalScope[RATE_LIMIT_GLOBAL_KEY] = new Map())
 const RATE_LIMIT_MAX = 5
 const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
 

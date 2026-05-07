@@ -2,10 +2,40 @@ import { NextRequest, NextResponse } from 'next/server'
 import JSZip from 'jszip'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
-const BLOCKED_KEYS = new Set(['id', 'user_id', 'created_at', 'updated_at', 'deleted_at', 'specialty_tag_labels', 'clinical_area_labels'])
+
+// Hard caps so a single import cannot DoS the database or storage. The size cap
+// matches the upload-authorize ceiling for backup files; row caps are derived
+// from "what a real foundation portfolio looks like" with generous headroom.
+const MAX_FILE_BYTES = 25 * 1024 * 1024
+const MAX_ROWS_PER_TABLE = 2000
+
+// Column allowlists — preferred over a BLOCKED_KEYS denylist so that newly
+// added internal-only columns can't be set by a crafted import. Mirror the
+// shape of NewCase / NewPortfolioEntry from lib/types.
+const PORTFOLIO_ALLOWED = new Set([
+  'title', 'date', 'category', 'notes', 'specialty_tags', 'interview_themes',
+  'pinned', 'completeness_score', 'audit_type', 'audit_role', 'audit_cycle_stage',
+  'audit_outcome', 'teaching_type', 'teaching_audience', 'conf_event_name',
+  'conf_attendance', 'pub_journal', 'pub_status', 'leader_role',
+  'leader_organisation', 'prize_body', 'prize_level', 'prize_description',
+  'proc_name', 'proc_setting', 'proc_supervision', 'proc_count',
+  'refl_type', 'refl_context', 'refl_supervisor', 'refl_free_text',
+  'refl_framework', 'refl_parts', 'custom_free_text',
+])
+const CASE_ALLOWED = new Set([
+  'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
+  'interview_themes', 'notes', 'pinned', 'completeness_score',
+])
+const DEADLINE_ALLOWED = new Set([
+  'title', 'due_date', 'completed', 'is_auto', 'source_specialty_key', 'notes',
+])
+const GOAL_ALLOWED = new Set([
+  'category', 'target_count', 'due_date', 'specialty_application_id',
+])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -40,10 +70,10 @@ async function readBackup(file: File) {
   }
 }
 
-function copyInsertable(row: Record<string, unknown>, userId: string) {
+function copyInsertable(row: Record<string, unknown>, userId: string, allowed: Set<string>) {
   const next: Record<string, unknown> = { user_id: userId }
   Object.entries(row).forEach(([key, value]) => {
-    if (!BLOCKED_KEYS.has(key)) next[key] = value
+    if (allowed.has(key)) next[key] = value
   })
   return next
 }
@@ -64,15 +94,43 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
+  // Bulk import is a Pro entitlement. Match the gating used by the Horus
+  // import path so users cannot quietly bypass it through this endpoint.
+  const sub = await fetchSubscriptionInfo(supabase, user.id)
+  if (!sub.limits.canBulkImport) {
+    return NextResponse.json({ error: 'Bulk import requires a Pro subscription.' }, { status: 403 })
+  }
+
   const form = await req.formData()
   const file = form.get('file')
   if (!(file instanceof File)) return NextResponse.json({ error: 'Backup file required.' }, { status: 400 })
+  if (file.size > MAX_FILE_BYTES) {
+    return NextResponse.json({ error: 'Backup file is too large (25 MB max).' }, { status: 413 })
+  }
 
   let backup: Awaited<ReturnType<typeof readBackup>>
   try {
     backup = await readBackup(file)
   } catch {
     return NextResponse.json({ error: 'Backup file is not valid Clerkfolio JSON or ZIP.' }, { status: 400 })
+  }
+
+  const totalRows =
+    backup.portfolio_entries.length +
+    backup.cases.length +
+    backup.deadlines.length +
+    backup.goals.length
+  if (
+    backup.portfolio_entries.length > MAX_ROWS_PER_TABLE ||
+    backup.cases.length > MAX_ROWS_PER_TABLE ||
+    backup.deadlines.length > MAX_ROWS_PER_TABLE ||
+    backup.goals.length > MAX_ROWS_PER_TABLE ||
+    totalRows > MAX_ROWS_PER_TABLE * 2
+  ) {
+    return NextResponse.json(
+      { error: `Backup exceeds the per-import limit (${MAX_ROWS_PER_TABLE} rows per table). Split it and re-run.` },
+      { status: 413 }
+    )
   }
 
   const [{ data: existingEntries }, { data: existingCases }] = await Promise.all([
@@ -92,7 +150,7 @@ export async function POST(req: NextRequest) {
       if (!valid || existing.has(entryKey(row))) { skipped++; return false }
       return true
     })
-    .map(row => copyInsertable(row, user.id))
+    .map(row => copyInsertable(row, user.id, PORTFOLIO_ALLOWED))
 
   const caseRows = backup.cases
     .filter(row => {
@@ -100,14 +158,14 @@ export async function POST(req: NextRequest) {
       if (!valid || existing.has(caseKey(row))) { skipped++; return false }
       return true
     })
-    .map(row => copyInsertable(row, user.id))
+    .map(row => copyInsertable(row, user.id, CASE_ALLOWED))
 
   const deadlineRows = backup.deadlines
     .filter(row => row.title && row.due_date)
-    .map(row => copyInsertable(row, user.id))
+    .map(row => copyInsertable(row, user.id, DEADLINE_ALLOWED))
   const goalRows = backup.goals
     .filter(row => row.category)
-    .map(row => copyInsertable(row, user.id))
+    .map(row => copyInsertable(row, user.id, GOAL_ALLOWED))
 
   const [portfolioResult, caseResult, deadlineResult, goalResult] = await Promise.all([
     portfolioRows.length ? supabase.from('portfolio_entries').insert(portfolioRows).select('id') : Promise.resolve({ data: [], error: null }),

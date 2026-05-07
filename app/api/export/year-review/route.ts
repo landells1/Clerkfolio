@@ -2,12 +2,27 @@ import { NextResponse } from 'next/server'
 import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import React, { type ReactElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
 
 export async function GET() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const sub = await fetchSubscriptionInfo(supabase, user.id)
+  if (!sub.limits.canExportPdf) {
+    return NextResponse.json(
+      { error: 'PDF export limit reached. Upgrade to Pro for unlimited exports.' },
+      { status: 403 }
+    )
+  }
+  if (!sub.isPro) {
+    await supabase.rpc('increment_pro_feature_usage', {
+      p_user_id: user.id,
+      p_feature: 'pdf_exports_used',
+    })
+  }
 
   const year = new Date().getFullYear()
   const [{ data: profile }, { data: entries }] = await Promise.all([

@@ -502,7 +502,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         entry_type: 'portfolio',
         snapshot: currentRow,
       })
-      if (revisionError) console.error('Failed to save revision:', revisionError.message)
+      if (revisionError) {
+        console.error('Failed to save revision:', revisionError.message)
+        addToast('Saved, but revision history was not recorded', 'error')
+      }
       await pruneRevisions(initialData!.id!, 'portfolio')
       const { error } = await supabase
         .from('portfolio_entries')

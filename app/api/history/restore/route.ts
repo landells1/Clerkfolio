@@ -9,13 +9,19 @@ const TABLES: Record<EntryType, string> = {
   case: 'cases',
 }
 
-function restorePayload(snapshot: Record<string, unknown>) {
-  const copy = { ...snapshot }
-  delete copy.id
-  delete copy.user_id
-  delete copy.created_at
-  copy.updated_at = new Date().toISOString()
-  return copy
+// Restrict the restore payload to columns that still exist on the current
+// row. Snapshots are immutable JSON, so columns dropped by a later migration
+// would otherwise crash the UPDATE with "column does not exist". Filtering
+// against the live row schema makes restore forward-compatible.
+function restorePayload(snapshot: Record<string, unknown>, currentRow: Record<string, unknown>) {
+  const allowed = new Set(Object.keys(currentRow))
+  const out: Record<string, unknown> = {}
+  for (const [key, value] of Object.entries(snapshot)) {
+    if (key === 'id' || key === 'user_id' || key === 'created_at') continue
+    if (allowed.has(key)) out[key] = value
+  }
+  out.updated_at = new Date().toISOString()
+  return out
 }
 
 export async function POST(req: NextRequest) {
@@ -70,7 +76,7 @@ export async function POST(req: NextRequest) {
 
   const { error: restoreError } = await supabase
     .from(table)
-    .update(restorePayload(revision.snapshot as Record<string, unknown>))
+    .update(restorePayload(revision.snapshot as Record<string, unknown>, current as Record<string, unknown>))
     .eq('id', revision.entry_id)
     .eq('user_id', user.id)
 

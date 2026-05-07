@@ -125,3 +125,18 @@ export const SPECIALTY_DEADLINES: Record<string, SpecialtyDeadline[]> = Object.f
 export function getDeadlinesForSpecialty(specialtyKey: string) {
   return SPECIALTY_DEADLINES[specialtyKey] ?? []
 }
+
+// Cycle dates above are pinned to the 2026 recruitment round. After the
+// round closes the dates will be in the past and the figures we surface
+// to users will quietly become misleading. Callers can use this helper
+// to render an "out-of-date — please re-check the source URL" notice
+// once the most recent close-date has elapsed for a given specialty.
+export function isSpecialtyCycleStale(deadlines: SpecialtyDeadline[], referenceDate: Date = new Date()): boolean {
+  if (deadlines.length === 0) return false
+  const latest = deadlines.reduce((acc, d) => (d.date > acc ? d.date : acc), deadlines[0].date)
+  // Add a 30-day grace window so we don't flash "stale" the moment the
+  // last deadline ticks past — the cycle can still be live in practice.
+  const cutoff = new Date(latest)
+  cutoff.setDate(cutoff.getDate() + 30)
+  return referenceDate.getTime() > cutoff.getTime()
+}

@@ -3,12 +3,16 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
+// Showcase is a permanent public page — anyone with the slug can read it.
+// Free-text notes routinely contain clinical reflections, supervisor names,
+// and informal context that the user typed assuming it was private. Do NOT
+// expose notes here. If a user needs richer disclosure they can issue a
+// per-recipient share_link with hide_notes=false.
 type Entry = {
   id: string
   title: string
   category: Category
   date: string
-  notes: string | null
   specialty_tags: string[] | null
 }
 
@@ -31,7 +35,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
 
   const { data: entries } = await supabase
     .from('portfolio_entries')
-    .select('id, title, category, date, notes, specialty_tags')
+    .select('id, title, category, date, specialty_tags')
     .eq('user_id', profile.id)
     .is('deleted_at', null)
     .order('date', { ascending: false })
@@ -57,7 +61,6 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
                 </div>
                 <time className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
               </div>
-              {entry.notes && <p className="whitespace-pre-line text-sm leading-relaxed text-[rgba(245,245,242,0.68)]">{entry.notes}</p>}
               {entry.specialty_tags?.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {entry.specialty_tags.map(tag => (

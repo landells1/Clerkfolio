@@ -179,11 +179,16 @@ export async function GET(req: NextRequest) {
   if (filtered.length > 0) {
     const { data: existing } = await supabase
       .from('notifications')
-      .select('user_id, type, link')
+      .select('user_id, type, link, title')
       .gte('created_at', `${todayStr}T00:00:00Z`)
 
-    const existingSet = new Set((existing ?? []).map(n => `${n.user_id}|${n.type}|${n.link}`))
-    inserted = filtered.filter(n => !existingSet.has(`${n.user_id}|${n.type}|${n.link}`))
+    // Include title in the dedupe key — two distinct deadlines often share the
+    // same `link: /timeline` target, so keying on (user_id, type, link) alone
+    // collapses them into one and the second deadline silently never sends.
+    const dedupeKey = (n: { user_id: string; type: string; link: string; title: string }) =>
+      `${n.user_id}|${n.type}|${n.link}|${n.title}`
+    const existingSet = new Set((existing ?? []).map(dedupeKey))
+    inserted = filtered.filter(n => !existingSet.has(dedupeKey(n)))
 
     if (inserted.length > 0) {
       const { error: insertError } = await supabase.from('notifications').insert(inserted)

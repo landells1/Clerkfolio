@@ -34,10 +34,49 @@ function bearerToken(req: NextRequest) {
   return match?.[1]?.trim() ?? ''
 }
 
+function clientIp(req: NextRequest) {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown'
+}
+
+// Best-effort per-IP rate limit on bearer-key auth. Each lambda has its own
+// counter (see app/api/feedback/route.ts for the same caveat) — adequate for
+// slowing brute-force probing of key prefixes; replace with a shared store
+// (Upstash) once API-key traffic is non-trivial.
+const RL_KEY = '__clerkfolio_apikey_rate_limit__'
+const rlScope = globalThis as Record<string, unknown>
+const rlMap: Map<string, { count: number; resetAt: number }> =
+  (rlScope[RL_KEY] as Map<string, { count: number; resetAt: number }>) ??
+  (rlScope[RL_KEY] = new Map())
+const RL_MAX = 60          // 60 requests
+const RL_WINDOW_MS = 60_000 // per minute, per IP
+
+function isRateLimited(ip: string) {
+  const now = Date.now()
+  const entry = rlMap.get(ip)
+  if (!entry || now > entry.resetAt) {
+    rlMap.set(ip, { count: 1, resetAt: now + RL_WINDOW_MS })
+    return false
+  }
+  if (entry.count >= RL_MAX) return true
+  entry.count++
+  return false
+}
+
 export async function authenticateApiKey(req: NextRequest): Promise<
   | { supabase: ReturnType<typeof createServiceClient>; key: ApiKeyRow }
   | { response: NextResponse }
 > {
+  if (isRateLimited(clientIp(req))) {
+    return {
+      response: NextResponse.json(
+        { error: 'Too many requests' },
+        { status: 429, headers: { 'Retry-After': '60' } }
+      ),
+    }
+  }
+
   const token = bearerToken(req)
   if (!token) {
     return { response: NextResponse.json({ error: 'Bearer API key required' }, { status: 401 }) }

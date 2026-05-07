@@ -4,7 +4,12 @@ import { PDFDocument } from 'pdf-lib'
 import React, { type ReactElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
+
+// 25 MB upload cap on the user-supplied PDF. pdf-lib parses untrusted input so
+// an unbounded file is a parser-DoS vector even before the merge runs.
+const MAX_INPUT_BYTES = 25 * 1024 * 1024
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
@@ -13,6 +18,20 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const sub = await fetchSubscriptionInfo(supabase, user.id)
+  if (!sub.limits.canExportPdf) {
+    return NextResponse.json(
+      { error: 'PDF export limit reached. Upgrade to Pro for unlimited exports.' },
+      { status: 403 }
+    )
+  }
+  if (!sub.isPro) {
+    await supabase.rpc('increment_pro_feature_usage', {
+      p_user_id: user.id,
+      p_feature: 'pdf_exports_used',
+    })
+  }
 
   const form = await req.formData()
   const file = form.get('pdf')
@@ -26,6 +45,9 @@ export async function POST(req: NextRequest) {
 
   if (!(file instanceof File) || file.type !== 'application/pdf') {
     return NextResponse.json({ error: 'Upload an existing PDF.' }, { status: 400 })
+  }
+  if (file.size > MAX_INPUT_BYTES) {
+    return NextResponse.json({ error: 'PDF is too large (25 MB max).' }, { status: 413 })
   }
   if (!entryIds.length || entryIds.length > 500) {
     return NextResponse.json({ error: 'Choose between 1 and 500 entries to append.' }, { status: 400 })

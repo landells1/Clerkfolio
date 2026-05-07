@@ -161,9 +161,12 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const { addToast } = useToast()
   const [mobileOpen, setMobileOpen] = useState(false)
   const { openSearch } = useSearch()
-  const [isMac, setIsMac] = useState(true) // default true to match SSR (most devs on Mac; avoids hydration mismatch)
+  // Avoid hydration mismatch flicker when the SSR-assumed platform doesn't match
+  // the client. We render no shortcut hint until the component has mounted.
+  const [platformHint, setPlatformHint] = useState<string | null>(null)
   useEffect(() => {
-    setIsMac(/Mac|iPhone|iPod|iPad/.test(navigator.platform))
+    const isMac = /Mac|iPhone|iPod|iPad/.test(navigator.platform)
+    setPlatformHint(isMac ? '⌘K' : 'Ctrl K')
   }, [])
 
 const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Your Account'
@@ -327,7 +330,9 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
               </svg>
               <span className="flex-1 text-left text-xs">Search</span>
-              <kbd className="text-[9px] bg-white/[0.06] px-1 py-0.5 rounded border border-white/[0.08]">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+              {platformHint && (
+                <kbd className="text-[9px] bg-white/[0.06] px-1 py-0.5 rounded border border-white/[0.08]">{platformHint}</kbd>
+              )}
             </button>
             <NotificationBellSidebar />
           </div>
