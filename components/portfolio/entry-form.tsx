@@ -478,7 +478,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       setIsDirty(false)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
-        await supabase.from('profiles').update({ first_per_category: { [category]: new Date().toISOString() } }).eq('id', user.id)
+        const { data: profileRow } = await supabase
+          .from('profiles')
+          .select('first_per_category')
+          .eq('id', user.id)
+          .maybeSingle()
+        const existingFirsts = (profileRow?.first_per_category ?? {}) as Record<string, string>
+        if (!existingFirsts[category]) {
+          await supabase
+            .from('profiles')
+            .update({ first_per_category: { ...existingFirsts, [category]: new Date().toISOString() } })
+            .eq('id', user.id)
+        }
       }
       addToast('Entry saved', 'success')
       router.push(`/portfolio/${data.id}`)
