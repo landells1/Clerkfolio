@@ -26,12 +26,6 @@ export async function POST(req: NextRequest) {
       { status: 403 }
     )
   }
-  if (!sub.isPro) {
-    await supabase.rpc('increment_pro_feature_usage', {
-      p_user_id: user.id,
-      p_feature: 'pdf_exports_used',
-    })
-  }
 
   const form = await req.formData()
   const file = form.get('pdf')
@@ -85,6 +79,15 @@ export async function POST(req: NextRequest) {
   const merged = await existing.save()
   const body = new ArrayBuffer(merged.byteLength)
   new Uint8Array(body).set(merged)
+
+  // Only count the export against the lifetime cap once the merge succeeded —
+  // a parse/render error must not consume the user's only free PDF.
+  if (!sub.isPro) {
+    supabase
+      .rpc('increment_pro_feature_usage', { p_user_id: user.id, p_feature: 'pdf_exports_used' })
+      .then(() => {})
+  }
+
   return new NextResponse(body, {
     headers: {
       'Content-Type': 'application/pdf',
