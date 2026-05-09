@@ -5,6 +5,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { getSpecialtyConfig } from '@/lib/specialties'
+import { validateOrigin } from '@/lib/csrf'
 
 const ACCESS_RATE_LIMIT = 5
 
@@ -73,6 +74,9 @@ async function sendShareViewWebhook(
 const TOKEN_FORMAT = /^[0-9a-f]{48}$/
 
 export async function POST(req: NextRequest) {
+  const originError = validateOrigin(req)
+  if (originError) return originError
+
   const supabase = createServiceClient()
   const body = await req.json().catch(() => null)
   const token = typeof body?.token === 'string' ? body.token : ''
