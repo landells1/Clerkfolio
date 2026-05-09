@@ -274,7 +274,7 @@ function SpecialtyCard({
             : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
         </p>
         {!config.isOfficial && (
-          <p className="text-xs text-amber-400/70 mt-1">?? Verify with official person spec</p>
+          <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
         )}
       </div>
       <svg

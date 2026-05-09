@@ -219,7 +219,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                           : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.5)] border-white/[0.08] hover:border-white/[0.16]'
                       }`}
                     >
-                      {t === 'portfolio' ? '?? Portfolio Entry' : '?? Case'}
+                      {t === 'portfolio' ? '📄 Portfolio Entry' : '💼 Case'}
                     </button>
                   ))}
                 </div>
