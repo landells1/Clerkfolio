@@ -3,23 +3,11 @@ import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
-const rlMap = new Map<string, { count: number; resetAt: number }>()
-const RL_WINDOW = 60_000
+const RL_WINDOW_SECONDS = 60
 const RL_MAX_PER_TOKEN = 20
 const RL_MAX_PER_IP = 60
-
-function checkRateLimit(key: string, max: number): boolean {
-  const now = Date.now()
-  const entry = rlMap.get(key)
-  if (!entry || entry.resetAt < now) {
-    rlMap.set(key, { count: 1, resetAt: now + RL_WINDOW })
-    return true
-  }
-  if (entry.count >= max) return false
-  entry.count++
-  return true
-}
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -60,8 +48,26 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // Two limiters in tandem: per-token (caps a legitimate calendar client polling
   // too aggressively) and per-IP (caps an attacker probing many invalid tokens
   // - without this, each guess would get its own fresh 20/min counter).
-  if (!checkRateLimit(`token:${token}`, RL_MAX_PER_TOKEN) || !checkRateLimit(`ip:${clientIp(req)}`, RL_MAX_PER_IP)) {
-    return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
+  const [tokenLimit, ipLimit] = await Promise.all([
+    checkRateLimit({
+      key: hashToken(token),
+      max: RL_MAX_PER_TOKEN,
+      windowSeconds: RL_WINDOW_SECONDS,
+      prefix: 'calendar-feed-token',
+    }),
+    checkRateLimit({
+      key: clientIp(req),
+      max: RL_MAX_PER_IP,
+      windowSeconds: RL_WINDOW_SECONDS,
+      prefix: 'calendar-feed-ip',
+    }),
+  ])
+  const blockedLimit = !tokenLimit.success ? tokenLimit : !ipLimit.success ? ipLimit : null
+  if (blockedLimit) {
+    return new NextResponse(null, {
+      status: blockedLimit.unavailable ? 503 : 429,
+      headers: rateLimitHeaders(blockedLimit, RL_WINDOW_SECONDS),
+    })
   }
 
   const supabase = createServiceClient()

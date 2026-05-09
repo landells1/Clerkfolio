@@ -1,6 +1,7 @@
 import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 // Simple HTML escaper - prevents injection into email body
 function esc(str: string): string {
@@ -17,31 +18,8 @@ function isValidEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254
 }
 
-// In-memory rate limiter: max 5 submissions per IP per 15 minutes.
-// IMPORTANT: scope is a single Vercel lambda instance. With Vercel's regional
-// fan-out a determined attacker hitting fresh containers can bypass it. This
-// is acceptable for a low-volume feedback form but MUST be swapped for a
-// shared store (Upstash Redis / Supabase RPC) before any growth in traffic.
-// The map is hung off globalThis so module HMR in dev doesn't reset it.
-const RATE_LIMIT_GLOBAL_KEY = '__clerkfolio_feedback_rate_limit__'
-const globalScope = globalThis as Record<string, unknown>
-const rateLimitMap: Map<string, { count: number; resetAt: number }> =
-  (globalScope[RATE_LIMIT_GLOBAL_KEY] as Map<string, { count: number; resetAt: number }>) ??
-  (globalScope[RATE_LIMIT_GLOBAL_KEY] = new Map())
-const RATE_LIMIT_MAX = 5
-const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000
-
-function isRateLimited(ip: string): boolean {
-  const now = Date.now()
-  const entry = rateLimitMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rateLimitMap.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS })
-    return false
-  }
-  if (entry.count >= RATE_LIMIT_MAX) return true
-  entry.count++
-  return false
-}
+const FEEDBACK_RATE_LIMIT = 10
+const FEEDBACK_RATE_WINDOW_SECONDS = 60
 
 export async function POST(req: NextRequest) {
   const resend = new Resend(process.env.RESEND_API_KEY)
@@ -55,10 +33,24 @@ export async function POST(req: NextRequest) {
       req.headers.get('x-real-ip') ??
       'unknown'
 
-    if (isRateLimited(ip)) {
+    const rateLimit = await checkRateLimit({
+      key: ip,
+      max: FEEDBACK_RATE_LIMIT,
+      windowSeconds: FEEDBACK_RATE_WINDOW_SECONDS,
+      prefix: 'feedback',
+    })
+
+    if (!rateLimit.success) {
+      if (rateLimit.unavailable) {
+        return NextResponse.json(
+          { error: 'Feedback is temporarily unavailable.' },
+          { status: 503, headers: rateLimitHeaders(rateLimit, FEEDBACK_RATE_WINDOW_SECONDS) },
+        )
+      }
+
       return NextResponse.json(
         { error: 'Too many requests. Please wait before submitting again.' },
-        { status: 429 }
+        { status: 429, headers: rateLimitHeaders(rateLimit, FEEDBACK_RATE_WINDOW_SECONDS) }
       )
     }
 
