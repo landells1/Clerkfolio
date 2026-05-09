@@ -13,17 +13,19 @@ export async function GET(req: NextRequest) {
   // Verify the entry belongs to the authenticated user before serving evidence
   const { data: portfolioEntry } = await supabase
     .from('portfolio_entries')
-    .select('id', { head: true, count: 'exact' })
+    .select('id')
     .eq('id', entryId)
     .eq('user_id', user.id)
+    .is('deleted_at', null)
     .maybeSingle()
   const { data: caseEntry } = portfolioEntry
     ? { data: null }
     : await supabase
         .from('cases')
-        .select('id', { head: true, count: 'exact' })
+        .select('id')
         .eq('id', entryId)
         .eq('user_id', user.id)
+        .is('deleted_at', null)
         .maybeSingle()
   if (!portfolioEntry && !caseEntry) {
     return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
