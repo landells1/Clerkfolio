@@ -45,15 +45,41 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
       setLoading(true)
       setSearchError(false)
       try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          setSearchError(true)
+          setResults([])
+          setLoading(false)
+          return
+        }
         const [entriesResult, casesResult, filesResult] = await Promise.all([
-          supabase.from('portfolio_entries').select('id, title, category').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-          supabase.from('cases').select('id, title, clinical_domain').ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-          supabase.from('evidence_files').select('entry_id, entry_type, file_name').ilike('file_name', `%${q.trim()}%`).limit(5),
+          supabase.from('portfolio_entries').select('id, title, category').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+          supabase.from('cases').select('id, title, clinical_domain').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+          supabase.from('evidence_files').select('entry_id, entry_type, file_name').eq('user_id', user.id).ilike('file_name', `%${q.trim()}%`).limit(5),
         ])
         if (entriesResult.error || casesResult.error || filesResult.error) {
           setSearchError(true)
           setResults([])
         } else {
+          const files = filesResult.data ?? []
+          const portfolioFileIds = files.filter(file => file.entry_type !== 'case').map(file => file.entry_id)
+          const caseFileIds = files.filter(file => file.entry_type === 'case').map(file => file.entry_id)
+          const [activeFileEntries, activeFileCases] = await Promise.all([
+            portfolioFileIds.length
+              ? supabase.from('portfolio_entries').select('id').eq('user_id', user.id).in('id', portfolioFileIds).is('deleted_at', null)
+              : Promise.resolve({ data: [], error: null }),
+            caseFileIds.length
+              ? supabase.from('cases').select('id').eq('user_id', user.id).in('id', caseFileIds).is('deleted_at', null)
+              : Promise.resolve({ data: [], error: null }),
+          ])
+          if (activeFileEntries.error || activeFileCases.error) {
+            setSearchError(true)
+            setResults([])
+            setLoading(false)
+            return
+          }
+          const activePortfolioFileIds = new Set((activeFileEntries.data ?? []).map(row => row.id))
+          const activeCaseFileIds = new Set((activeFileCases.data ?? []).map(row => row.id))
           const r: Result[] = [
             ...(entriesResult.data ?? []).map(e => ({
               id: e.id,
@@ -62,7 +88,11 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
               subtitle: CATEGORIES.find(c => c.value === (e.category as Category))?.label ?? 'Portfolio entry',
             })),
             ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
-            ...(filesResult.data ?? []).map(file => ({
+            ...files.filter(file =>
+              file.entry_type === 'case'
+                ? activeCaseFileIds.has(file.entry_id)
+                : activePortfolioFileIds.has(file.entry_id)
+            ).map(file => ({
               id: file.entry_id,
               title: file.file_name,
               type: file.entry_type === 'case' ? 'case' as const : 'entry' as const,
