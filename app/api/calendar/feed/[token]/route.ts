@@ -6,22 +6,29 @@ import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/spec
 
 const rlMap = new Map<string, { count: number; resetAt: number }>()
 const RL_WINDOW = 60_000
-const RL_MAX = 20
+const RL_MAX_PER_TOKEN = 20
+const RL_MAX_PER_IP = 60
 
-function checkRateLimit(key: string): boolean {
+function checkRateLimit(key: string, max: number): boolean {
   const now = Date.now()
   const entry = rlMap.get(key)
   if (!entry || entry.resetAt < now) {
     rlMap.set(key, { count: 1, resetAt: now + RL_WINDOW })
     return true
   }
-  if (entry.count >= RL_MAX) return false
+  if (entry.count >= max) return false
   entry.count++
   return true
 }
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
+}
+
+function clientIp(req: NextRequest) {
+  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
+    || req.headers.get('x-real-ip')
+    || 'unknown'
 }
 
 function escapeIcs(value: string | null | undefined) {
@@ -50,7 +57,10 @@ function fold(line: string) {
 export async function GET(req: NextRequest, { params }: { params: Promise<{ token: string }> }) {
   const { token } = await params
 
-  if (!checkRateLimit(token)) {
+  // Two limiters in tandem: per-token (caps a legitimate calendar client polling
+  // too aggressively) and per-IP (caps an attacker probing many invalid tokens
+  // — without this, each guess would get its own fresh 20/min counter).
+  if (!checkRateLimit(`token:${token}`, RL_MAX_PER_TOKEN) || !checkRateLimit(`ip:${clientIp(req)}`, RL_MAX_PER_IP)) {
     return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
   }
 
