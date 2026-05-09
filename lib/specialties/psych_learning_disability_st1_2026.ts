@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Psychiatry of Learning Disability ST1 2026 — run-through psychiatry programme.
+// Psychiatry of Learning Disability ST1 2026 - run-through psychiatry programme.
 // F2-direct entry; alternative to Core Psychiatry CT1 for candidates committed
 // to working with people with learning disabilities. Selection: MSRA + interview;
 // no public per-band numeric matrix, so configured as evidence-based.
@@ -11,7 +11,7 @@ export const PSYCH_LEARNING_DISABILITY_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/psychiatry-of-learning-disability-st1-2026',
-  sourceLabel: 'NHS England — Psychiatry of Learning Disability ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Psychiatry of Learning Disability ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
@@ -25,7 +25,7 @@ export const PSYCH_LEARNING_DISABILITY_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Current and in-date driving licence, or an undertaking to provide alternative means of transport — community LD psychiatry placements typically require travel between sites.',
+      notes: 'Current and in-date driving licence, or an undertaking to provide alternative means of transport - community LD psychiatry placements typically require travel between sites.',
     },
     {
       key: 'pld_core_knowledge',
@@ -61,7 +61,7 @@ export const PSYCH_LEARNING_DISABILITY_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Patience to continue the long-term care plan of the patient regardless of severity or prognosis — fundamental to LD psychiatry. Listed as a specialty-specific essential in the 2026 person spec.',
+      notes: 'Patience to continue the long-term care plan of the patient regardless of severity or prognosis - fundamental to LD psychiatry. Listed as a specialty-specific essential in the 2026 person spec.',
     },
     {
       key: 'pld_advocacy',

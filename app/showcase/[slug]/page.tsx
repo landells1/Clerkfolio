@@ -3,7 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
 
-// Showcase is a permanent public page — anyone with the slug can read it.
+// Showcase is a permanent public page - anyone with the slug can read it.
 // Free-text notes routinely contain clinical reflections, supervisor names,
 // and informal context that the user typed assuming it was private. Do NOT
 // expose notes here. If a user needs richer disclosure they can issue a

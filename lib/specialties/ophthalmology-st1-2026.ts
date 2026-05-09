@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Ophthalmology ST1 2026 — official NHS person spec exists but per-band points are
+// Ophthalmology ST1 2026 - official NHS person spec exists but per-band points are
 // not publicly published. Configured as evidence-based: NHS entry requirements as
 // essentials, NHS application/interview criteria as desirables for evidence upload.
 export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/ophthalmology-st1-2026',
-  sourceLabel: 'NHS England — Ophthalmology ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Ophthalmology ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

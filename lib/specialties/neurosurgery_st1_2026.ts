@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Neurosurgery ST1 2026 — national run-through programme (Yorks & Humber lead).
+// Neurosurgery ST1 2026 - national run-through programme (Yorks & Humber lead).
 // Selection: MSRA (40%) + portfolio-based interview (60%). The detailed shortlisting
 // matrix is published only via the Oriel applicant pack and not as a public per-band
 // numeric scheme, so configured as evidence-based for users to upload supporting
@@ -12,7 +12,7 @@ export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/neurosurgery-st1-2026',
-  sourceLabel: 'NHS England — Neurosurgery ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Neurosurgery ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

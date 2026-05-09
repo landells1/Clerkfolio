@@ -59,7 +59,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   // Two limiters in tandem: per-token (caps a legitimate calendar client polling
   // too aggressively) and per-IP (caps an attacker probing many invalid tokens
-  // — without this, each guess would get its own fresh 20/min counter).
+  // - without this, each guess would get its own fresh 20/min counter).
   if (!checkRateLimit(`token:${token}`, RL_MAX_PER_TOKEN) || !checkRateLimit(`ip:${clientIp(req)}`, RL_MAX_PER_IP)) {
     return new NextResponse(null, { status: 429, headers: { 'Retry-After': '60' } })
   }

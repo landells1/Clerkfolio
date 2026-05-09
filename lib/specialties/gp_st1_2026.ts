@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// GP ST1 2026 — selection is MSRA + Stage 3 selection centre.
+// GP ST1 2026 - selection is MSRA + Stage 3 selection centre.
 // No portfolio scoring at application stage; competence assessed at Stage 3.
 export const GP_ST1_2026: SpecialtyConfig = {
   key: 'gp_st1_2026',
@@ -9,7 +9,7 @@ export const GP_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/general-practice-st1-2026',
-  sourceLabel: 'NHS England — General Practice ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - General Practice ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

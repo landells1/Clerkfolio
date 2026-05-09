@@ -223,7 +223,7 @@ export function LinkEvidenceModal({
               {noBands ? (
                 <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
                   <p className="text-xs text-[rgba(245,245,242,0.55)] leading-relaxed">
-                    This domain is evidence-only — no scoring bands. Linking this entry will
+                    This domain is evidence-only - no scoring bands. Linking this entry will
                     mark the domain as evidenced.
                   </p>
                 </div>

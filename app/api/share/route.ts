@@ -28,7 +28,7 @@ function parseExpiry(value: unknown) {
   return parsed.toISOString()
 }
 
-// Hosts that resolve to private network space or cloud-metadata endpoints —
+// Hosts that resolve to private network space or cloud-metadata endpoints -
 // blocking these by hostname stops the most common SSRF abuse paths even
 // though we don't resolve DNS here. The fetch path also enforces https:
 // in production via the protocol check below.

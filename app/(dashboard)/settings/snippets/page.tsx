@@ -71,7 +71,10 @@ export default function SnippetsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Snippets</h1>
-          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Reusable phrases for portfolio textareas.</p>
+          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
+            Reusable phrases you can drop into portfolio or case notes. Type a slash followed by the
+            shortcut name (e.g. <span className="font-mono">/reflection</span>) to insert the body.
+          </p>
         </div>
       </div>
 
@@ -87,7 +90,15 @@ export default function SnippetsPage() {
 
       <section className="divide-y divide-white/[0.06] rounded-2xl border border-white/[0.08] bg-[#141416]">
         {snippets.length === 0 ? (
-          <p className="p-5 text-sm text-[rgba(245,245,242,0.45)]">No snippets yet.</p>
+          <div className="p-5 space-y-3">
+            <p className="text-sm font-medium text-[#F5F5F2]">No snippets yet</p>
+            <p className="text-xs text-[rgba(245,245,242,0.55)]">A few examples to inspire your first one:</p>
+            <div className="rounded-lg border border-white/[0.06] bg-[#0B0B0C] p-3 text-xs">
+              <p><span className="font-mono text-[#6AA8FF]">/audit</span><span className="text-[rgba(245,245,242,0.45)]"> -&gt; </span>I led an audit on … against … standard. Round 1 found …; we implemented …; Round 2 showed …</p>
+              <p className="mt-2"><span className="font-mono text-[#6AA8FF]">/cbd</span><span className="text-[rgba(245,245,242,0.45)]"> -&gt; </span>Description: … Reflection: … Action: …</p>
+              <p className="mt-2"><span className="font-mono text-[#6AA8FF]">/teaching</span><span className="text-[rgba(245,245,242,0.45)]"> -&gt; </span>Designed and delivered a 30-minute teaching session on … to …. Feedback: …</p>
+            </div>
+          </div>
         ) : snippets.map(snippet => (
           <div key={snippet.id} className="flex items-start justify-between gap-4 p-4">
             <div>

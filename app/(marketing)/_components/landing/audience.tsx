@@ -1,9 +1,9 @@
 import { SectionHeader } from './section-header'
 
 const cards = [
-  ['MED STUDENTS', 'Build the evidence your foundation form will ask for.', 'Log every audit, teaching session and prize from year one. Tag what matters for SFP, AFP, or the academic foundation route — your portfolio writes itself.', ['Anonymised case journal', 'Track audits, QIPs, prizes', 'Free forever — verified .ac.uk gets 1 GB storage']],
+  ['MED STUDENTS', 'Build the evidence your foundation form will ask for.', 'Log every audit, teaching session and prize from year one. Tag what matters for SFP, AFP, or the academic foundation route - your portfolio writes itself.', ['Anonymised case journal', 'Track audits, QIPs, prizes', 'Free forever - verified .ac.uk gets 1 GB storage']],
   ['FOUNDATION (FY1 / FY2)', 'Stop rebuilding your portfolio every application cycle.', "Log on the way back from theatre. Tag once. When specialty applications open, you'll already have the evidence. Just export the slice that fits.", ['Quick-log between patients', 'Map onto specialty self-assessments', 'Share links for supervisors']],
-  ['BEYOND FOUNDATION', 'A record that survives your next rotation.', "Run-through, registrar or staff grade — Clerkfolio is yours, not your trust's. Move hospitals, change deaneries, switch specialty. The record stays.", ['Unlimited tracked specialties (Pro)', 'GMC-aligned categories', 'Full data export, any time']],
+  ['BEYOND FOUNDATION', 'A record that survives your next rotation.', "Run-through, registrar or staff grade - Clerkfolio is yours, not your trust's. Move hospitals, change deaneries, switch specialty. The record stays.", ['Unlimited tracked specialties (Pro)', 'GMC-aligned categories', 'Full data export, any time']],
 ] as const
 
 export function Audience() {

@@ -269,7 +269,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                 />
               </div>
 
-              {/* Band selection — hidden for evidence-only domains */}
+              {/* Band selection - hidden for evidence-only domains */}
               {!noBands && (
                 <div>
                   <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">

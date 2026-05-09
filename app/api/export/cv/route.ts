@@ -16,7 +16,7 @@ export async function GET(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  // Match the gating used by the main /api/export route — Free accounts are
+  // Match the gating used by the main /api/export route - Free accounts are
   // capped at 1 lifetime PDF export across ALL PDF endpoints, not per-endpoint.
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canExportPdf) {
@@ -53,7 +53,7 @@ export async function GET(req: NextRequest) {
   const buffer = await renderToBuffer(element)
 
   // Only count the export against the lifetime cap once the PDF was generated
-  // successfully — a render error must not consume the user's only free PDF.
+  // successfully - a render error must not consume the user's only free PDF.
   if (!sub.isPro) {
     supabase
       .rpc('increment_pro_feature_usage', { p_user_id: user.id, p_feature: 'pdf_exports_used' })

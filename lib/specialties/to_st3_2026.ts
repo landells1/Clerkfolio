@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Trauma & Orthopaedic Surgery ST3 2026 — higher surgical training, entry post-CST.
+// Trauma & Orthopaedic Surgery ST3 2026 - higher surgical training, entry post-CST.
 // Selection: portfolio + interview (no public per-band numeric matrix), so
 // configured as evidence-based.
 export const TO_ST3_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const TO_ST3_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/trauma-and-orthopaedic-surgery-st3-2026',
-  sourceLabel: 'NHS England — Trauma & Orthopaedic Surgery ST3 2026 Person Specification',
+  sourceLabel: 'NHS England - Trauma & Orthopaedic Surgery ST3 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

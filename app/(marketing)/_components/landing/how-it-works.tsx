@@ -1,7 +1,7 @@
 import { SectionHeader } from './section-header'
 
 const steps = [
-  ['01', 'Log', 'Add cases or portfolio entries from phone or desktop. Anonymised by default — drafts auto-save.'],
+  ['01', 'Log', 'Add cases or portfolio entries from phone or desktop. Anonymised by default - drafts auto-save.'],
   ['02', 'Tag', 'Apply clinical area and application tags (IMT, CST, GP, ACCS, anything). Reuse them across entries.'],
   ['03', 'Map', 'Link entries to specialty self-assessment domains. Your scoring sheet fills itself in.'],
   ['04', 'Export', 'PDF for the application. CSV / JSON for your records. Or a passphrase-protected share link.'],

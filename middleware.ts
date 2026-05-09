@@ -12,7 +12,7 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
     [
       "default-src 'self'",
       // Next.js requires unsafe-inline/unsafe-eval; nonce-based CSP would require
-      // per-request nonce injection across every page — adopt that separately.
+      // per-request nonce injection across every page - adopt that separately.
       `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://js.stripe.com https://va.vercel-insights.com`,
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
@@ -83,7 +83,7 @@ export async function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.rewrite(url))
   }
 
-  // ── Always accessible — bypass auth logic entirely ──────────────────────────
+  // ── Always accessible - bypass auth logic entirely ──────────────────────────
   const alwaysAccessible =
     pathname === '/privacy' ||
     pathname === '/terms' ||
@@ -99,7 +99,7 @@ export async function middleware(request: NextRequest) {
 
   if (alwaysAccessible) return applySecurityHeaders(supabaseResponse)
 
-  // ── Refresh session — required for Supabase SSR ─────────────────────────────
+  // ── Refresh session - required for Supabase SSR ─────────────────────────────
   const { data: { user } } = await supabase.auth.getUser()
 
   if (user && process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.SHARE_IP_HASH_SALT) {
@@ -167,7 +167,7 @@ export async function middleware(request: NextRequest) {
     return applySecurityHeaders(NextResponse.redirect(url))
   }
 
-  // Logged in on a protected route — enforce onboarding
+  // Logged in on a protected route - enforce onboarding
   if (user && !isUnauthRoute && pathname !== '/onboarding') {
     if (!onboardingComplete) {
       const url = request.nextUrl.clone()

@@ -15,7 +15,7 @@ const features = [
   },
   {
     tag: '02 / PORTFOLIO',
-    title: 'Audits, teaching, reflections — one shape.',
+    title: 'Audits, teaching, reflections - one shape.',
     body: 'Eight categories: audit / QIP, teaching, reflection, procedure, publication, leadership, conference, prize. Each with the fields that actually matter.',
     mock: <MockPortfolio className="h-[420px]" />,
   },
@@ -29,13 +29,13 @@ const features = [
   {
     tag: '04 / SHARE',
     title: 'A link your consultant can open.',
-    body: 'Filtered by specialty or theme. Optional 4-8 digit PIN. Set it to expire in a day, a week, a month — or revoke it now. Every view audited.',
+    body: 'Filtered by specialty or theme. Optional 4-8 digit PIN. Set it to expire in a day, a week, a month - or revoke it now. Every view audited.',
     mock: <MockShareLink className="h-[400px]" />,
   },
   {
     tag: '05 / EXPORT',
     title: 'The exact slice you need, for any application.',
-    body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand — your data never gets locked in.',
+    body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand - your data never gets locked in.',
     mock: <MockCaseForm className="h-[400px]" />,
   },
 ] as const
@@ -47,7 +47,7 @@ export function Features() {
         number="002"
         label="What you can do with it"
         title="Built like a reference system."
-        sub="Every entry indexed, tagged, retrievable. Five core surfaces — all working off the same anonymised log."
+        sub="Every entry indexed, tagged, retrievable. Five core surfaces - all working off the same anonymised log."
       />
       <div className="mt-16 grid gap-6 lg:grid-cols-2">
         {features.map((feature) => <FeatureCard key={feature.tag} {...feature} />)}

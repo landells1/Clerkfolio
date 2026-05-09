@@ -6,18 +6,7 @@ import { CATEGORY_COLOURS, CATEGORIES } from '@/lib/types/portfolio'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 import { relativeDate } from '@/lib/utils/dates'
-
-function entrySubtitle(e: PortfolioEntry): string {
-  if (e.category === 'audit_qip')   return [e.audit_type?.toUpperCase(), e.audit_trust].filter(Boolean).join(' - ')
-  if (e.category === 'teaching')    return e.teaching_type?.replace('_', ' ') ?? ''
-  if (e.category === 'conference')  return e.conf_event_name ?? ''
-  if (e.category === 'publication') return [e.pub_type?.replace('_', ' '), e.pub_status].filter(Boolean).join(' - ')
-  if (e.category === 'leadership')  return e.leader_organisation ?? ''
-  if (e.category === 'prize')       return e.prize_body ?? ''
-  if (e.category === 'procedure')   return e.proc_name ?? ''
-  if (e.category === 'reflection')  return e.refl_type?.replace('_', '-').toUpperCase() ?? ''
-  return ''
-}
+import { entrySubtitle } from '@/lib/types/portfolio-labels'
 
 // Dot glow colour map (hex values for box-shadow)
 const DOT_HEX: Record<string, string> = {

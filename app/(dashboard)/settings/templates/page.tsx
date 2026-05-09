@@ -78,7 +78,7 @@ export default function TemplatesSettingsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">My templates</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-0.5">
-            Templates you&apos;ve saved from entries. To create a template, open any entry and click &quot;Template&quot;.
+            Reusable entry shapes you can clone for new portfolio entries (different from snippets, which are short reusable phrases). To create one, open any entry and click &quot;Template&quot;.
           </p>
         </div>
       </div>

@@ -41,7 +41,7 @@ function clientIp(req: NextRequest) {
 }
 
 // Best-effort per-IP rate limit on bearer-key auth. Each lambda has its own
-// counter (see app/api/feedback/route.ts for the same caveat) — adequate for
+// counter (see app/api/feedback/route.ts for the same caveat) - adequate for
 // slowing brute-force probing of key prefixes; replace with a shared store
 // (Upstash) once API-key traffic is non-trivial.
 const RL_KEY = '__clerkfolio_apikey_rate_limit__'

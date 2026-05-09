@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
+import { entrySubtitle, formatInterviewReady } from '@/lib/types/portfolio-labels'
 import { relativeDate } from '@/lib/utils/dates'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { calculateCompleteness, missingCompletenessFields } from '@/lib/utils/completeness'
@@ -9,24 +10,10 @@ function formatTag(tag: string): string {
   return config ? config.name : tag
 }
 
-function entrySubtitle(entry: PortfolioEntry): string | null {
-  switch (entry.category) {
-    case 'audit_qip': return [entry.audit_type?.toUpperCase(), entry.audit_trust].filter(Boolean).join(' - ')
-    case 'teaching': return [entry.teaching_type?.replace('_', ' '), entry.teaching_setting].filter(Boolean).join(' - ')
-    case 'conference': return [entry.conf_event_name, entry.conf_attendance].filter(Boolean).join(' - ')
-    case 'publication': return [entry.pub_type?.replace('_', ' '), entry.pub_status].filter(Boolean).join(' - ')
-    case 'leadership': return [entry.leader_role, entry.leader_organisation].filter(Boolean).join(' - ')
-    case 'prize': return [entry.prize_body, entry.prize_level].filter(Boolean).join(' - ')
-    case 'procedure': return [entry.proc_name, entry.proc_supervision].filter(Boolean).join(' - ')
-    case 'reflection': return entry.refl_type?.replace('_', '-').toUpperCase() ?? null
-    default: return null
-  }
-}
-
 export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evidence?: boolean } }) {
   const catMeta = CATEGORIES.find(c => c.value === entry.category)
   const colours = CATEGORY_COLOURS[entry.category]
-  const subtitle = entrySubtitle(entry)
+  const subtitle = entrySubtitle(entry) || null
   const completeness = calculateCompleteness(entry, 'portfolio')
   const missing = missingCompletenessFields(entry, 'portfolio')
 
@@ -56,12 +43,12 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
             )}
             {(entry.interview_ready_for ?? []).slice(0, 2).map(target => (
               <span key={target} className="inline-flex items-center rounded border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                Ready: {target.toUpperCase().replace('_', ' ')}
+                {formatInterviewReady(target)}
               </span>
             ))}
           </div>
           <h3 className="text-sm font-medium text-[#F5F5F2] truncate group-hover:text-white transition-colors">{entry.title}</h3>
-          {subtitle && <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 truncate capitalize">{subtitle}</p>}
+          {subtitle && <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 truncate">{subtitle}</p>}
         </div>
         <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
           <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono" title={entry.date}>{relativeDate(entry.date)}</p>

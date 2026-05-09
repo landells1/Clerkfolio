@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
 type Result = {
   id: string
@@ -16,8 +17,14 @@ const COMMANDS = [
   { keys: 'g p', label: 'Portfolio', href: '/portfolio' },
   { keys: 'g c', label: 'Cases', href: '/cases' },
   { keys: 'g s', label: 'Specialties', href: '/specialties' },
-  { keys: 'n', label: 'New entry', href: '/portfolio/new' },
-  { keys: '?', label: 'Cheatsheet', href: '#' },
+  { keys: 'g t', label: 'Timeline', href: '/timeline' },
+  { keys: 'g a', label: 'ARCP', href: '/arcp' },
+  { keys: 'g e', label: 'Share & Export', href: '/export' },
+  { keys: 'g r', label: 'Rotations & training', href: '/logs' },
+  { keys: 'g x', label: 'Settings', href: '/settings' },
+  { keys: 'n', label: 'New portfolio entry', href: '/portfolio/new' },
+  { keys: 'c', label: 'New case', href: '/cases/new' },
+  { keys: '?', label: 'Help & glossary', href: '/help' },
 ]
 
 export default function GlobalSearch({ onClose }: { onClose: () => void }) {
@@ -48,7 +55,12 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           setResults([])
         } else {
           const r: Result[] = [
-            ...(entriesResult.data ?? []).map(e => ({ id: e.id, title: e.title, type: 'entry' as const, subtitle: e.category?.replace(/_/g, ' ') ?? 'Portfolio entry' })),
+            ...(entriesResult.data ?? []).map(e => ({
+              id: e.id,
+              title: e.title,
+              type: 'entry' as const,
+              subtitle: CATEGORIES.find(c => c.value === (e.category as Category))?.label ?? 'Portfolio entry',
+            })),
             ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
             ...(filesResult.data ?? []).map(file => ({
               id: file.entry_id,

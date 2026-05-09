@@ -139,7 +139,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
 
-  // Template guidance placeholders — overridden when a template is applied
+  // Template guidance placeholders - overridden when a template is applied
   const [guidancePlaceholders, setGuidancePlaceholders] = useState<Record<string, string>>({})
   const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
 
@@ -440,6 +440,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     }
   }
 
+  // Allow callers (e.g. "Save & add another") to override the post-save destination.
+  const addAnotherRef = useRef(false)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
@@ -492,6 +495,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         }
       }
       addToast('Entry saved', 'success')
+      if (addAnotherRef.current) {
+        addAnotherRef.current = false
+        // Reload the new-entry route so all controlled state resets cleanly.
+        router.push(`/portfolio/new?category=${category}`)
+        router.refresh()
+        return
+      }
       router.push(`/portfolio/${data.id}`)
     } else {
       const { data: currentRow, error: fetchError } = await supabase
@@ -617,15 +627,16 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {/* Common fields */}
         <div className="space-y-4">
           <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">General</h3>
-          <Field label="Title">
+          <Field label="Title *">
             <input type="text" required maxLength={200} value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder={ph('title', 'Give this entry a clear title')} />
           </Field>
           <div className={GRID2}>
-            <Field label="Date">
+            <Field label="Date *">
               <input type="date" required value={date} onChange={e => setDate(e.target.value)} onFocus={() => markDirty()} className={INPUT} />
             </Field>
           </div>
-          <Field label="Application tags">
+          <Field label="Linked specialties">
+            <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-1.5">Which of your tracked specialty programmes can you use this entry for?</p>
             <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
             {suggestedTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
@@ -857,10 +868,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <Field label="Type">
                   <select value={reflType} onChange={e => setReflType(e.target.value)} className={SELECT}>
                     <option value="">Select…</option>
-                    <option value="cbd">CBD</option>
-                    <option value="dop">DOP</option>
-                    <option value="mini_cex">Mini-CEX</option>
-                    <option value="reflection">Personal reflection</option>
+                    <option value="cbd">CBD - Case-Based Discussion</option>
+                    <option value="dop">DOP - Directly Observed Procedure</option>
+                    <option value="mini_cex">Mini-CEX - Mini Clinical Evaluation</option>
+                    <option value="reflection">Personal reflection (free-form)</option>
                   </select>
                 </Field>
                 <Field label="Supervisor name (optional)"><input type="text" value={reflSupervisor} onChange={e => setReflSupervisor(e.target.value)} className={INPUT} placeholder="Dr …" /></Field>
@@ -870,6 +881,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {/* Reflection framework selector */}
               <div>
                 <label className={LABEL}>Reflection framework</label>
+                <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-2">
+                  Gibbs: 6-step cycle. Rolfe / Driscoll: three short questions (What? / So What? / Now What?). Pick whichever fits how you reflect.
+                </p>
                 <div className="flex gap-2">
                   {(['none', 'gibbs', 'driscoll', 'rolfe'] as const).map(fw => (
                     <button
@@ -905,7 +919,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {reflFramework === 'gibbs' && (
                 <div className="space-y-3">
                   {GIBBS_FIELDS.map(f => (
-                    <Field key={f.key} label={`${f.label} — ${f.hint}`}>
+                    <Field key={f.key} label={`${f.label} - ${f.hint}`}>
                       <textarea
                         rows={3}
                         maxLength={LONG_TEXT_MAX}
@@ -922,7 +936,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {reflFramework === 'rolfe' && (
                 <div className="space-y-3">
                   {ROLFE_FIELDS.map(f => (
-                    <Field key={f.key} label={`${f.label} — ${f.hint}`}>
+                    <Field key={f.key} label={`${f.label} - ${f.hint}`}>
                       <textarea
                         rows={4}
                         maxLength={LONG_TEXT_MAX}
@@ -978,7 +992,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
         )}
 
-        <div className="flex gap-3 pt-2 border-t border-white/[0.06]">
+        <div className="flex flex-wrap gap-3 pt-2 border-t border-white/[0.06]">
           <button
             type="button"
             onClick={() => {
@@ -989,6 +1003,16 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           >
             Cancel
           </button>
+          {mode === 'create' && (
+            <button
+              type="submit"
+              onClick={() => { addAnotherRef.current = true }}
+              disabled={saving || uploading}
+              className="flex-1 border border-[#1B6FD9]/40 text-[#1B6FD9] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+            >
+              Save & add another
+            </button>
+          )}
           <button
             type="submit"
             disabled={saving || uploading}

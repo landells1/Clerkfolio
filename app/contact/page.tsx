@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { LegalContactButton } from '@/components/legal/contact-modal'
 
 export const metadata: Metadata = {
-  title: 'Contact — Clerkfolio',
+  title: 'Contact - Clerkfolio',
   description: 'Contact the Clerkfolio team.',
 }
 

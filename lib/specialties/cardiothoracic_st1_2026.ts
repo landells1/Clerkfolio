@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Cardiothoracic Surgery ST1 2026 — national run-through programme. Selection is
+// Cardiothoracic Surgery ST1 2026 - national run-through programme. Selection is
 // MSRA + portfolio-based interview. No publicly published per-band numeric scoring
 // matrix, so configured as evidence-based for users to upload supporting evidence.
 export const CARDIOTHORACIC_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const CARDIOTHORACIC_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/cardiothoracic-surgery-st1-2026',
-  sourceLabel: 'NHS England — Cardiothoracic Surgery ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Cardiothoracic Surgery ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

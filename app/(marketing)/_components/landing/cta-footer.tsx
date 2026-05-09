@@ -13,7 +13,7 @@ export function CtaFooter() {
           </span>
         </h2>
         <p className="mx-auto mt-8 max-w-xl text-lg leading-[1.55] text-ink-soft">
-          Free during early access — and free forever, if that&apos;s all you need.
+          Free during early access - and free forever, if that&apos;s all you need.
         </p>
         <Link href="/signup" className="mt-10 inline-flex rounded-lg bg-accent px-8 py-4 text-sm font-semibold text-surface">
           Create your portfolio · free

@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Cardiology ST4 2026 — higher specialty training, entry post-IMT or equivalent.
+// Cardiology ST4 2026 - higher specialty training, entry post-IMT or equivalent.
 // Selection: portfolio + interview (no public per-band numeric matrix), so
 // configured as evidence-based.
 export const CARDIOLOGY_ST4_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const CARDIOLOGY_ST4_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/cardiology-st4-2026',
-  sourceLabel: 'NHS England — Cardiology ST4 2026 Person Specification',
+  sourceLabel: 'NHS England - Cardiology ST4 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
@@ -19,7 +19,7 @@ export const CARDIOLOGY_ST4_2026: SpecialtyConfig = {
     ...UNIVERSAL_ESSENTIALS,
     {
       key: 'mrcp_diploma',
-      label: 'MRCP(UK) — Part 1 at application, full diploma by offer',
+      label: 'MRCP(UK) - Part 1 at application, full diploma by offer',
       maxPoints: 0,
       scoringRule: 'highest',
       bands: [],
@@ -33,7 +33,7 @@ export const CARDIOLOGY_ST4_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Evidence of achievement of IM Stage 1 capabilities via UK Internal Medicine Stage 1 Training, ACCS (Internal Medicine), Broad Based Training (medicine), standalone IMY3 programme, or JRCPTB Level 3 internationally accredited programme — all evidenced by satisfactory ARCP. Or eligibility for the GIM specialist register at time of application.',
+      notes: 'Evidence of achievement of IM Stage 1 capabilities via UK Internal Medicine Stage 1 Training, ACCS (Internal Medicine), Broad Based Training (medicine), standalone IMY3 programme, or JRCPTB Level 3 internationally accredited programme - all evidenced by satisfactory ARCP. Or eligibility for the GIM specialist register at time of application.',
     },
     {
       key: 'cardiology_acute_medicine_experience',
@@ -61,7 +61,7 @@ export const CARDIOLOGY_ST4_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Higher degrees (MSc, MD, PhD) — intercalated BSc explicitly excluded by the 2026 person spec. Full MRCP(UK) at time of application (rather than just Part 1) is also listed as desirable.',
+      notes: 'Higher degrees (MSc, MD, PhD) - intercalated BSc explicitly excluded by the 2026 person spec. Full MRCP(UK) at time of application (rather than just Part 1) is also listed as desirable.',
     },
     {
       key: 'cardiology_clinical_experience',

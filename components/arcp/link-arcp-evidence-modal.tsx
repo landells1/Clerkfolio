@@ -104,7 +104,12 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
               </button>
             ))}
           </div>
-          {!query && <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-8">Start typing to search your portfolio entries.</p>}
+          {!query && (
+            <div className="text-center py-8 px-4 space-y-2">
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">Start typing to search your portfolio entries.</p>
+              <p className="text-[11px] text-[rgba(245,245,242,0.4)]">Pick anything that demonstrates this capability. The same entry can support multiple capabilities.</p>
+            </div>
+          )}
           {query && !searching && results.length === 0 && <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-8">No matching portfolio entries found.</p>}
         </div>
       </div>

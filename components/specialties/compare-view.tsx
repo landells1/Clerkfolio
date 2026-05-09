@@ -107,7 +107,7 @@ export function CompareView({ applications, links }: Props) {
         {/* Header row */}
         <div className="grid grid-cols-3 border-b border-white/[0.08]">
           <div className="p-4 text-center">
-            <p className="font-semibold text-[#F5F5F2] text-sm">{leftConfig?.name ?? '—'}</p>
+            <p className="font-semibold text-[#F5F5F2] text-sm">{leftConfig?.name ?? '-'}</p>
             <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
               {leftConfig?.cycleYear}
               {leftConfig && isEvidenceBased(leftConfig) && ' · Evidence-based'}
@@ -117,7 +117,7 @@ export function CompareView({ applications, links }: Props) {
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Domain</p>
           </div>
           <div className="p-4 text-center">
-            <p className="font-semibold text-[#F5F5F2] text-sm">{rightConfig?.name ?? '—'}</p>
+            <p className="font-semibold text-[#F5F5F2] text-sm">{rightConfig?.name ?? '-'}</p>
             <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
               {rightConfig?.cycleYear}
               {rightConfig && isEvidenceBased(rightConfig) && ' · Evidence-based'}
@@ -134,7 +134,7 @@ export function CompareView({ applications, links }: Props) {
           const leftMetric = leftDomain ? domainMetric(leftDomain, leftLinks) : null
           const rightMetric = rightDomain ? domainMetric(rightDomain, rightLinks) : null
 
-          // Only highlight a "winner" when both sides are the same kind — comparing
+          // Only highlight a "winner" when both sides are the same kind - comparing
           // 4 pts against "evidenced" is apples and oranges.
           const sameKind = leftMetric !== null && rightMetric !== null && leftMetric.kind === rightMetric.kind
           const leftHigher = sameKind && leftMetric!.value > rightMetric!.value
@@ -197,7 +197,7 @@ function domainMetric(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): Dom
 
 function DomainCell({ metric, highlight }: { metric: DomainMetric | null; highlight: boolean }) {
   if (metric === null) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">—</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">-</span>
   }
   if (metric.kind === 'points') {
     return (
@@ -230,7 +230,7 @@ function TotalCell({
   links: SpecialtyEntryLink[]
 }) {
   if (!config || !app) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">—</span>
+    return <span className="text-xs text-[rgba(245,245,242,0.55)]">-</span>
   }
   if (isEvidenceBased(config)) {
     const { essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal } = getEvidenceProgress(config, links)

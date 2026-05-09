@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
+import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { getSpecialtyConfig } from '@/lib/specialties'
@@ -59,22 +60,12 @@ function isoDateOffset(days: number) {
 }
 
 function entrySubtitle(e: PortfolioEntry): string | null {
-  switch (e.category) {
-    case 'audit_qip': return [e.audit_type?.toUpperCase(), e.audit_trust].filter(Boolean).join(' - ') || null
-    case 'teaching': return e.teaching_type?.replace('_', ' ') ?? null
-    case 'conference': return e.conf_event_name ?? null
-    case 'publication': return [e.pub_type?.replace('_', ' '), e.pub_status].filter(Boolean).join(' - ') || null
-    case 'leadership': return [e.leader_role, e.leader_organisation].filter(Boolean).join(' - ') || null
-    case 'prize': return e.prize_body ?? null
-    case 'procedure': return e.proc_name ?? null
-    case 'reflection': return e.refl_type?.replace('_', '-').toUpperCase() ?? null
-    default: return null
-  }
+  return buildEntrySubtitle(e) || null
 }
 
 function shareLabel(link: ShareLink) {
   if (link.scope === 'full') return 'Full portfolio'
-  if (link.scope === 'theme') return `Theme: ${link.theme_slug ?? 'unknown'}`
+  if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
   return getSpecialtyConfig(link.specialty_key ?? '')?.name ?? link.specialty_key ?? 'Specialty'
 }
 
@@ -403,6 +394,20 @@ export default function ExportPage() {
       {tab === 'pdf' && (
         <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
           <aside className="space-y-4">
+            {format === 'pdf' && subInfo && !subInfo.isPro && (
+              <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
+                <p className="mb-1 font-semibold text-amber-300">
+                  {subInfo.limits.canExportPdf
+                    ? 'Free tier: 1 lifetime PDF export'
+                    : 'You\'ve used your free PDF export'}
+                </p>
+                <p className="text-[rgba(245,245,242,0.55)]">
+                  CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
+                  {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £10/yr</Link>.
+                </p>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
               <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Format</p>
               <div className="flex gap-2">
@@ -412,6 +417,11 @@ export default function ExportPage() {
                   </button>
                 ))}
               </div>
+              <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+                {format === 'pdf' && 'Formatted portfolio for ARCP panels, applications, or printing.'}
+                {format === 'csv' && 'Spreadsheet for sorting, filtering, or pivoting your records.'}
+                {format === 'json' && 'Raw data dump for backups or scripting.'}
+              </p>
             </div>
 
             {format === 'pdf' && (
@@ -423,6 +433,12 @@ export default function ExportPage() {
                   <option value="mrcp">MRCP</option>
                   <option value="st_application">ST application</option>
                 </select>
+                <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+                  {pdfTemplate === 'default' && 'Clean general-purpose layout, grouped by category.'}
+                  {pdfTemplate === 'foundation' && 'Foundation Programme layout grouped by ARCP capability.'}
+                  {pdfTemplate === 'mrcp' && 'Tailored to MRCP application section ordering.'}
+                  {pdfTemplate === 'st_application' && 'Higher specialty (ST3+) self-assessment layout.'}
+                </p>
               </div>
             )}
 
@@ -466,7 +482,10 @@ export default function ExportPage() {
 
             {format === 'pdf' && (
               <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Append PDF</p>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Append PDF</p>
+                <p className="mb-3 text-[11px] text-[rgba(245,245,242,0.45)]">
+                  Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
+                </p>
                 <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[rgba(245,245,242,0.55)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[#F5F5F2]" />
                 <button onClick={handleAppendPdf} disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf} className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:opacity-40">
                   {appendingPdf ? 'Appending...' : 'Append selected'}
@@ -514,6 +533,7 @@ export default function ExportPage() {
                       <span className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{formatDate(entry.date)}</span>
                       <button
                         type="button"
+                        title="Download every uploaded evidence file for this entry as a single ZIP."
                         onClick={e => {
                           e.preventDefault()
                           e.stopPropagation()
@@ -579,6 +599,18 @@ export default function ExportPage() {
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
           <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
             <h2 className="text-base font-semibold text-[#F5F5F2]">Create protected link</h2>
+            {subInfo && !subInfo.isPro && (
+              <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
+                <p className="font-semibold">
+                  {subInfo.limits.canCreateShareLink ? 'Free tier: 1 active share link' : 'Active link cap reached'}
+                </p>
+                <p className="mt-0.5 text-[rgba(245,245,242,0.55)]">
+                  {subInfo.limits.canCreateShareLink
+                    ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
+                    : 'Revoke an existing link or upgrade to Pro for unlimited links.'}
+                </p>
+              </div>
+            )}
             <div className="mt-5 space-y-4">
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Scope</span>

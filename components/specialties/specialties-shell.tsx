@@ -139,11 +139,15 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                     </svg>
                   </div>
                   <p className="text-[#F5F5F2] font-medium mb-1">No specialty trackers yet</p>
+                  <p className="max-w-sm text-xs text-[rgba(245,245,242,0.55)]">
+                    Pick a specialty to score your evidence by domain and auto-load the application
+                    deadlines for the upcoming cycle. Free tier tracks one specialty at a time.
+                  </p>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="mt-4 text-sm text-[#1B6FD9] hover:text-[#155BB0] font-medium transition-colors"
+                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] transition-colors"
                   >
-                    Track your first specialty application
+                    Track your first specialty
                   </button>
                 </div>
               ) : (

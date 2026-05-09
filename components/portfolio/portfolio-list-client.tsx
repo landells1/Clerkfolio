@@ -159,7 +159,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
   return (
     <>
-      {/* Select mode controls — only shown when active */}
+      {/* Select mode controls - only shown when active */}
       {selectMode && (
         <div className="flex items-center justify-between mb-3">
           <button
@@ -187,7 +187,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
             onConfirm={() => handleSwipeTrash(entry)}
           >
           <div className="relative group/row flex items-stretch">
-            {/* Checkbox column — always reserves space, fades in on hover */}
+            {/* Checkbox column - always reserves space, fades in on hover */}
             <div
               className={`flex-shrink-0 w-10 flex items-center justify-center cursor-pointer z-20 transition-opacity ${
                 selectMode || selected.has(entry.id)
@@ -209,7 +209,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               </div>
             </div>
 
-            {/* Card — takes remaining width */}
+            {/* Card - takes remaining width */}
             <div className="flex-1 min-w-0 relative">
               <EntryCard entry={entry} />
               {/* Transparent overlay in select mode to block navigation and capture clicks */}

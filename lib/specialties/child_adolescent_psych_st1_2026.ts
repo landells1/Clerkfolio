@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Child and Adolescent Psychiatry ST1 2026 — run-through psychiatry programme.
+// Child and Adolescent Psychiatry ST1 2026 - run-through psychiatry programme.
 // F2-direct entry; alternative to Core Psychiatry CT1 for candidates committed
 // to working with children and young people. Selection: MSRA + interview;
 // no public per-band numeric matrix, so configured as evidence-based.
@@ -11,7 +11,7 @@ export const CHILD_ADOLESCENT_PSYCH_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/child-and-adolescent-psychiatry-st1-2026',
-  sourceLabel: 'NHS England — Child and Adolescent Psychiatry ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Child and Adolescent Psychiatry ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

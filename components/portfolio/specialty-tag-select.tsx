@@ -99,7 +99,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
       {/* Dropdown */}
       {open && (
         <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
-          {/* Section header — only in non-tracked mode when there are user interests */}
+          {/* Section header - only in non-tracked mode when there are user interests */}
           {!trackedOnly && userInterests.length > 0 && (
             <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties

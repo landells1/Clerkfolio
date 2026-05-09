@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Histopathology ST1 2026 — points-based self-assessment scored at application stage.
+// Histopathology ST1 2026 - points-based self-assessment scored at application stage.
 // 10 official domains, 71 total points, with per-band points published in NHS England
 // scoring guidance. All domains scored on highest band only.
 export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 71,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/pathology/histopathology/histopathology-st1-training-self-assessment-scoring-guidance-for-applicants',
-  sourceLabel: 'NHS England — Histopathology ST1 Self-Assessment Scoring Guidance',
+  sourceLabel: 'NHS England - Histopathology ST1 Self-Assessment Scoring Guidance',
   isOfficial: true,
   scoringType: 'points',
   domains: [
@@ -30,8 +30,8 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 3,
       scoringRule: 'highest',
       bands: [
-        { label: 'Degree prior to medicine — 1st class honours or equivalent', points: 3 },
-        { label: 'Degree prior to medicine — 2:1 or equivalent', points: 2 },
+        { label: 'Degree prior to medicine - 1st class honours or equivalent', points: 3 },
+        { label: 'Degree prior to medicine - 2:1 or equivalent', points: 2 },
       ],
       notes: 'Intercalated honours degrees with classification.',
     },

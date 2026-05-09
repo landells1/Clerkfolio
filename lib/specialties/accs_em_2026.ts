@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// ACCS Emergency Medicine CT1 2026 — selection is MSRA + interview.
+// ACCS Emergency Medicine CT1 2026 - selection is MSRA + interview.
 // No portfolio scoring at application stage; portfolio assessed at interview.
 export const ACCS_EM_2026: SpecialtyConfig = {
   key: 'accs_em_2026',
@@ -9,7 +9,7 @@ export const ACCS_EM_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-emergency-medicine-ct1-2026',
-  sourceLabel: 'NHS England — ACCS Emergency Medicine CT1 2026 Person Specification',
+  sourceLabel: 'NHS England - ACCS Emergency Medicine CT1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

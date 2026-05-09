@@ -53,7 +53,7 @@ export async function POST(request: NextRequest) {
         existingProfile.stripe_customer_id !== (session.customer as string)
       ) {
         // Return non-2xx so Stripe retries; the next reconciling event should resolve it.
-        // Logging without the customer IDs is intentional — keep webhook logs free of PII.
+        // Logging without the customer IDs is intentional - keep webhook logs free of PII.
         console.error('Webhook customer mismatch on checkout.session.completed for user', userId)
         return NextResponse.json({ error: 'Customer mismatch' }, { status: 409 })
       }

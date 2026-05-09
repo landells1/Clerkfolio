@@ -24,7 +24,7 @@ export default function GlobalError({
             Something went wrong.
           </h1>
           <p style={{ fontSize: 16, color: 'rgba(245,245,242,0.55)', maxWidth: 400, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
-            A critical error occurred. Your data is safe — please refresh the page or contact{' '}
+            A critical error occurred. Your data is safe - please refresh the page or contact{' '}
             <a href="mailto:hello@clerkfolio.co.uk" style={{ color: '#1B6FD9' }}>hello@clerkfolio.co.uk</a>{' '}
             if this keeps happening.
           </p>

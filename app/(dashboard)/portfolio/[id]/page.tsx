@@ -2,6 +2,15 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
+import {
+  AUDIT_TYPE_LABELS, AUDIT_CYCLE_STAGE_LABELS,
+  TEACHING_TYPE_LABELS, TEACHING_AUDIENCE_LABELS,
+  CONF_TYPE_LABELS, CONF_ATTENDANCE_LABELS, LEVEL_LABELS,
+  PUB_TYPE_LABELS, PUB_STATUS_LABELS,
+  PROC_SUPERVISION_LABELS,
+  REFL_TYPE_LABELS, REFL_FRAMEWORK_LABELS,
+  formatInterviewReady,
+} from '@/lib/types/portfolio-labels'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
@@ -26,7 +35,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   return (
     <div className="flex flex-col gap-0.5">
       <span className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">{label}</span>
-      <span className="text-sm text-[rgba(245,245,242,0.8)] capitalize">{display.replace(/_/g, ' ')}</span>
+      <span className="text-sm text-[rgba(245,245,242,0.8)]">{display}</span>
     </div>
   )
 }
@@ -105,14 +114,28 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
           <p className="text-sm text-[rgba(245,245,242,0.4)] font-mono">{formatDate(entry.date)}</p>
         </div>
 
-        {/* Application tags */}
+        {/* Linked specialties */}
         {entry.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Application tags</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
                   {formatTag(tag)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Interview-ready badges */}
+        {(entry.interview_ready_for ?? []).length > 0 && (
+          <div>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Marked ready for</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(entry.interview_ready_for as string[]).map(target => (
+                <span key={target} className="px-2.5 py-1 rounded-lg text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-400/20">
+                  {formatInterviewReady(target)}
                 </span>
               ))}
             </div>
@@ -124,30 +147,30 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
           <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-4">Details</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {entry.category === 'audit_qip' && <>
-              <DetailRow label="Type" value={entry.audit_type} />
+              <DetailRow label="Type" value={entry.audit_type ? AUDIT_TYPE_LABELS[entry.audit_type] ?? entry.audit_type : null} />
               <DetailRow label="Role" value={entry.audit_role} />
               <DetailRow label="Trust / hospital" value={entry.audit_trust} />
-              <DetailRow label="Cycle stage" value={entry.audit_cycle_stage?.replace('_', ' ')} />
+              <DetailRow label="Cycle stage" value={entry.audit_cycle_stage ? AUDIT_CYCLE_STAGE_LABELS[entry.audit_cycle_stage] ?? entry.audit_cycle_stage.replace(/_/g, ' ') : null} />
               <DetailRow label="Presented" value={entry.audit_presented} />
             </>}
             {entry.category === 'teaching' && <>
-              <DetailRow label="Type" value={entry.teaching_type?.replace('_', ' ')} />
-              <DetailRow label="Audience" value={entry.teaching_audience} />
-              <DetailRow label="Setting" value={entry.teaching_setting} />
+              <DetailRow label="Type" value={entry.teaching_type ? TEACHING_TYPE_LABELS[entry.teaching_type] ?? entry.teaching_type.replace(/_/g, ' ') : null} />
+              <DetailRow label="Audience" value={entry.teaching_audience ? TEACHING_AUDIENCE_LABELS[entry.teaching_audience] ?? entry.teaching_audience : null} />
+              <DetailRow label="Setting" value={entry.teaching_setting ? LEVEL_LABELS[entry.teaching_setting] ?? entry.teaching_setting : null} />
               <DetailRow label="Event" value={entry.teaching_event} />
               <DetailRow label="Invited" value={entry.teaching_invited} />
             </>}
             {entry.category === 'conference' && <>
-              <DetailRow label="Type" value={entry.conf_type} />
+              <DetailRow label="Type" value={entry.conf_type ? CONF_TYPE_LABELS[entry.conf_type] ?? entry.conf_type : null} />
               <DetailRow label="Event" value={entry.conf_event_name} />
-              <DetailRow label="Attendance" value={entry.conf_attendance} />
-              <DetailRow label="Level" value={entry.conf_level} />
+              <DetailRow label="Attendance" value={entry.conf_attendance ? CONF_ATTENDANCE_LABELS[entry.conf_attendance] ?? entry.conf_attendance : null} />
+              <DetailRow label="Level" value={entry.conf_level ? LEVEL_LABELS[entry.conf_level] ?? entry.conf_level : null} />
               <DetailRow label="CPD hours" value={entry.conf_cpd_hours} />
               <DetailRow label="Certificate" value={entry.conf_certificate} />
             </>}
             {entry.category === 'publication' && <>
-              <DetailRow label="Type" value={entry.pub_type?.replace('_', ' ')} />
-              <DetailRow label="Status" value={entry.pub_status} />
+              <DetailRow label="Type" value={entry.pub_type ? PUB_TYPE_LABELS[entry.pub_type] ?? entry.pub_type.replace(/_/g, ' ') : null} />
+              <DetailRow label="Status" value={entry.pub_status ? PUB_STATUS_LABELS[entry.pub_status] ?? entry.pub_status : null} />
               <DetailRow label="Journal" value={entry.pub_journal} />
               <DetailRow label="Authors" value={entry.pub_authors} />
               <DetailRow label="DOI / link" value={entry.pub_doi} />
@@ -160,16 +183,17 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
             </>}
             {entry.category === 'prize' && <>
               <DetailRow label="Awarding body" value={entry.prize_body} />
-              <DetailRow label="Level" value={entry.prize_level} />
+              <DetailRow label="Level" value={entry.prize_level ? LEVEL_LABELS[entry.prize_level] ?? entry.prize_level : null} />
             </>}
             {entry.category === 'procedure' && <>
               <DetailRow label="Procedure" value={entry.proc_name} />
               <DetailRow label="Setting" value={entry.proc_setting} />
-              <DetailRow label="Supervision" value={entry.proc_supervision} />
+              <DetailRow label="Supervision" value={entry.proc_supervision ? PROC_SUPERVISION_LABELS[entry.proc_supervision] ?? entry.proc_supervision : null} />
               <DetailRow label="Count" value={entry.proc_count} />
             </>}
             {entry.category === 'reflection' && <>
-              <DetailRow label="Type" value={entry.refl_type?.replace('_', '-').toUpperCase()} />
+              <DetailRow label="Type" value={entry.refl_type ? REFL_TYPE_LABELS[entry.refl_type] ?? entry.refl_type.toUpperCase() : null} />
+              <DetailRow label="Framework" value={entry.refl_framework ? REFL_FRAMEWORK_LABELS[entry.refl_framework] ?? entry.refl_framework : null} />
               <DetailRow label="Supervisor" value={entry.refl_supervisor} />
               <DetailRow label="Clinical context" value={entry.refl_clinical_context} />
             </>}

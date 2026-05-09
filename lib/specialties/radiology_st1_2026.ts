@@ -7,7 +7,7 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 24,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/clinical-radiology/core-clinical-radiology/clinical-radiology-st1-portfolio-review-guidance',
-  sourceLabel: 'NHS England — Clinical Radiology ST1 Portfolio Review Guidance',
+  sourceLabel: 'NHS England - Clinical Radiology ST1 Portfolio Review Guidance',
   isOfficial: true,
   scoringType: 'points',
   domains: [
@@ -36,10 +36,10 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 8,
       scoringRule: 'highest',
       bands: [
-        { label: 'Grade A: Extensive commitment — taster/elective AND society membership AND conference attended AND radiology-specific audit or research or publication', points: 8 },
-        { label: 'Grade B: Clear commitment — taster/elective PLUS at least one further activity (society, conference, online course)', points: 6 },
-        { label: 'Grade C: Some commitment — attended radiology meeting/course OR completed recognised online radiology course (e.g. Radiology Masterclass) OR radiology taster', points: 4 },
-        { label: 'Grade D: Limited — single activity showing specific interest in radiology', points: 2 },
+        { label: 'Grade A: Extensive commitment - taster/elective AND society membership AND conference attended AND radiology-specific audit or research or publication', points: 8 },
+        { label: 'Grade B: Clear commitment - taster/elective PLUS at least one further activity (society, conference, online course)', points: 6 },
+        { label: 'Grade C: Some commitment - attended radiology meeting/course OR completed recognised online radiology course (e.g. Radiology Masterclass) OR radiology taster', points: 4 },
+        { label: 'Grade D: Limited - single activity showing specific interest in radiology', points: 2 },
         { label: 'Grade E: No evidence of commitment to radiology', points: 0 },
       ],
       notes: 'Double-weighted domain (max 8 pts vs 4 for others). Portfolio accounts for 40% of final ranking; interview 60%. 2026 cycle reduced portfolio from 7 domains to 5.',
@@ -76,7 +76,7 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
       maxPoints: 4,
       scoringRule: 'highest',
       bands: [
-        { label: 'Grade A: Led complete QI/audit cycle with documented change and re-audit (closed loop) — all stages from protocol to re-audit', points: 4 },
+        { label: 'Grade A: Led complete QI/audit cycle with documented change and re-audit (closed loop) - all stages from protocol to re-audit', points: 4 },
         { label: 'Grade B: Completed all stages of a single audit or QI cycle including implementation', points: 3 },
         { label: 'Grade C: Participated with a clearly defined role (e.g. data collection, analysis and write-up)', points: 2 },
         { label: 'Grade D: Minor participation only', points: 1 },

@@ -206,7 +206,21 @@ function ViewLink({ href, active, label }: { href: string; active: boolean; labe
 function EmptyPortfolio() {
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-10 text-center">
-      <p className="text-sm text-[rgba(245,245,242,0.5)]">No portfolio entries in this view.</p>
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04]">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      </div>
+      <p className="text-sm font-medium text-[#F5F5F2]">Your portfolio lives here</p>
+      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-[rgba(245,245,242,0.55)]">
+        Log audits, teaching, courses, publications, prizes, procedures and reflections. Filter by category once you have a few entries.
+      </p>
+      <Link
+        href="/portfolio/new"
+        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] transition-colors"
+      >
+        Add your first entry
+      </Link>
     </div>
   )
 }

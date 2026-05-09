@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Community Sexual and Reproductive Health (CSRH) ST1 2026 — small run-through
+// Community Sexual and Reproductive Health (CSRH) ST1 2026 - small run-through
 // programme. F2-direct entry. Selection: portfolio + interview; no public
 // per-band numeric matrix, so configured as evidence-based.
 export const CSRH_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const CSRH_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/community-sexual-and-reproductive-health-st1-2026',
-  sourceLabel: 'NHS England — Community Sexual and Reproductive Health ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Community Sexual and Reproductive Health ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

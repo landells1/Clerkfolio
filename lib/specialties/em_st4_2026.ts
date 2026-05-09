@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Emergency Medicine ST4 2026 — higher specialty training, entry post-ACCS-EM
+// Emergency Medicine ST4 2026 - higher specialty training, entry post-ACCS-EM
 // (CT3/ST3) or equivalent. Selection: portfolio + interview (no public per-band
 // numeric matrix), so configured as evidence-based.
 export const EM_ST4_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const EM_ST4_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/emergency-medicine-st4-2026',
-  sourceLabel: 'NHS England — Emergency Medicine ST4 2026 Person Specification',
+  sourceLabel: 'NHS England - Emergency Medicine ST4 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
@@ -42,7 +42,7 @@ export const EM_ST4_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Competence in adult and paediatric resuscitation — both medical and trauma — evidenced via supervisor confirmation or current course certificates (ALS, APLS/EPALS, ATLS/ETC).',
+      notes: 'Competence in adult and paediatric resuscitation - both medical and trauma - evidenced via supervisor confirmation or current course certificates (ALS, APLS/EPALS, ATLS/ETC).',
     },
     {
       key: 'em_lat_cap',

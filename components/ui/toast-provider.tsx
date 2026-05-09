@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { createContext, useCallback, useContext, useEffect, useState } from 'react'
 
@@ -51,7 +51,7 @@ export default function ToastProvider({ children }: { children: React.ReactNode 
   return (
     <ToastContext.Provider value={{ addToast, addUndoToast }}>
       {children}
-      {/* Toast stack — fixed top-right */}
+      {/* Toast stack - fixed top-right */}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none" aria-live="polite">
         {toasts.map(toast => (
           <ToastItem

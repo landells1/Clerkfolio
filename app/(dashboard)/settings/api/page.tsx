@@ -112,7 +112,11 @@ export default function ApiSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">API access</h1>
-          <p className="mt-0.5 text-sm text-[rgba(245,245,242,0.45)]">Read-only keys for your Clerkfolio data.</p>
+          <p className="mt-0.5 text-sm text-[rgba(245,245,242,0.45)]">
+            Bearer keys for developers integrating Clerkfolio with other tools (e.g. a personal
+            dashboard or research project). All endpoints are read-only and return JSON. Most users
+            won&apos;t need this.
+          </p>
         </div>
       </div>
 
@@ -149,7 +153,12 @@ export default function ApiSettingsPage() {
         {loading ? (
           <p className="p-5 text-sm text-[rgba(245,245,242,0.45)]">Loading keys...</p>
         ) : keys.length === 0 ? (
-          <p className="p-5 text-sm text-[rgba(245,245,242,0.45)]">No API keys yet.</p>
+          <div className="px-5 py-6">
+            <p className="text-sm text-[#F5F5F2]">No API keys yet</p>
+            <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">
+              Generate a key above to access your portfolio over HTTPS. Keys are read-only and can be revoked any time.
+            </p>
+          </div>
         ) : (
           <div className="divide-y divide-white/[0.04]">
             {keys.map(key => {

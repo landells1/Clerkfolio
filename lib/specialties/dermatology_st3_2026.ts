@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Dermatology ST3 2026 — higher specialty training. Multiple entry routes:
+// Dermatology ST3 2026 - higher specialty training. Multiple entry routes:
 // medical (post-IMT, MRCP), paediatric (post-paeds, MRCPCH), or surgical
 // (post-CT/ST1 surgery, MRCS). Selection: portfolio + interview (no public
 // per-band numeric matrix), so configured as evidence-based.
@@ -11,7 +11,7 @@ export const DERMATOLOGY_ST3_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/dermatology-st3-2026',
-  sourceLabel: 'NHS England — Dermatology ST3 2026 Person Specification',
+  sourceLabel: 'NHS England - Dermatology ST3 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

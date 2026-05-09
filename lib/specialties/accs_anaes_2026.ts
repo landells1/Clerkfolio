@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// ACCS Anaesthetics CT1 2026 — shares the Anaesthetics CT1 person specification.
+// ACCS Anaesthetics CT1 2026 - shares the Anaesthetics CT1 person specification.
 // Selection is MSRA + interview (two 15-min stations); no per-band points published.
 // ACCS variant rotates through Anaesthetics, EM, Acute Medicine and ICM in CT1–CT2.
 export const ACCS_ANAES_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const ACCS_ANAES_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
-  sourceLabel: 'NHS England — Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
+  sourceLabel: 'NHS England - Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Anaesthetics CT1 2026 — selection is MSRA + interview (two 15-min stations).
+// Anaesthetics CT1 2026 - selection is MSRA + interview (two 15-min stations).
 // No specialty-specific application questions for 2026; portfolio assessed at interview.
 export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   key: 'anaesthetics_ct1_2026',
@@ -9,7 +9,7 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
-  sourceLabel: 'NHS England — Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
+  sourceLabel: 'NHS England - Anaesthetics / ACCS Anaesthetics CT1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

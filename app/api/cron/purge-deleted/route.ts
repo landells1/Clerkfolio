@@ -35,7 +35,7 @@ async function purgeEvidenceForEntries(
     const slice = paths.slice(offset, offset + CHUNK)
     const { error: storageError } = await supabase.storage.from(STORAGE_BUCKET).remove(slice)
     if (storageError) {
-      // Storage failures don't block DB cleanup — log and continue. Better to leave a few
+      // Storage failures don't block DB cleanup - log and continue. Better to leave a few
       // orphan objects than to leave both DB rows and storage forever.
       logBackgroundJobError('cron.purge_deleted.storage_remove', storageError, { count: slice.length })
     }

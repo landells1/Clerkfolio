@@ -2,7 +2,7 @@ import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 
-// Simple HTML escaper — prevents injection into email body
+// Simple HTML escaper - prevents injection into email body
 function esc(str: string): string {
   return str
     .replace(/&/g, '&amp;')
@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
     await resend.emails.send({
       from: 'Clerkfolio Feedback <noreply@clerkfolio.co.uk>',
       to: 'admin@clerkfolio.co.uk',
-      // replyTo validated above — safe to use
+      // replyTo validated above - safe to use
       replyTo: trimmedEmail,
       subject: `Feedback from ${esc(trimmedName)}`,
       // Plain text version has no injection risk

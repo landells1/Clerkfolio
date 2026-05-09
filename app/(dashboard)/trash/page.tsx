@@ -103,7 +103,10 @@ export default async function TrashPage({
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
             </svg>
           </div>
-          <p className="text-sm text-[rgba(245,245,242,0.4)]">Nothing in trash</p>
+          <p className="text-sm font-medium text-[#F5F5F2] mb-1">Nothing in trash</p>
+          <p className="max-w-sm text-xs text-[rgba(245,245,242,0.55)]">
+            Deleted entries and cases land here for 30 days, then are permanently removed. You can restore anything within that window.
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -54,7 +54,7 @@ export default function SessionsPage() {
       <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Sessions</h1>
       <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">
         Each row is a browser/IP combination that has signed in. Revoking a row signs that device out
-        on its next page load — including the device you&apos;re using right now if you revoke its row.
+        on its next page load - including the device you&apos;re using right now if you revoke its row.
       </p>
       <div className="mt-6 space-y-3">
         {loading ? <p className="text-sm text-[rgba(245,245,242,0.55)]">Loading sessions...</p> : rows.map(row => (

@@ -318,19 +318,20 @@ export default function SettingsPage() {
   if (loading) {
     return <div className="p-8 text-sm text-[rgba(245,245,242,0.45)]">Loading settings...</div>
   }
-  const settingsLinks = [
-    ['/settings/notifications', 'Notifications'],
-    ['/settings/referrals', 'Referrals'],
-    ['/settings/snippets', 'Snippets'],
-    ['/settings/templates', 'Templates'],
-    ['/settings/themes', 'Themes'],
-    ['/settings/tags', 'Specialty tags'],
-    ['/settings/shared-links', 'Shared links'],
-    ['/settings/api', 'API access'],
-    ['/settings/audit-log', 'Audit log'],
-    ['/settings/sessions', 'Sessions'],
-    ['/trash', 'Trash'],
-  ].filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
+  const settingsLinks: Array<[string, string, string]> = ([
+    ['/settings/notifications', 'Notifications', 'Email digests and reminders'],
+    ['/settings/referrals', 'Referrals', 'Invite a colleague, both get Pro'],
+    ['/settings/snippets', 'Snippets', 'Reusable phrases for portfolio notes'],
+    ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
+    ['/settings/themes', 'Competency themes', 'Custom interview themes (Leadership, Teaching, etc.)'],
+    ['/settings/tags', 'Specialty tags', 'Rename or merge linked-specialty tags'],
+    ['/settings/shared-links', 'Shared links', 'Manage read-only public share links'],
+    ['/settings/api', 'API access', 'Bearer keys for developer integrations'],
+    ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],
+    ['/settings/sessions', 'Sessions', 'Active devices and sign-ins'],
+    ['/trash', 'Trash', 'Restore or permanently delete soft-deleted items'],
+    ['/help', 'Help & glossary', 'Acronyms, concepts and keyboard shortcuts'],
+  ] as Array<[string, string, string]>).filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
@@ -414,6 +415,9 @@ export default function SettingsPage() {
               <option value="Europe/Dublin">Europe/Dublin</option>
               <option value="Europe/Paris">Europe/Paris</option>
             </select>
+            <span className="mt-1 block text-[11px] font-normal normal-case tracking-normal text-[rgba(245,245,242,0.45)]">
+              Used to display deadlines and digest send times in your local time.
+            </span>
           </label>
           <button disabled={savingProfile} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
             {savingProfile ? 'Saving...' : 'Save profile'}
@@ -542,7 +546,7 @@ export default function SettingsPage() {
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <input value={settingsSearch} onChange={e => setSettingsSearch(e.target.value)} placeholder="Search settings" className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] sm:col-span-2" />
-        {settingsLinks.map(([href, label]) => <SettingsLink key={href} href={href} label={label} />)}
+        {settingsLinks.map(([href, label, description]) => <SettingsLink key={href} href={href} label={label} description={description} />)}
         <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
           Restart tutorial
         </button>
@@ -642,10 +646,11 @@ export default function SettingsPage() {
   )
 }
 
-function SettingsLink({ href, label }: { href: string; label: string }) {
+function SettingsLink({ href, label, description }: { href: string; label: string; description?: string }) {
   return (
-    <Link href={href} className="min-h-[44px] bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-      {label}
+    <Link href={href} className="min-h-[44px] flex flex-col bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/[0.16]">
+      <span className="text-sm font-medium text-[#F5F5F2]">{label}</span>
+      {description && <span className="mt-0.5 text-[11px] text-[rgba(245,245,242,0.45)]">{description}</span>}
     </Link>
   )
 }
@@ -653,7 +658,6 @@ function SettingsLink({ href, label }: { href: string; label: string }) {
 function planLabel(subInfo: SubscriptionInfo) {
   if (subInfo.isPro) return 'Pro access'
   if (subInfo.tier === 'student') return 'Student tier'
-  if (subInfo.tier === 'foundation') return 'Foundation tier'
   return 'Free tier'
 }
 

@@ -15,7 +15,7 @@ export function Hero() {
           <h1 className="text-[clamp(54px,6vw,84px)] font-medium leading-[1.02] tracking-[-0.055em] text-ink">
             Every case,<br />
             Every audit,<br />
-            Every reflection —<br />
+            Every reflection -<br />
             <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_195)_0%,oklch(0.7_0.13_250)_100%)] bg-clip-text font-normal italic text-transparent">
               In one place.
             </span>

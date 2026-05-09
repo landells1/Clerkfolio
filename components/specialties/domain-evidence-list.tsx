@@ -21,7 +21,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
     onRemove(linkId) // update UI only after confirmed DB delete
   }
 
-  // Evidence-only domains have no scoring — suppress points labels and counting indicators.
+  // Evidence-only domains have no scoring - suppress points labels and counting indicators.
   const isEvidenceOnly = !!domain.isEvidenceOnly || domain.maxPoints === 0
 
   const sorted =

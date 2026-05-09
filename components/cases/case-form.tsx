@@ -58,7 +58,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   // cleared when the tab closes or the user logs out. Unlike localStorage it
   // cannot bleed between different users who share a device.
 
-  // Restore draft on mount — notes are intentionally excluded (clinical free text).
+  // Restore draft on mount - notes are intentionally excluded (clinical free text).
   useEffect(() => {
     if (mode !== 'create') return
     try {
@@ -87,7 +87,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     if (mode !== 'create') return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
-      // Do not persist clinical free text (notes) — only structural metadata.
+      // Do not persist clinical free text (notes) - only structural metadata.
       sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
         title, date, clinicalDomains, specialtyTags,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
@@ -144,6 +144,9 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     }
   }
 
+  // Track the "Save & add another" intent across the submit handler.
+  const addAnotherRef = useRef(false)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
@@ -183,6 +186,12 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
       addToast('Case logged', 'success')
+      if (addAnotherRef.current) {
+        addAnotherRef.current = false
+        router.push('/cases/new')
+        router.refresh()
+        return
+      }
       router.push('/cases')
     } else {
       const { data: currentRow } = await supabase
@@ -275,7 +284,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           maxLength={200}
           onChange={e => { setTitle(e.target.value); markDirty() }}
           className={INPUT}
-          placeholder="Brief description — no patient identifiers"
+          placeholder="Brief description - no patient identifiers"
         />
         <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
           Do not include patient names, dates of birth, or NHS numbers.
@@ -284,7 +293,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
       {/* Date */}
       <div>
-        <label className={LABEL}>Date</label>
+        <label className={LABEL}>Date <span className="text-red-400">*</span></label>
         <input
           type="date"
           required
@@ -303,13 +312,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           onFocus={() => markDirty()}
         />
         <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
-          The medical setting of this encounter — used to filter and organise your cases.
+          The medical setting of this encounter - used to filter and organise your cases.
         </p>
       </div>
 
-      {/* Application tags */}
+      {/* Linked specialties */}
       <div>
-        <label className={LABEL}>Application tags</label>
+        <label className={LABEL}>Linked specialties</label>
         <SpecialtyTagSelect
           value={specialtyTags}
           onChange={setSpecialtyTags}
@@ -347,7 +356,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           onChange={e => { setNotes(e.target.value); markDirty() }}
           onFocus={() => markDirty()}
           className={INPUT}
-          placeholder="Clinical context, learning points, what happened — anonymised…"
+          placeholder="Clinical context, learning points, what happened - anonymised…"
         />
         {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
       </div>
@@ -364,7 +373,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         </div>
       )}
 
-      <div className="flex gap-3 pt-2 border-t border-white/[0.06]">
+      <div className="flex flex-wrap gap-3 pt-2 border-t border-white/[0.06]">
         <button
           type="button"
           onClick={() => {
@@ -375,6 +384,16 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         >
           Cancel
         </button>
+        {mode === 'create' && (
+          <button
+            type="submit"
+            onClick={() => { addAnotherRef.current = true }}
+            disabled={saving || uploading}
+            className="flex-1 border border-[#1B6FD9]/40 text-[#1B6FD9] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+          >
+            Save & add another
+          </button>
+        )}
         <button
           type="submit"
           disabled={saving || uploading}

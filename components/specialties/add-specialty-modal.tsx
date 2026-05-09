@@ -71,7 +71,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
 
       if (insertError) throw insertError
       const inserted = rows?.[0]
-      if (!inserted) throw new Error('No data returned — check your session and try again.')
+      if (!inserted) throw new Error('No data returned - check your session and try again.')
 
       // Auto-populate application window deadlines if the config has verified dates
       const config = SPECIALTY_CONFIGS.find(c => c.key === key)
@@ -169,7 +169,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
               {entryLevel.length > 0 && (
                 <SpecialtyGroup
                   title="Entry training (ST1 / CT1)"
-                  subtitle="Direct from Foundation"
+                  subtitle="Apply directly from Foundation. ST1 = Specialty Training year 1, CT1 = Core Training year 1."
                   configs={entryLevel}
                   loading={loading}
                   onSelect={handleSelect}
@@ -178,7 +178,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
               {higherLevel.length > 0 && (
                 <SpecialtyGroup
                   title="Higher specialty (ST3 / ST4)"
-                  subtitle="Post-IMT, post-CST or post-ACCS"
+                  subtitle="Apply after core training: IMT (Internal Medicine), CST (Core Surgery) or ACCS (Acute Care Common Stem)."
                   configs={higherLevel}
                   loading={loading}
                   onSelect={handleSelect}

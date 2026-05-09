@@ -18,6 +18,8 @@ import TimeSinceCard, { buildTimeSinceRows } from '@/components/dashboard/time-s
 import CalendarWidget, { type CalendarWidgetItem } from '@/components/dashboard/calendar-widget'
 import CareerTimeline from '@/components/dashboard/career-timeline'
 import RotationSummaryCards from '@/components/logs/rotation-summary-cards'
+import DashboardSection from '@/components/dashboard/dashboard-section'
+import NewAccountQuickStart from '@/components/dashboard/new-account-quick-start'
 import ChangelogModal from '@/components/dashboard/changelog-modal'
 import DemoStarterCard from '@/components/dashboard/demo-starter-card'
 import CareerWelcomeCard from '@/components/dashboard/career-welcome-card'
@@ -143,7 +145,7 @@ export default async function DashboardPage() {
   const { data: specialtyLinksRaw } = applicationIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
     : { data: [] as SpecialtyEntryLink[] }
-  // Filter out links whose portfolio entry has since been deleted — allEntries already
+  // Filter out links whose portfolio entry has since been deleted - allEntries already
   // excludes soft-deleted rows so this catches orphaned links from deleted entries.
   const activeEntryIds = new Set((allEntries ?? []).map(e => e.id))
   const specialtyLinks = (specialtyLinksRaw ?? []).filter(
@@ -247,10 +249,31 @@ export default async function DashboardPage() {
           userId={user!.id}
           completedItems={(profile as { onboarding_checklist_completed_items?: string[] }).onboarding_checklist_completed_items ?? []}
           accountCreatedAt={user!.created_at}
+          autoCompleted={[
+            (allEntries?.length ?? 0) > 0 ? 'portfolio_entry' : null,
+            (allCases?.length ?? 0) > 0 ? 'case' : null,
+            (trackedSpecialtyRows ?? []).length > 0 ? 'specialty' : null,
+            (deadlines?.length ?? 0) > 0 || (goals?.length ?? 0) > 0 ? 'deadline' : null,
+          ].filter((value): value is string => Boolean(value))}
         />
       )}
 
       {!hasEntryToday && <EmptyDayPrompt />}
+
+      {/* New-account quick-start: show until the user has logged 3 entries / 3 cases. */}
+      {(() => {
+        const portfolioCount = allEntries?.length ?? 0
+        const caseCount = allCases?.length ?? 0
+        const isNew = portfolioCount < 3 && caseCount < 3
+        if (!isNew) return null
+        return (
+          <NewAccountQuickStart
+            hasFirstPortfolio={portfolioCount > 0}
+            hasFirstCase={caseCount > 0}
+            hasTrackedSpecialty={(trackedSpecialtyRows ?? []).length > 0}
+          />
+        )
+      })()}
 
       {/* Two-column layout on wide screens: main content left, widgets right */}
       <div className="xl:grid xl:grid-cols-[1fr_300px] xl:gap-6 xl:items-start">
@@ -262,22 +285,27 @@ export default async function DashboardPage() {
           <div className="grid grid-cols-3 gap-4">
             <StatCard label="Portfolio entries" value={allEntries?.length ?? 0} href="/portfolio" />
             <StatCard label="Cases logged" value={allCases?.length ?? 0} href="/cases" />
-            <StatCard label="Timeline items" value={upcomingItems.length} href="/timeline" />
+            <StatCard label="Upcoming deadlines & goals" value={upcomingItems.length} href="/timeline" />
           </div>
 
-          <DashboardSection title="Trends" defaultOpen>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <EntriesOverTime data={entriesOverTime} />
-              <TimeSinceCard rows={timeSinceRows} />
-            </div>
-          </DashboardSection>
+          {/* Charts only render once the user has logged something - empty months are noise. */}
+          {((allEntries?.length ?? 0) > 0 || (allCases?.length ?? 0) > 0) && (
+            <DashboardSection title="Trends" subtitle="entries logged per month" defaultOpen>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <EntriesOverTime data={entriesOverTime} />
+                <TimeSinceCard rows={timeSinceRows} />
+              </div>
+            </DashboardSection>
+          )}
 
-          <DashboardSection title="Portfolio" defaultOpen>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <CoverageWidget counts={coverageCounts} />
-              <CareerTimeline stage={profile?.career_stage} />
-            </div>
-          </DashboardSection>
+          {(allEntries?.length ?? 0) > 0 && (
+            <DashboardSection title="Portfolio" subtitle="evidence by category" defaultOpen>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <CoverageWidget counts={coverageCounts} />
+                <CareerTimeline stage={profile?.career_stage} />
+              </div>
+            </DashboardSection>
+          )}
 
           {(rotations ?? []).length > 0 && (
             <DashboardSection title="Rotations" defaultOpen>
@@ -289,9 +317,11 @@ export default async function DashboardPage() {
             </DashboardSection>
           )}
 
-          <DashboardSection title="Clinical areas">
-            <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
-          </DashboardSection>
+          {Object.keys(clinicalAreaCounts).length > 0 && (
+            <DashboardSection title="Clinical areas" subtitle="cases by clinical setting">
+              <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
+            </DashboardSection>
+          )}
         </div>
 
         {/* Right widgets column */}
@@ -305,7 +335,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* Recent activity — full width */}
+      {/* Recent activity - full width */}
       <div className="mt-5">
         <DashboardSection title="Recent activity">
           <ActivityFeed
@@ -356,17 +386,6 @@ function buildEntriesOverTime(entries: { category: string; created_at: string }[
   return months.map(({ key: _key, ...bucket }) => bucket)
 }
 
-function DashboardSection({ title, defaultOpen, children }: { title: string; defaultOpen?: boolean; children: React.ReactNode }) {
-  return (
-    <details className="group" open={defaultOpen}>
-      <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]">
-        {title}
-        <span className="text-[rgba(245,245,242,0.55)] group-open:rotate-90 transition-transform">&gt;</span>
-      </summary>
-      <div className="pt-4">{children}</div>
-    </details>
-  )
-}
 
 /** Compact specialty progress panel for the right column */
 function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number }[] }) {
@@ -374,6 +393,9 @@ function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; p
     <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
         <p className="text-sm font-semibold text-[#F5F5F2]">Specialty progress</p>
+        <p className="mt-0.5 text-[11px] text-[rgba(245,245,242,0.45)]">
+          % of domains with at least one piece of linked evidence.
+        </p>
       </div>
       <div className="divide-y divide-white/[0.06]">
         {rows.map(row => (

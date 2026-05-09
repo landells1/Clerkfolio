@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
@@ -8,6 +8,7 @@ type Props = {
   userId: string
   completedItems: string[]
   accountCreatedAt: string
+  autoCompleted?: string[]
 }
 
 const ITEMS = [
@@ -18,12 +19,29 @@ const ITEMS = [
   { key: 'export',          label: 'Try exporting your portfolio', href: '/export' },
 ]
 
-export default function OnboardingChecklist({ userId, completedItems: initialCompleted, accountCreatedAt }: Props) {
+export default function OnboardingChecklist({ userId, completedItems: initialCompleted, accountCreatedAt, autoCompleted = [] }: Props) {
   const supabase = createClient()
-  const [completed, setCompleted] = useState<string[]>(initialCompleted)
+  const [completed, setCompleted] = useState<string[]>(() => {
+    return Array.from(new Set([...initialCompleted, ...autoCompleted]))
+  })
   const [dismissed, setDismissed] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
+
+  // Auto-persist newly-derived completions (e.g. user just logged their first
+  // entry in another tab) so the checklist reflects reality without the user
+  // having to tick it manually.
+  useEffect(() => {
+    const newlyAuto = autoCompleted.filter(key => !initialCompleted.includes(key))
+    if (newlyAuto.length === 0) return
+    const next = Array.from(new Set([...initialCompleted, ...autoCompleted]))
+    supabase
+      .from('profiles')
+      .update({ onboarding_checklist_completed_items: next })
+      .eq('id', userId)
+      .then(({ error }) => { if (error) console.error('checklist auto-tick:', error.message) })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const accountAge = Math.floor((Date.now() - new Date(accountCreatedAt).getTime()) / 86400000)
   const allDone = ITEMS.every(i => completed.includes(i.key))
@@ -43,7 +61,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
       .update({ onboarding_checklist_completed_items: next })
       .eq('id', userId)
 
-    // All done — celebrate then auto-dismiss
+    // All done - celebrate then auto-dismiss
     if (next.length === ITEMS.length) {
       setCelebrating(true)
       setTimeout(() => {
@@ -91,7 +109,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
               {celebrating ? 'You\'re all set! 🎉' : 'Getting started'}
             </p>
             <p className="text-xs text-[rgba(245,245,242,0.4)]">
-              {celebrating ? 'Checklist complete — great work!' : `${progress} of ${ITEMS.length} complete`}
+              {celebrating ? 'Checklist complete - great work!' : `${progress} of ${ITEMS.length} complete`}
             </p>
           </div>
         </div>

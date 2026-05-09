@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useRef, useCallback } from 'react'
 import { createClient } from '@/lib/supabase/client'
@@ -170,7 +170,7 @@ export default function ImportForm() {
         const rawCategory = getCellValue(row, mapping.category)
         category = normaliseCategory(rawCategory)
         if (rawCategory && category === 'custom' && !['custom'].includes(rawCategory.toLowerCase())) {
-          warns.push(`Row ${i + 2}: unrecognised category "${rawCategory}" — imported as "custom"`)
+          warns.push(`Row ${i + 2}: unrecognised category "${rawCategory}" - imported as "custom"`)
         }
       }
 
@@ -255,7 +255,7 @@ export default function ImportForm() {
                   onChange={e => setMapping(m => ({ ...m, [field]: e.target.value || undefined }))}
                   className="flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
                 >
-                  <option value="">— not mapped —</option>
+                  <option value="">- not mapped -</option>
                   {headers.map(h => (
                     <option key={h} value={h}>{h}</option>
                   ))}

@@ -1,4 +1,4 @@
-// Server component — no 'use client'
+// Server component - no 'use client'
 
 interface ActivityHeatmapProps {
   dates: string[] // YYYY-MM-DD strings
@@ -9,10 +9,10 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', '']
 
 const WEEKS     = 52
-const CELL      = 16  // px — cell width & height
-const GAP       = 3   // px — gap between cells
-const LABEL_W   = 24  // px — day-label column width
-const LABEL_GAP = 8   // px — gap between day labels and the cell grid
+const CELL      = 16  // px - cell width & height
+const GAP       = 3   // px - gap between cells
+const LABEL_W   = 24  // px - day-label column width
+const LABEL_GAP = 8   // px - gap between day labels and the cell grid
 
 function cellColor(count: number): string {
   if (count === 0) return 'rgba(245,245,242,0.05)'
@@ -26,8 +26,8 @@ function cellTitle(count: number, dateStr: string): string {
   const formatted = d.toLocaleDateString('en-GB', {
     day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC',
   })
-  if (count === 0) return `No entries — ${formatted}`
-  return `${count} ${count === 1 ? 'entry' : 'entries'} — ${formatted}`
+  if (count === 0) return `No entries - ${formatted}`
+  return `${count} ${count === 1 ? 'entry' : 'entries'} - ${formatted}`
 }
 
 export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
@@ -85,7 +85,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
       </div>
 
       <div className="overflow-x-auto px-5 pt-4 pb-5">
-        {/* Month label row — offset by the label column so columns line up */}
+        {/* Month label row - offset by the label column so columns line up */}
         <div
           style={{
             display: 'flex',
@@ -113,11 +113,11 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
           ))}
         </div>
 
-        {/* One row per weekday — label + that day's cell across every week */}
+        {/* One row per weekday - label + that day's cell across every week */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
           {DAY_LABELS.map((label, day) => (
             <div key={day} style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
-              {/* Day label — fixed width, right-aligned */}
+              {/* Day label - fixed width, right-aligned */}
               <div
                 style={{
                   width: LABEL_W,

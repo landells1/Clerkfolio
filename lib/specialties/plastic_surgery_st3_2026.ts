@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Plastic Surgery ST3 2026 — higher surgical training. Entry post-CST or equivalent
+// Plastic Surgery ST3 2026 - higher surgical training. Entry post-CST or equivalent
 // (Alternative Certificate of Eligibility for Higher Surgical Training). MRCS by
 // examination is mandatory. Selection: portfolio + interview. Per-band numeric
 // scoring is not publicly published, so configured as evidence-based.
@@ -11,7 +11,7 @@ export const PLASTIC_SURGERY_ST3_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/plastic-surgery-st3-2026',
-  sourceLabel: 'NHS England — Plastic Surgery ST3 2026 Person Specification',
+  sourceLabel: 'NHS England - Plastic Surgery ST3 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

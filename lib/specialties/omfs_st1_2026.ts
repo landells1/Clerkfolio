@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// OMFS ST1 2026 — Oral and Maxillofacial Surgery. Unique among UK specialties in
+// OMFS ST1 2026 - Oral and Maxillofacial Surgery. Unique among UK specialties in
 // requiring full dual qualification: applicants must hold BOTH a registerable
 // medical degree (MBBS) AND a registerable dental qualification (BDS) with full
 // GDC registration by post start date. Selection: MSRA + portfolio-based interview.
@@ -12,7 +12,7 @@ export const OMFS_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/oral-and-maxillofacial-surgery-st1-2026',
-  sourceLabel: 'NHS England — Oral and Maxillofacial Surgery ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Oral and Maxillofacial Surgery ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

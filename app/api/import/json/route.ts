@@ -13,7 +13,7 @@ const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 const MAX_FILE_BYTES = 25 * 1024 * 1024
 const MAX_ROWS_PER_TABLE = 2000
 
-// Column allowlists — preferred over a BLOCKED_KEYS denylist so that newly
+// Column allowlists - preferred over a BLOCKED_KEYS denylist so that newly
 // added internal-only columns can't be set by a crafted import. Mirror the
 // shape of NewCase / NewPortfolioEntry from lib/types.
 const PORTFOLIO_ALLOWED = new Set([

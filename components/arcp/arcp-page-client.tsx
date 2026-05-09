@@ -41,8 +41,8 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
       <div className="flex items-center gap-4 mb-6 p-4 bg-[#141416] border border-white/[0.06] rounded-xl">
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-[rgba(245,245,242,0.45)]">Capabilities evidenced</span>
-            <span className="text-xs font-mono text-[rgba(245,245,242,0.55)]">{totalLinked} / {capabilities.length}</span>
+            <span className="text-xs text-[rgba(245,245,242,0.45)]" title="Capabilities with at least one piece of linked evidence">Evidence coverage</span>
+            <span className="text-xs font-mono text-[rgba(245,245,242,0.55)]">{totalLinked} / {capabilities.length} capabilities · {links.length} linked {links.length === 1 ? 'entry' : 'entries'}</span>
           </div>
           <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
             <div

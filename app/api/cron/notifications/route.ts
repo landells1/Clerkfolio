@@ -182,7 +182,7 @@ export async function GET(req: NextRequest) {
       .select('user_id, type, link, title')
       .gte('created_at', `${todayStr}T00:00:00Z`)
 
-    // Include title in the dedupe key — two distinct deadlines often share the
+    // Include title in the dedupe key - two distinct deadlines often share the
     // same `link: /timeline` target, so keying on (user_id, type, link) alone
     // collapses them into one and the second deadline silently never sends.
     const dedupeKey = (n: { user_id: string; type: string; link: string; title: string }) =>

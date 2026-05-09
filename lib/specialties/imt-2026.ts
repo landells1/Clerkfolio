@@ -7,7 +7,7 @@ export const IMT_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 30,
   source: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
-  sourceLabel: 'IMT Recruitment — Application Scoring',
+  sourceLabel: 'IMT Recruitment - Application Scoring',
   isOfficial: true,
   scoringType: 'points',
   bonusOptions: [

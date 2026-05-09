@@ -145,7 +145,12 @@ export async function POST(req: NextRequest) {
   }
   if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
     await supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: false })
-    return NextResponse.json({ error: 'Incorrect PIN.' }, { status: 403 })
+    const used = (failedAttempts ?? 0) + 1
+    const remaining = Math.max(0, 10 - used)
+    const message = remaining > 0
+      ? `Incorrect PIN. ${remaining} ${remaining === 1 ? 'attempt' : 'attempts'} remaining before a 15-minute lockout.`
+      : 'Too many incorrect attempts. Try again in 15 minutes.'
+    return NextResponse.json({ error: message, pinRequired: true }, { status: 403 })
   }
 
   const { count: recentViews } = await supabase

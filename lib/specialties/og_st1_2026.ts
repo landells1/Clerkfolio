@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// O&G ST1 2026 — selection is MSRA + interview.
+// O&G ST1 2026 - selection is MSRA + interview.
 // Interview added a new Ethical & Governance station for 2026. No portfolio scoring at application.
 export const OG_ST1_2026: SpecialtyConfig = {
   key: 'og_st1_2026',
@@ -9,7 +9,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/obstetrics-and-gynaecology-st1-2026',
-  sourceLabel: 'NHS England — Obstetrics & Gynaecology ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Obstetrics & Gynaecology ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

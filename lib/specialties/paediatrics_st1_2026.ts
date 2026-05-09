@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Paediatrics ST1 2026 — RCPCH application is scored against 5 official domains.
+// Paediatrics ST1 2026 - RCPCH application is scored against 5 official domains.
 // Per-band point breakdown is in non-public PDF guidance, so this config presents
 // the official domain structure for evidence upload only.
 export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://www.rcpch.ac.uk/education-careers/apply-paediatrics/ST1',
-  sourceLabel: 'RCPCH — Apply for Paediatrics ST1',
+  sourceLabel: 'RCPCH - Apply for Paediatrics ST1',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,

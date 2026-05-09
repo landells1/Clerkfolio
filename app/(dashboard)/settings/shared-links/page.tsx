@@ -67,7 +67,7 @@ export default function SharedLinksPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Shared links</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-0.5">
-            Read-only links you&apos;ve shared. Each link expires after 30 days.
+            Read-only links you&apos;ve shared. Links expire automatically (default 30 days, up to 90 days).
           </p>
         </div>
       </div>
@@ -86,7 +86,7 @@ export default function SharedLinksPage() {
           </div>
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No active shared links</p>
           <p className="text-xs text-[rgba(245,245,242,0.55)] max-w-xs">
-            Open a specialty tracker and click &quot;Share&quot; to generate a read-only link for your evidence view.
+            Open a specialty tracker and click &quot;Share&quot; to generate a read-only link for your evidence view. Free tier allows 1 active link; Pro removes the limit.
           </p>
         </div>
       ) : (
@@ -103,7 +103,11 @@ export default function SharedLinksPage() {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-[#F5F5F2]">
-                      {config ? `${config.name} ${config.cycleYear}` : link.specialty_key ?? 'Full portfolio'}
+                      {config
+                        ? `${config.name} ${config.cycleYear}`
+                        : link.specialty_key
+                          ? getSpecialtyConfig(link.specialty_key)?.name ?? 'Full portfolio'
+                          : 'Full portfolio'}
                     </p>
                     <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono mt-0.5 truncate">{url}</p>
                   </div>

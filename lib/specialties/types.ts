@@ -1,19 +1,19 @@
 export type ScoringRule = 'highest' | 'cumulative_capped'
 
 // How a specialty is scored at application stage:
-//   'points'   — official points-based scoring (e.g. IMT 35-pt matrix)
-//   'evidence' — official NHS person spec exists but no public per-band points;
+//   'points'   - official points-based scoring (e.g. IMT 35-pt matrix)
+//   'evidence' - official NHS person spec exists but no public per-band points;
 //                users upload evidence against essential / desirable domains
 export type ScoringType = 'points' | 'evidence'
 
 // Training stage at which a programme is entered:
-//   'entry'  — F2-direct entry (ST1 / CT1 run-through or core training)
-//   'higher' — higher specialty entry post-IMT / post-CST / post-ACCS (ST3 / ST4)
+//   'entry'  - F2-direct entry (ST1 / CT1 run-through or core training)
+//   'higher' - higher specialty entry post-IMT / post-CST / post-ACCS (ST3 / ST4)
 export type TrainingLevel = 'entry' | 'higher'
 
 // For evidence-based specialties, each domain is either:
-//   'essential' — entry requirement / gate (binary; must be met to apply)
-//   'desirable' — application/interview criterion (evidence accumulates)
+//   'essential' - entry requirement / gate (binary; must be met to apply)
+//   'desirable' - application/interview criterion (evidence accumulates)
 export type CriteriaType = 'essential' | 'desirable'
 
 export type ScoringBand = {
@@ -41,7 +41,7 @@ export type BonusOption = {
 }
 
 export type ApplicationWindow = {
-  opensDate: string   // ISO date e.g. "2026-10-01" — verify at NHS England recruitment pages
+  opensDate: string   // ISO date e.g. "2026-10-01" - verify at NHS England recruitment pages
   closesDate: string  // ISO date e.g. "2026-11-14"
   source: string      // URL to the NHS England / ORIEL source page
 }

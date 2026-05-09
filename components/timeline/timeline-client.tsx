@@ -49,6 +49,7 @@ type TimelineItem = {
   sourceUrl: string | null
   sourceLabel: string | null
   type: 'deadline' | 'goal'
+  isAuto: boolean
   specialtyApplicationId: string | null
   specialtyName: string
 }
@@ -78,7 +79,10 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
-  const [view, setView] = useState<'calendar' | 'list'>('calendar')
+  const [view, setView] = useState<'calendar' | 'list'>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches) return 'list'
+    return 'calendar'
+  })
   const [month, setMonth] = useState(new Date())
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [showEventForm, setShowEventForm] = useState(false)
@@ -114,6 +118,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           sourceUrl: null,
           sourceLabel: null,
           type: 'goal' as const,
+          isAuto: false,
           specialtyApplicationId: goal.specialty_application_id,
           specialtyName: specialty?.name ?? 'Other',
         }
@@ -127,6 +132,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       sourceUrl: deadline.sourceUrl ?? null,
       sourceLabel: deadline.sourceLabel ?? null,
       type: 'deadline' as const,
+      isAuto: deadline.source === 'config',
       specialtyApplicationId: deadline.specialtyApplicationId,
       specialtyName: deadline.specialtyName,
     }))
@@ -283,7 +289,9 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Timeline</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Goals and application deadlines in one place.</p>
+          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
+            Goals (personal targets you set) and deadlines (applications and ARCP - dates that can&apos;t slip). Auto-loaded items come from your tracked specialties.
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <div className="hidden sm:flex rounded-lg border border-white/[0.08] bg-[#141416] p-1">
@@ -461,14 +469,24 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: R
                     <p className="mt-1 line-clamp-2 text-xs text-[rgba(245,245,242,0.42)]">{[item.location, item.details].filter(Boolean).join(' - ')}</p>
                   )}
                 </div>
-                <span className="text-[10px] uppercase tracking-wide text-[rgba(245,245,242,0.55)]">{item.type}</span>
+                <div className="flex flex-col items-end gap-1">
+                  <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-200'}`}>{item.type}</span>
+                  {item.isAuto && (
+                    <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[rgba(245,245,242,0.55)]" title="Auto-loaded from your tracked specialty">Auto</span>
+                  )}
+                </div>
               </button>
             ))}
           </div>
         </section>
       ))}
       {Object.keys(grouped).length === 0 && (
-        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-10 text-center text-sm text-[rgba(245,245,242,0.45)]">No timeline items yet</div>
+        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-10 text-center">
+          <p className="text-sm font-medium text-[#F5F5F2] mb-1">Nothing on your timeline yet</p>
+          <p className="text-xs text-[rgba(245,245,242,0.55)] max-w-sm mx-auto">
+            Track a specialty to auto-load application deadlines, or click &quot;Add goal&quot; to set your own targets (e.g. &quot;Complete 3 audits by end of FY1&quot;).
+          </p>
+        </div>
       )}
     </div>
   )

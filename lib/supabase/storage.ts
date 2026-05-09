@@ -8,7 +8,7 @@ export const PRO_CAP_BYTES  = 5 * 1024 * 1024 * 1024  // 5 GB
 export const MAX_FILE_BYTES = 50 * 1024 * 1024         // 50 MB per file
 
 // Must stay in sync with the Supabase evidence bucket's allowed MIME types.
-// GIF and WEBP are intentionally excluded — they are not in the bucket config.
+// GIF and WEBP are intentionally excluded - they are not in the bucket config.
 export const ALLOWED_MIME_TYPES = new Set([
   'application/pdf',
   'application/msword',
@@ -46,7 +46,7 @@ export async function uploadEvidence(
 ): Promise<{ path: string; error?: string }> {
   const supabase = createClient()
 
-  // Client-side MIME guard (UX only — server enforce via /api/upload/authorize)
+  // Client-side MIME guard (UX only - server enforce via /api/upload/authorize)
   if (!ALLOWED_MIME_TYPES.has(file.type)) {
     return { path: '', error: 'File type not allowed. Accepted: PDF, DOC, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.' }
   }

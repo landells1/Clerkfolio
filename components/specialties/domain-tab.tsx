@@ -486,7 +486,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           </span>
         </label>
 
-        {/* Supporting evidence — optional upload */}
+        {/* Supporting evidence - optional upload */}
         <div>
           <div className="flex items-center justify-between mb-3">
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
@@ -651,7 +651,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       {/* Normal evidence linking with bands */}
       {!domain.isSelfAssessed && !domain.isCheckbox && (
         <div>
-          {/* Scoring bands — tick to quick-claim, or link evidence below */}
+          {/* Scoring bands - tick to quick-claim, or link evidence below */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Scoring bands</p>

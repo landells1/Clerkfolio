@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
+import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { PrintHeader } from '@/components/print-header'
 
 type SharedEntry = {
@@ -30,7 +31,7 @@ function formatDate(value: string) {
 
 function scopeLabel(payload: SharePayload) {
   if (payload.scope === 'full') return 'Full portfolio'
-  if (payload.scope === 'theme') return `Theme: ${payload.themeSlug?.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()) ?? 'unknown'}`
+  if (payload.scope === 'theme') return `Theme: ${payload.themeSlug ? formatCompetencyTheme(payload.themeSlug) : 'unknown'}`
   return `Specialty: ${payload.specialtyLabel ?? payload.specialtyKey}`
 }
 
@@ -70,9 +71,16 @@ export default function PublicShareClient({ token }: { token: string }) {
     if (!res.ok) {
       if (res.status === 403 && nextPin) {
         sessionStorage.removeItem(pinSessionKey(token))
+      }
+      if (res.status === 403 || (res.status === 401 && json.pinRequired)) {
         setPinRequired(true)
       }
-      setError(json.error ?? 'This share link is unavailable.')
+      const fallback = res.status === 410
+        ? 'This share link has expired.'
+        : res.status === 429
+          ? 'Too many requests right now. Try again in a few minutes.'
+          : 'This share link is no longer available - it may have been revoked or never existed.'
+      setError(json.error ?? fallback)
       return
     }
     if (nextPin) sessionStorage.setItem(pinSessionKey(token), nextPin)

@@ -46,7 +46,7 @@ const NAV_ITEMS = [
   },
   {
     href: '/logs',
-    label: 'Logs',
+    label: 'Rotations & training',
     icon: (
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
         <path d="M8 6h13M8 12h13M8 18h13" />
@@ -100,56 +100,54 @@ export function getNavItemsForStage(careerStage: string | null) {
   return NAV_ITEMS.filter(item => showArcp || item.href !== '/arcp')
 }
 
-// Bottom nav items — max 5, primary mobile destinations
-const BOTTOM_NAV_ITEMS = [
-  {
-    href: '/dashboard',
-    label: 'Home',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
-        <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
-      </svg>
-    ),
-  },
-  {
-    href: '/portfolio',
-    label: 'Portfolio',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/cases',
-    label: 'Cases',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M9 12h6m-3-3v6M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" />
-      </svg>
-    ),
-  },
-  {
-    href: '/timeline',
-    label: 'Timeline',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
-      </svg>
-    ),
-  },
-  {
-    href: '/settings',
-    label: 'Settings',
-    icon: (
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-      </svg>
-    ),
-  },
-]
+// Bottom nav icons (mobile, max 5)
+const BOTTOM_ICONS = {
+  home: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
+      <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+    </svg>
+  ),
+  portfolio: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  cases: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 12h6m-3-3v6M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0z" />
+    </svg>
+  ),
+  timeline: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  ),
+  specialties: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+    </svg>
+  ),
+  arcp: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+    </svg>
+  ),
+}
+
+// Stage-adaptive bottom nav: FY1/FY2 doctors get ARCP, everyone else gets Specialties.
+function getBottomNavItems(careerStage: string | null) {
+  const isFoundation = careerStage === 'FY1' || careerStage === 'FY2'
+  return [
+    { href: '/dashboard', label: 'Home', icon: BOTTOM_ICONS.home },
+    { href: '/portfolio', label: 'Portfolio', icon: BOTTOM_ICONS.portfolio },
+    { href: '/cases', label: 'Cases', icon: BOTTOM_ICONS.cases },
+    { href: '/timeline', label: 'Timeline', icon: BOTTOM_ICONS.timeline },
+    isFoundation
+      ? { href: '/arcp', label: 'ARCP', icon: BOTTOM_ICONS.arcp }
+      : { href: '/specialties', label: 'Specialties', icon: BOTTOM_ICONS.specialties },
+  ]
+}
 
 export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname()
@@ -204,7 +202,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
     if (res.ok) {
       setFeedback({ name: '', email: '', comment: '' })
       setFeedbackOpen(false)
-      addToast('Feedback sent — thank you!', 'success')
+      addToast('Feedback sent - thank you!', 'success')
     } else {
       addToast('Failed to send feedback. Please try again.', 'error')
     }
@@ -238,12 +236,23 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           </div>
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </div>
-        <NotificationBellMobile />
+        <div className="flex items-center gap-1">
+          <button
+            onClick={openSearch}
+            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Search and commands"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+          </button>
+          <NotificationBellMobile />
+        </div>
       </div>
 
       {/* Mobile bottom navigation bar */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 h-16 bg-[#0E0E10] border-t border-white/[0.06] flex items-center justify-around px-2">
-        {BOTTOM_NAV_ITEMS.map(item => {
+        {getBottomNavItems(profile.career_stage).map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
@@ -584,7 +593,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-sm text-[rgba(245,245,242,0.55)]">No unread notifications</p>
+                  <p className="text-sm text-[rgba(245,245,242,0.55)]">All caught up.</p>
                 </div>
               ) : (
                 notifications.map(n => (

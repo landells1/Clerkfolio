@@ -181,7 +181,7 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
   const sections = CAT_ORDER.filter(c => (grouped[c]?.length ?? 0) > 0)
 
   return (
-    <Document title={`Clerkfolio Export — ${specialty}`} author={userName}>
+    <Document title={`Clerkfolio Export - ${specialty}`} author={userName}>
       {templateName && (
         <Page size="A4" style={s.page}>
           <Text style={s.brand}>CLERKFOLIO</Text>

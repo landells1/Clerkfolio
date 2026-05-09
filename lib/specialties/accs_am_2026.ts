@@ -11,7 +11,7 @@ export const ACCS_AM_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 30,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-internal-medicine-ct1-2026',
-  sourceLabel: 'NHS England — ACCS Internal Medicine CT1 2026 Person Specification',
+  sourceLabel: 'NHS England - ACCS Internal Medicine CT1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'points',
   bonusOptions: [

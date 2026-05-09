@@ -16,7 +16,7 @@ const ALLOWED_ORIGINS = new Set(
 /**
  * Validates that the request Origin header, if present, matches an allowed domain.
  * Returns a 403 response if the origin is rejected, otherwise null.
- * Absence of Origin is permitted — it indicates a same-origin or server-side request.
+ * Absence of Origin is permitted - it indicates a same-origin or server-side request.
  */
 export function validateOrigin(request: NextRequest): NextResponse | null {
   const origin = request.headers.get('origin')

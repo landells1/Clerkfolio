@@ -129,13 +129,13 @@ export async function POST(req: NextRequest) {
             entryFolder.file(filename, arrayBuffer)
           }
         } catch {
-          // Skip files that fail to download — don't block the whole export
+          // Skip files that fail to download - don't block the whole export
         }
       })
     )
   }
 
-  // Generate ZIP as ArrayBuffer — directly accepted as BodyInit
+  // Generate ZIP as ArrayBuffer - directly accepted as BodyInit
   const zipBuffer: ArrayBuffer = await zip.generateAsync({
     type: 'arraybuffer',
     compression: 'DEFLATE',

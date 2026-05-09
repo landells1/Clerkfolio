@@ -18,7 +18,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         </span>
       </h1>
       <p style={{ fontSize: 17, color: 'rgba(245,245,242,0.55)', maxWidth: 440, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
-        An unexpected error occurred. Your data is safe — please try again or return to the dashboard.
+        An unexpected error occurred. Your data is safe - please try again or return to the dashboard.
       </p>
       {error.digest && (
         <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', marginBottom: 32, letterSpacing: 1 }}>

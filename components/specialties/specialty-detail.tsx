@@ -173,7 +173,7 @@ export function SpecialtyDetail({
           <ShareModal specialtyKey={application.specialty_key} onClose={() => setShowShareModal(false)} />
         )}
 
-        {/* Bonus options — only for points-based with bonuses */}
+        {/* Bonus options - only for points-based with bonuses */}
         {!evidenceBased && config.bonusOptions && config.bonusOptions.length > 0 && (
           <div className="flex flex-col gap-2">
             <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Bonus Points</p>
@@ -255,7 +255,7 @@ export function SpecialtyDetail({
             {config.sourceLabel}
           </a>
           {!config.isOfficial && (
-            <span className="ml-1 text-amber-400/70">— Unofficial, verify with official person spec</span>
+            <span className="ml-1 text-amber-400/70">- Unofficial, verify with official person spec</span>
           )}
         </p>
       </div>
@@ -463,7 +463,7 @@ function PointsLayoutTabs({
     <div className="space-y-3 mb-1">
       <DomainGroup
         title="Essentials"
-        subtitle="Entry requirements — must be met by start date"
+        subtitle="Entry requirements - must be met by start date"
         domains={essentials}
         links={links}
         activeDomainKey={activeDomainKey}
@@ -526,7 +526,7 @@ function GroupedDomainTabs({
       {essentials.length > 0 && (
         <DomainGroup
           title="Essentials"
-          subtitle="Entry requirements — must be met by start date"
+          subtitle="Entry requirements - must be met by start date"
           domains={essentials}
           links={links}
           activeDomainKey={activeDomainKey}
@@ -540,7 +540,7 @@ function GroupedDomainTabs({
       {desirables.length > 0 && (
         <DomainGroup
           title="Desirables"
-          subtitle="Application & interview criteria — build evidence over time"
+          subtitle="Application & interview criteria - build evidence over time"
           domains={desirables}
           links={links}
           activeDomainKey={activeDomainKey}
@@ -668,7 +668,7 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
       />
     )
   }
-  // met or evidenced — show check
+  // met or evidenced - show check
   return (
     <span
       className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
@@ -752,7 +752,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
           <div>
             <h2 className="text-base font-semibold text-[#F5F5F2]">Share read-only link</h2>
             <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">
-              Anyone with the link can view your evidence — no account needed.
+              Anyone with the link can view your evidence - no account needed.
             </p>
           </div>
           <button onClick={onClose} className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors mt-0.5">
@@ -832,7 +832,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                <span className="text-xs text-[rgba(245,245,242,0.4)]">Read-only — no login required</span>
+                <span className="text-xs text-[rgba(245,245,242,0.4)]">Read-only - no login required</span>
               </div>
               <div className="flex items-center gap-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

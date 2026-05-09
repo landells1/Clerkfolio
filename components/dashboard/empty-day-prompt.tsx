@@ -7,7 +7,7 @@ export default function EmptyDayPrompt() {
         </svg>
       </span>
       <p className="text-sm text-[rgba(245,245,242,0.65)]">
-        Nothing logged today — use <span className="text-[#F5F5F2] font-medium">Quick log</span> to add something in 30 seconds.
+        Nothing logged today - use <span className="text-[#F5F5F2] font-medium">Quick log</span> to add something in 30 seconds.
       </p>
     </div>
   )

@@ -2,7 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
-// Service role client — bypasses RLS. Only use in trusted server contexts (e.g. webhooks).
+// Service role client - bypasses RLS. Only use in trusted server contexts (e.g. webhooks).
 export function createServiceClient() {
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -28,7 +28,7 @@ export function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // Server component — cookies can't be set here, middleware handles it
+            // Server component - cookies can't be set here, middleware handles it
           }
         },
       },

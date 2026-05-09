@@ -1,7 +1,7 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Public Health and General Practice Dual Programme ST1 2026 — combined run-through
+// Public Health and General Practice Dual Programme ST1 2026 - combined run-through
 // programme leading to dual CCT in PH and GP. F2-direct entry. Selection: portfolio
 // + interview; no public per-band numeric matrix, so configured as evidence-based.
 export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
@@ -10,7 +10,7 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
   cycleYear: 2026,
   totalMax: 0,
   source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/public-health-and-general-practice-dual-programme-st1-2026',
-  sourceLabel: 'NHS England — Public Health and General Practice Dual Programme ST1 2026 Person Specification',
+  sourceLabel: 'NHS England - Public Health and General Practice Dual Programme ST1 2026 Person Specification',
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
@@ -24,7 +24,7 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: "Eligibility for the UK Medical Performers' List (England) or equivalent for the four UK nations — required for the GP component of training.",
+      notes: "Eligibility for the UK Medical Performers' List (England) or equivalent for the four UK nations - required for the GP component of training.",
     },
     {
       key: 'driving_licence',
@@ -78,7 +78,7 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Capability to work with long timescales for delivery within agencies with differing priorities — distinct from acute clinical work. Listed as a specialty-specific essential in the 2026 person spec.',
+      notes: 'Capability to work with long timescales for delivery within agencies with differing priorities - distinct from acute clinical work. Listed as a specialty-specific essential in the 2026 person spec.',
     },
     {
       key: 'phgp_resilience',

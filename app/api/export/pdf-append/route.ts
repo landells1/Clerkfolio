@@ -80,7 +80,7 @@ export async function POST(req: NextRequest) {
   const body = new ArrayBuffer(merged.byteLength)
   new Uint8Array(body).set(merged)
 
-  // Only count the export against the lifetime cap once the merge succeeded —
+  // Only count the export against the lifetime cap once the merge succeeded -
   // a parse/render error must not consume the user's only free PDF.
   if (!sub.isPro) {
     supabase
