@@ -175,7 +175,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
         setUploading(false)
-        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+        if (uploadErrors.length > 0) {
+          setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+          return
+        }
       }
       sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
@@ -206,12 +209,16 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .from('cases')
         .update(scoredPayload)
         .eq('id', initialData!.id!)
+        .eq('user_id', user.id)
       if (error) { setError(error.message); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
         setUploading(false)
-        if (uploadErrors.length > 0) setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+        if (uploadErrors.length > 0) {
+          setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+          return
+        }
       }
       setIsDirty(false)
       addToast('Case updated', 'success')
