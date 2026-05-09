@@ -20,11 +20,17 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
+  const permanentDeleteAt = new Date(new Date(item.deletedAt).getTime() + 30 * 86_400_000)
+  const canPermanentlyDelete = permanentDeleteAt.getTime() <= Date.now()
   const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
 
   async function permanentlyDelete() {
+    if (!canPermanentlyDelete) {
+      addToast(`This item can be permanently deleted after ${permanentDeleteAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`, 'error')
+      return
+    }
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) {
       addToast('Please sign in again', 'error')
@@ -48,7 +54,7 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   return (
     <SwipeToDelete
       title="Delete permanently?"
-      description={`This permanently deletes "${item.title}".`}
+      description={`This permanently deletes "${item.title}" if its 30-day restore window has passed.`}
       confirmLabel="Delete permanently"
       onConfirm={permanentlyDelete}
     >
