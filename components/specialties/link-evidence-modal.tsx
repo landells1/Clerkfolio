@@ -211,7 +211,7 @@ export function LinkEvidenceModal({
                   onClick={() => setSelectedResult(null)}
                   className="text-xs text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
                 >
-                  ? Back
+                  ← Back
                 </button>
                 <span className="text-[rgba(245,245,242,0.55)]">|</span>
                 <div className="flex items-center gap-2 min-w-0">

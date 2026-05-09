@@ -44,7 +44,7 @@ export default function ResetPasswordPage() {
           Check your inbox and follow the link.
         </p>
         <Link href="/login" className="text-sm text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
-          ? Back to login
+          ← Back to login
         </Link>
       </div>
     )
@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
 
       <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
         <Link href="/login" className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
-          ? Back to login
+          ← Back to login
         </Link>
       </p>
     </div>
