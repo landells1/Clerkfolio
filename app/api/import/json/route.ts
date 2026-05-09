@@ -18,13 +18,21 @@ const MAX_ROWS_PER_TABLE = 2000
 // shape of NewCase / NewPortfolioEntry from lib/types.
 const PORTFOLIO_ALLOWED = new Set([
   'title', 'date', 'category', 'notes', 'specialty_tags', 'interview_themes',
-  'pinned', 'completeness_score', 'audit_type', 'audit_role', 'audit_cycle_stage',
-  'audit_outcome', 'teaching_type', 'teaching_audience', 'conf_event_name',
-  'conf_attendance', 'pub_journal', 'pub_status', 'leader_role',
-  'leader_organisation', 'prize_body', 'prize_level', 'prize_description',
+  'pinned', 'completeness_score',
+  'audit_type', 'audit_role', 'audit_cycle_stage', 'audit_trust',
+  'audit_outcome', 'audit_presented',
+  'teaching_type', 'teaching_audience', 'teaching_setting', 'teaching_event',
+  'teaching_invited',
+  'conf_type', 'conf_event_name', 'conf_attendance', 'conf_level',
+  'conf_cpd_hours', 'conf_certificate',
+  'pub_type', 'pub_journal', 'pub_authors', 'pub_status', 'pub_doi',
+  'leader_role', 'leader_organisation', 'leader_start_date', 'leader_end_date',
+  'leader_ongoing',
+  'prize_body', 'prize_level', 'prize_description',
   'proc_name', 'proc_setting', 'proc_supervision', 'proc_count',
-  'refl_type', 'refl_context', 'refl_supervisor', 'refl_free_text',
-  'refl_framework', 'refl_parts', 'custom_free_text',
+  'refl_type', 'refl_framework', 'refl_clinical_context', 'refl_supervisor',
+  'refl_free_text',
+  'custom_free_text',
 ])
 const CASE_ALLOWED = new Set([
   'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
