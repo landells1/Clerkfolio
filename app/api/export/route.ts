@@ -52,13 +52,14 @@ export async function POST(request: NextRequest) {
     fetchSubscriptionInfo(supabase, user.id),
   ])
 
-  if (!subInfo.limits.canExportPdf) {
-    return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
-  }
-
   const body = await request.json()
   const { entryIds, caseIds, specialty, format, template, theme, fields } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null; fields?: string[] }
   const selectedFields = parseFields(fields)
+
+  // PDF-only lifetime cap: do not block CSV / JSON exports.
+  if ((!format || format === 'pdf') && !subInfo.limits.canExportPdf) {
+    return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
+  }
 
   if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
     return NextResponse.json({ error: 'Maximum 500 items per export. Use filters to narrow your selection.' }, { status: 400 })
