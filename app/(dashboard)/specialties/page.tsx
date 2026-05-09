@@ -35,6 +35,7 @@ export default async function SpecialtiesPage({
 
   const apps: SpecialtyApplication[] = (applications ?? []) as SpecialtyApplication[]
   const isPro = subInfo.isPro
+  const canTrackAnotherSpecialty = subInfo.limits.canTrackAnotherSpecialty
 
   let links: SpecialtyEntryLink[] = []
   if (apps.length > 0) {
@@ -56,7 +57,13 @@ export default async function SpecialtiesPage({
           </Link>
         </div>
       )}
-      <SpecialtiesShell applications={apps} links={links} isPro={isPro} initialAppKey={resolvedSearchParams.app} />
+      <SpecialtiesShell
+        applications={apps}
+        links={links}
+        isPro={isPro}
+        canTrackAnotherSpecialty={canTrackAnotherSpecialty}
+        initialAppKey={resolvedSearchParams.app}
+      />
     </>
   )
 }

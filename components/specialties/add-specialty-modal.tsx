@@ -10,6 +10,7 @@ import {
   getTrainingLevel,
 } from '@/lib/specialties'
 import type { SpecialtyApplication, SpecialtyConfig } from '@/lib/specialties'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 const FREE_SPECIALTY_LIMIT = 1
 
@@ -18,10 +19,10 @@ type Props = {
   onAdd: (app: SpecialtyApplication) => void
   existingKeys: string[]
   activeCount: number
-  isPro?: boolean
+  canTrackAnotherSpecialty?: boolean
 }
 
-export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, isPro = false }: Props) {
+export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, canTrackAnotherSpecialty = false }: Props) {
   const supabase = createClient()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +64,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
+
+      const subInfo = await fetchSubscriptionInfo(supabase, user.id)
+      if (!subInfo.limits.canTrackAnotherSpecialty) {
+        throw new Error('Free accounts can track one specialty. Upgrade to Pro to add more specialty trackers.')
+      }
 
       const { data: rows, error: insertError } = await supabase
         .from('specialty_applications')
@@ -130,7 +136,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
             </div>
           )}
 
-          {!isPro && activeCount >= FREE_SPECIALTY_LIMIT ? (
+          {!canTrackAnotherSpecialty ? (
             <div className="py-8 text-center space-y-4">
               <div className="w-12 h-12 rounded-2xl bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 flex items-center justify-center mx-auto">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -160,7 +166,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, i
             <div className="space-y-5">
               <p className="text-xs text-[rgba(245,245,242,0.4)]">
                 Select a specialty to begin tracking your application score.
-                {!isPro && (
+                {!canTrackAnotherSpecialty && (
                   <span className="ml-1 text-[rgba(245,245,242,0.55)]">
                     ({activeCount}/{FREE_SPECIALTY_LIMIT} free slots used)
                   </span>
