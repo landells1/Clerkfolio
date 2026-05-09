@@ -17,22 +17,10 @@ function hasPaidAccess(subscription: Stripe.Subscription) {
   return subscription.status === 'active' || subscription.status === 'trialing'
 }
 
-export async function POST(request: NextRequest) {
-  const body = await request.text()
-  const sig = request.headers.get('stripe-signature')
-
-  if (!sig) return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
-
-  let event: Stripe.Event
-
-  try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
-  } catch (err) {
-    return NextResponse.json({ error: `Webhook error: ${String(err)}` }, { status: 400 })
-  }
-
-  const supabase = createServiceClient()
-
+async function handleStripeEvent(
+  event: Stripe.Event,
+  supabase: ReturnType<typeof createServiceClient>,
+) {
   switch (event.type) {
     case 'checkout.session.completed': {
       const session = event.data.object as Stripe.Checkout.Session
@@ -111,4 +99,54 @@ export async function POST(request: NextRequest) {
   }
 
   return NextResponse.json({ received: true })
+}
+
+export async function POST(request: NextRequest) {
+  const body = await request.text()
+  const sig = request.headers.get('stripe-signature')
+
+  if (!sig) return NextResponse.json({ error: 'Missing signature' }, { status: 400 })
+
+  let event: Stripe.Event
+
+  try {
+    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+  } catch (err) {
+    return NextResponse.json({ error: `Webhook error: ${String(err)}` }, { status: 400 })
+  }
+
+  const supabase = createServiceClient()
+  const { error: eventInsertError } = await supabase.from('stripe_webhook_events').insert({
+    event_id: event.id,
+    event_type: event.type,
+    livemode: event.livemode,
+    api_version: event.api_version,
+  })
+
+  if (eventInsertError) {
+    if (eventInsertError.code === '23505') {
+      return NextResponse.json({ received: true, duplicate: true })
+    }
+
+    console.error('Webhook: failed to record Stripe event:', eventInsertError.message)
+    return NextResponse.json({ error: 'Webhook idempotency write failed' }, { status: 500 })
+  }
+
+  const response = await handleStripeEvent(event, supabase)
+
+  if (response.status >= 400) {
+    await supabase.from('stripe_webhook_events').delete().eq('event_id', event.id)
+    return response
+  }
+
+  const { error: processedError } = await supabase
+    .from('stripe_webhook_events')
+    .update({ processed_at: new Date().toISOString() })
+    .eq('event_id', event.id)
+
+  if (processedError) {
+    console.error('Webhook: failed to mark Stripe event processed:', processedError.message)
+  }
+
+  return response
 }
