@@ -9,24 +9,78 @@ import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { useToast } from '@/components/ui/toast-provider'
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
-const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
+const INPUT = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors'
+const TEXTAREA = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors resize-none'
+const LABEL = 'block text-xs font-medium text-fg-2 mb-1.5 uppercase tracking-wide'
 
-type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
+// 8 entry types per redesign spec. Cases save to `cases`; everything else to
+// `portfolio_entries` under the matching category.
+type EntryType = 'case' | 'teaching' | 'audit_qip' | 'conference' | 'publication' | 'procedure' | 'reflection' | 'leadership'
 
-const TYPES: { id: EntryType; label: string }[] = [
-  { id: 'case', label: 'Case' },
-  { id: 'teaching', label: 'Teaching' },
-  { id: 'reflection', label: 'Reflection' },
-  { id: 'procedure', label: 'Procedure' },
-]
-
-const SUBTITLES: Record<EntryType, string> = {
-  case: 'Anonymised entries only',
-  teaching: 'Log a teaching or presentation',
-  reflection: 'Log a CBD, DOP, or reflection',
-  procedure: 'Log a clinical procedure or skill',
+type TypeMeta = {
+  id: EntryType
+  label: string
+  description: string
+  // Tailwind colour family used for the icon tile background.
+  colour: 'blue' | 'violet' | 'green' | 'amber' | 'rose' | 'cyan' | 'pink' | 'indigo'
+  // Inline SVG path data for the icon (24x24 viewBox, stroke-based).
+  icon: React.ReactNode
 }
+
+const ICONS = {
+  case: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+    </svg>
+  ),
+  teaching: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M22 10v6M2 10l10-5 10 5-10 5z" /><path d="M6 12v5c3 3 9 3 12 0v-5" />
+    </svg>
+  ),
+  audit: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M3 3v18h18" /><path d="M7 14l4-4 4 4 5-5" />
+    </svg>
+  ),
+  conference: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M17 11h.01M11 7h.01M21 12c0 4.97-4.03 9-9 9-1.5 0-2.91-.37-4.15-1.02L3 21l1.02-4.85C3.37 14.91 3 13.5 3 12c0-4.97 4.03-9 9-9s9 4.03 9 9z" />
+    </svg>
+  ),
+  publication: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+    </svg>
+  ),
+  procedure: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M14.5 2L20 8l-7 7-3-3 1-1-1-1 1-1-1-1 1-1 1 1 1-1 1 1 1-1z" /><path d="M2 22l3-3" />
+    </svg>
+  ),
+  reflection: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+    </svg>
+  ),
+  leadership: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+      <circle cx="12" cy="8" r="4" /><path d="M2 22a8 8 0 0 1 20 0" />
+    </svg>
+  ),
+}
+
+const TYPES: TypeMeta[] = [
+  { id: 'case',        label: 'Case',         description: 'Anonymised clinical entry',  colour: 'blue',   icon: ICONS.case },
+  { id: 'teaching',    label: 'Teaching',     description: 'Session, talk, or poster',   colour: 'violet', icon: ICONS.teaching },
+  { id: 'audit_qip',   label: 'Audit / QIP',  description: 'Audit cycle or improvement', colour: 'green',  icon: ICONS.audit },
+  { id: 'conference',  label: 'Conference',   description: 'Attended or presented',      colour: 'cyan',   icon: ICONS.conference },
+  { id: 'publication', label: 'Publication',  description: 'Paper, abstract, chapter',   colour: 'indigo', icon: ICONS.publication },
+  { id: 'procedure',   label: 'Procedure',    description: 'Clinical skill or DOPS',     colour: 'rose',   icon: ICONS.procedure },
+  { id: 'reflection',  label: 'Reflection',   description: 'CBD, mini-CEX or note',      colour: 'amber',  icon: ICONS.reflection },
+  { id: 'leadership',  label: 'Leadership',   description: 'Role or committee work',     colour: 'pink',   icon: ICONS.leadership },
+]
 
 const TEACHING_TYPES = ['Taught session', 'Grand round', 'Poster', 'Oral presentation']
 const TEACHING_AUDIENCES = ['Students', 'Peers', 'Consultants', 'Public']
@@ -35,6 +89,19 @@ const SUPERVISION_LEVELS: { id: string; label: string }[] = [
   { id: 'supervised', label: 'Supervised' },
   { id: 'unsupervised', label: 'Unsupervised' },
 ]
+
+// Pill colour name -> tailwind classes for the type-tile icon backgrounds.
+// Picked manually so JIT generates them; safelisted in tailwind.config.ts already.
+const TILE_BG: Record<TypeMeta['colour'], string> = {
+  blue: 'bg-pill-blue text-blue-300 border-pill-blue',
+  violet: 'bg-pill-violet text-violet-300 border-pill-violet',
+  green: 'bg-pill-green text-green-300 border-pill-green',
+  amber: 'bg-pill-amber text-amber-300 border-pill-amber',
+  rose: 'bg-pill-rose text-rose-300 border-pill-rose',
+  cyan: 'bg-pill-cyan text-cyan-300 border-pill-cyan',
+  pink: 'bg-pill-pink text-pink-300 border-pill-pink',
+  indigo: 'bg-pill-indigo text-indigo-300 border-pill-indigo',
+}
 
 export default function QuickAddModal({
   onClose,
@@ -51,7 +118,11 @@ export default function QuickAddModal({
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  // Two-step flow: 'pick' shows the 2x4 grid; 'form' shows the entry form.
+  // If initialValues.type is provided we skip the picker (deep-link in).
+  const [step, setStep] = useState<'pick' | 'form'>(initialValues?.type ? 'form' : 'pick')
   const [type, setType] = useState<EntryType>(initialValues?.type ?? 'case')
+  const meta = TYPES.find(t => t.id === type)!
 
   // Shared fields
   const [title, setTitle] = useState('')
@@ -111,9 +182,10 @@ export default function QuickAddModal({
     }
   }
 
-  function handleTypeChange(t: EntryType) {
+  function pickType(t: EntryType) {
     setType(t)
     setError(null)
+    setStep('form')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -142,6 +214,8 @@ export default function QuickAddModal({
       })
       if (err) { setError(err.message); setSaving(false); return }
     } else {
+      // All non-case types map to a portfolio_entries row with the matching
+      // category. Type-specific fields populate where relevant.
       const base = {
         category: type,
         title: title.trim(),
@@ -177,25 +251,36 @@ export default function QuickAddModal({
     onClose()
   }
 
-  const SAVE_LABEL: Record<EntryType, string> = {
-    case: 'Save case',
-    teaching: 'Save teaching',
-    reflection: 'Save reflection',
-    procedure: 'Save procedure',
-  }
-
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 shadow-2xl transition-transform sm:rounded-2xl">
+      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-subtle bg-surface-2 p-6 shadow-modal transition-transform sm:rounded-2xl">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Quick log</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{SUBTITLES[type]}</p>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3 min-w-0">
+            {step === 'form' && (
+              <button
+                onClick={() => setStep('pick')}
+                className="text-fg-2 hover:text-fg transition-colors -ml-1"
+                aria-label="Back to type picker"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="15 18 9 12 15 6" />
+                </svg>
+              </button>
+            )}
+            <div className="min-w-0">
+              <h2 className="text-base font-semibold text-fg truncate">
+                {step === 'pick' ? 'Quick log' : `New ${meta.label.toLowerCase()}`}
+              </h2>
+              <p className="text-xs text-fg-2 mt-0.5 truncate">
+                {step === 'pick' ? 'Choose what you are logging' : meta.description}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
-            className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+            className="shrink-0 text-fg-2 hover:text-fg transition-colors"
+            aria-label="Close"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -203,247 +288,240 @@ export default function QuickAddModal({
           </button>
         </div>
 
-        {/* Type selector */}
-        <div className="flex gap-1.5 mb-5">
-          {TYPES.map(t => (
-            <button
-              key={t.id}
-              type="button"
-              onClick={() => handleTypeChange(t.id)}
-              className={`flex-1 px-2 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                type === t.id
-                  ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
-                  : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
-              }`}
-            >
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Title - shared */}
-          <div>
-            <label className={LABEL}>
-              {type === 'case' ? 'Case title' : type === 'procedure' ? 'Entry title' : `${TYPES.find(t => t.id === type)?.label} title`}{' '}
-              <span className="text-red-400">*</span>
-            </label>
-            <input
-              autoFocus
-              type="text"
-              required
-              value={title}
-              maxLength={200}
-              onChange={e => { setTitle(e.target.value); setDuplicateWarning(null) }}
-              onBlur={() => type === 'case' && checkDuplicate(title)}
-              className={INPUT}
-              placeholder={
-                type === 'case'
-                  ? 'Brief description - no patient identifiers'
-                  : type === 'teaching'
-                  ? 'e.g. Cardiology teaching session'
-                  : type === 'reflection'
-                  ? 'e.g. Difficult conversation with patient'
-                  : 'e.g. Central line insertion'
-              }
-            />
-            {type === 'case' && (
-              <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.55)]">Anonymised entries only - no patient identifiers</p>
-            )}
-
-            {/* Auto-tag suggestions */}
-            {suggestedTags.length > 0 && (
-              <div className="flex flex-wrap gap-1.5 mt-2">
-                <span className="text-[10px] text-[rgba(245,245,242,0.55)] self-center">Suggested:</span>
-                {suggestedTags.map(t => (
-                  <button
-                    key={t}
-                    type="button"
-                    onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
-                    className="px-2 py-0.5 rounded text-[10px] bg-[#1B6FD9]/10 border border-[#1B6FD9]/25 text-[#1B6FD9] hover:bg-[#1B6FD9]/20 transition-colors"
-                  >
-                    + {t}
-                  </button>
-                ))}
-              </div>
-            )}
-
-            {/* Duplicate warning */}
-            {duplicateWarning && (
-              <div className="flex items-start gap-2 bg-amber-500/10 border border-amber-500/20 rounded-lg px-3 py-2 text-xs text-amber-400 mt-1.5">
-                <svg className="shrink-0 mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
-                  <line x1="12" y1="9" x2="12" y2="13"/>
-                  <line x1="12" y1="17" x2="12.01" y2="17"/>
-                </svg>
-                <span className="flex-1">Similar case already logged: &ldquo;{duplicateWarning.title}&rdquo;</span>
-                <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-400/60 hover:text-amber-400 ml-1">x</button>
-              </div>
-            )}
+        {step === 'pick' ? (
+          /* Step 1: 2 x 4 type picker */
+          <div className="grid grid-cols-2 gap-2">
+            {TYPES.map(t => (
+              <button
+                key={t.id}
+                type="button"
+                onClick={() => pickType(t.id)}
+                className="group flex items-start gap-3 text-left p-3 rounded-lg border border-subtle bg-surface-1 hover:border-default hover:bg-surface-3 transition-colors"
+              >
+                <span className={`shrink-0 inline-flex items-center justify-center w-9 h-9 rounded border ${TILE_BG[t.colour]}`}>
+                  {t.icon}
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-sm font-medium text-fg leading-tight">{t.label}</span>
+                  <span className="block text-[11px] text-fg-2 mt-0.5 leading-snug">{t.description}</span>
+                </span>
+              </button>
+            ))}
           </div>
-
-          {/* Date - shared */}
-          <div className={type === 'case' ? 'grid grid-cols-2 gap-3' : ''}>
+        ) : (
+          /* Step 2: form */
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Title */}
             <div>
-              <label className={LABEL}>Date</label>
+              <label className={LABEL}>
+                {type === 'case' ? 'Case title' : `${meta.label} title`}{' '}
+                <span className="text-rose-300">*</span>
+              </label>
               <input
-                type="date"
-                value={date}
-                onChange={e => setDate(e.target.value)}
+                autoFocus
+                type="text"
+                required
+                value={title}
+                maxLength={200}
+                onChange={e => { setTitle(e.target.value); setDuplicateWarning(null) }}
+                onBlur={() => type === 'case' && checkDuplicate(title)}
                 className={INPUT}
+                placeholder={
+                  type === 'case'
+                    ? 'Brief description - no patient identifiers'
+                    : type === 'teaching'
+                    ? 'e.g. Cardiology teaching session'
+                    : type === 'reflection'
+                    ? 'e.g. Difficult conversation with patient'
+                    : type === 'procedure'
+                    ? 'e.g. Central line insertion'
+                    : type === 'audit_qip'
+                    ? 'e.g. Reduce time-to-antibiotic in sepsis'
+                    : type === 'conference'
+                    ? 'e.g. RCP Annual Conference 2026'
+                    : type === 'publication'
+                    ? 'e.g. Case report in BJM'
+                    : 'e.g. Foundation rep, audit lead'
+                }
+              />
+              {type === 'case' && (
+                <p className="mt-1.5 text-xs text-fg-2">Anonymised entries only - no patient identifiers</p>
+              )}
+
+              {suggestedTags.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mt-2">
+                  <span className="text-[10px] text-fg-2 self-center">Suggested:</span>
+                  {suggestedTags.map(t => (
+                    <button
+                      key={t}
+                      type="button"
+                      onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
+                      className="px-2 py-0.5 rounded text-[10px] bg-pill-blue border border-pill-blue text-blue-300 hover:border-default transition-colors"
+                    >
+                      + {t}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {duplicateWarning && (
+                <div className="flex items-start gap-2 bg-pill-amber border border-pill-amber rounded-lg px-3 py-2 text-xs text-amber-300 mt-1.5">
+                  <svg className="shrink-0 mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                    <line x1="12" y1="9" x2="12" y2="13"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                  <span className="flex-1">Similar case already logged: &ldquo;{duplicateWarning.title}&rdquo;</span>
+                  <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-300/60 hover:text-amber-300 ml-1">x</button>
+                </div>
+              )}
+            </div>
+
+            {/* Date (and clinical area for cases) */}
+            <div className={type === 'case' ? 'grid grid-cols-2 gap-3' : ''}>
+              <div>
+                <label className={LABEL}>Date</label>
+                <input
+                  type="date"
+                  value={date}
+                  onChange={e => setDate(e.target.value)}
+                  className={INPUT}
+                />
+              </div>
+              {type === 'case' && (
+                <div>
+                  <label className={LABEL}>Clinical area</label>
+                  <ClinicalAreaSelect value={domains} onChange={setDomains} />
+                </div>
+              )}
+            </div>
+
+            {/* Teaching */}
+            {type === 'teaching' && (
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={LABEL}>Teaching type</label>
+                  <select value={teachingType} onChange={e => setTeachingType(e.target.value)} className={INPUT}>
+                    {TEACHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={LABEL}>Audience</label>
+                  <select value={teachingAudience} onChange={e => setTeachingAudience(e.target.value)} className={INPUT}>
+                    {TEACHING_AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Reflection */}
+            {type === 'reflection' && (
+              <>
+                <div>
+                  <label className={LABEL}>Reflection type</label>
+                  <select value={reflType} onChange={e => setReflType(e.target.value)} className={INPUT}>
+                    {REFLECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className={LABEL}>Notes</label>
+                  <textarea
+                    rows={3}
+                    value={reflFreeText}
+                    onChange={e => setReflFreeText(e.target.value)}
+                    placeholder="What happened, what you learnt..."
+                    className={TEXTAREA}
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Procedure */}
+            {type === 'procedure' && (
+              <div className="space-y-3">
+                <div>
+                  <label className={LABEL}>Procedure name</label>
+                  <input
+                    type="text"
+                    value={procName}
+                    maxLength={200}
+                    onChange={e => setProcName(e.target.value)}
+                    className={INPUT}
+                    placeholder="e.g. Arterial blood gas"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={LABEL}>Supervision</label>
+                    <div className="flex rounded-lg overflow-hidden border border-subtle">
+                      {SUPERVISION_LEVELS.map((s, i) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => setProcSupervision(s.id)}
+                          className={`flex-1 py-2.5 text-xs font-medium transition-colors ${i > 0 ? 'border-l border-subtle' : ''} ${
+                            procSupervision === s.id
+                              ? 'bg-pill-blue text-blue-300'
+                              : 'bg-surface-0 text-fg-2 hover:text-fg'
+                          }`}
+                        >
+                          {s.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div>
+                    <label className={LABEL}>Count</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={procCount}
+                      onChange={e => setProcCount(Math.max(1, parseInt(e.target.value) || 1))}
+                      className={INPUT}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Application tags */}
+            <div>
+              <label className={LABEL}>Application tags</label>
+              <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
+            </div>
+
+            {/* Notes */}
+            <div>
+              <label className={LABEL}>Comments <span className="normal-case font-normal text-fg-2">(optional)</span></label>
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Any notes, learning points, or comments..."
+                className={TEXTAREA}
               />
             </div>
 
-            {/* Case: clinical area in same row */}
-            {type === 'case' && (
-              <div>
-                <label className={LABEL}>Clinical area</label>
-                <ClinicalAreaSelect value={domains} onChange={setDomains} />
-              </div>
-            )}
-          </div>
+            {error && <p className="text-sm text-rose-300">{error}</p>}
 
-          {/* Teaching-specific fields */}
-          {type === 'teaching' && (
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className={LABEL}>Teaching type</label>
-                <select
-                  value={teachingType}
-                  onChange={e => setTeachingType(e.target.value)}
-                  className={INPUT}
-                >
-                  {TEACHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={LABEL}>Audience</label>
-                <select
-                  value={teachingAudience}
-                  onChange={e => setTeachingAudience(e.target.value)}
-                  className={INPUT}
-                >
-                  {TEACHING_AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
-                </select>
-              </div>
+            <div className="flex gap-3 pt-1">
+              <button
+                type="button"
+                onClick={onClose}
+                className="flex-1 border border-subtle text-fg-2 hover:text-fg rounded-lg py-2.5 text-sm font-medium transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex-[2] bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-surface-0 font-semibold rounded-lg py-2.5 text-sm transition-colors"
+              >
+                {saving ? 'Saving...' : `Save ${meta.label.toLowerCase()}`}
+              </button>
             </div>
-          )}
-
-          {/* Reflection-specific fields */}
-          {type === 'reflection' && (
-            <>
-              <div>
-                <label className={LABEL}>Reflection type</label>
-                <select
-                  value={reflType}
-                  onChange={e => setReflType(e.target.value)}
-                  className={INPUT}
-                >
-                  {REFLECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className={LABEL}>Notes</label>
-                <textarea
-                  rows={3}
-                  value={reflFreeText}
-                  onChange={e => setReflFreeText(e.target.value)}
-                  placeholder="What happened, what you learnt..."
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
-                />
-              </div>
-            </>
-          )}
-
-          {/* Procedure-specific fields */}
-          {type === 'procedure' && (
-            <div className="space-y-3">
-              <div>
-                <label className={LABEL}>Procedure name</label>
-                <input
-                  type="text"
-                  value={procName}
-                  maxLength={200}
-                  onChange={e => setProcName(e.target.value)}
-                  className={INPUT}
-                  placeholder="e.g. Arterial blood gas"
-                />
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className={LABEL}>Supervision</label>
-                  <div className="flex rounded-lg overflow-hidden border border-white/[0.08]">
-                    {SUPERVISION_LEVELS.map((s, i) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => setProcSupervision(s.id)}
-                        className={`flex-1 py-2.5 text-xs font-medium transition-colors ${
-                          i > 0 ? 'border-l border-white/[0.08]' : ''
-                        } ${
-                          procSupervision === s.id
-                            ? 'bg-[#1B6FD9]/15 text-[#1B6FD9]'
-                            : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
-                        }`}
-                      >
-                        {s.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className={LABEL}>Count</label>
-                  <input
-                    type="number"
-                    min={1}
-                    value={procCount}
-                    onChange={e => setProcCount(Math.max(1, parseInt(e.target.value) || 1))}
-                    className={INPUT}
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Application tags - shared */}
-          <div>
-            <label className={LABEL}>Application tags</label>
-            <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
-          </div>
-
-          {/* Comments / notes - shared */}
-          <div>
-            <label className={LABEL}>Comments <span className="normal-case font-normal text-[rgba(245,245,242,0.55)]">(optional)</span></label>
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Any notes, learning points, or comments..."
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-red-400">{error}</p>
-          )}
-
-          <div className="flex gap-3 pt-1">
-            <button
-              type="button"
-              onClick={onClose}
-              className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] rounded-xl py-2.5 text-sm font-medium transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-xl py-2.5 text-sm transition-colors"
-            >
-              {saving ? 'Saving...' : SAVE_LABEL[type]}
-            </button>
-          </div>
-        </form>
+          </form>
+        )}
       </div>
     </div>
   )
