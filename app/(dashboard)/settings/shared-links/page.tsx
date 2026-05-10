@@ -3,19 +3,28 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
+import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { useToast } from '@/components/ui/toast-provider'
 
 type ShareLink = {
   id: string
   token: string
+  scope?: 'specialty' | 'theme' | 'full'
   specialty_key: string | null
+  theme_slug?: string | null
   expires_at: string
   revoked: boolean
   created_at: string
 }
 
 const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clerkfolio.co.uk'
+
+function linkLabel(link: ShareLink) {
+  if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'Theme share'}`
+  if (link.scope === 'full' || !link.specialty_key) return 'Full portfolio'
+  return formatSpecialtyLabel(link.specialty_key)
+}
 
 export default function SharedLinksPage() {
   const supabase = createClient()
@@ -86,13 +95,12 @@ export default function SharedLinksPage() {
           </div>
           <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">No active shared links</p>
           <p className="text-xs text-[rgba(245,245,242,0.55)] max-w-xs">
-            Open a specialty tracker and click &quot;Share&quot; to generate a read-only link for your evidence view. Free tier allows 1 active link; Pro removes the limit.
+            Create a protected link from Share &amp; Export, or from a specialty tracker. Free tier allows 1 active link; Pro removes the limit.
           </p>
         </div>
       ) : (
         <div className="space-y-3">
           {links.map(link => {
-            const config = link.specialty_key ? getSpecialtyConfig(link.specialty_key) : null
             const expiresDate = new Date(link.expires_at)
             const isExpired = expiresDate < new Date()
             const daysLeft = Math.ceil((expiresDate.getTime() - Date.now()) / 86400000)
@@ -103,11 +111,7 @@ export default function SharedLinksPage() {
                 <div className="flex items-start justify-between gap-3 mb-3">
                   <div className="min-w-0">
                     <p className="text-sm font-medium text-[#F5F5F2]">
-                      {config
-                        ? `${config.name} ${config.cycleYear}`
-                        : link.specialty_key
-                          ? getSpecialtyConfig(link.specialty_key)?.name ?? 'Full portfolio'
-                          : 'Full portfolio'}
+                      {linkLabel(link)}
                     </p>
                     <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono mt-0.5 truncate">{url}</p>
                   </div>

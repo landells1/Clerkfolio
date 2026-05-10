@@ -21,6 +21,7 @@ export default async function TimelinePage({
       .from('goals')
       .select('id, category, target_count, due_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
       .eq('user_id', user!.id)
+      .is('completed_at', null)
       .order('due_date', { ascending: true }),
     supabase
       .from('specialty_applications')

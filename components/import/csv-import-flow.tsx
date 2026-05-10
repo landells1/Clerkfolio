@@ -6,6 +6,7 @@ import Papa from 'papaparse'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 type ImportTarget = 'portfolio' | 'cases'
 type Step = 1 | 2 | 3 | 4
@@ -113,6 +114,27 @@ function normaliseCategory(value: string | undefined, fallback: Category): Categ
 
 function splitTags(value: string | undefined) {
   return (value ?? '').split(/[;,]/).map(v => v.trim()).filter(Boolean)
+}
+
+function categoryLabel(value: string) {
+  return CATEGORIES.find(category => category.value === value)?.label ?? value
+}
+
+const PREVIEW_LABELS: Record<string, string> = {
+  title: 'Title',
+  category: 'Category',
+  date: 'Date',
+  notes: 'Notes',
+  refl_free_text: 'Reflection text',
+  specialty_tags: 'Linked specialties',
+  clinical_domain: 'Clinical area',
+}
+
+function previewValue(key: string, value: unknown) {
+  if (key === 'category' && typeof value === 'string') return categoryLabel(value)
+  if (key === 'specialty_tags' && Array.isArray(value)) return value.map(tag => formatSpecialtyLabel(String(tag))).join('; ')
+  if (Array.isArray(value)) return value.join('; ')
+  return String(value ?? '')
 }
 
 function isoDate(value: string | undefined) {
@@ -304,14 +326,14 @@ export default function CsvImportFlow() {
             <table className="w-full text-left text-xs">
               <thead className="bg-[#0B0B0C] text-[rgba(245,245,242,0.45)]">
                 <tr>
-                  {Object.keys(preview[0] ?? { title: '', date: '' }).map(key => <th key={key} className="px-4 py-3 font-medium">{key}</th>)}
+                  {Object.keys(preview[0] ?? { title: '', date: '' }).map(key => <th key={key} className="px-4 py-3 font-medium">{PREVIEW_LABELS[key] ?? key}</th>)}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04] text-[rgba(245,245,242,0.72)]">
                 {preview.map((row, index) => (
                   <tr key={index}>
-                    {Object.values(row).map((value, valueIndex) => (
-                      <td key={valueIndex} className="max-w-56 truncate px-4 py-3">{Array.isArray(value) ? value.join('; ') : String(value ?? '')}</td>
+                    {Object.entries(row).map(([key, value]) => (
+                      <td key={key} className="max-w-56 truncate px-4 py-3">{previewValue(key, value)}</td>
                     ))}
                   </tr>
                 ))}

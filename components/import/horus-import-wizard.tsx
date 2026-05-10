@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import Link from 'next/link'
 import Papa from 'papaparse'
+import { CATEGORIES } from '@/lib/types/portfolio'
 
 // Known Horus and foundation e-portfolio column names (case-insensitive matching)
 const COL_DATE         = ['date', 'event date', 'created date', 'completion date', 'signed date']
@@ -51,6 +52,10 @@ function mapType(raw: string): string {
   if (t.includes('audit') || t.includes('qip')) return 'audit_qip'
   if (t.includes('publication')) return 'publication'
   return 'custom'
+}
+
+function categoryLabel(value: string) {
+  return CATEGORIES.find(category => category.value === value)?.label ?? value
 }
 
 function parseRows(data: Record<string, string>[], headers: string[]): HorusRow[] {
@@ -330,7 +335,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                       <td className="px-3 py-2.5">
                         <span className="text-[rgba(245,245,242,0.4)]">{row.type || '-'}</span>
                         {row.type && <span className="mx-1 text-[rgba(245,245,242,0.55)]">/</span>}
-                        <span className="text-[rgba(245,245,242,0.6)] capitalize">{row.mappedCategory}</span>
+                        <span className="text-[rgba(245,245,242,0.6)]">{categoryLabel(row.mappedCategory)}</span>
                       </td>
                       <td className="px-3 py-2.5 text-[rgba(245,245,242,0.4)] truncate max-w-[120px]">{row.supervisor || '-'}</td>
                     </tr>

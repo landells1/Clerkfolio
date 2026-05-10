@@ -61,6 +61,19 @@ export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
   return SPECIALTY_CONFIGS.find(s => s.key === key)
 }
 
+export function formatSpecialtyLabel(key: string | null | undefined): string {
+  if (!key) return 'Specialty'
+  const config = getSpecialtyConfig(key)
+  if (config) return config.name
+  const acronyms = new Set(['accs', 'am', 'em', 'anaes', 'cst', 'csrh', 'gp', 'imt', 'omfs', 'og', 'ph', 'st1', 'st3', 'st4'])
+  return key
+    .replace(/[_-]+/g, ' ')
+    .split(' ')
+    .filter(Boolean)
+    .map(part => acronyms.has(part.toLowerCase()) ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ')
+}
+
 // Defaults to 'entry' when not set on the config.
 export function getTrainingLevel(config: SpecialtyConfig): 'entry' | 'higher' {
   return config.trainingLevel ?? 'entry'

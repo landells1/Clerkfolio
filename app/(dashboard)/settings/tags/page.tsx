@@ -1,16 +1,34 @@
 ﻿'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 export default function TagsSettingsPage() {
   const supabase = createClient()
   const { addToast } = useToast()
   const [oldTag, setOldTag] = useState('')
   const [newTag, setNewTag] = useState('')
+  const [availableTags, setAvailableTags] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    async function loadTags() {
+      const [{ data: portfolioRows }, { data: caseRows }, { data: apps }] = await Promise.all([
+        supabase.from('portfolio_entries').select('specialty_tags').is('deleted_at', null),
+        supabase.from('cases').select('specialty_tags').is('deleted_at', null),
+        supabase.from('specialty_applications').select('specialty_key').eq('is_active', true),
+      ])
+      const tags = new Set<string>()
+      portfolioRows?.forEach(row => row.specialty_tags?.forEach((tag: string) => tags.add(tag)))
+      caseRows?.forEach(row => row.specialty_tags?.forEach((tag: string) => tags.add(tag)))
+      apps?.forEach(row => row.specialty_key && tags.add(row.specialty_key))
+      setAvailableTags(Array.from(tags).sort((a, b) => formatSpecialtyLabel(a).localeCompare(formatSpecialtyLabel(b))))
+    }
+    loadTags()
+  }, [supabase])
 
   async function renameTag(e: React.FormEvent) {
     e.preventDefault()
@@ -39,9 +57,24 @@ export default function TagsSettingsPage() {
         <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Rename a specialty tag everywhere it appears in your cases and portfolio.</p>
       </div>
       <form onSubmit={renameTag} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+        <p className="mb-4 text-sm text-[rgba(245,245,242,0.55)]">
+          Choose the visible specialty label you want to merge or rename. Clerkfolio keeps the internal key hidden.
+        </p>
         <div className="grid gap-3 sm:grid-cols-2">
-          <input required value={oldTag} onChange={event => setOldTag(event.target.value)} placeholder="Current tag" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-          <input required value={newTag} onChange={event => setNewTag(event.target.value)} placeholder="New tag" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
+          <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            Current specialty tag
+            <select required value={oldTag} onChange={event => setOldTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+              <option value="">Select current tag</option>
+              {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
+            </select>
+          </label>
+          <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            Rename or merge into
+            <select required value={newTag} onChange={event => setNewTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+              <option value="">Select destination tag</option>
+              {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
+            </select>
+          </label>
         </div>
         <button disabled={saving} className="mt-4 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
           {saving ? 'Renaming...' : 'Rename tag'}

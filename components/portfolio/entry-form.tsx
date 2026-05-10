@@ -13,6 +13,7 @@ import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -26,7 +27,7 @@ const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 
 const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
 const FIELD = 'flex flex-col gap-1'
-const GRID2 = 'grid grid-cols-2 gap-4'
+const GRID2 = 'grid grid-cols-1 gap-4 sm:grid-cols-2'
 const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
@@ -467,7 +468,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .insert({ ...scoredPayload, user_id: user.id })
         .select('id')
         .single()
-      if (error) { setError(error.message); setSaving(false); return }
+      if (error) { setError('We could not save this portfolio entry. Check the details and try again.'); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
@@ -533,7 +534,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .update(scoredPayload)
         .eq('id', initialData!.id!)
         .eq('user_id', user.id)
-      if (error) { setError(error.message); setSaving(false); return }
+      if (error) { setError('We could not update this portfolio entry. Check the details and try again.'); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'portfolio')
@@ -647,7 +648,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                     onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
                     className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
                   >
-                    + {tag}
+                    + {formatSpecialtyLabel(tag)}
                   </button>
                 ))}
               </div>
@@ -1059,7 +1060,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                         className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[#1B6FD9]/40 hover:bg-[#1B6FD9]/5 transition-colors"
                       >
                         <p className="text-sm font-medium text-[#F5F5F2]">{t.name}</p>
-                        <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 capitalize">{t.category.replace('_', ' ')}</p>
+                        <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{CATEGORIES.find(cat => cat.value === t.category)?.label ?? t.category}</p>
                       </button>
                     ))}
                   </div>

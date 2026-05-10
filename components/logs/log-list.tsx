@@ -66,7 +66,7 @@ export default function LogList({ rows }: { rows: PersonalLogListRow[] }) {
               {row.expires_at && <span className="rounded bg-amber-400/10 px-2 py-1 text-xs text-amber-300">Expires {new Date(row.expires_at).toLocaleDateString('en-GB')}</span>}
             </div>
             <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">
-              {[row.cpd_hours ? `${row.cpd_hours} CPD h` : '', row.score ? `Score ${row.score}` : '', row.attempts ? `${row.attempts} attempts` : '', row.cost_pence ? `GBP ${(row.cost_pence / 100).toFixed(2)}` : '', row.meta?.detail ?? ''].filter(Boolean).join(' - ')}
+              {[row.cpd_hours ? `${row.cpd_hours} CPD h` : '', row.score ? `Score ${row.score}` : '', row.attempts ? `${row.attempts} attempts` : '', row.cost_pence ? `£${(row.cost_pence / 100).toFixed(2)}` : '', row.meta?.detail ?? ''].filter(Boolean).join(' - ')}
             </p>
             {row.notes && <p className="mt-2 text-sm leading-6 text-[rgba(245,245,242,0.58)]">{row.notes}</p>}
           </div>

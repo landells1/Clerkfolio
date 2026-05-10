@@ -54,7 +54,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
         }
         const [entriesResult, casesResult, filesResult] = await Promise.all([
           supabase.from('portfolio_entries').select('id, title, category').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-          supabase.from('cases').select('id, title, clinical_domain').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
+          supabase.from('cases').select('id, title, clinical_domain, clinical_domains').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
           supabase.from('evidence_files').select('entry_id, entry_type, file_name').eq('user_id', user.id).ilike('file_name', `%${q.trim()}%`).limit(5),
         ])
         if (entriesResult.error || casesResult.error || filesResult.error) {
@@ -87,7 +87,10 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
               type: 'entry' as const,
               subtitle: CATEGORIES.find(c => c.value === (e.category as Category))?.label ?? 'Portfolio entry',
             })),
-            ...(casesResult.data ?? []).map(c => ({ id: c.id, title: c.title, type: 'case' as const, subtitle: c.clinical_domain ?? 'Case' })),
+            ...(casesResult.data ?? []).map(c => {
+              const domains = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
+              return { id: c.id, title: c.title, type: 'case' as const, subtitle: domains.join(', ') || 'Case' }
+            }),
             ...files.filter(file =>
               file.entry_type === 'case'
                 ? activeCaseFileIds.has(file.entry_id)

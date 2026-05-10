@@ -237,6 +237,17 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </div>
         <div className="flex items-center gap-1">
+          <Link
+            href="/export"
+            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            aria-label="Share and export"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+          </Link>
           <button
             onClick={openSearch}
             className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
@@ -449,7 +460,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     value={feedback.name}
                     onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
                     className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors"
-                    placeholder="Dr Jane Smith"
+                    placeholder="Jane Smith"
                   />
                 </div>
                 <div>

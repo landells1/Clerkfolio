@@ -8,6 +8,7 @@ import type { Case } from '@/lib/types/cases'
 import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 type Props = {
   cases: Case[]
@@ -148,6 +149,11 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           </div>
         </div>
       )}
+      {!selectMode && filtered.length > 0 && (
+        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] sm:hidden">
+          Select cases
+        </button>
+      )}
 
       <div className="space-y-8">
         {pinned.length > 0 && (
@@ -190,7 +196,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             </div>
             <div className="space-y-4">
               <Select label="Clinical area" value={domain} onChange={setDomain} options={domains} />
-              <Select label="Linked specialty" value={specialty} onChange={setSpecialty} options={userInterests} />
+              <Select label="Linked specialty" value={specialty} onChange={setSpecialty} options={userInterests} getOptionLabel={formatSpecialtyLabel} />
               <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
                 From
                 <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
@@ -208,7 +214,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       )}
 
       {selectMode && selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl">
+        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
           <span className="mr-1 text-xs font-medium text-[rgba(245,245,242,0.6)]">{selected.size} selected</span>
           <button onClick={() => setTagModalOpen(true)} className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)]">Add tag</button>
           <button onClick={bulkTrash} disabled={busy} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 disabled:opacity-50">{busy ? 'Working...' : 'Move to trash'}</button>
@@ -233,13 +239,13 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   )
 }
 
-function Select({ label, value, onChange, options }: { label: string; value: string; onChange: (value: string) => void; options: string[] }) {
+function Select({ label, value, onChange, options, getOptionLabel = option => option }: { label: string; value: string; onChange: (value: string) => void; options: string[]; getOptionLabel?: (value: string) => string }) {
   return (
     <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
       {label}
       <select value={value} onChange={e => onChange(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
         <option value="">Any</option>
-        {options.map(option => <option key={option} value={option}>{option}</option>)}
+        {options.map(option => <option key={option} value={option}>{getOptionLabel(option)}</option>)}
       </select>
     </label>
   )

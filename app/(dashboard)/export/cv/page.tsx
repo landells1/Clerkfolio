@@ -1,6 +1,7 @@
 ﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
+import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -43,6 +44,11 @@ export default async function CvGeneratorPage({
       </div>
       <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
+        {rows.length === 0 ? (
+          <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-5 text-sm text-[rgba(245,245,242,0.55)]">
+            Add publications, teaching, leadership, prizes, audits, or conference entries to build a CV preview.
+          </div>
+        ) : (
         <div className="mt-5 space-y-5">
           {CATEGORIES.map(category => {
             const matching = rows.filter(entry => entry.category === category.value)
@@ -62,6 +68,7 @@ export default async function CvGeneratorPage({
             )
           })}
         </div>
+        )}
       </section>
     </div>
   )
@@ -69,7 +76,7 @@ export default async function CvGeneratorPage({
 
 function tail(entry: PortfolioEntry, category: Category) {
   if (category === 'conference') return entry.conf_event_name
-  if (category === 'publication') return [entry.pub_journal, entry.pub_status].filter(Boolean).join(', ')
+  if (category === 'publication') return [entry.pub_journal, entry.pub_status ? PUB_STATUS_LABELS[entry.pub_status] ?? entry.pub_status : null].filter(Boolean).join(', ')
   if (category === 'leadership') return [entry.leader_role, entry.leader_organisation].filter(Boolean).join(', ')
   if (category === 'prize') return entry.prize_body
   return entry.notes?.slice(0, 90)

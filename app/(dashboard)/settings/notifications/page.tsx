@@ -75,7 +75,7 @@ export default function NotificationSettingsPage() {
         </Link>
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-2">Notifications</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)]">Email reminders are sent once daily at 09:00 UTC when relevant.</p>
+          <p className="text-sm text-[rgba(245,245,242,0.45)]">Email reminders are sent once daily at 09:00 in your profile timezone when relevant.</p>
         </div>
       </div>
 

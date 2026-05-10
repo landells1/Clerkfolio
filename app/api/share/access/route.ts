@@ -4,7 +4,7 @@ import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import { validateOrigin } from '@/lib/csrf'
 
 const ACCESS_RATE_LIMIT = 5
@@ -29,7 +29,7 @@ function minutesAgo(minutes: number) {
 }
 
 function formatTag(tag: string) {
-  return getSpecialtyConfig(tag)?.name ?? tag
+  return formatSpecialtyLabel(tag)
 }
 
 // Defence-in-depth SSRF check: even though parseWebhookUrl in share/route.ts

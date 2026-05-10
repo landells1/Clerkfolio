@@ -130,8 +130,8 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                 const detail = entryDetails?.find(e => e.id === link.entry_id)
                 return (
                   <div key={link.id} className="flex items-center gap-3 px-4 py-2.5 group hover:bg-white/[0.02] transition-colors">
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] border border-white/[0.08] shrink-0 capitalize">
-                      {link.entry_type}
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] border border-white/[0.08] shrink-0">
+                      Portfolio entry
                     </span>
                     <div className="flex-1 min-w-0">
                       {detail ? (
@@ -142,7 +142,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                           {detail.title}
                         </Link>
                       ) : (
-                        <p className="text-sm text-[rgba(245,245,242,0.5)] truncate">{link.entry_id.slice(0, 8)}…</p>
+                        <p className="text-sm text-[rgba(245,245,242,0.5)] truncate">Linked entry unavailable</p>
                       )}
                       {detail && (
                         <p className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono mt-0.5">

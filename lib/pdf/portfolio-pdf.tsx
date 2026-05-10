@@ -1,10 +1,22 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
+import {
+  AUDIT_CYCLE_STAGE_LABELS,
+  AUDIT_TYPE_LABELS,
+  CONF_ATTENDANCE_LABELS,
+  CONF_TYPE_LABELS,
+  LEVEL_LABELS,
+  PROC_SUPERVISION_LABELS,
+  PUB_STATUS_LABELS,
+  PUB_TYPE_LABELS,
+  REFL_TYPE_SHORT_LABELS,
+  TEACHING_AUDIENCE_LABELS,
+  TEACHING_TYPE_LABELS,
+} from '@/lib/types/portfolio-labels'
 
 function formatTag(tag: string): string {
-  const config = getSpecialtyConfig(tag)
-  return config ? config.name : tag
+  return formatSpecialtyLabel(tag)
 }
 
 // ── Styles ──────────────────────────────────────────────────────────────────
@@ -92,34 +104,34 @@ function EntryDetails({ e }: { e: PortfolioEntry }) {
   switch (e.category) {
     case 'audit_qip':
       return <>
-        <Detail label="Type" value={cap(fmt(e.audit_type))} />
+        <Detail label="Type" value={e.audit_type ? AUDIT_TYPE_LABELS[e.audit_type] ?? cap(fmt(e.audit_type)) : null} />
         <Detail label="Role" value={fmt(e.audit_role)} />
         <Detail label="Trust / hospital" value={fmt(e.audit_trust)} />
-        <Detail label="Cycle stage" value={e.audit_cycle_stage ? cap(fmt(e.audit_cycle_stage)) : null} />
+        <Detail label="Cycle stage" value={e.audit_cycle_stage ? AUDIT_CYCLE_STAGE_LABELS[e.audit_cycle_stage] ?? cap(fmt(e.audit_cycle_stage)) : null} />
         <Detail label="Presented" value={e.audit_presented ? 'Yes' : null} />
         <Detail label="Outcome" value={fmt(e.audit_outcome)} />
       </>
     case 'teaching':
       return <>
-        <Detail label="Type" value={e.teaching_type ? cap(fmt(e.teaching_type)) : null} />
-        <Detail label="Audience" value={e.teaching_audience ? cap(fmt(e.teaching_audience)) : null} />
+        <Detail label="Type" value={e.teaching_type ? TEACHING_TYPE_LABELS[e.teaching_type] ?? cap(fmt(e.teaching_type)) : null} />
+        <Detail label="Audience" value={e.teaching_audience ? TEACHING_AUDIENCE_LABELS[e.teaching_audience] ?? cap(fmt(e.teaching_audience)) : null} />
         <Detail label="Setting" value={e.teaching_setting ? cap(fmt(e.teaching_setting)) : null} />
         <Detail label="Event / org" value={fmt(e.teaching_event)} />
         <Detail label="Invited" value={e.teaching_invited ? 'Yes' : null} />
       </>
     case 'conference':
       return <>
-        <Detail label="Type" value={e.conf_type ? cap(fmt(e.conf_type)) : null} />
+        <Detail label="Type" value={e.conf_type ? CONF_TYPE_LABELS[e.conf_type] ?? cap(fmt(e.conf_type)) : null} />
         <Detail label="Event" value={fmt(e.conf_event_name)} />
-        <Detail label="Attendance" value={e.conf_attendance ? cap(fmt(e.conf_attendance)) : null} />
-        <Detail label="Level" value={e.conf_level ? cap(fmt(e.conf_level)) : null} />
+        <Detail label="Attendance" value={e.conf_attendance ? CONF_ATTENDANCE_LABELS[e.conf_attendance] ?? cap(fmt(e.conf_attendance)) : null} />
+        <Detail label="Level" value={e.conf_level ? LEVEL_LABELS[e.conf_level] ?? cap(fmt(e.conf_level)) : null} />
         <Detail label="CPD hours" value={e.conf_cpd_hours?.toString() ?? null} />
         <Detail label="Certificate" value={e.conf_certificate ? 'Yes' : null} />
       </>
     case 'publication':
       return <>
-        <Detail label="Type" value={e.pub_type ? cap(fmt(e.pub_type)) : null} />
-        <Detail label="Status" value={e.pub_status ? cap(fmt(e.pub_status)) : null} />
+        <Detail label="Type" value={e.pub_type ? PUB_TYPE_LABELS[e.pub_type] ?? cap(fmt(e.pub_type)) : null} />
+        <Detail label="Status" value={e.pub_status ? PUB_STATUS_LABELS[e.pub_status] ?? cap(fmt(e.pub_status)) : null} />
         <Detail label="Journal" value={fmt(e.pub_journal)} />
         <Detail label="Authors" value={fmt(e.pub_authors)} />
         <Detail label="DOI / link" value={fmt(e.pub_doi)} />
@@ -134,19 +146,19 @@ function EntryDetails({ e }: { e: PortfolioEntry }) {
     case 'prize':
       return <>
         <Detail label="Awarding body" value={fmt(e.prize_body)} />
-        <Detail label="Level" value={e.prize_level ? cap(fmt(e.prize_level)) : null} />
+        <Detail label="Level" value={e.prize_level ? LEVEL_LABELS[e.prize_level] ?? cap(fmt(e.prize_level)) : null} />
         <Detail label="Description" value={fmt(e.prize_description)} />
       </>
     case 'procedure':
       return <>
         <Detail label="Procedure" value={fmt(e.proc_name)} />
         <Detail label="Setting" value={fmt(e.proc_setting)} />
-        <Detail label="Supervision" value={e.proc_supervision ? cap(fmt(e.proc_supervision)) : null} />
+        <Detail label="Supervision" value={e.proc_supervision ? PROC_SUPERVISION_LABELS[e.proc_supervision] ?? cap(fmt(e.proc_supervision)) : null} />
         <Detail label="Count" value={e.proc_count?.toString() ?? null} />
       </>
     case 'reflection':
       return <>
-        <Detail label="Type" value={e.refl_type ? e.refl_type.replace('_', '-').toUpperCase() : null} />
+        <Detail label="Type" value={e.refl_type ? REFL_TYPE_SHORT_LABELS[e.refl_type] ?? e.refl_type.replace('_', '-').toUpperCase() : null} />
         <Detail label="Clinical context" value={fmt(e.refl_clinical_context)} />
         <Detail label="Supervisor" value={fmt(e.refl_supervisor)} />
         <Detail label="Reflection" value={fmt(e.refl_free_text)} />
@@ -179,15 +191,17 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
   }
 
   const sections = CAT_ORDER.filter(c => (grouped[c]?.length ?? 0) > 0)
+  const coverTitle = templateName ?? 'Portfolio export'
+  const coverSubtitle = templateSubtitle ?? 'Professional portfolio summary generated by Clerkfolio.'
 
   return (
     <Document title={`Clerkfolio Export - ${specialty}`} author={userName}>
-      {templateName && (
+      {(
         <Page size="A4" style={s.page}>
           <Text style={s.brand}>CLERKFOLIO</Text>
-          <Text style={s.coverTitle}>{templateName}</Text>
+          <Text style={s.coverTitle}>{coverTitle}</Text>
           <View style={[s.coverRule, { backgroundColor: templateAccent }]} />
-          <Text style={s.coverSubtitle}>{templateSubtitle}</Text>
+          <Text style={s.coverSubtitle}>{coverSubtitle}</Text>
           <Text style={s.headerName}>{userName}</Text>
           <Text style={s.headerSpecialty}>{specialty} · Exported {exportedAt}</Text>
           <View style={{ marginTop: 52 }}>

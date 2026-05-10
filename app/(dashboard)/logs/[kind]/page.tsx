@@ -19,6 +19,17 @@ const TABS: { slug: string; kind: PersonalLogKind; label: string }[] = [
   { slug: 'observations', kind: 'teaching_observed', label: 'Observations' },
 ]
 
+const EMPTY_COPY: Record<PersonalLogKind, string> = {
+  mandatory_training: 'Track mandatory training modules and expiry dates so renewals do not surprise you.',
+  course: 'Record courses and CPD hours, including any costs you may want for reimbursement or tax records.',
+  exam: 'Log exam attempts, scores, dates, and costs.',
+  mentor_meeting: 'Keep a record of mentor, supervisor, and careers meetings.',
+  oop: 'Capture out-of-programme plans, tasters, and exploratory experiences.',
+  rotation: 'Log rotations so you can connect reflections and evidence to each block.',
+  wba_received: 'Record workplace-based assessments you have received, such as CBDs, DOPS, and Mini-CEX.',
+  teaching_observed: 'Log observed teaching sessions and feedback you received.',
+}
+
 type PersonalLogRow = {
   id: string
   title: string
@@ -108,7 +119,10 @@ export default async function LogsKindPage({
         <PersonalLogForm kind={tab.kind} />
         <section className="rounded-2xl border border-white/[0.08] bg-[#141416]">
           {logRows.length === 0 ? (
-            <p className="p-6 text-sm text-[rgba(245,245,242,0.45)]">No entries yet.</p>
+            <div className="p-6">
+              <p className="text-sm font-medium text-[#F5F5F2]">No {tab.label.toLowerCase()} entries yet</p>
+              <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{EMPTY_COPY[tab.kind]}</p>
+            </div>
           ) : (
             <LogList rows={logRows} />
           )}

@@ -16,7 +16,7 @@ const ITEMS = [
   { key: 'specialty',       label: 'Add a specialty you\'re interested in', href: '/specialties' },
   { key: 'deadline',        label: 'Add a timeline goal', href: '/timeline' },
   { key: 'case',            label: 'Log your first case', href: '/cases/new' },
-  { key: 'export',          label: 'Try exporting your portfolio', href: '/export' },
+  { key: 'export',          label: 'Preview export options', href: '/export' },
 ]
 
 export default function OnboardingChecklist({ userId, completedItems: initialCompleted, accountCreatedAt, autoCompleted = [] }: Props) {

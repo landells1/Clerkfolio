@@ -161,6 +161,7 @@ export default function OnboardingPage() {
                     onChange={e => setStudentGraduationDate(e.target.value)}
                     className="w-full rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-3 text-sm outline-none focus:border-[#1B6FD9]"
                   />
+                  <span className="mt-1.5 block text-xs normal-case tracking-normal text-[rgba(245,245,242,0.45)]">Used to personalise your stage and timeline. You can change this later.</span>
                 </label>
               )}
             </div>
@@ -173,7 +174,7 @@ export default function OnboardingPage() {
               <>
                 <h2 className="mb-2 text-xl font-semibold tracking-tight">Which specialties interest you?</h2>
                 <p className="mb-4 max-w-2xl text-sm text-[rgba(245,245,242,0.5)]">
-                  Start building evidence early. You can update this any time in Settings.
+                  Start building evidence early. You can update this any time in Specialties.
                 </p>
               </>
             ) : (
@@ -228,7 +229,7 @@ export default function OnboardingPage() {
               { value: 'case' as const, title: 'Clinical case', body: 'Best for memorable clinical stories, interview examples, and reflection prompts.' },
               { value: 'dashboard' as const, title: 'Dashboard', body: 'Finish setup and look around before logging anything.' },
             ].map(option => (
-              <button key={option.value} onClick={() => { setFirstEntryTarget(option.value); complete(option.value) }} disabled={saving} className={`rounded-2xl border p-5 text-left transition-colors disabled:opacity-60 ${firstEntryTarget === option.value ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/15' : 'border-white/[0.08] bg-[#141416] hover:border-white/[0.16]'}`}>
+              <button key={option.value} onClick={() => setFirstEntryTarget(option.value)} disabled={saving} className={`rounded-2xl border p-5 text-left transition-colors disabled:opacity-60 ${firstEntryTarget === option.value ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/15' : 'border-white/[0.08] bg-[#141416] hover:border-white/[0.16]'}`}>
                 <h2 className="text-base font-semibold">{option.title}</h2>
                 <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">{option.body}</p>
               </button>

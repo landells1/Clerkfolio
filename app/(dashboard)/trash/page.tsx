@@ -17,7 +17,7 @@ export default async function TrashPage({
     supabase.from('portfolio_entries').select('id, title, category, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
-    supabase.from('cases').select('id, title, clinical_domain, date, deleted_at')
+    supabase.from('cases').select('id, title, clinical_domain, clinical_domains, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
   ])
@@ -35,7 +35,7 @@ export default async function TrashPage({
     ...(deletedCases ?? []).map(c => ({
       id: c.id,
       title: c.title,
-      subtitle: c.clinical_domain ?? 'Case',
+      subtitle: c.clinical_domains?.length ? c.clinical_domains.join(', ') : c.clinical_domain ?? 'Case',
       category: null,
       date: c.date,
       deletedAt: c.deleted_at,
@@ -92,7 +92,7 @@ export default async function TrashPage({
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <p className="text-xs text-[rgba(245,245,242,0.4)] leading-relaxed">
-          Deleted items are soft-deleted and can be restored. Files linked to restored entries remain available.
+          Items stay in Trash for 30 days before permanent deletion is available. Files linked to restored entries remain available.
         </p>
       </div>
 

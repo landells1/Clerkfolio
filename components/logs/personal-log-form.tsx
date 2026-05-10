@@ -82,7 +82,7 @@ export default function PersonalLogForm({ kind }: Props) {
       </div>
       <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="mt-3 min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3 text-sm text-[#F5F5F2]" />
       <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
-        {saving ? 'Saving...' : 'Save'}
+          {saving ? 'Saving...' : `Save ${LABELS[kind].toLowerCase()}`}
       </button>
     </form>
   )

@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 // Showcase is a permanent public page - anyone with the slug can read it.
 // Free-text notes routinely contain clinical reflections, supervisor names,
@@ -51,6 +51,11 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
           <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{entries?.length ?? 0} portfolio entries</p>
         </header>
 
+        {(entries ?? []).length === 0 ? (
+          <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-8 text-sm text-[rgba(245,245,242,0.55)]">
+            No public portfolio entries have been added to this showcase yet.
+          </div>
+        ) : (
         <div className="space-y-4">
           {((entries ?? []) as Entry[]).map(entry => (
             <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
@@ -65,7 +70,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
                 <div className="mt-4 flex flex-wrap gap-2">
                   {entry.specialty_tags.map(tag => (
                     <span key={tag} className="rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-[rgba(245,245,242,0.55)]">
-                      {getSpecialtyConfig(tag)?.name ?? tag}
+                      {formatSpecialtyLabel(tag)}
                     </span>
                   ))}
                 </div>
@@ -73,6 +78,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
             </article>
           ))}
         </div>
+        )}
       </div>
     </main>
   )

@@ -140,6 +140,9 @@ export default async function PortfolioPage({
         </label>
         <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
       </form>
+      <p className="mb-3 text-xs text-[rgba(245,245,242,0.45)]">
+        Completeness: green = strong evidence, amber = needs detail, red = sparse. “Green only” shows entries already in the strongest band.
+      </p>
       <SavedSearchBar surface="portfolio" q={q} />
 
       <div className="mb-6 flex flex-wrap gap-2 border-b border-white/[0.06] pb-4">

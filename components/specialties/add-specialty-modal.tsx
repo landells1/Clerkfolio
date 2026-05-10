@@ -150,10 +150,10 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
                 </p>
               </div>
               <button
-                onClick={() => { window.location.href = '/settings' }}
+                onClick={() => { window.location.href = '/upgrade' }}
                 className="inline-flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#3884DD] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
               >
-                Manage plan
+                View Pro plan
               </button>
             </div>
           ) : available.length === 0 ? (

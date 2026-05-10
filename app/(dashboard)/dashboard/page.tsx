@@ -28,7 +28,7 @@ import PullToRefresh from '@/components/ui/pull-to-refresh'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
 import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
-import type { Category, PortfolioEntry } from '@/lib/types/portfolio'
+import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 
 const CAREER_STAGE_LABELS: Record<string, string> = {
@@ -113,6 +113,7 @@ export default async function DashboardPage() {
       .from('goals')
       .select('category, target_count, due_date')
       .eq('user_id', user!.id)
+      .is('completed_at', null)
       .gte('due_date', today)
       .lte('due_date', in30Str)
       .order('due_date', { ascending: true })
@@ -184,7 +185,7 @@ export default async function DashboardPage() {
 
   const upcomingItems = [
     ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const })),
-    ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${g.category.replace(/_/g, ' ')}`, date: g.due_date, type: 'Goal' as const })),
+    ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`, date: g.due_date, type: 'Goal' as const })),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
   const specialtyProgressRows = (trackedSpecialtyRows ?? []).map(row => {
@@ -234,6 +235,9 @@ export default async function DashboardPage() {
           <StreakBadge activeWeeks={activeWeeks} />
           <QuickAddButton userInterests={trackedSpecialtyKeys} />
         </div>
+      </div>
+      <div className="mb-6 sm:hidden">
+        <QuickAddButton userInterests={trackedSpecialtyKeys} />
       </div>
 
       {showAnniversary && (

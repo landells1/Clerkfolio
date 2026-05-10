@@ -127,7 +127,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         console.error('specialty_entry_links insert error:', error)
-        alert(`Failed to save: ${error.message}`)
+        alert('Could not save this specialty evidence. Check your connection and try again.')
         onLinksChange(links)
       } else {
         const inserted = rows?.[0]
@@ -162,7 +162,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       onLinksChange(newLinks)
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingMet.id)
       if (error) {
-        alert(`Failed to remove: ${error.message}`)
+        alert('Could not remove this specialty evidence. Check your connection and try again.')
         onLinksChange(links)
       }
     } else {
@@ -194,7 +194,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         .select()
 
       if (error) {
-        alert(`Failed to save: ${error.message}`)
+        alert('Could not save this specialty evidence. Check your connection and try again.')
         onLinksChange(links)
       } else {
         const inserted = rows?.[0]
@@ -224,7 +224,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       onLinksChange(newLinks)
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingEvidenced.id)
       if (error) {
-        alert(`Failed to remove: ${error.message}`)
+        alert('Could not remove this specialty evidence. Check your connection and try again.')
         onLinksChange(links)
       }
     } else {
@@ -256,7 +256,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         .select()
 
       if (error) {
-        alert(`Failed to save: ${error.message}`)
+        alert('Could not save this specialty evidence. Check your connection and try again.')
         onLinksChange(links)
       } else {
         const inserted = rows?.[0]
@@ -352,7 +352,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             )}
           </div>
           <span className={`text-sm leading-snug ${isMet ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.7)]'}`}>
-            I have this requirement met (or will have by intended start date).
+            Self-mark this requirement as met (or expected by intended start date). Attach portfolio evidence where possible.
           </span>
         </label>
 
@@ -482,7 +482,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             )}
           </div>
           <span className={`text-sm leading-snug ${isEvidenced ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.7)]'}`}>
-            I have evidence for this criterion.
+            Self-mark evidence for this criterion. Attach a portfolio entry to make it documented evidence.
           </span>
         </label>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 import { useToast } from '@/components/ui/toast-provider'
@@ -110,7 +111,14 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
               <p className="text-[11px] text-[rgba(245,245,242,0.4)]">Pick anything that demonstrates this capability. The same entry can support multiple capabilities.</p>
             </div>
           )}
-          {query && !searching && results.length === 0 && <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-8">No matching portfolio entries found.</p>}
+          {query && !searching && results.length === 0 && (
+            <div className="py-8 text-center">
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">No matching portfolio entries found.</p>
+              <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[#1B6FD9] hover:border-[#1B6FD9]/40">
+                Create portfolio entry
+              </Link>
+            </div>
+          )}
         </div>
       </div>
     </div>

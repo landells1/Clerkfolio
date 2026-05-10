@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
+import { CATEGORIES } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
@@ -90,6 +91,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     .from('goals')
     .select('id, category, target_count, due_date, specific, measurable, achievable, relevant, time_bound, created_at')
     .eq('user_id', profile.id)
+    .is('completed_at', null)
     .not('due_date', 'is', null)
     .order('due_date', { ascending: true })
 
@@ -127,7 +129,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const goalEvents = (goals ?? []).map(goal => ({
     id: `goal-${goal.id}`,
-    title: goal.specific || `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
+    title: goal.specific || `${goal.target_count} ${CATEGORIES.find(category => category.value === goal.category)?.label ?? goal.category}`,
     due_date: goal.due_date!,
     details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n'),
     location: null,

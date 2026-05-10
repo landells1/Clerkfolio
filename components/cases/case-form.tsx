@@ -12,6 +12,7 @@ import { uploadPendingFiles } from '@/lib/supabase/storage'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -173,7 +174,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .insert({ ...scoredPayload, user_id: user.id })
         .select('id')
         .single()
-      if (error) { setError(error.message); setSaving(false); return }
+      if (error) { setError('We could not save this case. Check the details and try again.'); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
@@ -219,7 +220,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         .update(scoredPayload)
         .eq('id', initialData!.id!)
         .eq('user_id', user.id)
-      if (error) { setError(error.message); setSaving(false); return }
+      if (error) { setError('We could not update this case. Check the details and try again.'); setSaving(false); return }
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
@@ -334,13 +335,13 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
                 onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
                 className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
               >
-                + {tag}
+                + {formatSpecialtyLabel(tag)}
               </button>
             ))}
           </div>
         )}
         <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
-          Which of your tracked programmes can you use this case for?
+          Link cases to specialties for filtering and interview examples. Specialty tracker scores use portfolio entries as evidence.
         </p>
       </div>
 

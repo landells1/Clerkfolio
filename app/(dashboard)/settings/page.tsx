@@ -207,7 +207,7 @@ export default function SettingsPage() {
     const { error } = await supabase.auth.updateUser({ password: passwordForm.next })
     setPasswordLoading(false)
     if (error) {
-      addToast(error.message, 'error')
+      addToast('Could not update password. Check the password and try again.', 'error')
       return
     }
     setPasswordForm({ next: '', confirm: '' })
@@ -329,9 +329,9 @@ export default function SettingsPage() {
     ['/settings/api', 'API access', 'Bearer keys for developer integrations'],
     ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],
     ['/settings/sessions', 'Sessions', 'Active devices and sign-ins'],
-    ['/trash', 'Trash', 'Restore or permanently delete soft-deleted items'],
+    ['/trash', 'Trash', 'Restore items or permanently delete them after 30 days'],
     ['/help', 'Help & glossary', 'Acronyms, concepts and keyboard shortcuts'],
-  ] as Array<[string, string, string]>).filter(([, label]) => label.toLowerCase().includes(settingsSearch.toLowerCase()))
+  ] as Array<[string, string, string]>).filter(([, label, description]) => `${label} ${description}`.toLowerCase().includes(settingsSearch.toLowerCase()))
 
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
@@ -430,7 +430,7 @@ export default function SettingsPage() {
           <div>
             <h2 className="text-base font-semibold text-[#F5F5F2]">Public showcase</h2>
             <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
-              {profile.public_slug ? `${profile.public_slug}.clerkfolio.site` : 'Choose a public slug'}
+              {profile.public_slug ? `${origin || ''}/showcase/${normalisePublicSlug(profile.public_slug)}` : 'Choose a public slug'}
             </p>
           </div>
           <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
@@ -454,9 +454,14 @@ export default function SettingsPage() {
           </button>
         </div>
         {profile.public_slug && (
-          <Link href={`/showcase/${normalisePublicSlug(profile.public_slug)}`} className="mt-3 inline-flex text-sm text-[#1B6FD9] hover:text-[#6AA8FF]">
-            Preview showcase
-          </Link>
+          <div className="mt-3 space-y-2">
+            <p className="text-xs text-[rgba(245,245,242,0.5)]">
+              Public showcases display entry titles, categories, dates, and linked specialty labels. Private notes and reflection text are not shown.
+            </p>
+            <Link href={`/showcase/${normalisePublicSlug(profile.public_slug)}`} className="inline-flex text-sm text-[#1B6FD9] hover:text-[#6AA8FF]">
+              Preview showcase
+            </Link>
+          </div>
         )}
       </section>
 

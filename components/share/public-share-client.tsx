@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import { PrintHeader } from '@/components/print-header'
 
 type SharedEntry = {
@@ -13,6 +14,8 @@ type SharedEntry = {
   specialty_tags: string[] | null
   specialty_tag_labels?: string[] | null
   interview_themes: string[] | null
+  notes?: string | null
+  refl_free_text?: string | null
 }
 
 type SharePayload = {
@@ -32,7 +35,13 @@ function formatDate(value: string) {
 function scopeLabel(payload: SharePayload) {
   if (payload.scope === 'full') return 'Full portfolio'
   if (payload.scope === 'theme') return `Theme: ${payload.themeSlug ? formatCompetencyTheme(payload.themeSlug) : 'unknown'}`
-  return `Specialty: ${payload.specialtyLabel ?? payload.specialtyKey}`
+  return `Specialty: ${payload.specialtyLabel ?? formatSpecialtyLabel(payload.specialtyKey)}`
+}
+
+function excerpt(value: string | null | undefined) {
+  if (!value) return ''
+  const cleaned = value.replace(/\s+/g, ' ').trim()
+  return cleaned.length > 260 ? `${cleaned.slice(0, 260)}...` : cleaned
 }
 
 function pinSessionKey(token: string) {
@@ -195,6 +204,12 @@ export default function PublicShareClient({ token }: { token: string }) {
                                   </span>
                                 ))}
                               </div>
+                            )}
+                            {excerpt(entry.notes) && (
+                              <p className="mt-3 text-sm leading-relaxed text-[rgba(245,245,242,0.62)]">{excerpt(entry.notes)}</p>
+                            )}
+                            {excerpt(entry.refl_free_text) && (
+                              <p className="mt-3 border-l border-[#1B6FD9]/40 pl-3 text-sm leading-relaxed text-[rgba(245,245,242,0.62)]">{excerpt(entry.refl_free_text)}</p>
                             )}
                           </article>
                         ))}

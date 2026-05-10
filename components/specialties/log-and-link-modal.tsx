@@ -17,7 +17,7 @@ const PORTFOLIO_CATEGORIES: { value: Category; label: string }[] = [
   { value: 'custom', label: 'Custom' },
 ]
 
-type EntryType = 'portfolio' | 'case'
+type EntryType = 'portfolio'
 
 type Props = {
   domain: SpecialtyDomain
@@ -68,51 +68,29 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      let entryId: string
+      const { data: entry, error: entryError } = await supabase
+        .from('portfolio_entries')
+        .insert({
+          user_id: user.id,
+          category,
+          title: title.trim(),
+          date,
+          specialty_tags: [specialtyKey],
+          notes: notes.trim() || null,
+        })
+        .select('id')
+        .single()
 
-      if (entryType === 'portfolio') {
-        const { data: entry, error: entryError } = await supabase
-          .from('portfolio_entries')
-          .insert({
-            user_id: user.id,
-            category,
-            title: title.trim(),
-            date,
-            specialty_tags: [specialtyKey],
-            notes: notes.trim() || null,
-          })
-          .select('id')
-          .single()
-
-        if (entryError) throw entryError
-        if (!entry) throw new Error('Failed to create portfolio entry')
-        entryId = entry.id
-      } else {
-        const { data: caseEntry, error: caseError } = await supabase
-          .from('cases')
-          .insert({
-            user_id: user.id,
-            title: title.trim(),
-            date,
-            specialty_tags: [specialtyKey],
-            notes: notes.trim() || null,
-            clinical_domain: null,
-          })
-          .select('id')
-          .single()
-
-        if (caseError) throw caseError
-        if (!caseEntry) throw new Error('Failed to create case')
-        entryId = caseEntry.id
-      }
+      if (entryError) throw entryError
+      if (!entry) throw new Error('Failed to create portfolio entry')
 
       const { data: link, error: linkError } = await supabase
         .from('specialty_entry_links')
         .insert({
           application_id: applicationId,
           domain_key: domain.key,
-          entry_id: entryId,
-          entry_type: entryType,
+          entry_id: entry.id,
+          entry_type: 'portfolio',
           band_label: bandLabel,
           points_claimed: bandPoints,
           is_checkbox: false,
@@ -128,7 +106,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
         onLinked(link as SpecialtyEntryLink)
       }, 900)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to log entry')
+      setError('We could not log and link this evidence. Check the details and try again.')
     } finally {
       setSubmitting(false)
     }
@@ -208,7 +186,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   Entry type
                 </label>
                 <div className="flex gap-2">
-                  {(['portfolio', 'case'] as EntryType[]).map(t => (
+                  {(['portfolio'] as EntryType[]).map(t => (
                     <button
                       key={t}
                       type="button"

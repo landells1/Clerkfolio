@@ -7,7 +7,7 @@ import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from
 import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel, getSpecialtyConfig } from '@/lib/specialties'
 
 type Tab = 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
@@ -66,7 +66,7 @@ function entrySubtitle(e: PortfolioEntry): string | null {
 function shareLabel(link: ShareLink) {
   if (link.scope === 'full') return 'Full portfolio'
   if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
-  return getSpecialtyConfig(link.specialty_key ?? '')?.name ?? link.specialty_key ?? 'Specialty'
+  return formatSpecialtyLabel(link.specialty_key)
 }
 
 export default function ExportPage() {
@@ -185,8 +185,9 @@ export default function ExportPage() {
     .filter(e => !themeFilter || (e.interview_themes ?? []).includes(themeFilter))
   const visibleCases = categoryFilter === 'all' ? cases : []
   const categoriesPresent = Array.from(new Set(entries.map(e => e.category))) as Category[]
-  const exportCaseIds = categoryFilter === 'all' ? selectedCaseIds : new Set<string>()
+  const exportCaseIds = format === 'pdf' || categoryFilter !== 'all' ? new Set<string>() : selectedCaseIds
   const totalSelected = selectedEntryIds.size + exportCaseIds.size
+  const canGenerate = totalSelected > 0 && !generating && (format !== 'pdf' || !!subInfo?.limits.canExportPdf)
   const themes = useMemo(() => {
     const set = new Set<string>()
     entries.forEach(e => e.interview_themes?.forEach(t => set.add(t)))
@@ -348,7 +349,7 @@ export default function ExportPage() {
           <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Generate application packs, back up your data, and create protected portfolio links.</p>
         </div>
         {subInfo && !subInfo.isPro && (
-          <Link href="/settings" className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-300">
+                <Link href="/upgrade" className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-300">
             Free plan limits active
           </Link>
         )}
@@ -447,7 +448,7 @@ export default function ExportPage() {
                 <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Theme filter</p>
                 <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
                   <option value="">Any theme</option>
-                  {themes.map(theme => <option key={theme} value={theme}>{theme}</option>)}
+                {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
                 </select>
               </div>
             )}
@@ -499,10 +500,13 @@ export default function ExportPage() {
               <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">
                 {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
               </p>
+              {format === 'pdf' && visibleCases.length > 0 && (
+                <p className="text-xs text-[rgba(245,245,242,0.45)]">Cases export as CSV or JSON. PDFs include portfolio entries only.</p>
+              )}
               <div className="flex items-center gap-3">
                 <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[#1B6FD9]">Select visible</button>
                 <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
-                <button onClick={handleGenerate} disabled={totalSelected === 0 || generating || !subInfo?.limits.canExportPdf} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+                <button onClick={handleGenerate} disabled={!canGenerate} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
@@ -546,7 +550,7 @@ export default function ExportPage() {
                     </label>
                   )
                 })}
-                {visibleCases.map(c => {
+                {format !== 'pdf' && visibleCases.map(c => {
                   const checked = selectedCaseIds.has(c.id)
                   const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
                   return (
@@ -624,7 +628,7 @@ export default function ExportPage() {
                 <label className="block">
                   <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Theme</span>
                   <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
-                  <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} />)}</datalist>
+                  <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
                 </label>
               )}
               <div>

@@ -111,7 +111,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         const specialty = specialties.find(row => row.id === goal.specialty_application_id)
         return {
           id: `goal-${goal.id}`,
-          title: goal.specific || `${goal.target_count} ${goal.category.replace(/_/g, ' ')}`,
+          title: goal.specific || `${goal.target_count} ${CATEGORIES.find(category => category.value === goal.category)?.label ?? goal.category}`,
           date: goal.due_date!,
           details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n') || null,
           location: null,
@@ -207,6 +207,27 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     addToast('Event added', 'success')
     setShowEventForm(false)
     setEventForm({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
+    router.refresh()
+  }
+
+  async function completeSelectedItem() {
+    if (!selectedItem) return
+    if (selectedItem.type === 'goal') {
+      await supabase.from('goals').update({ completed_at: new Date().toISOString() }).eq('id', selectedItem.id.replace('goal-', ''))
+    } else if (!selectedItem.isAuto) {
+      await supabase.from('deadlines').update({ completed: true }).eq('id', selectedItem.id.replace('deadline-', ''))
+    }
+    addToast(selectedItem.type === 'goal' ? 'Goal completed' : 'Deadline completed', 'success')
+    setSelectedItem(null)
+    router.refresh()
+  }
+
+  async function deleteSelectedItem() {
+    if (!selectedItem || selectedItem.isAuto) return
+    if (!confirm(`Delete this ${selectedItem.type}?`)) return
+    await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
+    addToast(selectedItem.type === 'goal' ? 'Goal deleted' : 'Deadline deleted', 'success')
+    setSelectedItem(null)
     router.refresh()
   }
 
@@ -354,15 +375,27 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
           <form onSubmit={addGoal} className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-[#F5F5F2]">Add goal</h2>
-            <select value={goalForm.category} onChange={e => setGoalForm(f => ({ ...f, category: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">
-              {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
-            </select>
-            <input type="number" min="1" value={goalForm.target_count} onChange={e => setGoalForm(f => ({ ...f, target_count: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
-            <input type="date" value={goalForm.due_date} onChange={e => setGoalForm(f => ({ ...f, due_date: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
-            <select value={goalForm.specialty_application_id} onChange={e => setGoalForm(f => ({ ...f, specialty_application_id: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">
-              <option value="">Other</option>
-              {specialties.map(specialty => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}
-            </select>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Portfolio category
+              <select value={goalForm.category} onChange={e => setGoalForm(f => ({ ...f, category: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]">
+                {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
+              </select>
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Target count
+              <input type="number" min="1" value={goalForm.target_count} onChange={e => setGoalForm(f => ({ ...f, target_count: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Due date
+              <input type="date" value={goalForm.due_date} onChange={e => setGoalForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Related specialty
+              <select value={goalForm.specialty_application_id} onChange={e => setGoalForm(f => ({ ...f, specialty_application_id: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]">
+                <option value="">Other</option>
+                {specialties.map(specialty => <option key={specialty.id} value={specialty.id}>{specialty.name}</option>)}
+              </select>
+            </label>
             <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-3">
               <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.45)]">SMART detail</p>
               {[
@@ -393,14 +426,29 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
           <form onSubmit={addEvent} className="w-full sm:max-w-md bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-[#F5F5F2]">Add calendar event</h2>
-            <input required value={eventForm.title} onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))} placeholder="Event title" className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
-            <input type="date" value={eventForm.due_date} onChange={e => setEventForm(f => ({ ...f, due_date: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
-            <input value={eventForm.location} onChange={e => setEventForm(f => ({ ...f, location: e.target.value }))} placeholder="Location or link" className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]" />
-            <textarea value={eventForm.details} onChange={e => setEventForm(f => ({ ...f, details: e.target.value }))} placeholder="Details" rows={4} className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2.5 text-[#F5F5F2]" />
-            <select value={eventForm.source_specialty_key} onChange={e => setEventForm(f => ({ ...f, source_specialty_key: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">
-              <option value="">Other</option>
-              {specialties.map(specialty => <option key={specialty.id} value={specialty.key}>{specialty.name}</option>)}
-            </select>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Event title
+              <input required value={eventForm.title} onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. IMT application deadline" className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Date
+              <input type="date" value={eventForm.due_date} onChange={e => setEventForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Location or link
+              <input value={eventForm.location} onChange={e => setEventForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Oriel, MS Teams, Royal College website" className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Details
+              <textarea value={eventForm.details} onChange={e => setEventForm(f => ({ ...f, details: e.target.value }))} placeholder="What needs to happen before this date?" rows={4} className="mt-1.5 w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[#F5F5F2]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Related specialty
+              <select value={eventForm.source_specialty_key} onChange={e => setEventForm(f => ({ ...f, source_specialty_key: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 text-sm text-[#F5F5F2]">
+                <option value="">Other</option>
+                {specialties.map(specialty => <option key={specialty.id} value={specialty.key}>{specialty.name}</option>)}
+              </select>
+            </label>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowEventForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>
               <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-[#0B0B0C] rounded-lg px-4 py-2.5 text-sm font-semibold">Add event</button>
@@ -445,6 +493,26 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
                 Open {selectedItem.sourceLabel ?? 'source'}
               </a>
             )}
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(selectedItem.type === 'goal' || !selectedItem.isAuto) && (
+                <button
+                  type="button"
+                  onClick={completeSelectedItem}
+                  className="min-h-[44px] rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-300"
+                >
+                  Mark complete
+                </button>
+              )}
+              {!selectedItem.isAuto && (
+                <button
+                  type="button"
+                  onClick={deleteSelectedItem}
+                  className="min-h-[44px] rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-sm font-medium text-red-300"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}

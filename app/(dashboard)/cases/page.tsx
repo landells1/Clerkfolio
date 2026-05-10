@@ -114,6 +114,9 @@ export default async function CasesPage({
         </label>
         <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
       </form>
+      <p className="mb-3 text-xs text-[rgba(245,245,242,0.45)]">
+        Completeness: green = strong case note, amber = needs detail, red = sparse. “Green only” shows cases already in the strongest band.
+      </p>
       <SavedSearchBar surface="cases" q={q} />
 
       {Object.keys(domainCountMap).length > 0 && (

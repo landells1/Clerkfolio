@@ -175,6 +175,11 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           </div>
         </div>
       )}
+      {!selectMode && entries.length > 0 && (
+        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] sm:hidden">
+          Select entries
+        </button>
+      )}
 
       {/* Entry list */}
       <div className="flex flex-col gap-3">
@@ -227,7 +232,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
       {/* Floating action bar */}
       {selectMode && selected.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex items-center gap-2 bg-[#1B1B1E] border border-white/[0.1] rounded-2xl px-4 py-3 shadow-2xl">
+        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
           <span className="text-xs font-medium text-[rgba(245,245,242,0.6)] mr-1">{selected.size} selected</span>
           <button
             onClick={() => { setBulkTags([]); setTagModalOpen(true) }}

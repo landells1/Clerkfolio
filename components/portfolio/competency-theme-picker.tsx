@@ -324,7 +324,7 @@ function ThemeManager({
           <div key={theme.id} className="flex items-center justify-between gap-3 p-3">
             <div className="min-w-0">
               <p className="text-sm font-medium text-[#F5F5F2]">{theme.name}</p>
-              <p className="text-xs text-[rgba(245,245,242,0.55)]">{theme.slug}</p>
+              <p className="text-xs text-[rgba(245,245,242,0.55)]">Custom theme</p>
             </div>
             <div className="flex items-center gap-2">
               <input

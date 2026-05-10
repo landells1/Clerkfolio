@@ -72,8 +72,8 @@ export default function SnippetsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Snippets</h1>
           <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
-            Reusable phrases you can drop into portfolio or case notes. Type a slash followed by the
-            shortcut name (e.g. <span className="font-mono">/reflection</span>) to insert the body.
+            Reusable phrases for portfolio and case notes. In fields with the snippets menu, type a slash followed by the shortcut
+            name (e.g. <span className="font-mono">/reflection</span>) to insert the body.
           </p>
         </div>
       </div>
@@ -81,7 +81,7 @@ export default function SnippetsPage() {
       <form onSubmit={save} className="mb-6 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
         <div className="grid gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
           <input value={shortcut} onChange={e => setShortcut(e.target.value)} placeholder="/reflection" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-          <input value={body} onChange={e => setBody(e.target.value)} placeholder="Key learning: " className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
+          <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Key learning: " rows={4} className="min-h-[96px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
         </div>
         <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
           {saving ? 'Saving...' : 'Save snippet'}

@@ -52,7 +52,7 @@ export default async function ImportPage() {
             CSV and Horus imports are available on Pro. Free accounts can still add cases and portfolio entries manually.
           </p>
           <Link
-            href="/settings"
+            href="/upgrade"
             className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]"
           >
             Upgrade to Pro
