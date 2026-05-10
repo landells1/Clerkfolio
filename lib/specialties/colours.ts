@@ -62,6 +62,60 @@ export function getSpecialtyColour(key: string | null | undefined): PillColour {
   return SPECIALTY_COLOURS[key] ?? 'neutral'
 }
 
+// Free-text clinical domains used on cases (e.g. "General Surgery", "Cardiology",
+// "Paediatrics"). Lower-cased substring match so variations like "Gen Surg" or
+// "Acute Medicine" still resolve. Used as a fallback dot colour when a case has
+// no specialty_tags - prevents the visual noise of every untagged case being grey.
+const CLINICAL_DOMAIN_COLOURS: { match: string; colour: PillColour }[] = [
+  { match: 'surgery', colour: 'rose' },
+  { match: 'surg', colour: 'rose' },
+  { match: 'cardio', colour: 'red' },
+  { match: 'paedi', colour: 'pink' },
+  { match: 'paed', colour: 'pink' },
+  { match: 'emergency', colour: 'amber' },
+  { match: 'a&e', colour: 'amber' },
+  { match: 'ed', colour: 'amber' },
+  { match: 'gp', colour: 'green' },
+  { match: 'general practice', colour: 'green' },
+  { match: 'anaes', colour: 'teal' },
+  { match: 'psych', colour: 'violet' },
+  { match: 'mental health', colour: 'violet' },
+  { match: 'obs', colour: 'fuchsia' },
+  { match: 'gynae', colour: 'fuchsia' },
+  { match: 'o&g', colour: 'fuchsia' },
+  { match: 'radiol', colour: 'indigo' },
+  { match: 'imaging', colour: 'indigo' },
+  { match: 'patho', colour: 'indigo' },
+  { match: 'public health', colour: 'indigo' },
+  { match: 'derm', colour: 'pink' },
+  { match: 'ophthal', colour: 'cyan' },
+  { match: 'eye', colour: 'cyan' },
+  { match: 'medicine', colour: 'blue' },
+  { match: 'medical', colour: 'blue' },
+  { match: 'acute', colour: 'blue' },
+  { match: 'imt', colour: 'blue' },
+]
+
+export function getClinicalDomainColour(domain: string | null | undefined): PillColour {
+  if (!domain) return 'neutral'
+  const lower = domain.toLowerCase()
+  for (const entry of CLINICAL_DOMAIN_COLOURS) {
+    if (lower.includes(entry.match)) return entry.colour
+  }
+  return 'neutral'
+}
+
+// Best-available colour for a case row: prefer the first specialty_tag (which is
+// a known slug), fall back to fuzzy match on the clinical domain string.
+export function getCaseRowColour(specialtyTags: string[] | null | undefined, clinicalDomain: string | null | undefined): PillColour {
+  const first = specialtyTags?.[0]
+  if (first) {
+    const c = getSpecialtyColour(first)
+    if (c !== 'neutral') return c
+  }
+  return getClinicalDomainColour(clinicalDomain)
+}
+
 // Tailwind class triple for a given pill colour.
 // Text uses the 300-level shade so it reads on dark surfaces without shouting.
 // Neutral falls back to fg tokens because there is no tailwind "neutral-300".

@@ -285,26 +285,18 @@ export default async function DashboardPage() {
         <div className="space-y-5 min-w-0">
           <ActivityHeatmap dates={heatmapDates} />
 
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <StatTile
               label="Portfolio entries"
               value={allEntries?.length ?? 0}
               sub="across all categories"
               barColour="violet"
-              onClick={undefined}
             />
             <StatTile
               label="Cases logged"
               value={allCases?.length ?? 0}
-              sub={`${recentCases?.length ?? 0} in last 20`}
+              sub="anonymised diary entries"
               barColour="blue"
-            />
-            <StatTile
-              label="Specialties tracked"
-              value={trackedSpecialtyRows?.length ?? 0}
-              sub={specialtyProgressRows[0] ? `${specialtyProgressRows[0].percent}% on top` : 'none yet'}
-              barPct={specialtyProgressRows[0]?.percent}
-              barColour="green"
             />
             <StatTile
               label="Upcoming"

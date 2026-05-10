@@ -88,8 +88,6 @@ export default async function CasesPage({
     const d = (c as { created_at?: string }).created_at
     return d && d.startsWith(thisMonthKey)
   }).length
-  const specialtiesTouched = new Set<string>()
-  ;(allCasesMeta ?? []).forEach(c => (c.specialty_tags ?? []).forEach((t: string) => specialtiesTouched.add(t)))
   // Average per week over the past year (or shorter window if newer)
   const oneYearMs = 365 * 24 * 60 * 60 * 1000
   const weeksWindow = Math.max(1, Math.min(52, Math.round(((allCasesMeta ?? []).length > 0 ? oneYearMs : 7 * 24 * 60 * 60 * 1000) / (7 * 24 * 60 * 60 * 1000))))
@@ -111,10 +109,9 @@ export default async function CasesPage({
         }
       />
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-3 gap-3 mb-6">
         <StatTile label="Total cases" value={total} sub="all time" barColour="blue" />
         <StatTile label="This month" value={thisMonthCount} sub={now.toLocaleDateString('en-GB', { month: 'long' })} barColour="violet" />
-        <StatTile label="Specialties touched" value={specialtiesTouched.size} sub="distinct linked tags" barColour="cyan" />
         <StatTile label="Avg per week" value={avgPerWeek} sub="rolling year" barColour="amber" />
       </div>
 
@@ -157,15 +154,6 @@ export default async function CasesPage({
       )}
 
       <DraftResumeBanner />
-
-      <div className="flex items-start gap-3 bg-pill-amber border border-pill-amber rounded-lg px-4 py-3 mb-6">
-        <svg className="shrink-0 mt-0.5 w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
-        </svg>
-        <p className="text-xs text-amber-300 leading-relaxed">
-          All case entries must be anonymised. Do not include patient names, dates of birth, NHS numbers, or other identifying information.
-        </p>
-      </div>
 
       {filteredCases.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">

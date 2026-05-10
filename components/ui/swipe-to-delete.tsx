@@ -82,8 +82,8 @@ export default function SwipeToDelete({
   }
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl ${className}`}>
-      <div className="absolute inset-y-0 right-0 flex w-28 items-center justify-center rounded-2xl bg-red-500/15 text-xs font-semibold text-red-300">
+    <div className={`relative overflow-hidden ${className}`}>
+      <div className="absolute inset-y-0 right-0 flex w-28 items-center justify-center bg-red-500/15 text-xs font-semibold text-red-300">
         Delete
       </div>
       <div

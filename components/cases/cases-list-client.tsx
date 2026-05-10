@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import type { Case } from '@/lib/types/cases'
@@ -11,7 +11,7 @@ import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SpecialtyTag from '@/components/ui/specialty-tag'
 import ListGroupHeader from '@/components/ui/list-group-header'
-import { getSpecialtyColour, colourClasses } from '@/lib/specialties/colours'
+import { getSpecialtyColour, getCaseRowColour, colourClasses } from '@/lib/specialties/colours'
 
 type Props = {
   cases: Case[]
@@ -53,6 +53,18 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   // Active specialty chip filter (separate from the panel `specialty` to allow
   // the chip row above the list to drive a quick filter without opening the panel).
   const [chipSpecialty, setChipSpecialty] = useState<string>('')
+
+  // Density preference - persisted to localStorage so it survives navigation.
+  type Density = 'compact' | 'comfortable'
+  const [density, setDensity] = useState<Density>('compact')
+  useEffect(() => {
+    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('clerkfolio-cases-density') : null
+    if (stored === 'compact' || stored === 'comfortable') setDensity(stored)
+  }, [])
+  function changeDensity(next: Density) {
+    setDensity(next)
+    try { window.localStorage.setItem('clerkfolio-cases-density', next) } catch {}
+  }
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -149,6 +161,22 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             placeholder="Search cases"
             className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong"
           />
+          <div className="hidden sm:flex items-center rounded-lg border border-subtle bg-surface-1 p-0.5" role="group" aria-label="Row density">
+            <button
+              type="button"
+              onClick={() => changeDensity('compact')}
+              className={`h-10 px-3 text-xs font-medium rounded transition-colors ${density === 'compact' ? 'bg-surface-3 text-fg' : 'text-fg-2 hover:text-fg'}`}
+              title="Compact rows"
+              aria-pressed={density === 'compact'}
+            >Compact</button>
+            <button
+              type="button"
+              onClick={() => changeDensity('comfortable')}
+              className={`h-10 px-3 text-xs font-medium rounded transition-colors ${density === 'comfortable' ? 'bg-surface-3 text-fg' : 'text-fg-2 hover:text-fg'}`}
+              title="Comfortable rows"
+              aria-pressed={density === 'comfortable'}
+            >Roomy</button>
+          </div>
           <button onClick={() => setFiltersOpen(true)} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">
             Filters
           </button>
@@ -205,7 +233,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             <ListGroupHeader label="Pinned" meta={`${pinned.length} ${pinned.length === 1 ? 'case' : 'cases'}`} />
             {pinned.map(c => (
               <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
-                <DenseCaseRow c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+                <DenseCaseRow c={c} pinned density={density} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
               </SwipeToDelete>
             ))}
           </section>
@@ -216,7 +244,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             <ListGroupHeader label={month} meta={`${monthCases.length} ${monthCases.length === 1 ? 'case' : 'cases'}`} />
             {monthCases.map(c => (
               <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
-                <DenseCaseRow c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+                <DenseCaseRow c={c} density={density} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
               </SwipeToDelete>
             ))}
           </section>
@@ -293,10 +321,17 @@ function Select({ label, value, onChange, options, getOptionLabel = option => op
 
 // Dense row variant of a case for the high-volume list. Keeps the existing
 // swipe-to-delete + bulk-select wrapping intact via the parent.
-function DenseCaseRow({ c, pinned, selected, selectMode, onToggle }: { c: Case; pinned?: boolean; selected: boolean; selectMode: boolean; onToggle: () => void }) {
+// Density modes:
+//   compact     - tight row, secondary line on hover only
+//   comfortable - more vertical padding, secondary line always shown
+function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, onToggle }: { c: Case; pinned?: boolean; density?: 'compact' | 'comfortable'; selected: boolean; selectMode: boolean; onToggle: () => void }) {
   const primaryTag = c.specialty_tags?.[0]
-  const dotColour = colourClasses(getSpecialtyColour(primaryTag))
+  const dotColour = colourClasses(getCaseRowColour(c.specialty_tags, c.clinical_domain))
   const date = new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const padding = density === 'comfortable' ? 'py-3.5' : 'py-2.5'
+  const secondaryClasses = density === 'comfortable'
+    ? 'mt-1 text-xs text-fg-2 line-clamp-1'
+    : 'mt-0.5 text-xs text-fg-2 line-clamp-1 hidden group-hover:block'
   return (
     <div className="group/row relative flex items-stretch">
       {/* Selection checkbox: hidden until hover unless selecting */}
@@ -307,7 +342,7 @@ function DenseCaseRow({ c, pinned, selected, selectMode, onToggle }: { c: Case; 
       </button>
       <div className="flex-1 min-w-0">
         <Link href={`/cases/${c.id}`} className="block">
-          <div className="group flex items-center gap-3 px-3 py-2.5 hover:bg-surface-3 border-b border-subtle last:border-b-0 transition-colors">
+          <div className={`group flex items-center gap-3 px-3 ${padding} hover:bg-surface-3 border-b border-subtle last:border-b-0 transition-colors`}>
             <span className={`shrink-0 w-2 h-2 rounded-full ${dotColour.dot}`} aria-hidden />
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
@@ -321,7 +356,7 @@ function DenseCaseRow({ c, pinned, selected, selectMode, onToggle }: { c: Case; 
                 )}
                 <span className="text-[11px] text-fg-3 truncate">· {clinicalArea(c)}</span>
               </div>
-              <div className="mt-0.5 text-xs text-fg-2 line-clamp-1 hidden group-hover:block">
+              <div className={secondaryClasses}>
                 {firstSentence(c.notes)}
               </div>
             </div>

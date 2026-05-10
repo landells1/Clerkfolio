@@ -86,11 +86,16 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto px-5 pt-4 pb-5">
+      {/* The cell grid is wider than narrow viewports. Hide horizontal overflow
+          and right-align so the most recent weeks are always visible; oldest
+          weeks scroll off the left. flexbox `justify-content: flex-end` does
+          the right-anchoring; `overflow-hidden` does the clip. */}
+      <div className="overflow-hidden px-5 pt-4 pb-5">
         {/* Month label row - offset by the label column so columns line up */}
         <div
           style={{
             display: 'flex',
+            justifyContent: 'flex-end',
             gap: GAP,
             paddingLeft: LABEL_W + LABEL_GAP,
             marginBottom: 5,
@@ -134,8 +139,9 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
                 {label}
               </div>
 
-              {/* Cells for this weekday across all weeks */}
-              <div style={{ display: 'flex', gap: GAP }}>
+              {/* Cells for this weekday across all weeks - right-anchored so the
+                  most recent weeks always show; oldest clip off the left edge. */}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: GAP, flex: 1, minWidth: 0 }}>
                 {weeks.map((week, wi) => {
                   const { dateStr, count } = week[day]
                   return (
