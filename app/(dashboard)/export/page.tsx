@@ -8,6 +8,7 @@ import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/li
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { formatSpecialtyLabel, getSpecialtyConfig } from '@/lib/specialties'
+import SectionHeader from '@/components/ui/section-header'
 
 type Tab = 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
@@ -338,35 +339,37 @@ export default function ExportPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-6 lg:p-8">
-      <div className="mb-6">
-        <Link href="/portfolio" className="text-sm text-[rgba(245,245,242,0.45)] transition-colors hover:text-[#F5F5F2]">Back to portfolio</Link>
+    <div className="max-w-container mx-auto p-6 lg:p-8">
+      <div className="mb-4">
+        <Link href="/portfolio" className="text-sm text-fg-2 transition-colors hover:text-fg">← Back to portfolio</Link>
       </div>
 
-      <div className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Export & share</h1>
-          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Generate application packs, back up your data, and create protected portfolio links.</p>
-        </div>
-        {subInfo && !subInfo.isPro && (
-                <Link href="/upgrade" className="rounded-xl border border-amber-400/20 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-300">
-            Free plan limits active
-          </Link>
-        )}
-        <Link href="/export/cv" className="rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-2 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-          CV generator
-        </Link>
-        <Link href="/export/linkedin" className="rounded-xl border border-white/[0.08] bg-[#141416] px-4 py-2 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-          LinkedIn snippets
-        </Link>
-      </div>
+      <SectionHeader
+        title="Export & share"
+        sub="Generate application packs, back up your data, and create protected portfolio links."
+        actions={
+          <>
+            {subInfo && !subInfo.isPro && (
+              <Link href="/upgrade" className="rounded-lg border border-pill-amber bg-pill-amber px-4 py-2 text-sm font-medium text-amber-300 transition-colors hover:border-default">
+                Free plan limits active
+              </Link>
+            )}
+            <Link href="/export/cv" className="rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors">
+              CV generator
+            </Link>
+            <Link href="/export/linkedin" className="rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors">
+              LinkedIn snippets
+            </Link>
+          </>
+        }
+      />
 
-      <div className="mb-6 flex flex-wrap gap-2 rounded-2xl border border-white/[0.08] bg-[#141416] p-1.5">
+      <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-subtle bg-surface-1 p-1">
         {(['pdf', 'backup', 'share'] as Tab[]).map(item => (
           <button
             key={item}
             onClick={() => setTab(item)}
-            className={`rounded-xl px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-[#1B6FD9] text-[#0B0B0C]' : 'text-[rgba(245,245,242,0.55)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'}`}
+            className={`rounded px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-blue-500 text-surface-0' : 'text-fg-2 hover:bg-surface-3 hover:text-fg'}`}
           >
             {item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : 'Share links'}
           </button>
