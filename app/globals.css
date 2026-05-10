@@ -43,6 +43,7 @@
   [role="dialog"],
   .fixed,
   .sticky,
+  .no-print,
   a[href$="/edit"],
   a[href*="/new"] {
     display: none !important;

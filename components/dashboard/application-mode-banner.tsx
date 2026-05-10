@@ -43,7 +43,7 @@ export default function ApplicationModeBanner({ applicationId, specialtyLabel, d
   }
 
   return (
-    <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pill-amber bg-pill-amber px-5 py-4">
+    <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pill-amber bg-pill-amber px-5 py-4">
       <div className="flex items-center gap-3 min-w-0">
         <span className="inline-flex h-8 w-8 items-center justify-center rounded bg-amber-500/20 text-amber-300">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
