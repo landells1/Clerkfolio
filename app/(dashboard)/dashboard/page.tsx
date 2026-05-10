@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { getSpecialtyConfig, calculateTotalScore, isEvidenceBased, getEvidenceProgress } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 import ActivityFeed from '@/components/dashboard/activity-feed'
 import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
@@ -189,16 +189,37 @@ export default async function DashboardPage() {
     ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`, date: g.due_date, type: 'Goal' as const })),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
+  // Specialty progress rows: for points-based specialties (e.g. IMT 11/30) we
+  // surface the actual points and totalMax via the same calculateTotalScore the
+  // tracker uses. For evidence-based specialties (no points - person spec only)
+  // we fall back to "essentials met" out of total essentials.
   const specialtyProgressRows = (trackedSpecialtyRows ?? []).map(row => {
     const config = getSpecialtyConfig(row.specialty_key)
     const links = specialtyLinks.filter(link => link.application_id === row.id)
-    const evidenced = new Set(links.map(link => link.domain_key)).size
-    const total = config?.domains.length ?? 0
+    const entryCount = new Set(links.map(link => link.entry_id)).size
+    if (!config) {
+      return { id: row.id, label: row.specialty_key, percent: 0, entryCount, scoreLabel: '0' }
+    }
+    if (isEvidenceBased(config)) {
+      const progress = getEvidenceProgress(config, links)
+      const denom = progress.essentialsTotal + progress.desirablesTotal
+      const numer = progress.essentialsMet + progress.desirablesEvidenced
+      return {
+        id: row.id,
+        label: config.name,
+        percent: denom === 0 ? 0 : Math.round((numer / denom) * 100),
+        entryCount,
+        scoreLabel: `${numer}/${denom} criteria`,
+      }
+    }
+    const score = calculateTotalScore(config, { ...row, user_id: user!.id, cycle_year: config.cycleYear, created_at: '', is_active: true, archived_at: null }, links)
+    const max = config.totalMax
     return {
       id: row.id,
-      label: config?.name ?? row.specialty_key,
-      percent: total === 0 ? 0 : Math.round((evidenced / total) * 100),
-      entryCount: new Set(links.map(link => link.entry_id)).size,
+      label: config.name,
+      percent: max === 0 ? 0 : Math.round((score / max) * 100),
+      entryCount,
+      scoreLabel: `${score}/${max} pts`,
     }
   })
 
@@ -405,27 +426,32 @@ function buildEntriesOverTime(entries: { category: string; created_at: string }[
 }
 
 
-/** Compact specialty progress panel for the right column */
-function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number }[] }) {
+/** Compact specialty progress panel for the right column.
+ *  Points-based specialties (IMT, etc) show "11/30 pts"; evidence-based ones
+ *  show "N/M criteria". The percent stays as a quick scan summary. */
+function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number; scoreLabel: string }[] }) {
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
-      <div className="px-4 pt-4 pb-3 border-b border-white/[0.06]">
-        <p className="text-sm font-semibold text-[#F5F5F2]">Specialty progress</p>
-        <p className="mt-0.5 text-[11px] text-[rgba(245,245,242,0.45)]">
-          % of domains with at least one piece of linked evidence.
+    <div className="bg-surface-1 border border-subtle rounded-lg overflow-hidden">
+      <div className="px-4 pt-4 pb-3 border-b border-subtle">
+        <p className="text-sm font-semibold text-fg">Specialty progress</p>
+        <p className="mt-0.5 text-[11px] text-fg-2">
+          Points scored against the official scoring matrix.
         </p>
       </div>
-      <div className="divide-y divide-white/[0.06]">
+      <div className="divide-y divide-subtle">
         {rows.map(row => (
           <div key={row.id} className="px-4 py-3 space-y-1.5">
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-[#F5F5F2] truncate">{row.label}</p>
-              <span className="shrink-0 text-xs tabular-nums text-[rgba(245,245,242,0.5)]">{row.percent}%</span>
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-sm font-medium text-fg truncate">{row.label}</p>
+              <span className="shrink-0 text-sm font-semibold tabular-nums text-fg">
+                {row.scoreLabel}
+                <span className="ml-1.5 text-xs font-normal text-fg-2">{row.percent}%</span>
+              </span>
             </div>
-            <div className="h-1.5 rounded-full bg-white/[0.08] overflow-hidden">
-              <div className="h-full rounded-full bg-[#1B6FD9] transition-all" style={{ width: `${row.percent}%` }} />
+            <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
+              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${row.percent}%` }} />
             </div>
-            <p className="text-[11px] text-[rgba(245,245,242,0.35)]">
+            <p className="text-[11px] text-fg-3">
               {row.entryCount} {row.entryCount === 1 ? 'entry' : 'entries'} linked
             </p>
           </div>
