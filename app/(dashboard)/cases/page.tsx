@@ -5,6 +5,8 @@ import DraftResumeBanner from '@/components/cases/draft-resume-banner'
 import type { Case } from '@/lib/types/cases'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
+import SectionHeader from '@/components/ui/section-header'
+import StatTile from '@/components/ui/stat-tile'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
 
@@ -79,43 +81,67 @@ export default async function CasesPage({
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)
   const total = allCasesMeta?.length ?? 0
 
+  // StatTile metrics for the header row
+  const now = new Date()
+  const thisMonthKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const thisMonthCount = (allCasesMeta ?? []).filter(c => {
+    const d = (c as { created_at?: string }).created_at
+    return d && d.startsWith(thisMonthKey)
+  }).length
+  const specialtiesTouched = new Set<string>()
+  ;(allCasesMeta ?? []).forEach(c => (c.specialty_tags ?? []).forEach((t: string) => specialtiesTouched.add(t)))
+  // Average per week over the past year (or shorter window if newer)
+  const oneYearMs = 365 * 24 * 60 * 60 * 1000
+  const weeksWindow = Math.max(1, Math.min(52, Math.round(((allCasesMeta ?? []).length > 0 ? oneYearMs : 7 * 24 * 60 * 60 * 1000) / (7 * 24 * 60 * 60 * 1000))))
+  const avgPerWeek = total === 0 ? 0 : Math.round((total / weeksWindow) * 10) / 10
+
   return (
-    <PullToRefresh className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Cases</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">{total} {total === 1 ? 'case' : 'cases'} logged</p>
-        </div>
-        <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
-          <span className="text-lg leading-none">+</span>
-          Log case
-        </Link>
+    <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
+      <SectionHeader
+        title="Cases"
+        sub={`${total} ${total === 1 ? 'case' : 'cases'} logged`}
+        actions={
+          <Link
+            href="/cases/new"
+            className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-surface-0 font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
+          >
+            <span className="text-lg leading-none">+</span>
+            Log case
+          </Link>
+        }
+      />
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatTile label="Total cases" value={total} sub="all time" barColour="blue" />
+        <StatTile label="This month" value={thisMonthCount} sub={now.toLocaleDateString('en-GB', { month: 'long' })} barColour="violet" />
+        <StatTile label="Specialties touched" value={specialtiesTouched.size} sub="distinct linked tags" barColour="cyan" />
+        <StatTile label="Avg per week" value={avgPerWeek} sub="rolling year" barColour="amber" />
       </div>
 
       <form className="mb-3 flex flex-wrap gap-2">
-        <input name="q" defaultValue={q} placeholder="Search cases" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]" />
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <input name="q" defaultValue={q} placeholder="Search cases" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
           Green only
         </label>
-        <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+        <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any fields</option>
           <option value="notes">Missing notes</option>
           <option value="clinical domain">Missing domain</option>
           <option value="date">Missing date</option>
         </select>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           Min
           <input type="range" name="min_score" min="0" max="2" defaultValue={hasMinScore ? minScore : 0} className="w-16" />
         </label>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           Max
           <input type="range" name="max_score" min="0" max="2" defaultValue={hasMaxScore ? maxScore : 2} className="w-16" />
         </label>
-        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+        <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
-      <p className="mb-3 text-xs text-[rgba(245,245,242,0.45)]">
-        Completeness: green = strong case note, amber = needs detail, red = sparse. “Green only” shows cases already in the strongest band.
+      <p className="mb-3 text-xs text-fg-2">
+        Completeness: green = strong case note, amber = needs detail, red = sparse. "Green only" shows cases already in the strongest band.
       </p>
       <SavedSearchBar surface="cases" q={q} />
 
@@ -132,17 +158,20 @@ export default async function CasesPage({
 
       <DraftResumeBanner />
 
-      <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-xl px-4 py-3 mb-6">
-        <p className="text-xs text-[rgba(245,245,242,0.4)] leading-relaxed">
+      <div className="flex items-start gap-3 bg-pill-amber border border-pill-amber rounded-lg px-4 py-3 mb-6">
+        <svg className="shrink-0 mt-0.5 w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M12 9v4" /><path d="M12 17h.01" /><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+        </svg>
+        <p className="text-xs text-amber-300 leading-relaxed">
           All case entries must be anonymised. Do not include patient names, dates of birth, NHS numbers, or other identifying information.
         </p>
       </div>
 
       {filteredCases.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <p className="text-sm text-[rgba(245,245,242,0.5)] mb-1">{cases?.length ? 'No cases match these filters' : 'No cases logged yet'}</p>
-          <p className="text-xs text-[rgba(245,245,242,0.55)] mb-6 max-w-xs">Start logging anonymised clinical cases. They will appear here as a journal timeline.</p>
-          <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
+          <p className="text-sm text-fg-1 mb-1">{cases?.length ? 'No cases match these filters' : 'No cases logged yet'}</p>
+          <p className="text-xs text-fg-2 mb-6 max-w-xs">Start logging anonymised clinical cases. They will appear here as a journal timeline.</p>
+          <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-surface-0 font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors">
             Log your first case
           </Link>
         </div>

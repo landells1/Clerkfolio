@@ -9,6 +9,9 @@ import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import SpecialtyTag from '@/components/ui/specialty-tag'
+import ListGroupHeader from '@/components/ui/list-group-header'
+import { getSpecialtyColour, colourClasses } from '@/lib/specialties/colours'
 
 type Props = {
   cases: Case[]
@@ -47,17 +50,29 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
   const domains = useMemo(() => Array.from(new Set(cases.flatMap(c => c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []))).sort(), [cases])
 
+  // Active specialty chip filter (separate from the panel `specialty` to allow
+  // the chip row above the list to drive a quick filter without opening the panel).
+  const [chipSpecialty, setChipSpecialty] = useState<string>('')
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
     return cases.filter(c => {
       if (q && !`${c.title} ${c.notes ?? ''}`.toLowerCase().includes(q)) return false
       if (domain && ![c.clinical_domain, ...(c.clinical_domains ?? [])].includes(domain)) return false
       if (specialty && !(c.specialty_tags ?? []).includes(specialty)) return false
+      if (chipSpecialty && !(c.specialty_tags ?? []).includes(chipSpecialty)) return false
       if (from && c.date < from) return false
       if (to && c.date > to) return false
       return true
     })
-  }, [cases, domain, from, query, specialty, to])
+  }, [cases, chipSpecialty, domain, from, query, specialty, to])
+
+  // Counts per specialty across the (unchipped) result set, for the chip row.
+  const specialtyCounts = useMemo(() => {
+    const map = new Map<string, number>()
+    cases.forEach(c => (c.specialty_tags ?? []).forEach(tag => map.set(tag, (map.get(tag) ?? 0) + 1)))
+    return Array.from(map.entries()).sort((a, b) => b[1] - a[1])
+  }, [cases])
 
   const pinned = filtered.filter(c => c.pinned)
   const unpinned = filtered.filter(c => !c.pinned)
@@ -126,19 +141,48 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
   return (
     <>
-      <div className="sticky top-0 z-20 -mx-2 mb-6 bg-[#0B0B0C]/95 px-2 py-3 backdrop-blur">
+      <div className="sticky top-0 z-20 -mx-2 mb-3 bg-surface-0/95 px-2 py-3 backdrop-blur">
         <div className="flex gap-2">
           <input
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search cases"
-            className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]"
+            className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong"
           />
-          <button onClick={() => setFiltersOpen(true)} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">
+          <button onClick={() => setFiltersOpen(true)} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">
             Filters
           </button>
         </div>
       </div>
+
+      {specialtyCounts.length > 0 && (
+        <div className="mb-5 flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => setChipSpecialty('')}
+            className={`inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border transition-colors ${chipSpecialty === '' ? 'bg-pill-blue border-pill-blue text-blue-300' : 'bg-pill-neutral border-pill-neutral text-fg-1 hover:border-default'}`}
+          >
+            All
+            <span className="text-fg-3 tabular-nums">{cases.length}</span>
+          </button>
+          {specialtyCounts.map(([key, count]) => {
+            const c = colourClasses(getSpecialtyColour(key))
+            const active = chipSpecialty === key
+            return (
+              <button
+                key={key}
+                type="button"
+                onClick={() => setChipSpecialty(active ? '' : key)}
+                className={`inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border transition-colors ${active ? `${c.bg} ${c.border} ${c.text}` : 'bg-pill-neutral border-pill-neutral text-fg-1 hover:border-default'}`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+                {formatSpecialtyLabel(key)}
+                <span className="text-fg-3 tabular-nums">{count}</span>
+              </button>
+            )
+          })}
+        </div>
+      )}
 
       {selectMode && (
         <div className="mb-3 flex items-center justify-between">
@@ -155,35 +199,31 @@ export default function CasesListClient({ cases, userInterests }: Props) {
         </button>
       )}
 
-      <div className="space-y-8">
+      <div className="space-y-6">
         {pinned.length > 0 && (
-          <section>
-            <h2 className="mb-3 text-sm font-semibold text-[#F5F5F2]">Pinned</h2>
-            <div className="space-y-3">
-              {pinned.map(c => (
-                <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
-                  <JournalCaseCard c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
-                </SwipeToDelete>
-              ))}
-            </div>
+          <section className="rounded-lg border border-subtle bg-surface-1 overflow-hidden">
+            <ListGroupHeader label="Pinned" meta={`${pinned.length} ${pinned.length === 1 ? 'case' : 'cases'}`} />
+            {pinned.map(c => (
+              <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
+                <DenseCaseRow c={c} pinned selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+              </SwipeToDelete>
+            ))}
           </section>
         )}
 
         {Object.entries(grouped).map(([month, monthCases]) => (
-          <section key={month} className="relative border-l border-white/[0.08] pl-5">
-            <h2 className="sticky top-16 z-10 -ml-5 mb-3 bg-[#0B0B0C] py-1 pl-5 text-sm font-semibold text-[rgba(245,245,242,0.72)]">{month}</h2>
-            <div className="space-y-3">
-              {monthCases.map(c => (
-                <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
-                  <JournalCaseCard c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
-                </SwipeToDelete>
-              ))}
-            </div>
+          <section key={month} className="rounded-lg border border-subtle bg-surface-1 overflow-hidden">
+            <ListGroupHeader label={month} meta={`${monthCases.length} ${monthCases.length === 1 ? 'case' : 'cases'}`} />
+            {monthCases.map(c => (
+              <SwipeToDelete key={c.id} disabled={selectMode} title="Move case to trash?" description={c.title} onConfirm={() => swipeTrash(c)}>
+                <DenseCaseRow c={c} selected={selected.has(c.id)} selectMode={selectMode} onToggle={() => toggleCase(c.id)} />
+              </SwipeToDelete>
+            ))}
           </section>
         ))}
 
         {filtered.length === 0 && (
-          <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-10 text-center text-sm text-[rgba(245,245,242,0.45)]">No cases match those filters.</div>
+          <div className="rounded-lg border border-subtle bg-surface-1 p-10 text-center text-sm text-fg-2">No cases match those filters.</div>
         )}
       </div>
 
@@ -251,30 +291,48 @@ function Select({ label, value, onChange, options, getOptionLabel = option => op
   )
 }
 
-function JournalCaseCard({ c, pinned, selected, selectMode, onToggle }: { c: Case; pinned?: boolean; selected: boolean; selectMode: boolean; onToggle: () => void }) {
+// Dense row variant of a case for the high-volume list. Keeps the existing
+// swipe-to-delete + bulk-select wrapping intact via the parent.
+function DenseCaseRow({ c, pinned, selected, selectMode, onToggle }: { c: Case; pinned?: boolean; selected: boolean; selectMode: boolean; onToggle: () => void }) {
+  const primaryTag = c.specialty_tags?.[0]
+  const dotColour = colourClasses(getSpecialtyColour(primaryTag))
+  const date = new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
   return (
-    <div className="group/row flex items-stretch">
-      <button onClick={onToggle} className={`w-10 shrink-0 transition-opacity ${selectMode || selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`} aria-label={selected ? 'Deselect case' : 'Select case'}>
-        <span className={`mx-auto flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-[#1B6FD9] bg-[#1B6FD9]' : 'border-white/[0.3] bg-[#141416]'}`}>
+    <div className="group/row relative flex items-stretch">
+      {/* Selection checkbox: hidden until hover unless selecting */}
+      <button onClick={onToggle} className={`shrink-0 w-9 flex items-center justify-center transition-opacity ${selectMode || selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`} aria-label={selected ? 'Deselect case' : 'Select case'}>
+        <span className={`flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-blue-500 bg-blue-500' : 'border-fg-3 bg-surface-1'}`}>
           {selected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
         </span>
       </button>
-      <div className="relative flex-1">
-        <Link href={`/cases/${c.id}`} className="block rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-            <div className="min-w-0">
-              <div className="mb-2 flex flex-wrap items-center gap-2">
-                {pinned && <span className="rounded bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[#1B6FD9]">Pinned</span>}
-                <span className="rounded bg-white/[0.06] px-2 py-0.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)]">{clinicalArea(c)}</span>
+      <div className="flex-1 min-w-0">
+        <Link href={`/cases/${c.id}`} className="block">
+          <div className="group flex items-center gap-3 px-3 py-2.5 hover:bg-surface-3 border-b border-subtle last:border-b-0 transition-colors">
+            <span className={`shrink-0 w-2 h-2 rounded-full ${dotColour.dot}`} aria-hidden />
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                {pinned && (
+                  <span className="text-[10px] font-medium text-blue-300 uppercase tracking-wide">Pinned</span>
+                )}
+                <span className="text-sm text-fg truncate min-w-0">{c.title}</span>
+                {primaryTag && <SpecialtyTag specialty={primaryTag} />}
+                {c.specialty_tags && c.specialty_tags.length > 1 && (
+                  <span className="text-[11px] text-fg-3">+{c.specialty_tags.length - 1}</span>
+                )}
+                <span className="text-[11px] text-fg-3 truncate">· {clinicalArea(c)}</span>
               </div>
-              <h3 className="truncate text-base font-semibold text-[#F5F5F2]">{c.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-[rgba(245,245,242,0.55)]">{firstSentence(c.notes)}</p>
+              <div className="mt-0.5 text-xs text-fg-2 line-clamp-1 hidden group-hover:block">
+                {firstSentence(c.notes)}
+              </div>
             </div>
-            <time className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+            <time className="shrink-0 text-xs text-fg-3 tabular-nums">{date}</time>
+            <svg className="shrink-0 w-3.5 h-3.5 text-fg-3 opacity-0 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
           </div>
         </Link>
-        {selectMode && <button onClick={onToggle} className="absolute inset-0 z-10" aria-label="Toggle case selection" />}
       </div>
+      {selectMode && <button onClick={onToggle} className="absolute inset-0 z-10" aria-label="Toggle case selection" />}
     </div>
   )
 }
