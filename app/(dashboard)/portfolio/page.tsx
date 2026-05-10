@@ -6,6 +6,8 @@ import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
 import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
+import SectionHeader from '@/components/ui/section-header'
+import CategoryTileGrid from '@/components/portfolio/category-tile-grid'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
 
@@ -98,62 +100,68 @@ export default async function PortfolioPage({
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)
 
   return (
-    <PullToRefresh className="p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Portfolio</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">{entries?.length ?? 0} entries logged</p>
-        </div>
-        <Link href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'} className="min-h-[44px] flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
-          <span className="text-lg leading-none">+</span>
-          Add entry
-        </Link>
-      </div>
+    <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
+      <SectionHeader
+        title="Portfolio"
+        sub={`${entries?.length ?? 0} ${(entries?.length ?? 0) === 1 ? 'entry' : 'entries'} logged`}
+        actions={
+          <Link
+            href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'}
+            className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-surface-0 font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
+          >
+            <span className="text-lg leading-none">+</span>
+            Add entry
+          </Link>
+        }
+      />
 
       <form className="mb-3 flex flex-wrap gap-2">
         <input type="hidden" name="view" value={view} />
         {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
-        <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]" />
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
           Green only
         </label>
-        <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+        <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any fields</option>
           <option value="notes">Missing notes</option>
           <option value="specialty tags">Missing tags</option>
           <option value="audit cycle stage">Missing audit stage</option>
           <option value="date">Missing date</option>
         </select>
-        <select name="ready" defaultValue={readyFilter} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+        <select name="ready" defaultValue={readyFilter} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any portfolio</option>
           <option value="imt">Interview-ready: IMT</option>
           <option value="st_application">Interview-ready: ST application</option>
         </select>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           Min
           <input type="range" name="min_score" min="0" max="2" defaultValue={hasMinScore ? minScore : 0} className="w-16" />
         </label>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
           Max
           <input type="range" name="max_score" min="0" max="2" defaultValue={hasMaxScore ? maxScore : 2} className="w-16" />
         </label>
-        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+        <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
-      <p className="mb-3 text-xs text-[rgba(245,245,242,0.45)]">
-        Completeness: green = strong evidence, amber = needs detail, red = sparse. “Green only” shows entries already in the strongest band.
+      <p className="mb-3 text-xs text-fg-2">
+        Completeness: green = strong evidence, amber = needs detail, red = sparse. &ldquo;Green only&rdquo; shows entries already in the strongest band.
       </p>
       <SavedSearchBar surface="portfolio" q={q} />
 
-      <div className="mb-6 flex flex-wrap gap-2 border-b border-white/[0.06] pb-4">
+      <div className="mb-6 flex flex-wrap gap-2 border-b border-subtle pb-4">
         <ViewLink href="/portfolio" active={view === 'categories'} label="Categories" />
         <ViewLink href="/portfolio?view=themes" active={view === 'themes'} label="Themes" />
         <ViewLink href="/portfolio?view=all" active={view === 'all'} label="All" />
       </div>
 
-      {view === 'categories' && (
+      {view === 'categories' && !activeCategory && (
+        <CategoryTileGrid entries={(entries ?? []).map(e => ({ category: e.category as Category, date: e.date, created_at: e.created_at }))} />
+      )}
+      {view === 'categories' && activeCategory && (
         <div className="mb-6 flex flex-wrap gap-1.5">
-          <ViewLink href="/portfolio" active={!activeCategory} label={`All ${entries?.length ?? 0}`} />
+          <ViewLink href="/portfolio" active={false} label={`← All ${entries?.length ?? 0}`} />
           {CATEGORIES.map(category => (
             <ViewLink
               key={category.value}
@@ -200,7 +208,7 @@ export default async function PortfolioPage({
 
 function ViewLink({ href, active, label }: { href: string; active: boolean; label: string }) {
   return (
-    <Link href={href} className={`min-h-[36px] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-[#F5F5F2]/10 text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.5)] hover:bg-white/[0.05] hover:text-[#F5F5F2]'}`}>
+    <Link href={href} className={`min-h-[36px] rounded-lg px-3 py-2 text-sm font-medium transition-colors ${active ? 'bg-surface-3 text-fg' : 'text-fg-2 hover:bg-surface-2 hover:text-fg'}`}>
       {label}
     </Link>
   )
@@ -208,19 +216,19 @@ function ViewLink({ href, active, label }: { href: string; active: boolean; labe
 
 function EmptyPortfolio() {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-10 text-center">
-      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/[0.08] bg-white/[0.04]">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <div className="rounded-lg border border-subtle bg-surface-1 p-10 text-center">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-subtle bg-surface-2">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-2">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
         </svg>
       </div>
-      <p className="text-sm font-medium text-[#F5F5F2]">Your portfolio lives here</p>
-      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-[rgba(245,245,242,0.55)]">
+      <p className="text-sm font-medium text-fg">Your portfolio lives here</p>
+      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-fg-2">
         Log audits, teaching, courses, publications, prizes, procedures and reflections. Filter by category once you have a few entries.
       </p>
       <Link
         href="/portfolio/new"
-        className="mt-5 inline-flex items-center gap-2 rounded-xl bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] transition-colors"
+        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 hover:bg-blue-600 transition-colors"
       >
         Add your first entry
       </Link>
