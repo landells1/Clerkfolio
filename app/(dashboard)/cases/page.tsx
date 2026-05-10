@@ -141,7 +141,7 @@ export default async function CasesPage({
         <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
       <p className="mb-3 text-xs text-fg-2">
-        Completeness: green = strong case note, amber = needs detail, red = sparse. "Green only" shows cases already in the strongest band.
+        Completeness: green = strong case note, amber = needs detail, red = sparse. &ldquo;Green only&rdquo; shows cases already in the strongest band.
       </p>
       <SavedSearchBar surface="cases" q={q} />
 
