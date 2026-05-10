@@ -94,22 +94,24 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
         onClick={() => setCollapsed(v => !v)}
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-[#1B6FD9]/15 flex items-center justify-center">
+          <div className="w-8 h-8 rounded-lg bg-pill-blue flex items-center justify-center">
             {celebrating ? (
-              <span className="text-base">🎉</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
             ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-300">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
                 <polyline points="22 4 12 14.01 9 11.01"/>
               </svg>
             )}
           </div>
           <div>
-            <p className="text-sm font-semibold text-[#F5F5F2]">
-              {celebrating ? 'You\'re all set! 🎉' : 'Getting started'}
+            <p className="text-sm font-semibold text-fg">
+              {celebrating ? 'Setup complete' : 'Getting started'}
             </p>
-            <p className="text-xs text-[rgba(245,245,242,0.4)]">
-              {celebrating ? 'Checklist complete - great work!' : `${progress} of ${ITEMS.length} complete`}
+            <p className="text-xs text-fg-2">
+              {celebrating ? 'Checklist complete.' : `${progress} of ${ITEMS.length} complete`}
             </p>
           </div>
         </div>

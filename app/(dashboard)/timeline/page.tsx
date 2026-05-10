@@ -117,11 +117,11 @@ export default async function TimelinePage({
 
   return (
     <>
-      <div className="px-6 pt-6 lg:px-8">
+      <div className="max-w-container mx-auto px-6 pt-6 lg:px-8">
         <form className="mb-3 flex flex-wrap gap-2">
-          <input name="q" defaultValue={q} placeholder="Search timeline" className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none focus:border-[#1B6FD9]" />
-          <input type="date" name="since" defaultValue={resolvedSearchParams.since ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]" />
-          <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Search</button>
+          <input name="q" defaultValue={q} placeholder="Search timeline" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
+          <input type="date" name="since" defaultValue={resolvedSearchParams.since ?? ''} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg" />
+          <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
         </form>
         <SavedSearchBar surface="timeline" q={q} />
       </div>
