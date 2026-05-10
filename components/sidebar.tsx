@@ -261,16 +261,17 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         </div>
       </div>
 
-      {/* Mobile bottom navigation bar */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 h-16 bg-[#0E0E10] border-t border-white/[0.06] flex items-center justify-around px-2">
+      {/* Mobile bottom navigation bar - safe-area aware */}
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface-1 border-t border-subtle flex items-center justify-around px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur">
         {getBottomNavItems(profile.career_stage).map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex flex-col items-center gap-1 py-1 px-3 min-w-[44px] min-h-[44px] justify-center rounded-xl transition-colors ${
-                active ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.45)]'
+              aria-current={active ? 'page' : undefined}
+              className={`flex flex-col items-center gap-1 py-1 px-3 min-w-[44px] min-h-[44px] justify-center rounded-lg transition-colors ${
+                active ? 'text-blue-400' : 'text-fg-2'
               }`}
             >
               <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
