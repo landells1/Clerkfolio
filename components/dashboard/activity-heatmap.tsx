@@ -14,11 +14,13 @@ const GAP       = 3   // px - gap between cells
 const LABEL_W   = 24  // px - day-label column width
 const LABEL_GAP = 8   // px - gap between day labels and the cell grid
 
+// Warm green-to-amber ramp - empty days fade, light activity reads as healthy
+// green, heavy activity tilts amber to draw the eye.
 function cellColor(count: number): string {
   if (count === 0) return 'rgba(245,245,242,0.05)'
-  if (count === 1) return '#0A3260'
-  if (count === 2) return '#155BB0'
-  return '#3884DD'
+  if (count === 1) return 'rgba(34, 197, 94, 0.30)'   // green-500 @ 30%
+  if (count === 2) return 'rgba(34, 197, 94, 0.65)'   // green-500 @ 65%
+  return 'rgba(245, 158, 11, 0.85)'                    // amber-500
 }
 
 function cellTitle(count: number, dateStr: string): string {
@@ -77,7 +79,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         <p className="text-[13px] font-semibold text-[#F5F5F2]">Activity</p>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-[rgba(245,245,242,0.55)]">Less</span>
-          {(['rgba(245,245,242,0.05)', '#0A3260', '#155BB0', '#3884DD'] as const).map((color, i) => (
+          {(['rgba(245,245,242,0.05)', 'rgba(34, 197, 94, 0.30)', 'rgba(34, 197, 94, 0.65)', 'rgba(245, 158, 11, 0.85)'] as const).map((color, i) => (
             <div key={i} className="rounded-sm" style={{ width: CELL - 3, height: CELL - 3, background: color }} />
           ))}
           <span className="text-[10px] text-[rgba(245,245,242,0.55)]">More</span>

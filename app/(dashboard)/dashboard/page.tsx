@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
@@ -25,6 +24,8 @@ import DemoStarterCard from '@/components/dashboard/demo-starter-card'
 import CareerWelcomeCard from '@/components/dashboard/career-welcome-card'
 import GuidedTour from '@/components/dashboard/guided-tour'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
+import SectionHeader from '@/components/ui/section-header'
+import StatTile from '@/components/ui/stat-tile'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
 import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
@@ -223,19 +224,17 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <PullToRefresh className="p-6 lg:p-8 max-w-6xl mx-auto w-full">
-      <div className="flex items-start justify-between mb-8 gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Dashboard</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
-            {profile?.career_stage ? `${CAREER_STAGE_LABELS[profile.career_stage] ?? profile.career_stage} · ` : ''}Your collated portfolio data
-          </p>
-        </div>
-        <div className="hidden sm:flex items-center gap-4 shrink-0">
-          <StreakBadge activeWeeks={activeWeeks} />
-          <QuickAddButton userInterests={trackedSpecialtyKeys} />
-        </div>
-      </div>
+    <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
+      <SectionHeader
+        title="Dashboard"
+        sub={profile?.career_stage ? CAREER_STAGE_LABELS[profile.career_stage] ?? profile.career_stage : undefined}
+        actions={
+          <div className="hidden sm:flex items-center gap-3">
+            <StreakBadge activeWeeks={activeWeeks} />
+            <QuickAddButton userInterests={trackedSpecialtyKeys} />
+          </div>
+        }
+      />
       <div className="mb-6 sm:hidden">
         <QuickAddButton userInterests={trackedSpecialtyKeys} />
       </div>
@@ -286,10 +285,33 @@ export default async function DashboardPage() {
         <div className="space-y-5 min-w-0">
           <ActivityHeatmap dates={heatmapDates} />
 
-          <div className="grid grid-cols-3 gap-4">
-            <StatCard label="Portfolio entries" value={allEntries?.length ?? 0} href="/portfolio" />
-            <StatCard label="Cases logged" value={allCases?.length ?? 0} href="/cases" />
-            <StatCard label="Upcoming deadlines & goals" value={upcomingItems.length} href="/timeline" />
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatTile
+              label="Portfolio entries"
+              value={allEntries?.length ?? 0}
+              sub="across all categories"
+              barColour="violet"
+              onClick={undefined}
+            />
+            <StatTile
+              label="Cases logged"
+              value={allCases?.length ?? 0}
+              sub={`${recentCases?.length ?? 0} in last 20`}
+              barColour="blue"
+            />
+            <StatTile
+              label="Specialties tracked"
+              value={trackedSpecialtyRows?.length ?? 0}
+              sub={specialtyProgressRows[0] ? `${specialtyProgressRows[0].percent}% on top` : 'none yet'}
+              barPct={specialtyProgressRows[0]?.percent}
+              barColour="green"
+            />
+            <StatTile
+              label="Upcoming"
+              value={upcomingItems.length}
+              sub="deadlines and goals (30d)"
+              barColour="amber"
+            />
           </div>
 
           {/* Charts only render once the user has logged something - empty months are noise. */}
@@ -421,11 +443,3 @@ function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; p
   )
 }
 
-function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
-  return (
-    <Link href={href} className="bg-[#141416] border border-white/[0.08] rounded-2xl p-4 hover:border-white/[0.14] transition-colors block">
-      <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">{label}</p>
-      <p className="font-bold leading-none text-[#F5F5F2]" style={{ fontSize: 32 }}>{value}</p>
-    </Link>
-  )
-}
