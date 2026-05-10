@@ -72,6 +72,7 @@ export type SpecialtyApplication = {
   created_at: string
   is_active: boolean       // false = archived (moved to new cycle)
   archived_at: string | null
+  is_target?: boolean      // true = the specialty user is currently applying to (Application Mode banner key)
 }
 
 export type SpecialtyEntryLink = {

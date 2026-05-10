@@ -26,6 +26,8 @@ import GuidedTour from '@/components/dashboard/guided-tour'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
 import SectionHeader from '@/components/ui/section-header'
 import StatTile from '@/components/ui/stat-tile'
+import ApplicationModeBanner from '@/components/dashboard/application-mode-banner'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
 import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
@@ -75,7 +77,7 @@ export default async function DashboardPage() {
       .single(),
     supabase
       .from('specialty_applications')
-      .select('id, specialty_key, bonus_claimed')
+      .select('id, specialty_key, bonus_claimed, is_target')
       .eq('user_id', user!.id),
     supabase
       .from('portfolio_entries')
@@ -236,6 +238,25 @@ export default async function DashboardPage() {
   }))
 
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
+
+  // Application mode: if any tracked specialty is flagged as the target, surface
+  // a deadline countdown banner. Pulls the next upcoming deadline from the
+  // existing `deadlines` table sourced from that specialty's auto-loaded
+  // deadlines (no new tables needed).
+  const targetApp = (trackedSpecialtyRows ?? []).find(row => (row as { is_target?: boolean }).is_target)
+  let targetDeadline: string | null = null
+  if (targetApp) {
+    const { data: targetDeadlines } = await supabase
+      .from('deadlines')
+      .select('due_date')
+      .eq('user_id', user!.id)
+      .eq('source_specialty_key', targetApp.specialty_key)
+      .eq('completed', false)
+      .gte('due_date', today)
+      .order('due_date', { ascending: true })
+      .limit(1)
+    targetDeadline = targetDeadlines?.[0]?.due_date ?? null
+  }
   const entriesOverTime = buildEntriesOverTime(allEntries ?? [], allCases ?? [])
   const timeSinceRows = buildTimeSinceRows((allEntries ?? []) as { category: Category; created_at: string }[], (allCases ?? []) as { created_at: string }[])
   const calendarItems: CalendarWidgetItem[] = [
@@ -259,6 +280,14 @@ export default async function DashboardPage() {
       <div className="mb-6 sm:hidden">
         <QuickAddButton userInterests={trackedSpecialtyKeys} />
       </div>
+
+      {targetApp && (
+        <ApplicationModeBanner
+          applicationId={targetApp.id}
+          specialtyLabel={formatSpecialtyLabel(targetApp.specialty_key)}
+          deadline={targetDeadline}
+        />
+      )}
 
       {showAnniversary && (
         <AnniversaryBanner userId={user!.id} year={anniversaryYear} />

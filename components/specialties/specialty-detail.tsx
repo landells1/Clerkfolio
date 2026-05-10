@@ -46,6 +46,37 @@ export function SpecialtyDetail({
   const [togglingBonus, setTogglingBonus] = useState(false)
   const [tickingAll, setTickingAll] = useState(false)
   const [showShareModal, setShowShareModal] = useState(false)
+  const [isTarget, setIsTarget] = useState(application.is_target ?? false)
+  const [togglingTarget, setTogglingTarget] = useState(false)
+
+  // Application mode toggle: persists the spec.is_target flag. Partial unique
+  // index in the DB ensures only one specialty per user can be the target,
+  // so flipping a new one to true automatically requires the old one off; we
+  // do that client-side first to avoid the unique-violation.
+  async function handleTargetToggle() {
+    if (togglingTarget) return
+    setTogglingTarget(true)
+    const next = !isTarget
+    setIsTarget(next)
+    if (next) {
+      // Clear any other targets first (one-target-per-user invariant).
+      await supabase
+        .from('specialty_applications')
+        .update({ is_target: false })
+        .eq('user_id', application.user_id)
+        .neq('id', application.id)
+    }
+    const { error } = await supabase
+      .from('specialty_applications')
+      .update({ is_target: next })
+      .eq('id', application.id)
+    if (error) {
+      setIsTarget(!next)
+    } else {
+      onApplicationUpdate({ ...application, is_target: next })
+    }
+    setTogglingTarget(false)
+  }
 
   async function handleBonusToggle(_optionKey: string) {
     if (togglingBonus) return
@@ -154,19 +185,36 @@ export function SpecialtyDetail({
             )}
           </div>
 
-          {isPro && (
+          <div className="shrink-0 flex items-center gap-2">
             <button
-              onClick={() => setShowShareModal(true)}
-              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+              onClick={handleTargetToggle}
+              disabled={togglingTarget}
+              title={isTarget ? 'This specialty is your current application target' : 'Mark as your application target to surface a deadline countdown on the dashboard'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ${
+                isTarget
+                  ? 'bg-pill-amber border-pill-amber text-amber-300'
+                  : 'bg-surface-1 border-subtle text-fg-2 hover:border-default hover:text-fg'
+              }`}
             >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-                <polyline points="16 6 12 2 8 6"/>
-                <line x1="12" y1="2" x2="12" y2="15"/>
+              <svg width="12" height="12" viewBox="0 0 24 24" fill={isTarget ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="2" />
               </svg>
-              Share
+              {isTarget ? 'Application target' : 'Set as target'}
             </button>
-          )}
+            {isPro && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-fg-1 bg-surface-1 hover:bg-surface-3 border border-subtle rounded-lg transition-colors"
+              >
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                  <polyline points="16 6 12 2 8 6"/>
+                  <line x1="12" y1="2" x2="12" y2="15"/>
+                </svg>
+                Share
+              </button>
+            )}
+          </div>
         </div>
 
         {showShareModal && (
