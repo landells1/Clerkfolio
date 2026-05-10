@@ -115,6 +115,22 @@ export default function SignupPage() {
             className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             placeholder="you@example.com"
           />
+          {/* Inline institutional-email detection: lights up when an .ac.uk or
+              NHS email is entered, hinting at the Student / Foundation tier
+              before the user even submits. Cosmetic only - actual tier is
+              granted post-verification. */}
+          {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (() => {
+            const lower = email.toLowerCase()
+            const isAcUk = lower.endsWith('.ac.uk')
+            const isNhs = /@(.*\.)?nhs(\.uk|\.net|\.scot|\.wales)?$/.test(lower) || lower.endsWith('.nhs.uk')
+            if (!isAcUk && !isNhs) return null
+            return (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border border-pill-green bg-pill-green text-green-300">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                {isAcUk ? 'Student email detected - eligible for Student tier' : 'NHS email detected - eligible for Foundation tier'}
+              </div>
+            )
+          })()}
         </div>
 
         <div>
