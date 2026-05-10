@@ -51,8 +51,8 @@ export default async function SpecialtiesPage({
   return (
     <>
       {apps.filter(app => app.is_active).length >= 2 && (
-        <div className="px-6 pt-6 lg:px-8">
-          <Link href="/specialties/compare" className="inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+        <div className="max-w-container mx-auto px-6 pt-6 lg:px-8">
+          <Link href="/specialties/compare" className="inline-flex min-h-[40px] items-center rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg hover:border-default transition-colors">
             Compare specialties
           </Link>
         </div>

@@ -70,25 +70,25 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
   const selectedConfig = selectedApp ? getSpecialtyConfig(selectedApp.specialty_key) : null
 
   return (
-    <div className="p-6 max-w-5xl">
+    <div className="p-6 max-w-container mx-auto">
       {/* Tab bar */}
       <div className="flex items-center justify-between mb-6">
-        <div className="flex gap-1 bg-[#141416] border border-white/[0.08] rounded-xl p-1">
+        <div className="flex gap-1 bg-surface-1 border border-subtle rounded-lg p-1">
           {(['my_specialties', 'compare', 'archive'] as Tab[]).map(tab => (
             <button
               key={tab}
               onClick={() => { setActiveTab(tab); setSelectedAppId(null) }}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+              className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? 'bg-[#1B6FD9] text-[#0B0B0C]'
-                  : 'text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2]'
+                  ? 'bg-blue-500 text-surface-0'
+                  : 'text-fg-2 hover:bg-surface-3 hover:text-fg'
               }`}
             >
-              {tab === 'my_specialties' ? 'My Specialties' : tab === 'compare' ? 'Compare' : (
+              {tab === 'my_specialties' ? 'My specialties' : tab === 'compare' ? 'Compare' : (
                 <span className="flex items-center gap-1.5">
                   Archive
                   {archivedApplications.length > 0 && (
-                    <span className="text-[10px] bg-white/[0.15] px-1.5 py-0.5 rounded-full">{archivedApplications.length}</span>
+                    <span className="text-[10px] bg-surface-3 px-1.5 py-0.5 rounded-full">{archivedApplications.length}</span>
                   )}
                 </span>
               )}
@@ -99,14 +99,14 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
         {activeTab === 'my_specialties' && !selectedAppId && (
           <button
             onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-surface-0 font-semibold text-sm rounded-lg transition-colors"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            Add Specialty
+            Add specialty
             {!canTrackAnotherSpecialty && (
-              <span className="text-[10px] font-normal text-[#0B0B0C]/60 ml-0.5">
+              <span className="text-[10px] font-normal text-surface-0/60 ml-0.5">
                 {activeApplications.length}/{FREE_SPECIALTY_LIMIT}
               </span>
             )}
@@ -132,21 +132,21 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
             <>
               {activeApplications.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-24 text-center">
-                  <div className="w-16 h-16 rounded-2xl bg-[#141416] border border-white/[0.08] flex items-center justify-center mb-4">
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="w-16 h-16 rounded-lg bg-surface-1 border border-subtle flex items-center justify-center mb-4">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-2">
                       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
                       <rect x="9" y="3" width="6" height="4" rx="1" />
                       <path d="M9 12h6M9 16h4" />
                     </svg>
                   </div>
-                  <p className="text-[#F5F5F2] font-medium mb-1">No specialty trackers yet</p>
-                  <p className="max-w-sm text-xs text-[rgba(245,245,242,0.55)]">
+                  <p className="text-fg font-medium mb-1">No specialty trackers yet</p>
+                  <p className="max-w-sm text-xs text-fg-2">
                     Pick a specialty to score your evidence by domain and auto-load the application
                     deadlines for the upcoming cycle. Free tier tracks one specialty at a time.
                   </p>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-xl bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] transition-colors"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 hover:bg-blue-600 transition-colors"
                   >
                     Track your first specialty
                   </button>
