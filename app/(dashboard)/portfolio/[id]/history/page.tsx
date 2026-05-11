@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import RestoreVersionButton from '@/components/history/restore-version-button'
 import { CATEGORIES } from '@/lib/types/portfolio'
@@ -45,13 +46,24 @@ export default async function PortfolioHistoryPage({ params }: { params: Promise
   const { id } = await params
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data } = await supabase
-    .from('entry_revisions')
-    .select('id, snapshot, created_at')
-    .eq('user_id', user!.id)
-    .eq('entry_id', id)
-    .eq('entry_type', 'portfolio')
-    .order('created_at', { ascending: false })
+  const [{ data: entry }, { data }] = await Promise.all([
+    supabase
+      .from('portfolio_entries')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', user!.id)
+      .is('deleted_at', null)
+      .maybeSingle(),
+    supabase
+      .from('entry_revisions')
+      .select('id, snapshot, created_at')
+      .eq('user_id', user!.id)
+      .eq('entry_id', id)
+      .eq('entry_type', 'portfolio')
+      .order('created_at', { ascending: false }),
+  ])
+
+  if (!entry) notFound()
 
   const revisions = (data ?? []) as Revision[]
 

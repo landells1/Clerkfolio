@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { notFound } from 'next/navigation'
 import { diffLines } from 'diff'
 import { createClient } from '@/lib/supabase/server'
 
@@ -19,15 +20,26 @@ export default async function PortfolioDiffPage({
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const ids = [query.a, query.b].filter(Boolean) as string[]
-  const { data } = ids.length === 2
-    ? await supabase
-        .from('entry_revisions')
-        .select('id, snapshot, created_at')
-        .eq('user_id', user!.id)
-        .eq('entry_id', id)
-        .eq('entry_type', 'portfolio')
-        .in('id', ids)
-    : { data: [] }
+  const [{ data: entry }, { data }] = await Promise.all([
+    supabase
+      .from('portfolio_entries')
+      .select('id')
+      .eq('id', id)
+      .eq('user_id', user!.id)
+      .is('deleted_at', null)
+      .maybeSingle(),
+    ids.length === 2
+      ? supabase
+          .from('entry_revisions')
+          .select('id, snapshot, created_at')
+          .eq('user_id', user!.id)
+          .eq('entry_id', id)
+          .eq('entry_type', 'portfolio')
+          .in('id', ids)
+      : Promise.resolve({ data: [] }),
+  ])
+
+  if (!entry) notFound()
 
   const revisions = (data ?? []) as Revision[]
   const a = revisions.find(rev => rev.id === query.a)

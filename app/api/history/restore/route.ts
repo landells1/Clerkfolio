@@ -57,6 +57,7 @@ export async function POST(req: NextRequest) {
     .select('*')
     .eq('id', revision.entry_id)
     .eq('user_id', user.id)
+    .is('deleted_at', null)
     .single()
 
   if (currentError || !current) {
@@ -97,4 +98,3 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, entryId: revision.entry_id })
 }
-
