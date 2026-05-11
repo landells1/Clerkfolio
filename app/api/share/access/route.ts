@@ -69,9 +69,11 @@ async function sendShareViewWebhook(
   }
 }
 
-// Tokens are produced by createShareToken() = randomBytes(24).toString('hex') = 48 hex chars.
-// Reject malformed tokens at the edge so we don't burn a DB lookup on every junk request.
-const TOKEN_FORMAT = /^[0-9a-f]{48}$/
+// Tokens are produced by createShareToken() = randomBytes(24).toString('hex') = 48 hex chars,
+// but the DB column default is encode(gen_random_bytes(32), 'hex') = 64 hex chars. Accept either
+// length so direct DB inserts (e.g. tests, admin tooling) are not silently rejected at the edge.
+// Reject malformed tokens here so we don't burn a DB lookup on every junk request.
+const TOKEN_FORMAT = /^[0-9a-f]{48}$|^[0-9a-f]{64}$/
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
