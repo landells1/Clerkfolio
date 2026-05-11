@@ -22,10 +22,10 @@ const FEEDBACK_RATE_LIMIT = 10
 const FEEDBACK_RATE_WINDOW_SECONDS = 60
 
 export async function POST(req: NextRequest) {
-  const resend = new Resend(process.env.RESEND_API_KEY)
   try {
     const originError = validateOrigin(req)
     if (originError) return originError
+    const resend = new Resend(process.env.RESEND_API_KEY)
 
     // Rate limit by IP
     const ip =
