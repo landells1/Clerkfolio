@@ -11,7 +11,7 @@ import {
   REFL_TYPE_LABELS, REFL_FRAMEWORK_LABELS,
   formatInterviewReady,
 } from '@/lib/types/portfolio-labels'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
@@ -21,8 +21,7 @@ import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
 
 function formatTag(tag: string): string {
-  const config = getSpecialtyConfig(tag)
-  return config ? config.name : tag
+  return formatSpecialtyLabel(tag)
 }
 
 function formatDate(d: string) {

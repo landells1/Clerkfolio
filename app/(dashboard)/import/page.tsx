@@ -2,7 +2,7 @@
 import HorusImportWizard from '@/components/import/horus-import-wizard'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 export default async function ImportPage() {
   const supabase = createClient()
@@ -20,7 +20,7 @@ export default async function ImportPage() {
 
   const specialtyOptions = (specialties ?? []).map(row => ({
     key: row.specialty_key,
-    name: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key,
+    name: formatSpecialtyLabel(row.specialty_key),
   }))
 
   return (

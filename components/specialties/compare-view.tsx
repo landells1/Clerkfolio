@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import {
   getSpecialtyConfig,
+  formatSpecialtyLabel,
   calculateDomainScore,
   calculateTotalScore,
   isEvidenceBased,
@@ -75,7 +76,7 @@ export function CompareView({ applications, links }: Props) {
               const config = getSpecialtyConfig(app.specialty_key)
               return (
                 <option key={app.id} value={app.id}>
-                  {config?.name ?? app.specialty_key} ({app.cycle_year})
+                  {config?.name ?? formatSpecialtyLabel(app.specialty_key)} ({app.cycle_year})
                 </option>
               )
             })}
@@ -94,7 +95,7 @@ export function CompareView({ applications, links }: Props) {
               const config = getSpecialtyConfig(app.specialty_key)
               return (
                 <option key={app.id} value={app.id}>
-                  {config?.name ?? app.specialty_key} ({app.cycle_year})
+                  {config?.name ?? formatSpecialtyLabel(app.specialty_key)} ({app.cycle_year})
                 </option>
               )
             })}

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { type Case } from '@/lib/types/cases'
 import { relativeDate } from '@/lib/utils/dates'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import { calculateCompleteness, missingCompletenessFields } from '@/lib/utils/completeness'
 
 export default function CaseCard({ c }: { c: Case & { has_evidence?: boolean } }) {
@@ -28,7 +28,7 @@ export default function CaseCard({ c }: { c: Case & { has_evidence?: boolean } }
             ))}
             {c.specialty_tags.slice(0, 2).map(tag => (
               <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
-                {getSpecialtyConfig(tag)?.name ?? tag}
+                {formatSpecialtyLabel(tag)}
               </span>
             ))}
             {c.specialty_tags.length > 2 && (

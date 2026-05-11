@@ -4,7 +4,7 @@ import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import React, { type ReactElement } from 'react'
 import { foundationPortfolioTemplate } from '@/lib/pdf/foundation-portfolio'
 import { mrcpTemplate } from '@/lib/pdf/mrcp'
@@ -20,8 +20,7 @@ const EXPORT_FIELDS = ['record_type', 'id', 'title', 'category_or_area', 'date',
 type ExportField = typeof EXPORT_FIELDS[number]
 
 function formatTag(tag: string): string {
-  const config = getSpecialtyConfig(tag)
-  return config ? config.name : tag
+  return formatSpecialtyLabel(tag)
 }
 
 function formatTags(tags: string[] | null | undefined) {

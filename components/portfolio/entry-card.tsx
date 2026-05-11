@@ -2,12 +2,11 @@ import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import { entrySubtitle, formatInterviewReady } from '@/lib/types/portfolio-labels'
 import { relativeDate } from '@/lib/utils/dates'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import { calculateCompleteness, missingCompletenessFields } from '@/lib/utils/completeness'
 
 function formatTag(tag: string): string {
-  const config = getSpecialtyConfig(tag)
-  return config ? config.name : tag
+  return formatSpecialtyLabel(tag)
 }
 
 export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evidence?: boolean } }) {

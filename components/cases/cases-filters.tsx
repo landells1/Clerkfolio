@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 import { CLINICAL_DOMAINS } from '@/lib/types/cases'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 const inputClass =
   'bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
@@ -125,7 +125,7 @@ export default function CasesFilters({
           <option value="">All specialties</option>
           {trackedSpecialtyKeys.map(key => (
             <option key={key} value={key}>
-              {getSpecialtyConfig(key)?.name ?? key}
+              {formatSpecialtyLabel(key)}
             </option>
           ))}
         </select>

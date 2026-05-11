@@ -2,12 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import JSZip from 'jszip'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 
 const BACKUP_SCHEMA_VERSION = 1
 
 function formatTag(tag: string) {
-  return getSpecialtyConfig(tag)?.name ?? tag
+  return formatSpecialtyLabel(tag)
 }
 
 function withSpecialtyLabels<T extends { specialty_tags?: string[] | null }>(row: T) {

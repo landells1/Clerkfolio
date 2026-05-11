@@ -7,7 +7,7 @@ import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from
 import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
-import { formatSpecialtyLabel, getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import SectionHeader from '@/components/ui/section-header'
 
 type Tab = 'pdf' | 'backup' | 'share'
@@ -382,12 +382,12 @@ export default function ExportPage() {
           <div className="mb-3 flex flex-wrap gap-2">
             {portfolioTags.map(({ tag, count }) => (
               <button key={tag} onClick={() => setSpecialty(tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
-                {getSpecialtyConfig(tag)?.name ?? tag} <span className="ml-1 text-xs opacity-60">{count}</span>
+                {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
               </button>
             ))}
             {trackedApps.filter(app => !portfolioTags.some(t => t.tag === app.specialty_key)).map(app => (
               <button key={app.id} onClick={() => setSpecialty(app.specialty_key)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === app.specialty_key ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
-                {getSpecialtyConfig(app.specialty_key)?.name ?? app.specialty_key}
+                {formatSpecialtyLabel(app.specialty_key)}
               </button>
             ))}
           </div>

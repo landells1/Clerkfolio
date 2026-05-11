@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 
@@ -44,7 +44,7 @@ export default async function TimelinePage({
   const specialtyRows: TimelineSpecialty[] = (specialties ?? []).map(row => ({
     id: row.id,
     key: row.specialty_key,
-    name: getSpecialtyConfig(row.specialty_key)?.name ?? row.specialty_key,
+    name: formatSpecialtyLabel(row.specialty_key),
   }))
 
   const persistedAutoKeys = new Set(

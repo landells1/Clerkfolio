@@ -1,7 +1,7 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { getSpecialtyConfig } from '@/lib/specialties'
+import { formatSpecialtyLabel } from '@/lib/specialties'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
 import LogSimilarButton from '@/components/cases/log-similar-button'
 import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
@@ -94,7 +94,7 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
-                  {getSpecialtyConfig(tag)?.name ?? tag}
+                  {formatSpecialtyLabel(tag)}
                 </span>
               ))}
             </div>
