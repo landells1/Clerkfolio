@@ -10,6 +10,7 @@ const ALLOWED_NEXT_PATHS = [
   '/cases',
   '/specialties',
   '/export',
+  '/update-password',
 ]
 
 function safeRedirectPath(next: string | null): string {
