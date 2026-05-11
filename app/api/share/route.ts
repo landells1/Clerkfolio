@@ -174,14 +174,10 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   if (!subInfo.isPro) {
-    await supabase.rpc('increment_pro_feature_usage', {
-      p_user_id: user.id,
-      p_feature: 'share_links_used',
-    })
-
     // Compensating check: race condition where two concurrent requests both
     // pass the pre-insert limit check. Count actual active links and revoke
-    // the just-created one if we're now over the free limit.
+    // the just-created one if we're now over the free limit. Only count the
+    // lifetime free usage after the link survives this check.
     const { count: actualCount } = await supabase
       .from('share_links')
       .select('id', { count: 'exact', head: true })
@@ -195,6 +191,15 @@ export async function POST(req: NextRequest) {
         { error: 'limit_reached', limit: 1, used: actualCount, upgrade_url: '/upgrade' },
         { status: 403 }
       )
+    }
+
+    const { error: usageError } = await supabase.rpc('increment_pro_feature_usage', {
+      p_user_id: user.id,
+      p_feature: 'share_links_used',
+    })
+    if (usageError) {
+      await supabase.from('share_links').delete().eq('id', data.id)
+      return NextResponse.json({ error: 'Could not record share link usage. Please try again.' }, { status: 500 })
     }
   }
 
