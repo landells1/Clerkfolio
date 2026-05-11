@@ -243,15 +243,7 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
                   <Text style={s.entryTitle}>{e.title}</Text>
                   <Text style={s.entryDate}>{formatDate(e.date)}</Text>
                 </View>
-                <EntryDetails e={e} />
-                {e.specialty_tags?.length > 0 && (
-                  <View style={s.tags}>
-                    {e.specialty_tags.map(t => (
-                      <Text key={t} style={s.tag}>{formatTag(t)}</Text>
-                    ))}
-                  </View>
-                )}
-                {e.notes && <Detail label="Notes" value={e.notes} />}
+                {/* TEMP debug: EntryDetails removed to bisect React #31 */}
               </View>
             ))}
           </View>
