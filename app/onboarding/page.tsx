@@ -7,6 +7,10 @@ import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
 function getSteps(careerStage: string): Step[] {
+  // Until a career stage is picked we cannot know whether the ARCP step
+  // applies. Default to the longest path (4 steps) so the step counter in
+  // the header does not grow from 1/3 to 2/4 once the user selects FY1/FY2.
+  if (!careerStage) return ['profile', 'specialties', 'arcp', 'first-entry']
   return careerStage === 'FY1' || careerStage === 'FY2'
     ? ['profile', 'specialties', 'arcp', 'first-entry']
     : ['profile', 'specialties', 'first-entry']
