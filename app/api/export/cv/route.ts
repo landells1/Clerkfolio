@@ -4,6 +4,7 @@ import React, { type ReactElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
+import { validateOrigin } from '@/lib/csrf'
 
 const LABELS: Record<string, string> = {
   clinical: 'Clinical CV',
@@ -12,6 +13,9 @@ const LABELS: Record<string, string> = {
 }
 
 export async function GET(req: NextRequest) {
+  const originError = validateOrigin(req)
+  if (originError) return originError
+
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
