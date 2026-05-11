@@ -19,6 +19,58 @@ export default function EmptyTrashButton() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
+    const [{ data: expiredEntries, error: entryLookupError }, { data: expiredCases, error: caseLookupError }] = await Promise.all([
+      supabase.from('portfolio_entries').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
+      supabase.from('cases').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
+    ])
+    if (entryLookupError || caseLookupError) {
+      setLoading(false)
+      addToast('Could not empty trash', 'error')
+      return
+    }
+
+    const entryIds = (expiredEntries ?? []).map(row => row.id)
+    const caseIds = (expiredCases ?? []).map(row => row.id)
+    const evidenceQueries = [
+      entryIds.length
+        ? supabase.from('evidence_files').select('id, file_path').eq('user_id', user.id).eq('entry_type', 'portfolio').in('entry_id', entryIds)
+        : Promise.resolve({ data: [], error: null }),
+      caseIds.length
+        ? supabase.from('evidence_files').select('id, file_path').eq('user_id', user.id).eq('entry_type', 'case').in('entry_id', caseIds)
+        : Promise.resolve({ data: [], error: null }),
+    ] as const
+    const [{ data: entryEvidence, error: entryEvidenceError }, { data: caseEvidence, error: caseEvidenceError }] = await Promise.all(evidenceQueries)
+    if (entryEvidenceError || caseEvidenceError) {
+      setLoading(false)
+      addToast('Could not load linked evidence for deletion', 'error')
+      return
+    }
+
+    const evidenceFiles = [...(entryEvidence ?? []), ...(caseEvidence ?? [])]
+    const paths = evidenceFiles.map(file => file.file_path)
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage.from('evidence').remove(paths)
+      if (storageError) {
+        setLoading(false)
+        addToast('Could not delete linked evidence files', 'error')
+        return
+      }
+    }
+
+    const evidenceIds = evidenceFiles.map(file => file.id)
+    if (evidenceIds.length > 0) {
+      const { error: evidenceDeleteError } = await supabase
+        .from('evidence_files')
+        .delete()
+        .in('id', evidenceIds)
+        .eq('user_id', user.id)
+      if (evidenceDeleteError) {
+        setLoading(false)
+        addToast('Could not delete linked evidence records', 'error')
+        return
+      }
+    }
+
     const [{ error: entryError }, { error: caseError }] = await Promise.all([
       supabase.from('portfolio_entries').delete().eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
       supabase.from('cases').delete().eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),

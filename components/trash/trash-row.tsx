@@ -25,6 +25,7 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
+  const entryType = item.type === 'entry' ? 'portfolio' : 'case'
 
   async function permanentlyDelete() {
     if (!canPermanentlyDelete) {
@@ -37,14 +38,55 @@ export default function TrashRow({ item }: { item: TrashItem }) {
       return
     }
     const table = item.type === 'entry' ? 'portfolio_entries' : 'cases'
-    const { error } = await supabase
+    const { data: evidenceFiles, error: evidenceLookupError } = await supabase
+      .from('evidence_files')
+      .select('id, file_path')
+      .eq('entry_id', item.id)
+      .eq('entry_type', entryType)
+      .eq('user_id', user.id)
+
+    if (evidenceLookupError) {
+      addToast('Failed to prepare evidence for deletion', 'error')
+      return
+    }
+
+    const paths = (evidenceFiles ?? []).map(file => file.file_path)
+    if (paths.length > 0) {
+      const { error: storageError } = await supabase.storage.from('evidence').remove(paths)
+      if (storageError) {
+        addToast('Failed to delete linked evidence files', 'error')
+        return
+      }
+    }
+
+    const evidenceIds = (evidenceFiles ?? []).map(file => file.id)
+    if (evidenceIds.length > 0) {
+      const { error: evidenceDeleteError } = await supabase
+        .from('evidence_files')
+        .delete()
+        .in('id', evidenceIds)
+        .eq('user_id', user.id)
+      if (evidenceDeleteError) {
+        addToast('Failed to delete evidence records', 'error')
+        return
+      }
+    }
+
+    const { data: deletedRows, error } = await supabase
       .from(table)
       .delete()
       .eq('id', item.id)
       .eq('user_id', user.id)
+      .lt('deleted_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
+      .not('deleted_at', 'is', null)
+      .select('id')
 
     if (error) {
       addToast('Failed to delete item permanently', 'error')
+      return
+    }
+    if (!deletedRows?.length) {
+      addToast(`This item can be permanently deleted after ${permanentDeleteAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`, 'error')
       return
     }
     addToast('Item deleted permanently', 'success')
