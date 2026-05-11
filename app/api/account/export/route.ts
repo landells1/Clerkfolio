@@ -3,6 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import JSZip from 'jszip'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import type { SpecialtyEntryLink } from '@/lib/specialties'
+import type { ARCPEntryLink } from '@/lib/types/arcp'
 
 const BACKUP_SCHEMA_VERSION = 1
 
@@ -59,9 +62,24 @@ export async function POST(req: NextRequest) {
   ])
 
   const appIds = (specialtyApps ?? []).map(a => a.id)
-  const { data: filteredLinks } = appIds.length > 0
+  const { data: rawSpecialtyLinks } = appIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', appIds)
     : { data: [] }
+  const filteredLinks = await filterLinksToActivePortfolioEntries(
+    supabase,
+    (rawSpecialtyLinks ?? []) as SpecialtyEntryLink[]
+  )
+  const filteredArcpLinks = await filterLinksToActivePortfolioEntries(
+    supabase,
+    (arcpLinks ?? []) as ARCPEntryLink[]
+  )
+  const activePortfolioIds = new Set((portfolioEntries ?? []).map(entry => entry.id))
+  const activeCaseIds = new Set((cases ?? []).map(c => c.id))
+  const filteredEvidenceFiles = (evidenceFiles ?? []).filter(file => {
+    if (file.entry_type === 'portfolio') return activePortfolioIds.has(file.entry_id)
+    if (file.entry_type === 'case') return activeCaseIds.has(file.entry_id)
+    return false
+  })
 
   const manifest = {
     schema_version: BACKUP_SCHEMA_VERSION,
@@ -74,10 +92,10 @@ export async function POST(req: NextRequest) {
       deadlines: deadlines?.length ?? 0,
       goals: goals?.length ?? 0,
       specialty_applications: specialtyApps?.length ?? 0,
-      specialty_entry_links: filteredLinks?.length ?? 0,
-      arcp_links: arcpLinks?.length ?? 0,
+      specialty_entry_links: filteredLinks.length,
+      arcp_links: filteredArcpLinks.length,
       templates: templates?.length ?? 0,
-      evidence_files: evidenceFiles?.length ?? 0,
+      evidence_files: filteredEvidenceFiles.length,
     },
     import_notes: includeEvidence
       ? 'Files in raw/ preserve database-shaped records. Files in readable/ add display labels for human review. Evidence binaries are grouped by entry id in evidence/.'
@@ -92,7 +110,7 @@ export async function POST(req: NextRequest) {
   raw.file('goals.json', JSON.stringify(goals ?? [], null, 2))
   raw.file('specialty-applications.json', JSON.stringify(specialtyApps ?? [], null, 2))
   raw.file('specialty-entry-links.json', JSON.stringify(filteredLinks, null, 2))
-  raw.file('arcp-links.json', JSON.stringify(arcpLinks ?? [], null, 2))
+  raw.file('arcp-links.json', JSON.stringify(filteredArcpLinks, null, 2))
   raw.file('templates.json', JSON.stringify(templates ?? [], null, 2))
 
   readable.file('portfolio-entries.json', JSON.stringify((portfolioEntries ?? []).map(withSpecialtyLabels), null, 2))
@@ -114,10 +132,10 @@ export async function POST(req: NextRequest) {
   ].join('\n'))
 
   // Download evidence files from Supabase Storage
-  if (evidenceFiles && evidenceFiles.length > 0) {
+  if (filteredEvidenceFiles.length > 0) {
     const evidenceFolder = root.folder('evidence')!
     await Promise.allSettled(
-      evidenceFiles.map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
+      filteredEvidenceFiles.map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
         try {
           const { data: blob } = await supabase.storage
             .from('evidence')
