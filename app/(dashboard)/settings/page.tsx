@@ -663,6 +663,7 @@ function SettingsLink({ href, label, description }: { href: string; label: strin
 function planLabel(subInfo: SubscriptionInfo) {
   if (subInfo.isPro) return 'Pro access'
   if (subInfo.tier === 'student') return 'Student tier'
+  if (subInfo.tier === 'foundation') return 'Foundation tier'
   return 'Free tier'
 }
 
