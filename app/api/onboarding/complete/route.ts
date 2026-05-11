@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
       ? body.studentGraduationDate
       : null
   const selectedSpecialties: string[] = Array.isArray(body.specialties)
-    ? body.specialties.filter((key: unknown): key is string => typeof key === 'string').slice(0, 3)
+    ? body.specialties.filter((key: unknown): key is string => typeof key === 'string').slice(0, 1)
     : []
 
   if (!firstName || !lastName || !careerStage) {
