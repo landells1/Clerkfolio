@@ -147,11 +147,18 @@ export default function SettingsPage() {
     if (!user) return
 
     const publicSlug = normalisePublicSlug(next.public_slug)
+    // student_graduation_date is a Postgres DATE column. The form stores it as a
+    // string and starts at ''; sending '' to Postgres errors with 22007 and the
+    // whole PATCH fails (including showcase fields), which is why "Save showcase"
+    // looked silently broken for non-medical-student users.
+    const gradDate = typeof next.student_graduation_date === 'string' && next.student_graduation_date.trim() !== ''
+      ? next.student_graduation_date
+      : null
     const payload = {
       first_name: next.first_name,
       last_name: next.last_name,
       career_stage: next.career_stage,
-      student_graduation_date: next.student_graduation_date,
+      student_graduation_date: gradDate,
       referral_code: next.referral_code,
       timezone: next.timezone,
       public_slug: publicSlug || null,
