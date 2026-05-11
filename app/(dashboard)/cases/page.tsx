@@ -36,7 +36,7 @@ export default async function CasesPage({
       .order('created_at', { ascending: false }),
     supabase
       .from('cases')
-      .select('clinical_domain, clinical_domains, specialty_tags')
+      .select('clinical_domain, clinical_domains, specialty_tags, created_at')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
