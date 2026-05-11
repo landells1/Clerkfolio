@@ -515,8 +515,12 @@ export default function ExportPage() {
               </div>
             </div>
 
-            {visible.length === 0 && visibleCases.length === 0 ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases match this specialty and category.</div>
+            {!specialty ? (
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Choose a target specialty above to load your portfolio.</div>
+            ) : loading ? (
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Loading entries for {formatSpecialtyLabel(specialty)}...</div>
+            ) : visible.length === 0 && visibleCases.length === 0 ? (
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases tagged with {formatSpecialtyLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}. Tag entries with this specialty in the portfolio to see them here.</div>
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {visible.map(entry => {
