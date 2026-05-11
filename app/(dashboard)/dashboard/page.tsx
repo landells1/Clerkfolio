@@ -225,17 +225,49 @@ export default async function DashboardPage() {
     }
   })
 
-  const specialtyScores = specialtyProgressRows.map(row => ({
-    key: row.id,
-    label: row.label,
-    isEvidenceBased: true,
-    score: 0,
-    maxScore: 0,
-    essentialsMet: row.entryCount,
-    essentialsTotal: row.entryCount,
-    desirablesEvidenced: 0,
-    desirablesTotal: 0,
-  }))
+  const specialtyScores = (trackedSpecialtyRows ?? []).map(row => {
+    const config = getSpecialtyConfig(row.specialty_key)
+    const links = specialtyLinks.filter(link => link.application_id === row.id)
+    if (!config) {
+      return {
+        key: row.id,
+        label: formatSpecialtyLabel(row.specialty_key),
+        isEvidenceBased: false,
+        score: 0,
+        maxScore: 0,
+        essentialsMet: 0,
+        essentialsTotal: 0,
+        desirablesEvidenced: 0,
+        desirablesTotal: 0,
+      }
+    }
+    if (isEvidenceBased(config)) {
+      const progress = getEvidenceProgress(config, links)
+      return {
+        key: row.id,
+        label: config.name,
+        isEvidenceBased: true,
+        score: 0,
+        maxScore: 0,
+        essentialsMet: progress.essentialsMet,
+        essentialsTotal: progress.essentialsTotal,
+        desirablesEvidenced: progress.desirablesEvidenced,
+        desirablesTotal: progress.desirablesTotal,
+      }
+    }
+    const score = calculateTotalScore(config, { ...row, user_id: user!.id, cycle_year: config.cycleYear, created_at: '', is_active: true, archived_at: null }, links)
+    return {
+      key: row.id,
+      label: config.name,
+      isEvidenceBased: false,
+      score,
+      maxScore: config.totalMax,
+      essentialsMet: 0,
+      essentialsTotal: 0,
+      desirablesEvidenced: 0,
+      desirablesTotal: 0,
+    }
+  })
 
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
 
@@ -489,4 +521,3 @@ function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; p
     </div>
   )
 }
-
