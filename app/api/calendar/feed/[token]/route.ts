@@ -82,7 +82,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const { data: deadlines } = await supabase
     .from('deadlines')
-    .select('id, title, due_date, details, location, updated_at, created_at')
+    .select('id, title, due_date, details, location, source_specialty_key, updated_at, created_at')
     .eq('user_id', profile.id)
     .eq('completed', false)
     .order('due_date', { ascending: true })
@@ -103,6 +103,11 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const host = req.nextUrl.host
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
+  const persistedAutoKeys = new Set(
+    (deadlines ?? [])
+      .filter(deadline => deadline.source_specialty_key)
+      .map(deadline => `${deadline.source_specialty_key}|${deadline.title}|${deadline.due_date}`)
+  )
   const configuredDeadlines = [
     ...NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
       id: `nhs-round-3-${deadline.kind}`,
@@ -115,15 +120,17 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     })),
     ...(specialties ?? []).flatMap(specialty => {
       const config = getSpecialtyConfig(specialty.specialty_key)
-      return getDeadlinesForSpecialty(specialty.specialty_key).map(deadline => ({
-        id: `${specialty.id}-${deadline.kind}`,
-        title: deadline.label,
-        due_date: deadline.date,
-        details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
-        location: deadline.sourceUrl,
-        updated_at: null,
-        created_at: config?.key ?? null,
-      }))
+      return getDeadlinesForSpecialty(specialty.specialty_key)
+        .filter(deadline => !persistedAutoKeys.has(`${specialty.specialty_key}|${deadline.label}|${deadline.date}`))
+        .map(deadline => ({
+          id: `${specialty.id}-${deadline.kind}`,
+          title: deadline.label,
+          due_date: deadline.date,
+          details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
+          location: deadline.sourceUrl,
+          updated_at: null,
+          created_at: config?.key ?? null,
+        }))
     }),
   ]
 
