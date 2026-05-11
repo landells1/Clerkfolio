@@ -93,10 +93,13 @@ function formatDate(d: string) {
 
 function Detail({ label, value }: { label: string; value: string | null | undefined }) {
   if (!value) return null
+  // Plain string concat avoids react-pdf's React-element-child reconciliation
+  // path. The earlier version nested a <Text> inside a <Text> for the bold
+  // label, which on Vercel was hitting React error #31 ("objects are not valid
+  // as a child"). Bold-on-label is a polish; render legibility first.
+  const text = typeof value === 'string' ? value : String(value)
   return (
-    <Text style={s.detail}>
-      <Text style={s.detailLabel}>{label}: </Text>{value}
-    </Text>
+    <Text style={s.detail}>{`${label}: ${text}`}</Text>
   )
 }
 
