@@ -189,7 +189,15 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    console.error('PDF generation error:', err instanceof Error ? err.message : 'unknown error')
+    // Full error including stack to surface the underlying @react-pdf/renderer
+    // failure in Vercel logs - the previous one-liner hid everything below the
+    // top frame.
+    if (err instanceof Error) {
+      console.error('PDF generation error:', err.message)
+      console.error('PDF generation stack:', err.stack)
+    } else {
+      console.error('PDF generation error (non-Error):', err)
+    }
     return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
   }
 }
