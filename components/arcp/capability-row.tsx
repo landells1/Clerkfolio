@@ -39,7 +39,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
       const portfolioIds = links.filter(l => l.entry_type === 'portfolio').map(l => l.entry_id)
 
       const portfolioRes = portfolioIds.length > 0
-        ? await supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds)
+        ? await supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds).is('deleted_at', null)
         : { data: [] }
 
       const details: LinkedEntry[] = [

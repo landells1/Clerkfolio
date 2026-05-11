@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import ARCPPageClient from '@/components/arcp/arcp-page-client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
+import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
 
 // Mirror the sidebar visibility rule (FY1/FY2 only). The sidebar already
 // hides this nav item, but a deep link or a stale tab can still land here.
@@ -43,6 +44,10 @@ export default async function ARCPPage() {
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
+  const activeLinks = await filterLinksToActivePortfolioEntries(
+    supabase,
+    (links ?? []) as ARCPEntryLink[]
+  )
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
@@ -73,7 +78,7 @@ export default async function ARCPPage() {
 
       <ARCPPageClient
         capabilities={(capabilities ?? []) as ARCPCapability[]}
-        initialLinks={(links ?? []) as ARCPEntryLink[]}
+        initialLinks={activeLinks}
       />
     </div>
   )

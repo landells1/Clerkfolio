@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig, calculateTotalScore, isEvidenceBased, getEvidenceProgress } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
+import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
 import ActivityFeed from '@/components/dashboard/activity-feed'
 import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
@@ -149,12 +150,10 @@ export default async function DashboardPage() {
   const { data: specialtyLinksRaw } = applicationIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
     : { data: [] as SpecialtyEntryLink[] }
-  // Filter out links whose portfolio entry has since been deleted - allEntries already
-  // excludes soft-deleted rows so this catches orphaned links from deleted entries.
-  const activeEntryIds = new Set((allEntries ?? []).map(e => e.id))
-  const specialtyLinks = (specialtyLinksRaw ?? []).filter(
-    link => activeEntryIds.has(link.entry_id)
-  ) as SpecialtyEntryLink[]
+  const specialtyLinks = await filterLinksToActivePortfolioEntries(
+    supabase,
+    (specialtyLinksRaw ?? []) as SpecialtyEntryLink[]
+  )
 
   const coverageCounts = Object.entries(
     (allEntries ?? []).reduce((acc: Record<string, number>, entry) => {

@@ -1,5 +1,6 @@
 ﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
 import { calculateDomainScore, getSpecialtyConfig, type SpecialtyApplication, type SpecialtyEntryLink } from '@/lib/specialties'
 
 export default async function SpecialtyComparePage() {
@@ -21,7 +22,10 @@ export default async function SpecialtyComparePage() {
       .select('id, application_id, domain_key, entry_id, entry_type, band_label, points_claimed, is_checkbox, created_at')
       .in('application_id', appIds)
     : { data: [] as SpecialtyEntryLink[] }
-  const linkRows = (links ?? []) as SpecialtyEntryLink[]
+  const linkRows = await filterLinksToActivePortfolioEntries(
+    supabase,
+    (links ?? []) as SpecialtyEntryLink[]
+  )
   const configs = apps.map(app => ({ app, config: getSpecialtyConfig(app.specialty_key) })).filter(item => item.config)
   const domainLabels = Array.from(new Set(configs.flatMap(item => item.config!.domains.map(domain => domain.label))))
 

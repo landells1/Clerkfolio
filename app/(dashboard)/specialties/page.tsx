@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { SpecialtiesShell } from '@/components/specialties/specialties-shell'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
+import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
 
 export default async function SpecialtiesPage({
   searchParams,
@@ -45,7 +46,10 @@ export default async function SpecialtiesPage({
       .select('*')
       .in('application_id', appIds)
       .order('created_at', { ascending: true })
-    links = (linkData ?? []) as SpecialtyEntryLink[]
+    links = await filterLinksToActivePortfolioEntries(
+      supabase,
+      (linkData ?? []) as SpecialtyEntryLink[]
+    )
   }
 
   return (
