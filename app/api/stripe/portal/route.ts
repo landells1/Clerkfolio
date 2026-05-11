@@ -20,7 +20,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (!profile?.stripe_customer_id) {
-    return NextResponse.json({ error: 'No billing account found' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'No Stripe customer is linked to this account. If your Pro access was granted manually, contact support to set up billing management.' },
+      { status: 400 }
+    )
   }
 
   try {
