@@ -145,8 +145,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
   }
 
+  // First page load asks "is a PIN needed?" with no pin in the body.
+  // Don't count that probe as a failed attempt - it's not a real guess and
+  // it burns through the 10-attempt budget before the user types anything.
   if (link.pin_hash && !pin) {
-    await supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: false })
     return NextResponse.json({ pinRequired: true }, { status: 401 })
   }
   if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
