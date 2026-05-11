@@ -257,10 +257,9 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
           </View>
         ))}
 
-        {/* Footer */}
+        {/* Footer - page number temporarily removed while diagnosing prod #31 */}
         <View style={s.footer} fixed>
           <Text style={s.footerText}>clerkfolio.co.uk · Confidential</Text>
-          <Text style={s.pageNum} render={({ pageNumber, totalPages }) => `${pageNumber} / ${totalPages}`} />
         </View>
       </Page>
     </Document>
