@@ -42,7 +42,7 @@ const DEADLINE_ALLOWED = new Set([
   'title', 'due_date', 'completed', 'is_auto', 'source_specialty_key', 'notes',
 ])
 const GOAL_ALLOWED = new Set([
-  'category', 'target_count', 'due_date', 'specialty_application_id',
+  'category', 'target_count', 'due_date',
 ])
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -142,8 +142,8 @@ export async function POST(req: NextRequest) {
   }
 
   const [{ data: existingEntries }, { data: existingCases }] = await Promise.all([
-    supabase.from('portfolio_entries').select('title, date, category').eq('user_id', user.id),
-    supabase.from('cases').select('title, date').eq('user_id', user.id),
+    supabase.from('portfolio_entries').select('title, date, category').eq('user_id', user.id).is('deleted_at', null),
+    supabase.from('cases').select('title, date').eq('user_id', user.id).is('deleted_at', null),
   ])
   const existing = new Set([
     ...(existingEntries ?? []).map(entryKey),
