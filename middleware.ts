@@ -90,6 +90,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/contact' ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/showcase/') ||
+    pathname.startsWith('/api/share/access') ||
+    pathname.startsWith('/api/calendar/feed/') ||
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/api/student-email/confirm') ||
     pathname.startsWith('/api/feedback') ||
