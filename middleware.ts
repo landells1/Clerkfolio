@@ -184,6 +184,12 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Excludes:
+    //  - Next.js build assets and favicon
+    //  - sw.js / manifest.webmanifest / manifest.json: PWA service-worker
+    //    registration is blocked if these paths return a redirect, so they
+    //    must bypass the auth-aware middleware entirely.
+    //  - Common static image extensions
+    '/((?!_next/static|_next/image|favicon.ico|sw\\.js|manifest\\.webmanifest|manifest\\.json|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
