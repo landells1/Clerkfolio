@@ -162,8 +162,9 @@ export async function middleware(request: NextRequest) {
     onboardingComplete = profile?.onboarding_complete ?? false
   }
 
-  // Logged in on an unauth-only route → dashboard or onboarding
-  if (user && isUnauthRoute) {
+  // Password reset lands here with a short-lived authenticated recovery session.
+  // Do not bounce it away as a normal logged-in auth page.
+  if (user && isUnauthRoute && pathname !== '/update-password') {
     const url = request.nextUrl.clone()
     url.pathname = onboardingComplete ? '/dashboard' : '/onboarding'
     return applySecurityHeaders(NextResponse.redirect(url))
