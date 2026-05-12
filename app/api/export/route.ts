@@ -20,10 +20,26 @@ type PortfolioPdfRuntime = { renderPortfolioPdf: (props: Record<string, unknown>
 let runtimeCache: PortfolioPdfRuntime | null = null
 function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
   if (runtimeCache) return runtimeCache
-  // Resolve from process.cwd() at runtime so the string is opaque to webpack.
-  const runtimePath = path.join(process.cwd(), 'lib', 'pdf', 'portfolio-pdf-runtime.cjs')
-  runtimeCache = userRequire(runtimePath) as PortfolioPdfRuntime
-  return runtimeCache
+  // Walk candidate paths since outputFileTracingIncludes vs vercel.json
+  // includeFiles can land the file in different places depending on how the
+  // lambda is packed. process.cwd() is the standard /var/task root on Vercel.
+  const candidates = [
+    path.join(process.cwd(), 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
+    path.join(process.cwd(), '.next', 'server', 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
+    path.join(process.cwd(), '.next', 'server', 'app', 'api', 'export', 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
+  ]
+  let lastError: Error | null = null
+  for (const candidate of candidates) {
+    try {
+      runtimeCache = userRequire(candidate) as PortfolioPdfRuntime
+      return runtimeCache
+    } catch (err) {
+      lastError = err as Error
+    }
+  }
+  throw new Error(
+    `Could not find portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}`
+  )
 }
 
 const PDF_TEMPLATES = {

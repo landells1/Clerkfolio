@@ -27,6 +27,9 @@ const nextConfig = {
     '/api/export': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
     '/api/export/cv': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
     '/api/export/year-review': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    'app/api/export/route.ts': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    'app/api/export/route': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    'app/api/export/**': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
   },
   experimental: {
     serverActions: {
