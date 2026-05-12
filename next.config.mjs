@@ -24,12 +24,25 @@ const nextConfig = {
   // lambda and the require fails with MODULE_NOT_FOUND. Next 15 expects the
   // key to look like a URL path - try a few likely candidates to be safe.
   outputFileTracingIncludes: {
-    '/api/export': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
-    '/api/export/cv': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
-    '/api/export/year-review': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
-    'app/api/export/route.ts': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
-    'app/api/export/route': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
-    'app/api/export/**': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    // The .cjs runtime is loaded dynamically (Module._compile + fs.readFile),
+    // so Next's tracer never sees its require() calls. It ships .next/server
+    // chunks with React inlined but never lands node_modules/react itself in
+    // /var/task. Pin the .cjs and every node_modules folder it needs so the
+    // delegated require at runtime can resolve them.
+    'app/api/export/**': [
+      './lib/pdf/portfolio-pdf-runtime.cjs',
+      './node_modules/react/**',
+      './node_modules/react-dom/**',
+      './node_modules/scheduler/**',
+      './node_modules/@react-pdf/**',
+      './node_modules/yoga-layout/**',
+      './node_modules/pdfkit/**',
+      './node_modules/fontkit/**',
+      './node_modules/png-js/**',
+      './node_modules/restructure/**',
+      './node_modules/blob-stream/**',
+      './node_modules/queue-microtask/**',
+    ],
   },
   experimental: {
     serverActions: {
