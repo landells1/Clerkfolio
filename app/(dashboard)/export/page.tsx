@@ -391,7 +391,19 @@ export default function ExportPage() {
               </button>
             ))}
           </div>
-          <input value={specialty} onChange={e => setSpecialty(e.target.value)} placeholder="Or type any specialty..." className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none transition-colors focus:border-[#1B6FD9]" />
+          {/* Show the formatted label when a tracked-specialty chip is active
+              so the field doesn't leak raw slugs like 'acute_internal_medicine'.
+              When the user types into the field we treat their input as a
+              free-text override and store it verbatim - that's the slug we
+              send to the API for filtering. */}
+          <input
+            value={portfolioTags.some(t => t.tag === specialty) || trackedApps.some(a => a.specialty_key === specialty)
+              ? formatSpecialtyLabel(specialty)
+              : specialty}
+            onChange={e => setSpecialty(e.target.value)}
+            placeholder="Or type any specialty..."
+            className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none transition-colors focus:border-[#1B6FD9]"
+          />
         </div>
       )}
 
