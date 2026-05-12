@@ -15,14 +15,22 @@ import { createRequire } from 'module'
 // Symbol.for('react.element') and the route is producing React 19
 // 'react.transitional.element' elements. See HANDOVER 'Known broken /
 // deferred' for the original investigation.
+// createRequire resolution is brittle inside Next.js's bundled lambda - even
+// when the .cjs file IS at /var/task/lib/pdf/portfolio-pdf-runtime.cjs, calling
+// userRequire(absolutePath) throws MODULE_NOT_FOUND because the resolution
+// context is the bundled route file, not the project root. Instead we read the
+// source ourselves and compile it through Node's Module class directly. This
+// uses createRequire only to obtain fs / module, never to resolve the runtime.
 const userRequire = createRequire(import.meta.url)
 type PortfolioPdfRuntime = { renderPortfolioPdf: (props: Record<string, unknown>) => Promise<Buffer> }
+type CompilableModule = { exports: PortfolioPdfRuntime; _compile: (src: string, filename: string) => void }
 let runtimeCache: PortfolioPdfRuntime | null = null
 function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
   if (runtimeCache) return runtimeCache
-  // Walk candidate paths since outputFileTracingIncludes vs vercel.json
-  // includeFiles can land the file in different places depending on how the
-  // lambda is packed. process.cwd() is the standard /var/task root on Vercel.
+  const fs = userRequire('fs') as typeof import('fs')
+  const Module = userRequire('module') as typeof import('module') & {
+    new (id: string, parent?: unknown): CompilableModule
+  }
   const candidates = [
     path.join(process.cwd(), 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
     path.join(process.cwd(), '.next', 'server', 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
@@ -31,17 +39,19 @@ function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
   let lastError: Error | null = null
   for (const candidate of candidates) {
     try {
-      runtimeCache = userRequire(candidate) as PortfolioPdfRuntime
+      if (!fs.existsSync(candidate)) continue
+      const source = fs.readFileSync(candidate, 'utf-8')
+      const mod = new Module(candidate) as unknown as CompilableModule
+      mod._compile(source, candidate)
+      runtimeCache = mod.exports
       return runtimeCache
     } catch (err) {
       lastError = err as Error
     }
   }
-  // Diagnostic: when none of the candidates worked, list what IS in cwd so we
-  // can see where Vercel actually shipped the file.
+  // Diagnostic: when none of the candidates worked, list what IS in cwd.
   let listing: Record<string, string[]> = {}
   try {
-    const fs = userRequire('fs') as typeof import('fs')
     listing = {
       cwd: fs.readdirSync(process.cwd()).slice(0, 30),
       cwd_lib: fs.existsSync(path.join(process.cwd(), 'lib'))
@@ -55,7 +65,7 @@ function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
     listing = { error: [(e as Error).message] }
   }
   throw new Error(
-    `Could not find portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}. Listing: ${JSON.stringify(listing)}`
+    `Could not load portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}. Listing: ${JSON.stringify(listing)}`
   )
 }
 
