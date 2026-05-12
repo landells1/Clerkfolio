@@ -1,5 +1,10 @@
 {
   "regions": ["lhr1"],
+  "functions": {
+    "app/api/export/route.ts": {
+      "includeFiles": "lib/pdf/portfolio-pdf-runtime.cjs"
+    }
+  },
   "crons": [
     {
       "path": "/api/cron/notifications",
