@@ -195,7 +195,10 @@ export async function POST(request: NextRequest) {
     } else {
       console.error('PDF generation error (non-Error):', err)
     }
-    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
+    const debug = err instanceof Error
+      ? { name: err.name, message: err.message?.slice(0, 1200), stack: err.stack?.split('\n').slice(0, 12).join('\n') }
+      : { value: String(err) }
+    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.', debug }, { status: 500 })
   }
 }
 
