@@ -73,23 +73,22 @@ function getLimiter(prefix: string, max: number, windowSeconds: number) {
   return limiter
 }
 
+// When Upstash is configured (UPSTASH_REDIS_REST_URL + TOKEN env vars present)
+// we get cross-lambda sliding-window rate limiting. When it's not, we fall back
+// to a per-instance in-memory bucket with a one-time warning log. Per-instance
+// is weaker than cross-cluster - a determined attacker can hit cold-started
+// replicas to multiply their effective quota - but it's still better than
+// either (a) silently fail-closing every request (which broke feedback and
+// would have broken PDF export here) or (b) fail-opening with no limit at all.
+let warnedNoRedis = false
 export async function checkRateLimit(options: RateLimitOptions): Promise<RateLimitCheck> {
   const limiter = getLimiter(options.prefix, options.max, options.windowSeconds)
+  if (limiter) return limiter.limit(options.key)
 
-  if (limiter) {
-    return limiter.limit(options.key)
+  if (process.env.NODE_ENV === 'production' && !warnedNoRedis) {
+    warnedNoRedis = true
+    console.warn('[rate-limit] UPSTASH_REDIS_REST_URL/TOKEN not configured - using per-instance in-memory bucket. Set the Upstash env vars on Vercel for cluster-wide limiting.')
   }
-
-  if (process.env.NODE_ENV === 'production') {
-    return {
-      success: false,
-      limit: options.max,
-      remaining: 0,
-      reset: Date.now() + options.windowSeconds * 1000,
-      unavailable: true,
-    }
-  }
-
   return localSlidingWindow(options)
 }
 
