@@ -160,7 +160,12 @@ export async function POST(request: NextRequest) {
 
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
-    const element = React.createElement(PortfolioPDF, {
+    // Call PortfolioPDF directly to get its <Document> root rather than wrapping
+    // it in another React.createElement layer. react-pdf v4 chokes on the
+    // wrapped-function-component shape with #31 "objects are not valid as a
+    // React child", which surfaces as the offending element-with-keys-{$$typeof,
+    // type, key, ref, props} in the prod stack.
+    const docElement = PortfolioPDF({
       entries: filteredEntries,
       userName,
       specialty: specialtyDisplay,
@@ -170,7 +175,7 @@ export async function POST(request: NextRequest) {
       templateAccent: selectedTemplate?.accent,
     }) as unknown as ReactElement<DocumentProps>
 
-    const buffer = await renderToBuffer(element)
+    const buffer = await renderToBuffer(docElement)
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
