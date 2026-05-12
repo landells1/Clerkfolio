@@ -37,8 +37,25 @@ function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
       lastError = err as Error
     }
   }
+  // Diagnostic: when none of the candidates worked, list what IS in cwd so we
+  // can see where Vercel actually shipped the file.
+  let listing: Record<string, string[]> = {}
+  try {
+    const fs = userRequire('fs') as typeof import('fs')
+    listing = {
+      cwd: fs.readdirSync(process.cwd()).slice(0, 30),
+      cwd_lib: fs.existsSync(path.join(process.cwd(), 'lib'))
+        ? fs.readdirSync(path.join(process.cwd(), 'lib')).slice(0, 30)
+        : ['<no lib dir>'],
+      cwd_lib_pdf: fs.existsSync(path.join(process.cwd(), 'lib', 'pdf'))
+        ? fs.readdirSync(path.join(process.cwd(), 'lib', 'pdf')).slice(0, 30)
+        : ['<no lib/pdf dir>'],
+    }
+  } catch (e) {
+    listing = { error: [(e as Error).message] }
+  }
   throw new Error(
-    `Could not find portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}`
+    `Could not find portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}. Listing: ${JSON.stringify(listing)}`
   )
 }
 
