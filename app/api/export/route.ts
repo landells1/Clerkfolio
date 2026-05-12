@@ -172,7 +172,6 @@ export async function POST(request: NextRequest) {
     }) as unknown as ReactElement<DocumentProps>
     const debugInfo = {
       reactVersion: (React as unknown as { version: string }).version,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       typeOfSymbol: ((testElement as unknown as { $$typeof?: symbol }).$$typeof || 'none').toString(),
       expectedSymbol: Symbol.for('react.element').toString(),
       expectedTransitional: Symbol.for('react.transitional.element').toString(),
