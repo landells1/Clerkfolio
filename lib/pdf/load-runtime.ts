@@ -18,6 +18,7 @@ const userRequire = createRequire(import.meta.url)
 
 type CompilableModule = {
   exports: PortfolioPdfRuntime
+  require: NodeRequire
   _compile: (src: string, filename: string) => void
 }
 
@@ -47,6 +48,13 @@ export function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
       if (!fs.existsSync(candidate)) continue
       const source = fs.readFileSync(candidate, 'utf-8')
       const mod = new Module(candidate) as unknown as CompilableModule
+      // The .cjs lives at /var/task/lib/pdf/, but node_modules/react isn't
+      // co-located there - serverExternalPackages keeps react + @react-pdf
+      // resolvable from the route bundle's location instead. Delegate the
+      // compiled module's require() to userRequire (anchored at the bundled
+      // route file) so require('react') and require('@react-pdf/renderer')
+      // inside the .cjs hit the same modules the route can already see.
+      mod.require = userRequire
       mod._compile(source, candidate)
       runtimeCache = mod.exports
       return runtimeCache
