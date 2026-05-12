@@ -39,6 +39,7 @@ const nextConfig = {
       './node_modules/@noble/ciphers/**',
       './node_modules/@noble/hashes/**',
       './node_modules/@react-pdf/**',
+      './node_modules/@swc/helpers/**',
       './node_modules/abs-svg-path/**',
       './node_modules/bidi-js/**',
       './node_modules/browserify-zlib/**',
