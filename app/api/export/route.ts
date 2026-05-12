@@ -160,8 +160,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
-    // Debug: log React version and element $$typeof identity
-    const testElement = PortfolioPDF({
+    const element = React.createElement(PortfolioPDF, {
       entries: filteredEntries,
       userName,
       specialty: specialtyDisplay,
@@ -170,15 +169,8 @@ export async function POST(request: NextRequest) {
       templateSubtitle: selectedTemplate?.subtitle,
       templateAccent: selectedTemplate?.accent,
     }) as unknown as ReactElement<DocumentProps>
-    const debugInfo = {
-      reactVersion: (React as unknown as { version: string }).version,
-      typeOfSymbol: ((testElement as unknown as { $$typeof?: symbol }).$$typeof || 'none').toString(),
-      expectedSymbol: Symbol.for('react.element').toString(),
-      expectedTransitional: Symbol.for('react.transitional.element').toString(),
-    }
-    console.log('PDF debug info:', JSON.stringify(debugInfo))
 
-    const buffer = await renderToBuffer(testElement)
+    const buffer = await renderToBuffer(element)
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
