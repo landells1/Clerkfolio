@@ -1,5 +1,4 @@
 import path from 'path'
-import { createRequire } from 'module'
 
 // Load the .cjs PDF runtime through Node's CommonJS Module class directly.
 // Why: Next.js 15 aliases 'react' to a vendored React 19 for server code, but
@@ -7,14 +6,15 @@ import { createRequire } from 'module'
 // Bundling the renderer through webpack produces React 19 elements that
 // trigger error #31 inside renderToBuffer.
 //
-// Why _compile and not createRequire(absPath): createRequire's resolver runs
-// relative to the calling module (the bundled route file in .next/server/...),
-// not the project root, so userRequire('/var/task/lib/pdf/portfolio-pdf-
-// runtime.cjs') throws MODULE_NOT_FOUND even when the file is at that exact
-// path. Reading the source and compiling it through a fresh Module instance
-// skips the resolver entirely and gives the runtime a real Node CJS context
-// where 'react' resolves to the React 18 install in node_modules.
-const userRequire = createRequire(import.meta.url)
+// Why _compile + __non_webpack_require__: createRequire(import.meta.url) gets
+// captured by webpack at build time - its .resolve returns a numeric module
+// id (74515 in production) and its require() can't resolve string ids like
+// 'react' at runtime. __non_webpack_require__ is the canonical webpack escape
+// hatch; it survives the bundle as Node's native CJS require, which CAN walk
+// /var/task/node_modules and find the React 18 install we ship via the trace
+// includes.
+declare const __non_webpack_require__: NodeRequire
+const userRequire: NodeRequire = __non_webpack_require__
 
 type CompilableModule = {
   exports: PortfolioPdfRuntime
