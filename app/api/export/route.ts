@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
-import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
-import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import React, { type ReactElement } from 'react'
 import { foundationPortfolioTemplate } from '@/lib/pdf/foundation-portfolio'
 import { mrcpTemplate } from '@/lib/pdf/mrcp'
 import { stApplicationTemplate } from '@/lib/pdf/st-application'
+import path from 'path'
+import { createRequire } from 'module'
+
+// Load the PDF renderer through Node's CJS resolver at runtime so Next.js's
+// React 19 webpack alias doesn't apply. Without this, every render bails with
+// React error #31 because react-pdf checks $$typeof against React 18's
+// Symbol.for('react.element') and the route is producing React 19
+// 'react.transitional.element' elements. See HANDOVER 'Known broken /
+// deferred' for the original investigation.
+const userRequire = createRequire(import.meta.url)
+type PortfolioPdfRuntime = { renderPortfolioPdf: (props: Record<string, unknown>) => Promise<Buffer> }
+let runtimeCache: PortfolioPdfRuntime | null = null
+function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
+  if (runtimeCache) return runtimeCache
+  // Resolve from process.cwd() at runtime so the string is opaque to webpack.
+  const runtimePath = path.join(process.cwd(), 'lib', 'pdf', 'portfolio-pdf-runtime.cjs')
+  runtimeCache = userRequire(runtimePath) as PortfolioPdfRuntime
+  return runtimeCache
+}
 
 const PDF_TEMPLATES = {
   foundation: foundationPortfolioTemplate,
@@ -160,7 +176,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
-    const element = React.createElement(PortfolioPDF, {
+    const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+    const buffer = await renderPortfolioPdf({
       entries: filteredEntries,
       userName,
       specialty: specialtyDisplay,
@@ -168,9 +185,7 @@ export async function POST(request: NextRequest) {
       templateName: selectedTemplate?.name,
       templateSubtitle: selectedTemplate?.subtitle,
       templateAccent: selectedTemplate?.accent,
-    }) as unknown as ReactElement<DocumentProps>
-
-    const buffer = await renderToBuffer(element)
+    })
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)

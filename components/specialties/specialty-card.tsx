@@ -19,7 +19,14 @@ type Props = {
 }
 
 function truncateLabel(label: string, words = 3): string {
-  return label.split(' ').slice(0, words).join(' ')
+  const parts = label.split(' ').slice(0, words)
+  // Don't leave the chip ending on a conjunction ("Postgraduate Degrees &" →
+  // ":" appended later reads as "Postgraduate Degrees &:") - drop trailing
+  // joiners until we hit a real word.
+  while (parts.length && /^(&|and|or|of|the|a|an|to|in|on|for|with)$/i.test(parts[parts.length - 1] ?? '')) {
+    parts.pop()
+  }
+  return parts.join(' ')
 }
 
 export function SpecialtyCard({ config, application, links, isSelected: _, onSelect, onRemove }: Props) {

@@ -18,6 +18,13 @@ const nextConfig = {
     '@react-pdf/textkit',
     'yoga-layout',
   ],
+  // The export route loads lib/pdf/portfolio-pdf-runtime.cjs via createRequire
+  // at runtime (path is built from process.cwd() so webpack can't see it).
+  // Without this tracing include the .cjs file is left out of the deployed
+  // lambda and the require fails with MODULE_NOT_FOUND.
+  outputFileTracingIncludes: {
+    'app/api/export/route': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+  },
   experimental: {
     serverActions: {
       allowedOrigins:

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
-import { getSpecialtyConfig, SPECIALTY_CONFIGS } from '@/lib/specialties'
+import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/lib/specialties'
 import { SpecialtyCard } from './specialty-card'
 import { SpecialtyDetail } from './specialty-detail'
 import { AddSpecialtyModal } from './add-specialty-modal'
@@ -175,7 +175,20 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                   <div className="grid gap-4 sm:grid-cols-2">
                     {activeApplications.map(app => {
                       const config = getSpecialtyConfig(app.specialty_key)
-                      if (!config) return null
+                      if (!config) {
+                        // Render a placeholder rather than silently dropping
+                        // the row. Otherwise the page looks blank when an
+                        // application references a key that has been retired
+                        // from SPECIALTY_CONFIGS (e.g. an old cycle, or a
+                        // tag-only key mistakenly inserted as a tracker).
+                        return (
+                          <UnknownSpecialtyCard
+                            key={app.id}
+                            specialtyKey={app.specialty_key}
+                            onRemove={() => handleRemoveApplication(app.id)}
+                          />
+                        )
+                      }
                       return (
                         <SpecialtyCard
                           key={app.id}
@@ -320,6 +333,29 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
         </svg>
       </button>
+    </div>
+  )
+}
+
+// ---------- Placeholder for tracked-specialty rows whose config has been
+// retired or that point at a tag-only key with no scoring matrix.
+function UnknownSpecialtyCard({ specialtyKey, onRemove }: { specialtyKey: string; onRemove: () => void }) {
+  return (
+    <div className="bg-surface-1 border border-subtle rounded-2xl p-5 flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div>
+          <h3 className="font-semibold text-fg text-base">{formatSpecialtyLabel(specialtyKey)}</h3>
+          <p className="mt-1 text-xs text-fg-2">
+            No scoring matrix is available for this specialty (yet). Remove this tracker or pick a different specialty from Add specialty.
+          </p>
+        </div>
+        <button
+          onClick={onRemove}
+          className="shrink-0 min-h-[32px] rounded-lg border border-subtle px-3 text-xs font-medium text-fg-2 hover:text-fg hover:border-default transition-colors"
+        >
+          Remove
+        </button>
+      </div>
     </div>
   )
 }
