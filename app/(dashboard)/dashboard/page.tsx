@@ -199,7 +199,9 @@ export default async function DashboardPage() {
     const links = specialtyLinks.filter(link => link.application_id === row.id)
     const entryCount = new Set(links.map(link => link.entry_id)).size
     if (!config) {
-      return { id: row.id, label: row.specialty_key, percent: 0, entryCount, scoreLabel: '0' }
+      // formatSpecialtyLabel falls back to a tidy capitalised label so we never
+      // render the raw slug (e.g. "acute_internal_medicine") on the dashboard.
+      return { id: row.id, label: formatSpecialtyLabel(row.specialty_key), percent: 0, entryCount, scoreLabel: '0' }
     }
     if (isEvidenceBased(config)) {
       const progress = getEvidenceProgress(config, links)
