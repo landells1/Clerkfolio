@@ -31,17 +31,11 @@ const nextConfig = {
     // delegated require at runtime can resolve them.
     'app/api/export/**': [
       './lib/pdf/portfolio-pdf-runtime.cjs',
-      './node_modules/react/**',
-      './node_modules/react-dom/**',
-      './node_modules/scheduler/**',
-      './node_modules/@react-pdf/**',
-      './node_modules/yoga-layout/**',
-      './node_modules/pdfkit/**',
-      './node_modules/fontkit/**',
-      './node_modules/png-js/**',
-      './node_modules/restructure/**',
-      './node_modules/blob-stream/**',
-      './node_modules/queue-microtask/**',
+      // @react-pdf/renderer pulls in a long transitive tail (is-url,
+      // emoji-regex, color, linebreak, @babel/runtime, …). Listing each by
+      // hand has churned for several deploys; sweep node_modules wholesale
+      // and tighten later if cold-start or 50MB lambda cap bites.
+      './node_modules/**',
     ],
   },
   experimental: {
