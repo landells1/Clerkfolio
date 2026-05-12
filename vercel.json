@@ -1,7 +1,7 @@
 {
   "regions": ["lhr1"],
   "functions": {
-    "app/api/export/route.ts": {
+    "app/api/**": {
       "includeFiles": "lib/pdf/portfolio-pdf-runtime.cjs"
     }
   },
