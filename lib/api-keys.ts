@@ -19,6 +19,7 @@ export function apiKeyPrefix(key: string) {
   return key.slice(0, 8)
 }
 
+// lgtm[js/insufficient-password-hash] -- API keys are 256-bit CSPRNG tokens, not low-entropy passwords; SHA-256 is the correct algorithm here, bcrypt would be wrong.
 export function hashApiKey(key: string) {
   return createHash('sha256').update(key).digest('hex')
 }

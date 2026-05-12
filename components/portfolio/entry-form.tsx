@@ -278,7 +278,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.confAttendance !== undefined) setConfAttendance(d.confAttendance)
       if (d.confLevel !== undefined) setConfLevel(d.confLevel)
       if (d.confCpdHours !== undefined) setConfCpdHours(d.confCpdHours)
-      if (d.confCertificate !== undefined) setConfCertificate(d.confCertificate)
+      // confCertificate intentionally excluded from draft (avoids CodeQL clear-text-storage alert; easy to re-tick)
       if (d.pubType !== undefined) setPubType(d.pubType)
       if (d.pubJournal !== undefined) setPubJournal(d.pubJournal)
       if (d.pubAuthors !== undefined) setPubAuthors(d.pubAuthors)
@@ -319,7 +319,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         category, title, date, notes, specialtyTags, interviewThemes,
         auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
-        confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
+        confType, confEventName, confAttendance, confLevel, confCpdHours,
         pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
         leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
         prizeBody, prizeLevel, prizeDescription,
@@ -334,7 +334,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     mode, category, title, date, notes, specialtyTags, interviewThemes,
     auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
-    confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
+    confType, confEventName, confAttendance, confLevel, confCpdHours,
     pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
     leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
     prizeBody, prizeLevel, prizeDescription,
