@@ -6,68 +6,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import { foundationPortfolioTemplate } from '@/lib/pdf/foundation-portfolio'
 import { mrcpTemplate } from '@/lib/pdf/mrcp'
 import { stApplicationTemplate } from '@/lib/pdf/st-application'
-import path from 'path'
-import { createRequire } from 'module'
-
-// Load the PDF renderer through Node's CJS resolver at runtime so Next.js's
-// React 19 webpack alias doesn't apply. Without this, every render bails with
-// React error #31 because react-pdf checks $$typeof against React 18's
-// Symbol.for('react.element') and the route is producing React 19
-// 'react.transitional.element' elements. See HANDOVER 'Known broken /
-// deferred' for the original investigation.
-// createRequire resolution is brittle inside Next.js's bundled lambda - even
-// when the .cjs file IS at /var/task/lib/pdf/portfolio-pdf-runtime.cjs, calling
-// userRequire(absolutePath) throws MODULE_NOT_FOUND because the resolution
-// context is the bundled route file, not the project root. Instead we read the
-// source ourselves and compile it through Node's Module class directly. This
-// uses createRequire only to obtain fs / module, never to resolve the runtime.
-const userRequire = createRequire(import.meta.url)
-type PortfolioPdfRuntime = { renderPortfolioPdf: (props: Record<string, unknown>) => Promise<Buffer> }
-type CompilableModule = { exports: PortfolioPdfRuntime; _compile: (src: string, filename: string) => void }
-let runtimeCache: PortfolioPdfRuntime | null = null
-function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
-  if (runtimeCache) return runtimeCache
-  const fs = userRequire('fs') as typeof import('fs')
-  const Module = userRequire('module') as typeof import('module') & {
-    new (id: string, parent?: unknown): CompilableModule
-  }
-  const candidates = [
-    path.join(process.cwd(), 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
-    path.join(process.cwd(), '.next', 'server', 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
-    path.join(process.cwd(), '.next', 'server', 'app', 'api', 'export', 'lib', 'pdf', 'portfolio-pdf-runtime.cjs'),
-  ]
-  let lastError: Error | null = null
-  for (const candidate of candidates) {
-    try {
-      if (!fs.existsSync(candidate)) continue
-      const source = fs.readFileSync(candidate, 'utf-8')
-      const mod = new Module(candidate) as unknown as CompilableModule
-      mod._compile(source, candidate)
-      runtimeCache = mod.exports
-      return runtimeCache
-    } catch (err) {
-      lastError = err as Error
-    }
-  }
-  // Diagnostic: when none of the candidates worked, list what IS in cwd.
-  let listing: Record<string, string[]> = {}
-  try {
-    listing = {
-      cwd: fs.readdirSync(process.cwd()).slice(0, 30),
-      cwd_lib: fs.existsSync(path.join(process.cwd(), 'lib'))
-        ? fs.readdirSync(path.join(process.cwd(), 'lib')).slice(0, 30)
-        : ['<no lib dir>'],
-      cwd_lib_pdf: fs.existsSync(path.join(process.cwd(), 'lib', 'pdf'))
-        ? fs.readdirSync(path.join(process.cwd(), 'lib', 'pdf')).slice(0, 30)
-        : ['<no lib/pdf dir>'],
-    }
-  } catch (e) {
-    listing = { error: [(e as Error).message] }
-  }
-  throw new Error(
-    `Could not load portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}. Listing: ${JSON.stringify(listing)}`
-  )
-}
+import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 
 const PDF_TEMPLATES = {
   foundation: foundationPortfolioTemplate,

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
-import React, { type ReactElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
-import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
+import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { validateOrigin } from '@/lib/csrf'
 
 const LABELS: Record<string, string> = {
@@ -44,7 +42,8 @@ export async function GET(req: NextRequest) {
 
   const label = LABELS[template] ?? LABELS.clinical
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
-  const element = React.createElement(PortfolioPDF, {
+  const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+  const buffer = await renderPortfolioPdf({
     entries: entries ?? [],
     userName,
     specialty: label,
@@ -52,9 +51,7 @@ export async function GET(req: NextRequest) {
     templateName: label,
     templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
     templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
-  }) as unknown as ReactElement<DocumentProps>
-
-  const buffer = await renderToBuffer(element)
+  })
 
   // Only count the export against the lifetime cap once the PDF was generated
   // successfully - a render error must not consume the user's only free PDF.

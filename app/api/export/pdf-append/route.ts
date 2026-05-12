@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { renderToBuffer, type DocumentProps } from '@react-pdf/renderer'
 import { PDFDocument } from 'pdf-lib'
-import React, { type ReactElement } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
-import PortfolioPDF from '@/lib/pdf/portfolio-pdf'
+import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 
 // 25 MB upload cap on the user-supplied PDF. pdf-lib parses untrusted input so
 // an unbounded file is a parser-DoS vector even before the merge runs.
@@ -63,14 +61,13 @@ export async function POST(req: NextRequest) {
 
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   const exportedAt = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
-  const element = React.createElement(PortfolioPDF, {
+  const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+  const appendedBuffer = await renderPortfolioPdf({
     entries,
     userName,
     specialty: 'Append-only export',
     exportedAt,
-  }) as unknown as ReactElement<DocumentProps>
-
-  const appendedBuffer = await renderToBuffer(element)
+  })
   const existing = await PDFDocument.load(await file.arrayBuffer())
   const appended = await PDFDocument.load(appendedBuffer)
   const copiedPages = await existing.copyPages(appended, appended.getPageIndices())
