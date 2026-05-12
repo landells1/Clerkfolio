@@ -7,6 +7,13 @@ import { foundationPortfolioTemplate } from '@/lib/pdf/foundation-portfolio'
 import { mrcpTemplate } from '@/lib/pdf/mrcp'
 import { stApplicationTemplate } from '@/lib/pdf/st-application'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+
+// PDF rendering is the most expensive thing the lambda does (~600ms+ cold,
+// 100-200ms warm) and could be used to grief Vercel function minutes. Cap
+// every authenticated user at a generous-but-finite burst.
+const EXPORT_RATE_MAX = 20
+const EXPORT_RATE_WINDOW_SECONDS = 60 * 60 // 1 hour
 
 const PDF_TEMPLATES = {
   foundation: foundationPortfolioTemplate,
@@ -38,6 +45,25 @@ export async function POST(request: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: EXPORT_RATE_MAX,
+    windowSeconds: EXPORT_RATE_WINDOW_SECONDS,
+    prefix: 'export',
+  })
+  if (!rateLimit.success) {
+    if (rateLimit.unavailable) {
+      return NextResponse.json(
+        { error: 'Export is temporarily unavailable.' },
+        { status: 503, headers: rateLimitHeaders(rateLimit, EXPORT_RATE_WINDOW_SECONDS) },
+      )
+    }
+    return NextResponse.json(
+      { error: 'Too many exports. Please wait before generating another.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, EXPORT_RATE_WINDOW_SECONDS) },
+    )
+  }
 
   // ── Server-side subscription gate ─────────────────────────────────────────
   const [{ data: profile }, subInfo] = await Promise.all([

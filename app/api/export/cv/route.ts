@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { validateOrigin } from '@/lib/csrf'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+
+const EXPORT_RATE_MAX = 20
+const EXPORT_RATE_WINDOW_SECONDS = 60 * 60
 
 const LABELS: Record<string, string> = {
   clinical: 'Clinical CV',
@@ -17,6 +21,19 @@ export async function GET(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: EXPORT_RATE_MAX,
+    windowSeconds: EXPORT_RATE_WINDOW_SECONDS,
+    prefix: 'export',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: rateLimit.unavailable ? 'Export is temporarily unavailable.' : 'Too many exports. Please wait before generating another.' },
+      { status: rateLimit.unavailable ? 503 : 429, headers: rateLimitHeaders(rateLimit, EXPORT_RATE_WINDOW_SECONDS) },
+    )
+  }
 
   // Match the gating used by the main /api/export route - Free accounts are
   // capped at 1 lifetime PDF export across ALL PDF endpoints, not per-endpoint.

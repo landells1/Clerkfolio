@@ -4,6 +4,10 @@ import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+
+const EXPORT_RATE_MAX = 20
+const EXPORT_RATE_WINDOW_SECONDS = 60 * 60
 
 // 25 MB upload cap on the user-supplied PDF. pdf-lib parses untrusted input so
 // an unbounded file is a parser-DoS vector even before the merge runs.
@@ -16,6 +20,19 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: EXPORT_RATE_MAX,
+    windowSeconds: EXPORT_RATE_WINDOW_SECONDS,
+    prefix: 'export',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: rateLimit.unavailable ? 'Export is temporarily unavailable.' : 'Too many exports. Please wait before generating another.' },
+      { status: rateLimit.unavailable ? 503 : 429, headers: rateLimitHeaders(rateLimit, EXPORT_RATE_WINDOW_SECONDS) },
+    )
+  }
 
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canExportPdf) {
