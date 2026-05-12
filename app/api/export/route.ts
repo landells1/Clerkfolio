@@ -160,12 +160,8 @@ export async function POST(request: NextRequest) {
 
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
-    // Call PortfolioPDF directly to get its <Document> root rather than wrapping
-    // it in another React.createElement layer. react-pdf v4 chokes on the
-    // wrapped-function-component shape with #31 "objects are not valid as a
-    // React child", which surfaces as the offending element-with-keys-{$$typeof,
-    // type, key, ref, props} in the prod stack.
-    const docElement = PortfolioPDF({
+    // Debug: log React version and element $$typeof identity
+    const testElement = PortfolioPDF({
       entries: filteredEntries,
       userName,
       specialty: specialtyDisplay,
@@ -174,8 +170,16 @@ export async function POST(request: NextRequest) {
       templateSubtitle: selectedTemplate?.subtitle,
       templateAccent: selectedTemplate?.accent,
     }) as unknown as ReactElement<DocumentProps>
+    const debugInfo = {
+      reactVersion: (React as unknown as { version: string }).version,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      typeOfSymbol: ((testElement as unknown as { $$typeof?: symbol }).$$typeof || 'none').toString(),
+      expectedSymbol: Symbol.for('react.element').toString(),
+      expectedTransitional: Symbol.for('react.transitional.element').toString(),
+    }
+    console.log('PDF debug info:', JSON.stringify(debugInfo))
 
-    const buffer = await renderToBuffer(docElement)
+    const buffer = await renderToBuffer(testElement)
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
     // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
