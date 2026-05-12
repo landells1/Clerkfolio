@@ -62,25 +62,7 @@ export function loadPortfolioPdfRuntime(): PortfolioPdfRuntime {
       lastError = err as Error
     }
   }
-  // Diagnostic: dump what's actually under /var/task so we can see where
-  // react/@react-pdf landed (if anywhere) and adjust the include globs.
-  const diag: Record<string, string[] | string> = {}
-  try {
-    diag.task = fs.readdirSync('/var/task').slice(0, 30)
-    diag.taskNm = fs.existsSync('/var/task/node_modules')
-      ? fs.readdirSync('/var/task/node_modules').slice(0, 40)
-      : '<none>'
-    diag.next = fs.existsSync('/var/task/.next/server')
-      ? fs.readdirSync('/var/task/.next/server').slice(0, 20)
-      : '<none>'
-    diag.nextNm = fs.existsSync('/var/task/.next/server/node_modules')
-      ? fs.readdirSync('/var/task/.next/server/node_modules').slice(0, 40)
-      : '<none>'
-    try {
-      diag.resolveReact = [userRequire.resolve('react')]
-    } catch (e) { diag.resolveReact = [(e as Error).message] }
-  } catch (e) { diag.error = (e as Error).message }
   throw new Error(
-    `Could not load portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}. Diag: ${JSON.stringify(diag)}`
+    `Could not load portfolio-pdf-runtime.cjs. Tried: ${candidates.join(', ')}. Last error: ${lastError?.message ?? 'none'}. cwd=${process.cwd()}`
   )
 }
