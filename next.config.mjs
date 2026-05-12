@@ -21,9 +21,12 @@ const nextConfig = {
   // The export route loads lib/pdf/portfolio-pdf-runtime.cjs via createRequire
   // at runtime (path is built from process.cwd() so webpack can't see it).
   // Without this tracing include the .cjs file is left out of the deployed
-  // lambda and the require fails with MODULE_NOT_FOUND.
+  // lambda and the require fails with MODULE_NOT_FOUND. Next 15 expects the
+  // key to look like a URL path - try a few likely candidates to be safe.
   outputFileTracingIncludes: {
-    'app/api/export/route': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    '/api/export': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    '/api/export/cv': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
+    '/api/export/year-review': ['./lib/pdf/portfolio-pdf-runtime.cjs'],
   },
   experimental: {
     serverActions: {
