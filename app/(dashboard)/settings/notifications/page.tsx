@@ -27,14 +27,19 @@ const OPTIONS = [
 export default function NotificationSettingsPage() {
   const supabase = createClient()
   const { addToast } = useToast()
-  const [prefs, setPrefs] = useState(DEFAULT_PREFS)
+  const [prefs, setPrefs] = useState<typeof DEFAULT_PREFS | null>(null)
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
+  const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        setPrefs(DEFAULT_PREFS)
+        setLoading(false)
+        return
+      }
       const [{ data: profile }, subInfo] = await Promise.all([
         // .maybeSingle() returns null on no-row instead of throwing - defensive against
         // a brand-new auth user whose profile trigger hasn't fired yet.
@@ -42,8 +47,8 @@ export default function NotificationSettingsPage() {
         fetchSubscriptionInfo(supabase, user.id),
       ])
       setSubInfo(subInfo)
-      if (!profile) return
-      setPrefs({ ...DEFAULT_PREFS, ...(profile.notification_preferences ?? {}) })
+      setPrefs({ ...DEFAULT_PREFS, ...(profile?.notification_preferences ?? {}) })
+      setLoading(false)
     }
     load()
   }, [supabase])
@@ -51,7 +56,10 @@ export default function NotificationSettingsPage() {
   async function save(next: typeof DEFAULT_PREFS) {
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setSaving(false)
+      return
+    }
     const { error } = await supabase.from('profiles').update({ notification_preferences: next }).eq('id', user.id)
     setSaving(false)
     if (error) {
@@ -63,7 +71,8 @@ export default function NotificationSettingsPage() {
   }
 
   const isPro = subInfo?.isPro ?? false
-  const masterOn = Object.values(prefs).some(Boolean)
+  const resolvedPrefs = prefs ?? DEFAULT_PREFS
+  const masterOn = Object.values(resolvedPrefs).some(Boolean)
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
@@ -80,7 +89,9 @@ export default function NotificationSettingsPage() {
       </div>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6">
-        {!isPro ? (
+        {loading ? (
+          <p className="text-sm text-[rgba(245,245,242,0.45)]">Loading notification preferences...</p>
+        ) : !isPro ? (
           <ToggleRow
             label="Email reminders"
             checked={masterOn}
@@ -100,9 +111,9 @@ export default function NotificationSettingsPage() {
               <ToggleRow
                 key={option.key}
                 label={option.label}
-                checked={prefs[option.key]}
+                checked={resolvedPrefs[option.key]}
                 disabled={saving}
-                onChange={checked => save({ ...prefs, [option.key]: checked })}
+                onChange={checked => save({ ...resolvedPrefs, [option.key]: checked })}
               />
             ))}
           </div>

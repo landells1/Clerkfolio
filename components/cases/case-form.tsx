@@ -322,7 +322,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <label className={LABEL}>Linked specialties</label>
         <SpecialtyTagSelect
           value={specialtyTags}
-          onChange={setSpecialtyTags}
+          onChange={value => { setSpecialtyTags(value); markDirty() }}
           userInterests={userInterests}
           trackedOnly
         />

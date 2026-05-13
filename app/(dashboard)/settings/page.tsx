@@ -8,6 +8,7 @@ import { fetchSubscriptionInfo, isMedStudentStage, type SubscriptionInfo } from 
 import { grantFoundationGiftIfEligible, isFoundationStage } from '@/lib/billing/foundation-gift'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
+import BillingActionButton from '@/components/upgrade/billing-action-button'
 
 const CAREER_STAGES = [
   { value: 'Y1', label: 'Year 1 (Medical Student)' },
@@ -73,7 +74,6 @@ export default function SettingsPage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [exportLoading, setExportLoading] = useState(false)
-  const [billingLoading, setBillingLoading] = useState(false)
   const [origin, setOrigin] = useState('')
   const [settingsSearch, setSettingsSearch] = useState('')
 
@@ -189,6 +189,9 @@ export default function SettingsPage() {
     }
 
     setProfile(updatedProfile)
+    if (pendingStage === updatedProfile.career_stage) {
+      setPendingStage(null)
+    }
     const refreshed = await fetchSubscriptionInfo(supabase, user.id)
     setSubInfo(refreshed)
     if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at && updatedProfile.foundation_gift_granted_at) {
@@ -239,21 +242,6 @@ export default function SettingsPage() {
       addToast('Failed to generate export', 'error')
     } finally {
       setExportLoading(false)
-    }
-  }
-
-  async function openBilling() {
-    setBillingLoading(true)
-    const hasStripePlan = subInfo?.tier === 'pro'
-    const endpoint = hasStripePlan ? '/api/stripe/portal' : '/api/stripe/checkout'
-    try {
-      const res = await fetch(endpoint, { method: 'POST' })
-      const body = await res.json()
-      if (!res.ok || !body.url) throw new Error(body.error ?? 'Billing unavailable')
-      window.location.href = body.url
-    } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Failed to open billing', 'error')
-      setBillingLoading(false)
     }
   }
 
@@ -327,6 +315,7 @@ export default function SettingsPage() {
   }
   const settingsLinks: Array<[string, string, string]> = ([
     ['/settings/notifications', 'Notifications', 'Email digests and reminders'],
+    ['/settings/billing', 'Billing', 'Open Stripe checkout or billing portal'],
     ['/settings/referrals', 'Referrals', 'Invite a colleague, both get Pro'],
     ['/settings/snippets', 'Snippets', 'Reusable phrases for portfolio notes'],
     ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
@@ -354,8 +343,11 @@ export default function SettingsPage() {
             <p className="text-sm text-[rgba(245,245,242,0.45)]">This controls which features are shown in your sidebar. Moving out of medical school changes Student accounts to Foundation accounts.</p>
           </div>
           <select
-            value={profile.career_stage}
-            onChange={e => setPendingStage(e.target.value)}
+            value={pendingStage ?? profile.career_stage}
+            onChange={e => {
+              const nextStage = e.target.value
+              setPendingStage(nextStage && nextStage !== profile.career_stage ? nextStage : null)
+            }}
             className="min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9]"
           >
             <option value="">Select career stage</option>
@@ -388,6 +380,7 @@ export default function SettingsPage() {
         <form
           onSubmit={e => {
             e.preventDefault()
+            if (pendingStage && pendingStage !== profile.career_stage) return
             saveProfile()
           }}
           className="space-y-4"
@@ -511,15 +504,7 @@ export default function SettingsPage() {
               <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-center text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
                 View plans
               </Link>
-              {subInfo.tier === 'pro' && (
-                <button
-                  onClick={openBilling}
-                  disabled={billingLoading}
-                  className="text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] disabled:opacity-50"
-                >
-                  {billingLoading ? 'Opening...' : 'Manage billing'}
-                </button>
-              )}
+              <BillingActionButton isPro={subInfo.isPro} />
             </div>
           </div>
         )}

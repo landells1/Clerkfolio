@@ -85,13 +85,18 @@ export default function DashboardProviders({ children, userInterests }: { childr
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if (e.defaultPrevented) return
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && e.key.toLowerCase() === 'k') {
         e.preventDefault()
         setSearchOpen(true)
       }
     }
+    document.addEventListener('keydown', onKey, true)
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('keydown', onKey, true)
+      window.removeEventListener('keydown', onKey)
+    }
   }, [])
 
   return (

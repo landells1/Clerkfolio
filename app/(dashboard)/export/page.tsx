@@ -194,6 +194,7 @@ export default function ExportPage() {
     entries.forEach(e => e.interview_themes?.forEach(t => set.add(t)))
     return Array.from(set).sort()
   }, [entries])
+  const hasActiveShareLinks = shareLinks.length > 0
 
   async function downloadBlob(res: Response, fallbackName: string) {
     const blob = await res.blob()
@@ -625,12 +626,18 @@ export default function ExportPage() {
             {subInfo && !subInfo.isPro && (
               <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
                 <p className="font-semibold">
-                  {subInfo.limits.canCreateShareLink ? 'Free tier: 1 active share link' : 'Active link cap reached'}
+                  {subInfo.limits.canCreateShareLink
+                    ? 'Free tier: 1 active share link'
+                    : hasActiveShareLinks
+                      ? 'Active link cap reached'
+                      : 'Free tier share link already used'}
                 </p>
                 <p className="mt-0.5 text-[rgba(245,245,242,0.55)]">
                   {subInfo.limits.canCreateShareLink
                     ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
-                    : 'Revoke an existing link or upgrade to Pro for unlimited links.'}
+                    : hasActiveShareLinks
+                      ? 'Revoke an existing link or upgrade to Pro for unlimited links.'
+                      : 'Free tier includes 1 lifetime share link. Upgrade to Pro to create another.'}
                 </p>
               </div>
             )}

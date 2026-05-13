@@ -46,11 +46,46 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
   const parts = tokens(input)
   let nextOperator: 'and' | 'or' = 'and'
   let negateNext = false
+  const plainTermBuckets: Array<{ bucket: 'terms' | 'anyTerms' | 'notTerms'; value: string }> = []
+
+  function removeLastOccurrence(values: string[], value: string) {
+    const index = values.lastIndexOf(value)
+    if (index === -1) return values
+    return [...values.slice(0, index), ...values.slice(index + 1)]
+  }
+
+  function movePreviousPlainTermIntoOrGroup() {
+    const lastPlainTerm = plainTermBuckets.at(-1)
+    if (!lastPlainTerm || lastPlainTerm.bucket !== 'terms') return
+    parsed.terms = removeLastOccurrence(parsed.terms, lastPlainTerm.value)
+    parsed.anyTerms.push(lastPlainTerm.value)
+    lastPlainTerm.bucket = 'anyTerms'
+  }
+
+  function pushPlainTerm(value: string) {
+    const normalized = value.toLowerCase()
+    if (negateNext) {
+      parsed.notTerms.push(normalized)
+      plainTermBuckets.push({ bucket: 'notTerms', value: normalized })
+    } else if (nextOperator === 'or') {
+      parsed.anyTerms.push(normalized)
+      plainTermBuckets.push({ bucket: 'anyTerms', value: normalized })
+    } else {
+      parsed.terms.push(normalized)
+      plainTermBuckets.push({ bucket: 'terms', value: normalized })
+    }
+    negateNext = false
+    nextOperator = 'and'
+  }
 
   for (const part of parts) {
     const upper = part.toUpperCase()
     if (upper === 'AND') { nextOperator = 'and'; continue }
-    if (upper === 'OR') { nextOperator = 'or'; continue }
+    if (upper === 'OR') {
+      movePreviousPlainTermIntoOrGroup()
+      nextOperator = 'or'
+      continue
+    }
     if (upper === 'NOT') { negateNext = true; continue }
 
     const fieldMatch = part.match(/^([a-z_]+):(.+)$/i)
@@ -66,19 +101,15 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
       else if (field === 'complete') parsed.completeness = { exact: value.toLowerCase() === 'green' ? 2 : numberValue(value) }
       else if (field === 'min') parsed.completeness = { ...(parsed.completeness ?? {}), min: numberValue(value) }
       else if (field === 'max') parsed.completeness = { ...(parsed.completeness ?? {}), max: numberValue(value) }
-      else if (negateNext) parsed.notTerms.push(part.toLowerCase())
-      else if (nextOperator === 'or') parsed.anyTerms.push(part.toLowerCase())
-      else parsed.terms.push(part.toLowerCase())
-      negateNext = false
-      nextOperator = 'and'
+      else pushPlainTerm(part)
+      if (field === 'specialty' || field === 'tag' || field === 'theme' || field === 'since' || field === 'category' || field === 'missing' || (field === 'has' && value.toLowerCase() === 'notes') || field === 'complete' || field === 'min' || field === 'max') {
+        negateNext = false
+        nextOperator = 'and'
+      }
       continue
     }
 
-    if (negateNext) parsed.notTerms.push(part.toLowerCase())
-    else if (nextOperator === 'or') parsed.anyTerms.push(part.toLowerCase())
-    else parsed.terms.push(part.toLowerCase())
-    negateNext = false
-    nextOperator = 'and'
+    pushPlainTerm(part)
   }
 
   return parsed
