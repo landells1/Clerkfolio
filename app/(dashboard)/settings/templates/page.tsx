@@ -23,8 +23,7 @@ export default function TemplatesSettingsPage() {
       const { data } = await supabase
         .from('templates')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('is_curated', false)
+        .or(`user_id.eq.${user.id},user_id.is.null`)
         .order('created_at', { ascending: false })
       setTemplates((data ?? []) as Template[])
       setLoading(false)
@@ -141,18 +140,24 @@ export default function TemplatesSettingsPage() {
                       ) : (
                         <>
                           <span className="flex-1 text-sm text-[#F5F5F2] truncate">{t.name}</span>
-                          <button
-                            onClick={() => { setEditingId(t.id); setEditName(t.name) }}
-                            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
-                          >
-                            Rename
-                          </button>
-                          <button
-                            onClick={() => handleDelete(t.id)}
-                            className="text-xs text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors"
-                          >
-                            Delete
-                          </button>
+                          {t.is_curated ? (
+                            <span className="rounded border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-[10px] font-medium text-[rgba(245,245,242,0.5)]">Curated</span>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => { setEditingId(t.id); setEditName(t.name) }}
+                                className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+                              >
+                                Rename
+                              </button>
+                              <button
+                                onClick={() => handleDelete(t.id)}
+                                className="text-xs text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors"
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
                         </>
                       )}
                     </div>

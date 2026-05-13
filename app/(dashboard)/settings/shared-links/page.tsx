@@ -32,6 +32,7 @@ export default function SharedLinksPage() {
   const [links, setLinks] = useState<ShareLink[]>([])
   const [loading, setLoading] = useState(true)
   const [revoking, setRevoking] = useState<string | null>(null)
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
   const [copied, setCopied] = useState<string | null>(null)
 
   useEffect(() => {
@@ -46,11 +47,11 @@ export default function SharedLinksPage() {
   }, [])
 
   async function handleRevoke(id: string) {
-    if (!confirm('Revoke this link? Anyone using it will lose access immediately.')) return
     setRevoking(id)
     const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
     if (res.ok) {
       setLinks(prev => prev.filter(l => l.id !== id))
+      setConfirmRevoke(null)
       addToast('Link revoked', 'success')
     } else {
       addToast('Failed to revoke link', 'error')
@@ -149,13 +150,32 @@ export default function SharedLinksPage() {
                     </svg>
                     Preview
                   </a>
-                  <button
-                    onClick={() => handleRevoke(link.id)}
-                    disabled={revoking === link.id}
-                    className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50 ml-auto"
-                  >
-                    {revoking === link.id ? 'Revoking…' : 'Revoke'}
-                  </button>
+                  {confirmRevoke === link.id ? (
+                    <div className="ml-auto flex items-center gap-2">
+                      <button
+                        onClick={() => setConfirmRevoke(null)}
+                        disabled={revoking === link.id}
+                        className="px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={() => handleRevoke(link.id)}
+                        disabled={revoking === link.id}
+                        className="flex items-center gap-1.5 rounded-lg border border-red-500/25 bg-red-500/15 px-3 py-1.5 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                      >
+                        {revoking === link.id ? 'Revoking...' : 'Confirm revoke'}
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmRevoke(link.id)}
+                      disabled={revoking === link.id}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50 ml-auto"
+                    >
+                      Revoke
+                    </button>
+                  )}
                 </div>
               </div>
             )

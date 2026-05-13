@@ -23,6 +23,8 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
   const searchParams = useSearchParams()
   const [saved, setSaved] = useState<SavedSearch[]>([])
   const [saving, setSaving] = useState(false)
+  const [saveOpen, setSaveOpen] = useState(false)
+  const [saveName, setSaveName] = useState('')
 
   useEffect(() => {
     const key = `clerkfolio-filters:${pathname}`
@@ -47,9 +49,10 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     load()
   }, [supabase, surface])
 
-  async function saveCurrent() {
-    const name = window.prompt('Save current search as...')
-    if (!name?.trim()) return
+  async function saveCurrent(e?: React.FormEvent) {
+    e?.preventDefault()
+    const name = saveName.trim()
+    if (!name) return
     setSaving(true)
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { setSaving(false); return }
@@ -58,7 +61,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
       .from('saved_searches')
       .upsert({
         user_id: user.id,
-        name: name.trim().slice(0, 60),
+        name: name.slice(0, 60),
         surface,
         query: { ...parseSearchQuery(q), text: q, params },
       }, { onConflict: 'user_id,name' })
@@ -67,6 +70,8 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     setSaving(false)
     if (!error && data) {
       setSaved(prev => [data as SavedSearch, ...prev.filter(item => item.id !== data.id)])
+      setSaveName('')
+      setSaveOpen(false)
     }
   }
 
@@ -82,12 +87,32 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     <div className="mb-4 flex flex-wrap items-center gap-2">
       <button
         type="button"
-        onClick={saveCurrent}
+        onClick={() => setSaveOpen(current => !current)}
         disabled={saving}
         className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] hover:border-white/[0.16] hover:text-[#F5F5F2] disabled:opacity-50"
       >
         {saving ? 'Saving...' : 'Save search'}
       </button>
+      {saveOpen && (
+        <form onSubmit={saveCurrent} className="flex flex-wrap items-center gap-2">
+          <input
+            value={saveName}
+            onChange={event => setSaveName(event.target.value)}
+            maxLength={60}
+            placeholder="Search name"
+            aria-label="Search name"
+            className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-xs text-[#F5F5F2] outline-none placeholder:text-[rgba(245,245,242,0.35)] focus:border-[#1B6FD9]"
+            autoFocus
+          />
+          <button
+            type="submit"
+            disabled={saving || !saveName.trim()}
+            className="min-h-[36px] rounded-lg bg-[#1B6FD9] px-3 text-xs font-semibold text-[#0B0B0C] disabled:opacity-50"
+          >
+            Save
+          </button>
+        </form>
+      )}
       {saved.length > 0 && (
         <select
           defaultValue=""

@@ -36,6 +36,20 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const [loading, setLoading] = useState(false)
   const [searchError, setSearchError] = useState(false)
   const [selected, setSelected] = useState(0)
+  const normalizedQuery = q.trim().toLowerCase()
+  const matchingCommands = useMemo(
+    () => normalizedQuery.length >= 2
+      ? COMMANDS.filter(command =>
+        command.keys.toLowerCase() === normalizedQuery ||
+        command.label.toLowerCase().includes(normalizedQuery)
+      )
+      : [],
+    [normalizedQuery]
+  )
+
+  useEffect(() => {
+    setSelected(0)
+  }, [normalizedQuery])
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
@@ -123,16 +137,34 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
     onClose()
   }, [onClose, router])
 
+  const runCommand = useCallback((href: string) => {
+    if (href !== '#') router.push(href)
+    onClose()
+  }, [onClose, router])
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key === 'Escape') { onClose(); return }
-      if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(s => Math.min(s + 1, results.length - 1)) }
+      const resultCount = matchingCommands.length + results.length
+      if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(s => Math.min(s + 1, Math.max(resultCount - 1, 0))) }
       if (e.key === 'ArrowUp') { e.preventDefault(); setSelected(s => Math.max(s - 1, 0)) }
-      if (e.key === 'Enter' && results[selected]) { navigate(results[selected]) }
+      if (e.key === 'Enter') {
+        const command = matchingCommands[selected]
+        if (command) {
+          e.preventDefault()
+          runCommand(command.href)
+          return
+        }
+        const result = results[selected - matchingCommands.length]
+        if (result) {
+          e.preventDefault()
+          navigate(result)
+        }
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [navigate, onClose, results, selected])
+  }, [matchingCommands, navigate, onClose, results, runCommand, selected])
 
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
@@ -158,12 +190,22 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           <div className="py-2 max-h-80 overflow-y-auto">
             {loading && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">Searching...</p>}
             {!loading && searchError && <p className="text-xs text-red-400 px-4 py-3">Search failed. Please try again.</p>}
-            {!loading && !searchError && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No active results for &ldquo;{q}&rdquo; - deleted items won&apos;t appear here</p>}
+            {!loading && !searchError && matchingCommands.length === 0 && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No active results for &ldquo;{q}&rdquo; - deleted items won&apos;t appear here</p>}
+            {matchingCommands.map((command, i) => (
+              <button
+                key={command.keys}
+                onClick={() => runCommand(command.href)}
+                className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${i === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
+              >
+                <span className="text-sm text-[rgba(245,245,242,0.8)] truncate">{command.label}</span>
+                <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[rgba(245,245,242,0.45)]">{command.keys}</kbd>
+              </button>
+            ))}
             {results.map((r, i) => (
               <button
                 key={r.id}
                 onClick={() => navigate(r)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i + matchingCommands.length === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
               >
                 <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded border flex-shrink-0 capitalize ${
                   r.type === 'case'
@@ -186,8 +228,8 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
                 <button
                   key={command.keys}
                   onClick={() => {
-                    if (command.href !== '#') router.push(command.href)
-                    onClose()
+                  if (command.href !== '#') router.push(command.href)
+                  onClose()
                   }}
                   className="flex min-h-[36px] items-center justify-between rounded-lg px-2 text-left text-xs text-[rgba(245,245,242,0.58)] hover:bg-white/[0.04] hover:text-[#F5F5F2]"
                 >
