@@ -9,7 +9,7 @@ export function Pricing() {
         number="005"
         label="Pricing"
         title="Free forever. Pro when you need it."
-        sub="No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about a coffee an academic term."
+        sub={`No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about a coffee an academic term.`}
       />
       <div className="mt-16 grid gap-6 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {
