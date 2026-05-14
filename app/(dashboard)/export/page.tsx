@@ -118,7 +118,7 @@ export default function ExportPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [subInfo, { data: tagRows }, { data: apps }, { data: links }] = await Promise.all([
+      const [subInfo, { data: tagRows }, { data: apps }, links] = await Promise.all([
         fetchSubscriptionInfo(supabase, user.id),
         supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
