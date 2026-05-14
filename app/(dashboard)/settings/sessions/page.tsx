@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
@@ -15,28 +15,35 @@ type SessionRow = {
 }
 
 export default function SessionsPage() {
-  const supabase = createClient()
+  const supabaseRef = useRef(createClient())
   const { addToast } = useToast()
   const [rows, setRows] = useState<SessionRow[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const supabase = supabaseRef.current
     async function load() {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
-      const { data } = await supabase
-        .from('session_fingerprints')
-        .select('id, ip_hash, user_agent, last_seen_at, revoked_at, created_at')
-        .eq('user_id', user.id)
-        .order('last_seen_at', { ascending: false })
-      setRows((data ?? []) as SessionRow[])
-      setLoading(false)
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) return
+        const { data } = await supabase
+          .from('session_fingerprints')
+          .select('id, ip_hash, user_agent, last_seen_at, revoked_at, created_at')
+          .eq('user_id', user.id)
+          .order('last_seen_at', { ascending: false })
+        setRows((data ?? []) as SessionRow[])
+      } catch {
+        // query failed, rows stays empty
+      } finally {
+        setLoading(false)
+      }
     }
     load()
-  }, [supabase])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function revoke(id: string) {
-    const { error } = await supabase
+    const { error } = await supabaseRef.current
       .from('session_fingerprints')
       .update({ revoked_at: new Date().toISOString() })
       .eq('id', id)

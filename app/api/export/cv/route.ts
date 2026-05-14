@@ -59,29 +59,39 @@ export async function GET(req: NextRequest) {
 
   const label = LABELS[template] ?? LABELS.clinical
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
-  const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
-  const buffer = await renderPortfolioPdf({
-    entries: entries ?? [],
-    userName,
-    specialty: label,
-    exportedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
-    templateName: label,
-    templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
-    templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
-  })
+  try {
+    const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+    const buffer = await renderPortfolioPdf({
+      entries: entries ?? [],
+      userName,
+      specialty: label,
+      exportedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
+      templateName: label,
+      templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
+      templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
+    })
 
-  // Only count the export against the lifetime cap once the PDF was generated
-  // successfully - a render error must not consume the user's only free PDF.
-  if (!sub.isPro) {
-    supabase
-      .rpc('increment_pro_feature_usage', { p_user_id: user.id, p_feature: 'pdf_exports_used' })
-      .then(() => {})
+    // Only count the export against the lifetime cap once the PDF was generated
+    // successfully - a render error must not consume the user's only free PDF.
+    if (!sub.isPro) {
+      supabase
+        .rpc('increment_pro_feature_usage', { p_user_id: user.id, p_feature: 'pdf_exports_used' })
+        .then(() => {})
+    }
+
+    return new NextResponse(new Uint8Array(buffer), {
+      headers: {
+        'Content-Type': 'application/pdf',
+        'Content-Disposition': `attachment; filename="clerkfolio-${template}-cv.pdf"`,
+      },
+    })
+  } catch (err) {
+    if (err instanceof Error) {
+      console.error('PDF generation error:', err.message)
+      console.error('PDF generation stack:', err.stack)
+    } else {
+      console.error('PDF generation error (non-Error):', err)
+    }
+    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
   }
-
-  return new NextResponse(new Uint8Array(buffer), {
-    headers: {
-      'Content-Type': 'application/pdf',
-      'Content-Disposition': `attachment; filename="clerkfolio-${template}-cv.pdf"`,
-    },
-  })
 }

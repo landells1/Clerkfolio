@@ -51,8 +51,9 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
 
-  // Dirty state
+  // Dirty state — ref mirrors state so cleanup closures always see current value
   const [isDirty, setIsDirty] = useState(false)
+  const isDirtyRef = useRef(false)
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
   // sessionStorage is used deliberately: it is scoped to the browser tab and is
@@ -94,7 +95,19 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
-    return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
+    return () => {
+      if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
+      // Flush immediately on unmount (or dep change) so navigating away before
+      // the 1 s debounce fires doesn't lose the draft.
+      if (isDirtyRef.current) {
+        try {
+          sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+            title, date, clinicalDomains, specialtyTags,
+            _expires: Date.now() + 24 * 60 * 60 * 1000,
+          }))
+        } catch {}
+      }
+    }
   }, [mode, title, date, clinicalDomains, specialtyTags])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
@@ -109,7 +122,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  function markDirty() { setIsDirty(true) }
+  function markDirty() { setIsDirty(true); isDirtyRef.current = true }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -186,6 +199,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       }
       sessionStorage.removeItem(DRAFT_KEY)
       setIsDirty(false)
+      isDirtyRef.current = false
       addToast('Case logged', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false

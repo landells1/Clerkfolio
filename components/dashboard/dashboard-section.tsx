@@ -41,21 +41,21 @@ export default function DashboardSection({ title, subtitle, defaultOpen = false,
     setHydrated(true)
   }, [title])
 
-  function toggle(e: React.SyntheticEvent<HTMLDetailsElement>) {
-    const next = (e.currentTarget as HTMLDetailsElement).open
-    setOpen(next)
-    if (hydrated) {
-      const state = readState()
-      state[title] = next
-      writeState(state)
-    }
-  }
-
   return (
-    <details className="group" open={open} onToggle={toggle}>
+    <details className="group" open={open}>
       <summary
         aria-label={`${open ? 'Collapse' : 'Expand'} ${title}`}
         className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]"
+        onClick={e => {
+          e.preventDefault()
+          const next = !open
+          setOpen(next)
+          if (hydrated) {
+            const state = readState()
+            state[title] = next
+            writeState(state)
+          }
+        }}
       >
         <span>
           {title}
