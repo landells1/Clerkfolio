@@ -189,8 +189,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       addToast('Case logged', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
-        router.push('/cases/new')
-        router.refresh()
+        setSaving(false)
+        window.location.assign(`/cases/new?fresh=${Date.now()}`)
         return
       }
       router.push('/cases')

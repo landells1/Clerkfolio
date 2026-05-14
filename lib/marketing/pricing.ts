@@ -19,8 +19,8 @@ export const PRICING_TIERS = [
   },
   {
     name: 'Pro',
-    price: '£10/year',
-    marketingPrice: '£10 per year',
+    price: '£9.99/year',
+    marketingPrice: '£9.99 per year',
     description: 'More room and fewer limits for application season.',
     marketingDescription: 'For application season and beyond.',
     storage: '5 GB',

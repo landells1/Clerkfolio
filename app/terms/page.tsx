@@ -6,7 +6,7 @@ const planRows = [
   ['Free', '100 MB storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.'],
   ['Student', '1 GB storage for verified .ac.uk student users. The same feature limits as Free unless otherwise stated in the app.'],
   ['Foundation', '100 MB storage and the standard free feature allowance unless upgraded or covered by referral Pro.'],
-  ['Pro', 'GBP 10 per year, 5 GB storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available.'],
+  ['Pro', 'GBP 9.99 per year, 5 GB storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available.'],
 ]
 
 export default function TermsPage() {

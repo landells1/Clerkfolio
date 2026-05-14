@@ -420,7 +420,7 @@ export default function ExportPage() {
                 </p>
                 <p className="text-[rgba(245,245,242,0.55)]">
                   CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
-                  {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £10/yr</Link>.
+                  {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £9.99/yr</Link>.
                 </p>
               </div>
             )}

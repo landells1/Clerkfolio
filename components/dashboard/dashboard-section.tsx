@@ -53,7 +53,10 @@ export default function DashboardSection({ title, subtitle, defaultOpen = false,
 
   return (
     <details className="group" open={open} onToggle={toggle}>
-      <summary className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]">
+      <summary
+        aria-label={`${open ? 'Collapse' : 'Expand'} ${title}`}
+        className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]"
+      >
         <span>
           {title}
           {subtitle && (

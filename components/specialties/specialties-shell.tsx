@@ -22,19 +22,30 @@ type Props = {
 }
 
 export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false, canTrackAnotherSpecialty = false, initialAppKey }: Props) {
+  const initialActiveApplications = initialApplications.filter(app => app.is_active !== false)
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
   const [links, setLinks] = useState<SpecialtyEntryLink[]>(initialLinks)
   const [selectedAppId, setSelectedAppId] = useState<string | null>(
-    initialAppKey ? (initialApplications.find(a => a.specialty_key === initialAppKey)?.id ?? null) : null
+    initialAppKey
+      ? (initialApplications.find(a => a.specialty_key === initialAppKey)?.id ?? null)
+      : initialActiveApplications.length === 1
+        ? initialActiveApplications[0].id
+        : null
   )
   const [showAddModal, setShowAddModal] = useState(false)
 
   useEffect(() => {
-    setSelectedAppId(
-      initialAppKey ? (applications.find(a => a.specialty_key === initialAppKey)?.id ?? null) : null
-    )
-    if (!initialAppKey) setActiveTab('my_specialties')
+    if (initialAppKey) {
+      setSelectedAppId(applications.find(a => a.specialty_key === initialAppKey)?.id ?? null)
+      return
+    }
+    const activeApps = applications.filter(app => app.is_active !== false)
+    setSelectedAppId(current => {
+      if (current && activeApps.some(app => app.id === current)) return current
+      return activeApps.length === 1 ? activeApps[0].id : null
+    })
+    setActiveTab('my_specialties')
   }, [applications, initialAppKey])
 
   function handleAddApplication(app: SpecialtyApplication) {

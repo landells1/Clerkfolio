@@ -9,6 +9,7 @@ import {
   PUB_TYPE_LABELS, PUB_STATUS_LABELS,
   PROC_SUPERVISION_LABELS,
   REFL_TYPE_LABELS, REFL_FRAMEWORK_LABELS,
+  formatCompetencyTheme,
   formatInterviewReady,
 } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -121,6 +122,19 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
               {entry.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
                   {formatTag(tag)}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {(entry.interview_themes ?? []).length > 0 && (
+          <div>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Competency themes</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(entry.interview_themes as string[]).map(theme => (
+                <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 border border-violet-400/20">
+                  {formatCompetencyTheme(theme)}
                 </span>
               ))}
             </div>

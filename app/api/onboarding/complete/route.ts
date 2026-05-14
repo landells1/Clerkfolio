@@ -61,6 +61,31 @@ export async function POST(req: NextRequest) {
 
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
 
+  const { count: existingNotifications } = await supabase
+    .from('notifications')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+
+  if ((existingNotifications ?? 0) === 0) {
+    const starterNotifications = [
+      {
+        user_id: user.id,
+        type: 'application_window_open',
+        title: 'Welcome to Clerkfolio',
+        body: 'Your dashboard, portfolio, and timeline are ready. Add a case or portfolio entry to start building evidence.',
+        link: '/dashboard',
+      },
+      {
+        user_id: user.id,
+        type: 'deadline_due',
+        title: 'Track your next milestone',
+        body: 'Set one goal or review your timeline deadlines so the app can start nudging you at the right time.',
+        link: '/timeline',
+      },
+    ]
+    await supabase.from('notifications').insert(starterNotifications)
+  }
+
   if (validSpecialties.length > 0) {
     // Upsert is atomic against the (user_id, specialty_key) unique constraint:
     // two concurrent onboarding completes can no longer race to double-insert.

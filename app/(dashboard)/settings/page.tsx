@@ -380,7 +380,10 @@ export default function SettingsPage() {
         <form
           onSubmit={e => {
             e.preventDefault()
-            if (pendingStage && pendingStage !== profile.career_stage) return
+            if (pendingStage && pendingStage !== profile.career_stage) {
+              saveProfile({ ...profile, career_stage: pendingStage })
+              return
+            }
             saveProfile()
           }}
           className="space-y-4"

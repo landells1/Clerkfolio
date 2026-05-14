@@ -9,7 +9,7 @@ export function Pricing() {
         number="005"
         label="Pricing"
         title="Free forever. Pro when you need it."
-        sub="No card required to start. Free tier is genuinely useful, not a teaser. Pro is £10 a year - about a coffee an academic term."
+        sub="No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about a coffee an academic term."
       />
       <div className="mt-16 grid gap-6 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {
@@ -27,9 +27,17 @@ export function Pricing() {
               <h3 className="mt-4 text-3xl font-medium tracking-[-0.03em]">{tier.marketingPrice}</h3>
               <p className="mt-2 text-sm leading-6 text-ink-soft">{tier.marketingDescription}</p>
               <ul className="mt-7 space-y-3">
-                {features.map((feature) => <li key={feature} className="text-sm text-ink-soft"><span className="mr-2 text-accent">✓</span>{feature}</li>)}
+                {features.map((feature) => (
+                  <li key={feature} className="text-sm text-ink-soft">
+                    <span className="mr-2 text-accent">&#10003;</span>
+                    {feature}
+                  </li>
+                ))}
               </ul>
-              <Link href={tier.name === 'Pro' ? '/upgrade' : '/signup'} className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-surface' : 'border border-white/[0.12] text-ink'}`}>
+              <Link
+                href={tier.name === 'Pro' ? '/upgrade' : '/signup'}
+                className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-surface' : 'border border-white/[0.12] text-ink'}`}
+              >
                 {tier.name === 'Pro' ? 'Upgrade to Pro' : 'Start free'}
               </Link>
             </article>

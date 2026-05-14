@@ -71,20 +71,6 @@ export default async function TimelinePage({
       }))
   )
 
-  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = NHS_ROUND_3_2026_DEADLINES.map(item => ({
-    id: item.kind,
-    title: item.label,
-    date: item.date,
-    details: item.details ?? null,
-    location: null,
-    sourceUrl: item.sourceUrl,
-    sourceLabel: item.sourceLabel,
-    specialtyApplicationId: null,
-    specialtyKey: item.specialtyKey,
-    specialtyName: 'NHS recruitment',
-    source: 'config',
-  }))
-
   const manualDeadlines: TimelineSpecialtyDeadline[] = (deadlines ?? []).map(deadline => {
     const specialty = specialtyRows.find(row => row.key === deadline.source_specialty_key)
     return {
@@ -101,6 +87,25 @@ export default async function TimelinePage({
       source: 'table',
     }
   })
+
+  const hasSpecialtySpecificDeadlines =
+    configuredDeadlines.length > 0 || manualDeadlines.some(deadline => deadline.specialtyKey)
+
+  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = hasSpecialtySpecificDeadlines
+    ? []
+    : NHS_ROUND_3_2026_DEADLINES.map(item => ({
+        id: item.kind,
+        title: item.label,
+        date: item.date,
+        details: item.details ?? null,
+        location: null,
+        sourceUrl: item.sourceUrl,
+        sourceLabel: item.sourceLabel,
+        specialtyApplicationId: null,
+        specialtyKey: item.specialtyKey,
+        specialtyName: 'NHS recruitment',
+        source: 'config',
+      }))
 
   const filteredGoals = ((goals ?? []) as TimelineGoal[]).filter(goal => matchesParsedQuery({
     title: goal.specific ?? goal.category,

@@ -14,14 +14,17 @@ import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { formatInterviewReady } from '@/lib/types/portfolio-labels'
 
 type Props = {
   mode: 'create' | 'edit'
-  initialData?: Partial<NewPortfolioEntry> & { id?: string; interview_themes?: string[] }
+  initialData?: Partial<NewPortfolioEntry> & { id?: string; interview_themes?: string[]; interview_ready_for?: string[] }
   userInterests?: string[]
   defaultCategory?: Category
   templates?: Template[]
 }
+
+const INTERVIEW_READY_OPTIONS = ['imt', 'cst', 'gp', 'accs', 'st3', 'arcp'] as const
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
 const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
@@ -139,6 +142,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
+  const [interviewReadyFor, setInterviewReadyFor] = useState<string[]>(initialData?.interview_ready_for ?? [])
 
   // Template guidance placeholders - overridden when a template is applied
   const [guidancePlaceholders, setGuidancePlaceholders] = useState<Record<string, string>>({})
@@ -262,6 +266,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.notes !== undefined) setNotes(d.notes)
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.interviewThemes !== undefined) setInterviewThemes(d.interviewThemes)
+      if (d.interviewReadyFor !== undefined) setInterviewReadyFor(d.interviewReadyFor)
       if (d.auditType !== undefined) setAuditType(d.auditType)
       if (d.auditRole !== undefined) setAuditRole(d.auditRole)
       if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
@@ -316,7 +321,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       sessionStorage.setItem(draftKey, JSON.stringify({
-        category, title, date, notes, specialtyTags, interviewThemes,
+        category, title, date, notes, specialtyTags, interviewThemes, interviewReadyFor,
         auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
         confType, confEventName, confAttendance, confLevel, confCpdHours,
@@ -331,7 +336,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
   }, [
-    mode, category, title, date, notes, specialtyTags, interviewThemes,
+    mode, category, title, date, notes, specialtyTags, interviewThemes, interviewReadyFor,
     auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
     confType, confEventName, confAttendance, confLevel, confCpdHours,
@@ -386,6 +391,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       specialty_tags: specialtyTags,
       notes: notes || null,
       interview_themes: interviewThemes,
+      interview_ready_for: interviewReadyFor,
     }
     switch (category) {
       case 'audit_qip': return { ...base, audit_type: auditType, audit_role: auditRole || null, audit_cycle_stage: auditCycleStage || null, audit_trust: auditTrust || null, audit_outcome: auditOutcome || null, audit_presented: auditPresented }
@@ -409,6 +415,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setNotes('')
     setSpecialtyTags([])
     setInterviewThemes([])
+    setInterviewReadyFor([])
     setGuidancePlaceholders({})
     setAuditType('audit'); setAuditRole(''); setAuditCycleStage(''); setAuditTrust(''); setAuditOutcome(''); setAuditPresented(false)
     setTeachingType(''); setTeachingAudience(''); setTeachingSetting(''); setTeachingEvent(''); setTeachingInvited(false)
@@ -498,9 +505,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast('Entry saved', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
-        // Reload the new-entry route so all controlled state resets cleanly.
-        router.push(`/portfolio/new?category=${category}`)
-        router.refresh()
+        setSaving(false)
+        window.location.assign(`/portfolio/new?category=${category}&fresh=${Date.now()}`)
         return
       }
       router.push(`/portfolio/${data.id}`)
@@ -553,6 +559,19 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const ph = (key: string, fallback: string) => guidancePlaceholders[key] ?? fallback
 
   const LEVEL_OPTIONS = ['local', 'regional', 'national', 'international']
+  const visibleInterviewReadyOptions = Array.from(new Set([
+    ...INTERVIEW_READY_OPTIONS,
+    ...userInterests
+      .map(interest => interest.toLowerCase())
+      .flatMap(interest => {
+        if (interest.startsWith('imt')) return ['imt']
+        if (interest.startsWith('cst')) return ['cst']
+        if (interest.startsWith('gp')) return ['gp']
+        if (interest.startsWith('accs')) return ['accs']
+        if (interest.includes('st3') || interest.includes('st4')) return ['st3']
+        return []
+      }),
+  ]))
 
   // Grouped templates for the picker
   const curatedTemplates = templates.filter(t => t.is_curated)
@@ -653,6 +672,37 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 ))}
               </div>
             )}
+          </Field>
+          <Field label="Interview ready for">
+            <div className="flex flex-wrap gap-2">
+              {visibleInterviewReadyOptions.map(option => {
+                const active = interviewReadyFor.includes(option)
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    onClick={() => {
+                      setInterviewReadyFor(current =>
+                        current.includes(option)
+                          ? current.filter(item => item !== option)
+                          : [...current, option]
+                      )
+                      markDirty()
+                    }}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
+                      active
+                        ? 'border-emerald-400/30 bg-emerald-400/10 text-emerald-300'
+                        : 'border-white/[0.08] bg-[#0B0B0C] text-[rgba(245,245,242,0.62)] hover:border-white/[0.15] hover:text-[#F5F5F2]'
+                    }`}
+                  >
+                    {formatInterviewReady(option)}
+                  </button>
+                )
+              })}
+            </div>
+            <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+              Flag entries you would reach for in interview answers or application examples.
+            </p>
           </Field>
           <Field label="Notes / comments">
             <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />

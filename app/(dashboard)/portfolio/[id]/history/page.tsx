@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import RestoreVersionButton from '@/components/history/restore-version-button'
 import { CATEGORIES } from '@/lib/types/portfolio'
-import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
+import { formatCompetencyTheme, formatInterviewReady } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 
 type Revision = {
@@ -11,7 +11,7 @@ type Revision = {
   snapshot: Record<string, unknown>
   created_at: string
 }
-const SUMMARY_FIELDS = ['title', 'date', 'category', 'notes', 'specialty_tags', 'interview_themes']
+const SUMMARY_FIELDS = ['title', 'date', 'category', 'notes', 'specialty_tags', 'interview_themes', 'interview_ready_for']
 const FIELD_LABELS: Record<string, string> = {
   title: 'Title',
   date: 'Date',
@@ -19,6 +19,7 @@ const FIELD_LABELS: Record<string, string> = {
   notes: 'Notes',
   specialty_tags: 'Linked specialties',
   interview_themes: 'Competency themes',
+  interview_ready_for: 'Interview ready for',
 }
 
 function formatValue(field: string, value: unknown) {
@@ -31,6 +32,9 @@ function formatValue(field: string, value: unknown) {
   if (field === 'interview_themes' && Array.isArray(value)) {
     return value.map(item => formatCompetencyTheme(String(item))).join(', ') || 'empty'
   }
+  if (field === 'interview_ready_for' && Array.isArray(value)) {
+    return value.map(item => formatInterviewReady(String(item))).join(', ') || 'empty'
+  }
   if (Array.isArray(value)) return value.join(', ') || 'empty'
   if (value === null || value === undefined || value === '') return 'empty'
   if (typeof value === 'boolean') return value ? 'yes' : 'no'
@@ -40,6 +44,18 @@ function formatValue(field: string, value: unknown) {
 function changedFields(current: Record<string, unknown>, previous?: Record<string, unknown>) {
   if (!previous) return ['Original saved version']
   return SUMMARY_FIELDS.filter(key => JSON.stringify(current[key]) !== JSON.stringify(previous[key]))
+}
+
+function changedFieldPairs(current: Record<string, unknown>, previous?: Record<string, unknown>) {
+  if (!previous) return []
+  return SUMMARY_FIELDS
+    .filter(key => JSON.stringify(current[key]) !== JSON.stringify(previous[key]))
+    .map(key => ({
+      key,
+      label: FIELD_LABELS[key] ?? key,
+      before: formatValue(key, previous[key]),
+      after: formatValue(key, current[key]),
+    }))
 }
 
 export default async function PortfolioHistoryPage({ params }: { params: Promise<{ id: string }> }) {
@@ -80,6 +96,7 @@ export default async function PortfolioHistoryPage({ params }: { params: Promise
           const previous = revisions[index + 1]?.snapshot
           const changed = changedFields(revision.snapshot, previous)
           const changedLabels = changed.map(field => FIELD_LABELS[field] ?? field)
+          const changedPairs = changedFieldPairs(revision.snapshot, previous)
           return (
             <article key={revision.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
               <div className="flex items-start justify-between gap-4">
@@ -104,6 +121,26 @@ export default async function PortfolioHistoryPage({ params }: { params: Promise
                   </div>
                 ))}
               </dl>
+              {changedPairs.length > 0 && (
+                <div className="mt-4 rounded-xl border border-white/[0.06] bg-[#0B0B0C] p-4">
+                  <p className="text-[10px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Changed from previous version</p>
+                  <div className="mt-3 space-y-3">
+                    {changedPairs.map(change => (
+                      <div key={change.key} className="grid gap-2 sm:grid-cols-[140px_minmax(0,1fr)_minmax(0,1fr)]">
+                        <p className="text-xs font-medium text-[#F5F5F2]">{change.label}</p>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Before</p>
+                          <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">{change.before}</p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] uppercase tracking-wider text-[rgba(245,245,242,0.4)]">After</p>
+                          <p className="mt-1 text-xs text-[rgba(245,245,242,0.8)]">{change.after}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </article>
           )
         })}
