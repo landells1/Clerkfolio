@@ -8,6 +8,29 @@ type AuditRow = {
   created_at: string
 }
 
+const ACTION_LABELS: Record<string, string> = {
+  share_link_generated: 'Share link created',
+  share_link_viewed: 'Share link viewed',
+  share_link_revoked: 'Share link revoked',
+  profile_updated: 'Profile updated',
+  password_updated: 'Password updated',
+}
+
+function formatAction(action: string) {
+  return ACTION_LABELS[action] ?? action.split('_').map(part => part ? `${part[0].toUpperCase()}${part.slice(1)}` : '').join(' ')
+}
+
+function formatKey(key: string) {
+  return key.split('_').map(part => part ? `${part[0].toUpperCase()}${part.slice(1)}` : '').join(' ')
+}
+
+function formatMetadataValue(value: unknown) {
+  if (value === null || value === undefined) return 'None'
+  if (typeof value === 'string') return value
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value)
+  return JSON.stringify(value)
+}
+
 export default async function AuditLogPage({
   searchParams,
 }: {
@@ -39,7 +62,7 @@ export default async function AuditLogPage({
       <form className="mt-6 flex flex-wrap gap-2">
         <select name="action" defaultValue={params.action ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
           <option value="">Any action</option>
-          {actions.map(action => <option key={action} value={action}>{action}</option>)}
+          {actions.map(action => <option key={action} value={action}>{formatAction(action)}</option>)}
         </select>
         <input type="date" name="from" defaultValue={params.from ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]" />
         <input type="date" name="to" defaultValue={params.to ?? ''} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]" />
@@ -50,10 +73,19 @@ export default async function AuditLogPage({
         {rows.map(row => (
           <article key={row.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <p className="text-sm font-medium text-[#F5F5F2]">{row.action}</p>
+              <p className="text-sm font-medium text-[#F5F5F2]">{formatAction(row.action)}</p>
               <time className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(row.created_at).toLocaleString('en-GB')}</time>
             </div>
-            {row.metadata && <pre className="mt-3 overflow-x-auto rounded-lg bg-[#0B0B0C] p-3 text-xs text-[rgba(245,245,242,0.72)]">{JSON.stringify(row.metadata, null, 2)}</pre>}
+            {row.metadata && (
+              <dl className="mt-3 flex flex-wrap gap-x-4 gap-y-2 rounded-lg bg-[#0B0B0C] p-3 text-xs text-[rgba(245,245,242,0.72)]">
+                {Object.entries(row.metadata).map(([key, value]) => (
+                  <div key={key} className="flex min-w-0 gap-1.5">
+                    <dt className="shrink-0 text-[rgba(245,245,242,0.45)]">{formatKey(key)}:</dt>
+                    <dd className="min-w-0 break-all font-mono">{formatMetadataValue(value)}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
           </article>
         ))}
         {rows.length === 0 && <p className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6 text-sm text-[rgba(245,245,242,0.55)]">No audit events found.</p>}

@@ -83,7 +83,10 @@ export default function SwipeToDelete({
 
   return (
     <div className={`relative overflow-hidden ${className}`}>
-      <div className="absolute inset-y-0 right-0 flex w-28 items-center justify-center bg-red-500/15 text-xs font-semibold text-red-300">
+      <div
+        className="absolute inset-y-0 right-0 flex w-28 items-center justify-center bg-red-500/15 text-xs font-semibold text-red-100 transition-opacity"
+        style={{ opacity: disabled ? 0 : Math.min(1, Math.abs(offset) / THRESHOLD) }}
+      >
         Delete
       </div>
       <div

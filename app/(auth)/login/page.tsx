@@ -40,7 +40,7 @@ function LoginForm() {
       <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">Log in to your Clerkfolio account</p>
 
       {confirmationFailed && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-400 mb-4">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100 mb-4">
           The confirmation link has expired or is invalid. Please sign up again or contact support.
         </div>
       )}
@@ -82,7 +82,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-400">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100">
             {error}
           </div>
         )}

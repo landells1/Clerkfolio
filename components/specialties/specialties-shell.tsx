@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/lib/specialties'
@@ -82,8 +83,38 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
 
   return (
     <div className="p-6 max-w-container mx-auto">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold tracking-tight text-fg">Specialties</h1>
+          <p className="mt-1 text-sm text-fg-2">Your tracked application programmes.</p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {activeApplications.length >= 2 && (
+            <Link href="/specialties/compare" className="inline-flex min-h-[40px] items-center rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg hover:border-default transition-colors">
+              Compare specialties
+            </Link>
+          )}
+          {activeTab === 'my_specialties' && !selectedAppId && (
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="flex min-h-[40px] items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-blue-600"
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add specialty
+              {!canTrackAnotherSpecialty && (
+                <span className="ml-0.5 text-[10px] font-normal text-surface-0/60">
+                  {activeApplications.length}/{FREE_SPECIALTY_LIMIT}
+                </span>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Tab bar */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="mb-6 flex items-center">
         <div className="flex gap-1 bg-surface-1 border border-subtle rounded-lg p-1">
           {(['my_specialties', 'compare', 'archive'] as Tab[]).map(tab => (
             <button
@@ -106,23 +137,6 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
             </button>
           ))}
         </div>
-
-        {activeTab === 'my_specialties' && !selectedAppId && (
-          <button
-            onClick={() => setShowAddModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-500 hover:bg-blue-600 text-surface-0 font-semibold text-sm rounded-lg transition-colors"
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-            Add specialty
-            {!canTrackAnotherSpecialty && (
-              <span className="text-[10px] font-normal text-surface-0/60 ml-0.5">
-                {activeApplications.length}/{FREE_SPECIALTY_LIMIT}
-              </span>
-            )}
-          </button>
-        )}
       </div>
 
       {/* My Specialties tab */}

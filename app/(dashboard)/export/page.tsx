@@ -290,22 +290,30 @@ export default function ExportPage() {
       return
     }
 
-    const res = await fetch('/api/share', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        scope: shareScope,
-        specialty_key: shareScope === 'specialty' ? specialty : null,
-        theme_slug: shareScope === 'theme' ? shareTheme : null,
-        expires_at: expiresAt,
-        pin: sharePin || null,
-        hide_notes: hideNotes,
-        hide_reflection: hideReflection,
-        redact_tags: redactTags,
-        view_webhook_url: viewWebhookUrl.trim() || null,
-      }),
-    })
-    const json = await res.json()
+    let res: Response
+    let json: Partial<ShareLink> & { error?: string; limit?: number } = {}
+    try {
+      res = await fetch('/api/share', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          scope: shareScope,
+          specialty_key: shareScope === 'specialty' ? specialty : null,
+          theme_slug: shareScope === 'theme' ? shareTheme : null,
+          expires_at: expiresAt,
+          pin: sharePin || null,
+          hide_notes: hideNotes,
+          hide_reflection: hideReflection,
+          redact_tags: redactTags,
+          view_webhook_url: viewWebhookUrl.trim() || null,
+        }),
+      })
+      json = await res.json().catch(() => ({}))
+    } catch {
+      setShareLoading(false)
+      setError('Could not create share link. Check your connection and try again.')
+      return
+    }
     setShareLoading(false)
     if (!res.ok) {
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
@@ -714,7 +722,7 @@ export default function ExportPage() {
                   Redact tags
                 </label>
               </div>
-              <button onClick={createShareLink} disabled={shareLoading || !subInfo?.limits.canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+              <button type="button" onClick={createShareLink} disabled={shareLoading || !subInfo?.limits.canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>

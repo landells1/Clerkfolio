@@ -121,21 +121,21 @@ export default async function TimelinePage({
   }, parsedQuery))
 
   return (
-    <>
-      <div className="max-w-container mx-auto px-6 pt-6 lg:px-8">
+    <TimelineClient
+      goals={filteredGoals}
+      specialties={specialtyRows}
+      deadlines={filteredDeadlines}
+      calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
+      filterBar={
+        <div className="mb-6">
         <form className="mb-3 flex flex-wrap gap-2">
           <input name="q" defaultValue={q} placeholder="Search timeline" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
           <input type="date" name="since" defaultValue={resolvedSearchParams.since ?? ''} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg" />
           <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
         </form>
         <SavedSearchBar surface="timeline" q={q} />
-      </div>
-      <TimelineClient
-        goals={filteredGoals}
-        specialties={specialtyRows}
-        deadlines={filteredDeadlines}
-        calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
-      />
-    </>
+        </div>
+      }
+    />
   )
 }

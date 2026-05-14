@@ -36,7 +36,6 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
-  const [query, setQuery] = useState('')
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -67,9 +66,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   }
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase()
     return cases.filter(c => {
-      if (q && !`${c.title} ${c.notes ?? ''}`.toLowerCase().includes(q)) return false
       if (domain && ![c.clinical_domain, ...(c.clinical_domains ?? [])].includes(domain)) return false
       if (specialty && !(c.specialty_tags ?? []).includes(specialty)) return false
       if (chipSpecialty && !(c.specialty_tags ?? []).includes(chipSpecialty)) return false
@@ -77,7 +74,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       if (to && c.date > to) return false
       return true
     })
-  }, [cases, chipSpecialty, domain, from, query, specialty, to])
+  }, [cases, chipSpecialty, domain, from, specialty, to])
 
   // Counts per specialty across the (unchipped) result set, for the chip row.
   const specialtyCounts = useMemo(() => {
@@ -154,13 +151,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   return (
     <>
       <div className="sticky top-0 z-20 -mx-2 mb-3 bg-surface-0/95 px-2 py-3 backdrop-blur">
-        <div className="flex gap-2">
-          <input
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder="Search cases"
-            className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong"
-          />
+        <div className="flex justify-end gap-2">
           <div className="hidden sm:flex items-center rounded-lg border border-subtle bg-surface-1 p-0.5" role="group" aria-label="Row density">
             <button
               type="button"

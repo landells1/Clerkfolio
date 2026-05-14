@@ -327,7 +327,7 @@ export default async function DashboardPage() {
       )}
       <ChangelogModal userId={user!.id} entries={changelogEntries} />
       <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />
-      <CareerWelcomeCard stage={profile?.career_stage} />
+      <CareerWelcomeCard stage={profile?.career_stage} caseCount={allCases?.length ?? 0} />
       <DemoStarterCard show={seededDemos} />
 
       {profile && !profile.onboarding_checklist_dismissed && (

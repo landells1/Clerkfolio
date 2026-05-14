@@ -75,7 +75,7 @@ function monthDays(month: Date) {
   })
 }
 
-export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean }) {
+export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, filterBar }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; filterBar?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -328,6 +328,8 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>
       </div>
+
+      {filterBar}
 
       <div className="sm:hidden mb-4">
         <select value={view} onChange={e => setView(e.target.value as 'calendar' | 'list')} className="w-full min-h-[44px] bg-[#141416] border border-white/[0.08] rounded-lg px-3 text-[#F5F5F2]">

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
+import Link from 'next/link'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -151,7 +152,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               className="mt-5 w-full rounded-xl border border-white/[0.08] bg-[#0B0B0C] px-4 py-3 text-center text-lg tracking-[0.35em] text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
               placeholder="0000"
             />
-            {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+            {error && <p className="mt-3 text-sm text-red-100">{error}</p>}
             <button className="mt-5 w-full rounded-xl bg-[#1B6FD9] px-4 py-3 text-sm font-semibold text-[#0B0B0C] transition-colors hover:bg-[#155BB0]">
               Unlock
             </button>
@@ -159,7 +160,17 @@ export default function PublicShareClient({ token }: { token: string }) {
         )}
 
         {!loading && error && !pinRequired && (
-          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-sm text-red-300">{error}</div>
+          <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
+            <p className="text-sm text-red-100">{error}</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              <button type="button" onClick={() => history.back()} className="min-h-[40px] rounded-lg border border-red-200/20 px-4 text-sm font-medium text-white hover:bg-white/5">
+                Back
+              </button>
+              <Link href="/login" className="inline-flex min-h-[40px] items-center rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
+                Log in to Clerkfolio
+              </Link>
+            </div>
+          </div>
         )}
 
         {payload && (

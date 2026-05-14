@@ -32,13 +32,21 @@ function bucket(stage: string | null | undefined) {
   return COPY.specialty
 }
 
-export default function CareerWelcomeCard({ stage }: { stage: string | null | undefined }) {
+export default function CareerWelcomeCard({ stage, caseCount = 0 }: { stage: string | null | undefined; caseCount?: number }) {
   const copy = bucket(stage)
+  const adjustedCopy = copy === COPY.early && caseCount > 0
+    ? {
+        title: 'Keep the case log going',
+        body: 'Capture anonymised cases, reflections, and small teaching moments as you go.',
+        cta: 'Log another case',
+        href: '/cases/new',
+      }
+    : copy
   return (
     <div className="mb-6 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-      <h2 className="text-base font-semibold text-[#F5F5F2]">{copy.title}</h2>
-      <p className="mt-1 max-w-2xl text-sm text-[rgba(245,245,242,0.55)]">{copy.body}</p>
-      <a href={copy.href} className="mt-4 inline-flex min-h-[40px] items-center rounded-xl bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C]">{copy.cta}</a>
+      <h2 className="text-base font-semibold text-[#F5F5F2]">{adjustedCopy.title}</h2>
+      <p className="mt-1 max-w-2xl text-sm text-[rgba(245,245,242,0.55)]">{adjustedCopy.body}</p>
+      <a href={adjustedCopy.href} className="mt-4 inline-flex min-h-[40px] items-center rounded-xl bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C]">{adjustedCopy.cta}</a>
     </div>
   )
 }
