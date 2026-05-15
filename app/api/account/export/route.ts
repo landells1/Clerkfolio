@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     // GDPR Art. 20 — additional tables containing personal data
     supabase.from('personal_log').select('*').eq('user_id', user.id).is('deleted_at', null),
     supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-    supabase.from('share_links').select('id, created_at, updated_at, scope, specialty_key, expiry_date, view_count, revoked, revoked_at, label').eq('user_id', user.id),
+    supabase.from('share_links').select('id, created_at, scope, specialty_key, theme_slug, expires_at, view_count, revoked, revoked_at, hide_notes, hide_reflection, redact_tags').eq('user_id', user.id),
     supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('entry_revisions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('custom_competency_themes').select('*').eq('user_id', user.id),

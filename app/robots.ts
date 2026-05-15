@@ -1,0 +1,50 @@
+import type { MetadataRoute } from 'next'
+
+export default function robots(): MetadataRoute.Robots {
+  return {
+    rules: [
+      {
+        userAgent: '*',
+        allow: ['/', '/privacy', '/terms', '/cookies', '/dpa', '/subprocessors', '/security', '/contact', '/showcase/'],
+        disallow: [
+          '/api/',
+          '/dashboard',
+          '/dashboard/',
+          '/portfolio',
+          '/portfolio/',
+          '/cases',
+          '/cases/',
+          '/specialties',
+          '/specialties/',
+          '/arcp',
+          '/arcp/',
+          '/timeline',
+          '/timeline/',
+          '/export',
+          '/export/',
+          '/import',
+          '/import/',
+          '/settings',
+          '/settings/',
+          '/help',
+          '/help/',
+          '/trash',
+          '/trash/',
+          '/upgrade',
+          '/upgrade/',
+          '/onboarding',
+          '/onboarding/',
+          '/share/',
+          '/login',
+          '/signup',
+          '/reset-password',
+          '/update-password',
+          '/verify-email',
+          '/r/',
+          '/auth/',
+        ],
+      },
+    ],
+    sitemap: 'https://clerkfolio.co.uk/sitemap.xml',
+  }
+}

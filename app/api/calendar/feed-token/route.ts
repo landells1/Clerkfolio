@@ -37,3 +37,20 @@ export async function POST(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ token })
 }
+
+export async function DELETE(req: NextRequest) {
+  const originError = validateOrigin(req)
+  if (originError) return originError
+
+  const supabase = createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ calendar_feed_token_hash: null, calendar_feed_token: null })
+    .eq('id', user.id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  return NextResponse.json({ ok: true })
+}

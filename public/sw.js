@@ -1,8 +1,16 @@
 const STATIC_CACHE = 'clerkfolio-static-v4'
-const SHELL_CACHE = 'clerkfolio-shell-v1'
-const API_CACHE = 'clerkfolio-api-v1'
+const SHELL_CACHE = 'clerkfolio-shell-v2'
+const API_CACHE = 'clerkfolio-api-v2'
 const SHELL_PATHS = new Set(['/dashboard', '/cases', '/portfolio'])
 const OFFLINE_LATEST_PATH = '/api/offline/latest'
+
+// On a shared device, a previous user's authenticated API responses must not
+// be served to the next user. We cache only the explicitly-warmed offline-latest
+// feed (handled in the message listener below). All other /api/* requests pass
+// straight to network so post-logout reads cannot hit stale cache.
+function isCacheableApi(url) {
+  return url.pathname === OFFLINE_LATEST_PATH
+}
 
 const CACHEABLE_STATIC = (url) => {
   if (url.pathname.startsWith('/_next/static/')) return true
@@ -22,7 +30,7 @@ self.addEventListener('activate', (event) => {
 })
 
 self.addEventListener('message', (event) => {
-  if (event.data?.type === 'CLEAR_CACHE') {
+  if (event.data?.type === 'CLEAR_CACHE' || event.data?.type === 'LOGOUT') {
     event.waitUntil(Promise.all([
       caches.delete(STATIC_CACHE),
       caches.delete(SHELL_CACHE),
@@ -53,7 +61,12 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(networkFirst(event.request, API_CACHE))
+    if (isCacheableApi(url)) {
+      event.respondWith(networkFirst(event.request, API_CACHE))
+    }
+    // Other API requests pass straight to network - we never want to serve
+    // authenticated responses from cache, especially after a logout/login
+    // churn on a shared device.
     return
   }
 

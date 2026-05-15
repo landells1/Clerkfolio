@@ -22,6 +22,17 @@ function LoginForm() {
     setError(null)
     setLoading(true)
 
+    const preflight = await fetch('/api/auth/preflight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'login' }),
+    })
+    if (preflight.status === 429) {
+      setError('Too many login attempts from this network. Please wait an hour and try again.')
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {

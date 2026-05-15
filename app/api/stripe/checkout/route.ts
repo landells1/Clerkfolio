@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       customer: customerId,
       mode: 'subscription',
       line_items: [{ price: STRIPE_PRICE_ID, quantity: 1 }],
-      success_url: `${APP_URL}/settings?upgraded=true`,
+      success_url: `${APP_URL}/settings?upgraded=true&session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${APP_URL}/settings`,
       allow_promotion_codes: true,
       metadata: { supabase_user_id: user.id },

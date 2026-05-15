@@ -6,6 +6,7 @@ import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { validateOrigin } from '@/lib/csrf'
+import { isPublicWebhookHost } from '@/lib/share/ssrf'
 
 const ACCESS_RATE_LIMIT = 5
 
@@ -35,14 +36,8 @@ function formatTag(tag: string) {
 // Defence-in-depth SSRF check: even though parseWebhookUrl in share/route.ts
 // blocks private hosts at insert time, legacy rows may have been stored before
 // that check was added. Re-validate here before the service-role process makes
-// an outbound request.
-const PRIVATE_HOST_PATTERNS = [
-  /^localhost$/i, /^127\./, /^10\./, /^192\.168\./,
-  /^172\.(1[6-9]|2\d|3[0-1])\./, /^169\.254\./, /^0\./,
-  /^\[::1\]?$/, /^\[fc[0-9a-f]{2}:/i, /^\[fe80:/i,
-  /\.internal$/i, /\.local$/i,
-]
-
+// an outbound request. We also pin no-redirects so an HTTP 30x cannot bounce
+// us into a private host via the Location header.
 async function sendShareViewWebhook(
   url: string,
   payload: { token: string; scope: string; viewed_at: string; ip_hash: string }
@@ -50,7 +45,7 @@ async function sendShareViewWebhook(
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return
-    if (PRIVATE_HOST_PATTERNS.some(pattern => pattern.test(parsed.hostname))) return
+    if (!isPublicWebhookHost(parsed.hostname)) return
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000)
@@ -60,6 +55,7 @@ async function sendShareViewWebhook(
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
         signal: controller.signal,
+        redirect: 'error',
       })
     } finally {
       clearTimeout(timeout)

@@ -101,6 +101,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api/student-email/confirm') ||
     pathname.startsWith('/api/feedback') ||
     pathname.startsWith('/api/cron/') ||
+    pathname.startsWith('/api/auth/') ||
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/r/')
 

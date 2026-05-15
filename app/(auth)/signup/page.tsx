@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { isAcUkEmail, isNhsEmail } from '@/lib/institutional-email'
 
 export default function SignupPage() {
   const [email, setEmail] = useState('')
@@ -36,6 +37,17 @@ export default function SignupPage() {
 
     setLoading(true)
 
+    const preflight = await fetch('/api/auth/preflight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'signup' }),
+    })
+    if (preflight.status === 429) {
+      setError('Too many sign-up attempts from this network. Please wait an hour and try again.')
+      setLoading(false)
+      return
+    }
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
@@ -60,18 +72,10 @@ export default function SignupPage() {
       return
     }
 
-    if (referralCode?.match(/^[A-Z]{5}$/) && data.user) {
-      const { data: referrer } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('referral_code', referralCode)
-        .maybeSingle()
-      if (referrer) {
-        await supabase.from('profiles').update({ referred_by: referrer.id }).eq('id', data.user.id)
-      }
-    }
-
-    // Email confirmation disabled - go straight to onboarding
+    // The referral code travels via raw_user_meta_data and is resolved
+    // server-side in handle_new_user (sets profiles.referred_by) and in the
+    // auth/callback OAuth flow. No client-side lookup needed - that path was
+    // dead code (RLS prevents the SELECT from seeing another user's row).
     router.push('/onboarding')
     router.refresh()
   }
@@ -121,11 +125,12 @@ export default function SignupPage() {
           {/* Inline institutional-email detection: lights up when an .ac.uk or
               NHS email is entered, hinting at the Student / Foundation tier
               before the user even submits. Cosmetic only - actual tier is
-              granted post-verification. */}
+              granted post-verification. Uses the same validators as the server
+              so client and server tier-hints agree. */}
           {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && (() => {
             const lower = email.toLowerCase()
-            const isAcUk = lower.endsWith('.ac.uk')
-            const isNhs = /@(.*\.)?nhs(\.uk|\.net|\.scot|\.wales)?$/.test(lower) || lower.endsWith('.nhs.uk')
+            const isAcUk = isAcUkEmail(lower)
+            const isNhs = isNhsEmail(lower)
             if (!isAcUk && !isNhs) return null
             return (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border border-pill-green bg-pill-green text-green-300">

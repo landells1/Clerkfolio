@@ -4,6 +4,7 @@ import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import * as Sentry from '@sentry/nextjs'
 
 const EXPORT_RATE_MAX = 20
 const EXPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -86,12 +87,9 @@ export async function GET(req: NextRequest) {
       },
     })
   } catch (err) {
-    if (err instanceof Error) {
-      console.error('PDF generation error:', err.message)
-      console.error('PDF generation stack:', err.stack)
-    } else {
-      console.error('PDF generation error (non-Error):', err)
-    }
+    const message = err instanceof Error ? `${err.name}: ${err.message}` : 'non-error throw'
+    console.error('PDF generation error:', message)
+    Sentry.captureException(err, { tags: { route: '/api/export/cv', userId: user.id } })
     return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
   }
 }

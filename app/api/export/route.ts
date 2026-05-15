@@ -8,6 +8,7 @@ import { mrcpTemplate } from '@/lib/pdf/mrcp'
 import { stApplicationTemplate } from '@/lib/pdf/st-application'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import * as Sentry from '@sentry/nextjs'
 
 // PDF rendering is the most expensive thing the lambda does (~600ms+ cold,
 // 100-200ms warm) and could be used to grief Vercel function minutes. Cap
@@ -214,15 +215,12 @@ export async function POST(request: NextRequest) {
       },
     })
   } catch (err) {
-    // Full error including stack to surface the underlying @react-pdf/renderer
-    // failure in Vercel logs - the previous one-liner hid everything below the
-    // top frame.
-    if (err instanceof Error) {
-      console.error('PDF generation error:', err.message)
-      console.error('PDF generation stack:', err.stack)
-    } else {
-      console.error('PDF generation error (non-Error):', err)
-    }
+    // Only log error name + message to platform logs (stack traces can carry
+    // free-text user content from rendered entries). Full error + scrubbed
+    // metadata is routed through Sentry which has retention/PII controls.
+    const message = err instanceof Error ? `${err.name}: ${err.message}` : 'non-error throw'
+    console.error('PDF generation error:', message)
+    Sentry.captureException(err, { tags: { route: '/api/export', userId: user.id } })
     return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
   }
 }

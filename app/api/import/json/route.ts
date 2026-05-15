@@ -5,9 +5,19 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { containsPII } from '@/lib/pii'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
+
+const PII_SCAN_FIELDS = ['title', 'notes', 'refl_free_text', 'custom_free_text', 'audit_outcome'] as const
+
+function rowHasPII(row: Record<string, unknown>): boolean {
+  return PII_SCAN_FIELDS.some(field => {
+    const value = row[field]
+    return typeof value === 'string' && containsPII(value)
+  })
+}
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 
@@ -168,11 +178,13 @@ export async function POST(req: NextRequest) {
   ])
 
   let skipped = 0
+  let blocked = 0
   const portfolioRows = backup.portfolio_entries
     .filter(row => {
       const category = String(row.category ?? 'custom')
       const valid = row.title && CATEGORY_VALUES.has(category as Category)
       if (!valid || existing.has(entryKey(row))) { skipped++; return false }
+      if (rowHasPII(row)) { blocked++; return false }
       return true
     })
     .map(row => copyInsertable(row, user.id, PORTFOLIO_ALLOWED))
@@ -181,6 +193,7 @@ export async function POST(req: NextRequest) {
     .filter(row => {
       const valid = row.title
       if (!valid || existing.has(caseKey(row))) { skipped++; return false }
+      if (rowHasPII(row)) { blocked++; return false }
       return true
     })
     .map(row => copyInsertable(row, user.id, CASE_ALLOWED))
@@ -208,5 +221,6 @@ export async function POST(req: NextRequest) {
     deadlines: deadlineResult.data?.length ?? 0,
     goals: goalResult.data?.length ?? 0,
     skipped,
+    blocked,
   })
 }

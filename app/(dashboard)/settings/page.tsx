@@ -298,6 +298,9 @@ export default function SettingsPage() {
       addToast('Failed to delete account', 'error')
       return
     }
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ type: 'LOGOUT' })
+    }
     await supabase.auth.signOut()
     router.push('/?deleted=true')
   }

@@ -15,7 +15,13 @@ function getPeriodEnd(subscription: Stripe.Subscription): string | null {
 }
 
 function hasPaidAccess(subscription: Stripe.Subscription) {
-  return subscription.status === 'active' || subscription.status === 'trialing'
+  // `active`, `trialing` and `past_due` all imply the user has paid for the
+  // current period - Stripe only flips `past_due` -> `canceled` after all
+  // retry attempts are exhausted (typically 7 days of dunning). Keep Pro
+  // features available during that window so a failed card on day 1 of a
+  // 365-day cycle does not strip the user of features they have paid for.
+  // The user separately gets an in-app notification on `invoice.payment_failed`.
+  return ['active', 'trialing', 'past_due'].includes(subscription.status)
 }
 
 async function handleStripeEvent(

@@ -1,7 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 const REFERRAL_REWARD_DAYS = 30
-const MAX_LIFETIME_REFERRAL_REWARDS = 6
+// Cap referrals at 5 per rolling 365 days per referrer. Matches the public
+// spec in HANDOVER.md and bounds the abuse surface (5 rewards * 30 days =
+// 150 days free Pro per referrer per year).
+const MAX_REFERRAL_REWARDS_PER_YEAR = 5
+const REFERRAL_WINDOW_DAYS = 365
 
 type ProfileForReward = {
   id: string
@@ -80,13 +84,15 @@ export async function grantEligibleReferralReward(service: SupabaseClient, refer
     return { granted: false, reason: 'referrer_not_eligible' }
   }
 
+  const windowStart = new Date(Date.now() - REFERRAL_WINDOW_DAYS * 86_400_000).toISOString()
   const { count } = await service
     .from('referrals')
     .select('id', { count: 'exact', head: true })
     .eq('referrer_id', referrer.id)
     .eq('status', 'completed')
+    .gte('reward_granted_at', windowStart)
 
-  if ((count ?? 0) >= MAX_LIFETIME_REFERRAL_REWARDS) {
+  if ((count ?? 0) >= MAX_REFERRAL_REWARDS_PER_YEAR) {
     return { granted: false, reason: 'referrer_cap_reached' }
   }
 
@@ -107,8 +113,9 @@ export async function grantEligibleReferralReward(service: SupabaseClient, refer
     .select('id', { count: 'exact', head: true })
     .eq('referrer_id', referrer.id)
     .eq('status', 'completed')
+    .gte('reward_granted_at', windowStart)
 
-  if ((postCount ?? 0) > MAX_LIFETIME_REFERRAL_REWARDS) {
+  if ((postCount ?? 0) > MAX_REFERRAL_REWARDS_PER_YEAR) {
     await service.from('referrals')
       .update({ status: 'pending', reward_granted_at: null })
       .eq('referred_id', referredUserId)

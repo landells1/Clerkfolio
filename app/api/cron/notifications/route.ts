@@ -103,7 +103,7 @@ export async function GET(req: NextRequest) {
     .select('id, student_email_verification_due_at')
     .eq('tier', 'student')
     .gte('student_email_verification_due_at', todayStr)
-    .lte('student_email_verification_due_at', `${in30Str}T23:59:59Z`)
+    .lte('student_email_verification_due_at', in30Str)
 
   expiringStudentVerifications?.forEach(profile => {
     const daysLeft = daysUntil(profile.student_email_verification_due_at)

@@ -26,14 +26,28 @@ export async function POST(request: NextRequest) {
   try {
     const { data: profile, error: profileError } = await service
       .from('profiles')
-      .select('stripe_subscription_id')
+      .select('stripe_subscription_id, subscription_period_end')
       .eq('id', user.id)
       .single()
     if (profileError) throw profileError
 
     if (profile?.stripe_subscription_id && process.env.STRIPE_SECRET_KEY) {
       const { stripe } = await import('@/lib/stripe')
-      await stripe.subscriptions.cancel(profile.stripe_subscription_id)
+      // Cancel at period end rather than immediately so we honour the paid
+      // period the user already paid for. Stripe will fire
+      // customer.subscription.deleted when the period actually ends; by that
+      // point the auth user is gone and the webhook update no-ops cleanly.
+      // If the user wants an immediate refund they must contact support, and
+      // we issue a pro-rated refund manually.
+      try {
+        await stripe.subscriptions.update(profile.stripe_subscription_id, {
+          cancel_at_period_end: true,
+        })
+      } catch (err) {
+        // If the subscription is already canceled or doesn't exist (drift),
+        // log and continue so the account delete still succeeds.
+        console.error('Stripe subscription update on delete failed:', err instanceof Error ? err.message : 'unknown')
+      }
     }
 
     const { data: files } = await service

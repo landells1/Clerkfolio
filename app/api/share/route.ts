@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { createShareToken, hashPin, normalizePin } from '@/lib/share/pin'
+import { isPublicWebhookHost } from '@/lib/share/ssrf'
 
 type ShareScope = 'specialty' | 'theme' | 'full'
 
@@ -28,25 +29,6 @@ function parseExpiry(value: unknown) {
   return parsed.toISOString()
 }
 
-// Hosts that resolve to private network space or cloud-metadata endpoints -
-// blocking these by hostname stops the most common SSRF abuse paths even
-// though we don't resolve DNS here. The fetch path also enforces https:
-// in production via the protocol check below.
-const PRIVATE_HOST_PATTERNS = [
-  /^localhost$/i,
-  /^127\./,
-  /^10\./,
-  /^192\.168\./,
-  /^172\.(1[6-9]|2\d|3[0-1])\./,
-  /^169\.254\./,            // link-local (cloud metadata)
-  /^0\./,
-  /^\[::1\]?$/,
-  /^\[fc[0-9a-f]{2}:/i,     // IPv6 ULA
-  /^\[fe80:/i,              // IPv6 link-local
-  /\.internal$/i,
-  /\.local$/i,
-]
-
 function parseWebhookUrl(value: unknown) {
   const raw = typeof value === 'string' ? value.trim() : ''
   if (!raw) return { url: null as string | null }
@@ -61,8 +43,7 @@ function parseWebhookUrl(value: unknown) {
     if (url.protocol !== 'https:' && url.protocol !== 'http:') {
       return { error: 'Webhook URL must start with http:// or https://.' }
     }
-    const host = url.hostname
-    if (PRIVATE_HOST_PATTERNS.some(pattern => pattern.test(host))) {
+    if (!isPublicWebhookHost(url.hostname)) {
       return { error: 'Webhook URL must point to a public host.' }
     }
     return { url: url.toString() }

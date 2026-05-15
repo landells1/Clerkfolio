@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { apiKeyPrefix, generateApiKey, hashApiKey, normalizeApiKeyName } from '@/lib/api-keys'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+
+const APIKEY_CREATE_MAX = 5
+const APIKEY_CREATE_WINDOW_SECONDS = 60 * 60
 
 export async function GET() {
   const supabase = createClient()
@@ -25,6 +29,19 @@ export async function POST(req: NextRequest) {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: APIKEY_CREATE_MAX,
+    windowSeconds: APIKEY_CREATE_WINDOW_SECONDS,
+    prefix: 'apikey-create',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many API keys created. Wait an hour and try again.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, APIKEY_CREATE_WINDOW_SECONDS) }
+    )
+  }
 
   const body = await req.json().catch(() => ({}))
   const fullKey = generateApiKey()

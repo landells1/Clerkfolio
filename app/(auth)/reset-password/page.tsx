@@ -16,6 +16,17 @@ export default function ResetPasswordPage() {
     setError(null)
     setLoading(true)
 
+    const preflight = await fetch('/api/auth/preflight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'reset' }),
+    })
+    if (preflight.status === 429) {
+      setError('Too many password reset attempts from this network. Please wait an hour and try again.')
+      setLoading(false)
+      return
+    }
+
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
     })

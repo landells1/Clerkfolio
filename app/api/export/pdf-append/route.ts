@@ -62,6 +62,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Choose between 1 and 500 entries to append.' }, { status: 400 })
   }
 
+  // Magic-byte check before handing untrusted bytes to pdf-lib. The
+  // client-provided MIME is just a hint; PDF files always start with `%PDF-`.
+  const uploadedBytes = new Uint8Array(await file.arrayBuffer())
+  const header = String.fromCharCode(...uploadedBytes.slice(0, 5))
+  if (header !== '%PDF-') {
+    return NextResponse.json({ error: 'Upload an existing PDF.' }, { status: 400 })
+  }
+
   const [{ data: profile }, { data: entries, error }] = await Promise.all([
     supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single(),
     supabase
@@ -85,7 +93,12 @@ export async function POST(req: NextRequest) {
     specialty: 'Append-only export',
     exportedAt,
   })
-  const existing = await PDFDocument.load(await file.arrayBuffer())
+  let existing: PDFDocument
+  try {
+    existing = await PDFDocument.load(uploadedBytes)
+  } catch {
+    return NextResponse.json({ error: 'Could not parse the uploaded PDF.' }, { status: 400 })
+  }
   const appended = await PDFDocument.load(appendedBuffer)
   const copiedPages = await existing.copyPages(appended, appended.getPageIndices())
   copiedPages.forEach(page => existing.addPage(page))

@@ -4,27 +4,12 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { containsPII } from '@/lib/pii'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
-
-// Patterns that suggest patient-identifiable information.
-// Tighter than the previous version: title-prefixed names must start with capitals
-// (avoids "dr foo bar" in lower-case prose); MRN/NHS pattern keeps the
-// 3-3-4 grouping so it doesn't trip on phone numbers or 10-digit codes.
-const PII_PATTERNS = [
-  /\b\d{3}\s\d{3}\s\d{4}\b/,                                              // NHS number (10 digits in 3-3-4 with mandatory spaces)
-  /\b(?:0[1-9]|[12]\d|3[01])\/(?:0[1-9]|1[0-2])\/(?:19|20)\d{2}\b/,        // DD/MM/YYYY DOB
-  /\b(?:bay|bed|ward)\s*\d+\b/i,                                           // Ward/bay/bed references
-  /\b(?:Mr|Mrs|Ms|Miss|Dr)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)+\b/,            // Title + capitalised name (Smith Jones / Smith)
-  /\b(?:Mr|Mrs|Ms|Miss|Dr)\s+[A-Z]\.?\s*[A-Z]\.?\b/,                       // Title + initials (Mr A.B / Ms K.D)
-]
-
-function containsPII(str: string): boolean {
-  return PII_PATTERNS.some(p => p.test(str))
-}
 
 function parseDate(raw: string): string | null {
   if (!raw) return null
