@@ -1,1 +1,7 @@
+# Use .env.ci placeholder values when real public env vars are absent.
+# This matches the CLAUDE.md local-build guidance: dummy public values are
+# sufficient for compile and lint verification; runtime secrets are not needed.
+if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -f .env.ci ]; then
+  set -a && . ./.env.ci && set +a
+fi
 npm run build
