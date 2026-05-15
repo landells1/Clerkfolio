@@ -12,11 +12,14 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
+  const [referralInput, setReferralInput] = useState<string>(() =>
+    typeof window !== 'undefined'
+      ? new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() ?? ''
+      : ''
+  )
   const router = useRouter()
   const supabase = createClient()
-  const referralCode = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() ?? null
-    : null
+  const referralCode = referralInput.trim().toUpperCase() || null
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -155,12 +158,34 @@ export default function SignupPage() {
           <input
             type="password"
             required
-            autoComplete="new-password"
+            autoComplete="off"
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
             className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
             placeholder="••••••••"
           />
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+            Referral code <span className="normal-case text-[rgba(245,245,242,0.35)]">(optional)</span>
+          </label>
+          <div className="relative">
+            <input
+              type="text"
+              autoComplete="off"
+              value={referralInput}
+              onChange={e => setReferralInput(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 5))}
+              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.35)] focus:outline-none focus:border-[#1B6FD9] transition-colors pr-24 tracking-widest"
+              placeholder="XXXXX"
+              maxLength={5}
+            />
+            {referralInput.length === 5 && (
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-green-400">
+                Applied
+              </span>
+            )}
+          </div>
         </div>
 
         {error && (
