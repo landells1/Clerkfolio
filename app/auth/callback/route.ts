@@ -50,6 +50,11 @@ export async function GET(request: NextRequest) {
             .update({ referred_by: referrer.id })
             .eq('id', user.id)
             .is('referred_by', null)
+          // Record the referral event (ignore conflict if row already exists)
+          await service.from('referrals').upsert(
+            { referrer_id: referrer.id, referred_id: user.id, status: 'pending' },
+            { onConflict: 'referred_id', ignoreDuplicates: true },
+          )
         }
       }
       return NextResponse.redirect(`${origin}${next}`)
