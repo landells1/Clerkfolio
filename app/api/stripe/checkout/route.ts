@@ -3,13 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRICE_ID } from '@/lib/stripe'
 import { validateOrigin } from '@/lib/csrf'
 
-// Use a server-side canonical URL - never trust the incoming Origin header for billing redirects
-if (!process.env.NEXT_PUBLIC_APP_URL) {
-  throw new Error('NEXT_PUBLIC_APP_URL is required — set it in Vercel environment variables')
-}
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL
-
 export async function POST(request: NextRequest) {
+  // Use a server-side canonical URL - never trust the incoming Origin header for billing redirects
+  const APP_URL = process.env.NEXT_PUBLIC_APP_URL
+  if (!APP_URL) {
+    console.error('NEXT_PUBLIC_APP_URL is not set — Stripe redirect URLs will be broken')
+    return NextResponse.json({ error: 'Server misconfiguration' }, { status: 500 })
+  }
   const originError = validateOrigin(request)
   if (originError) return originError
 
