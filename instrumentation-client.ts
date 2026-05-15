@@ -1,5 +1,7 @@
 import * as Sentry from '@sentry/nextjs'
 
+export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
+
 const isProd = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT === 'production'
 
 const sensitivePattern = /email|password|token|stripe|key|secret/i
