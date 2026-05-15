@@ -68,7 +68,9 @@ export async function POST(req: NextRequest) {
   const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS * 60 * 60 * 1000).toISOString()
   const now = new Date().toISOString()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin
-  const confirmUrl = new URL('/api/student-email/confirm', appUrl)
+  // Use a landing page rather than the API route directly, so email scanners
+  // (e.g. Outlook Safe Links) that auto-fetch URLs cannot consume the one-time token.
+  const confirmUrl = new URL('/verify-email', appUrl)
   confirmUrl.searchParams.set('token', token)
 
   const { error: insertError } = await service
