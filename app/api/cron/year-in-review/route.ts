@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
+import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
@@ -11,6 +12,7 @@ export async function GET(req: NextRequest) {
   const cronError = validateCronSecret(req)
   if (cronError) return cronError
 
+  return Sentry.withMonitor('cron-year-in-review', async () => {
   const supabase = createServiceClient()
   const { data: profiles } = await supabase
     .from('profiles')
@@ -39,4 +41,11 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, users: profiles?.length ?? 0, emailed })
+  }, {
+    schedule: { type: 'crontab', value: '0 9 2 1 *' },
+    timezone: 'UTC',
+    checkinMargin: 5,
+    maxRuntime: 60,
+    failureIssueThreshold: 1,
+  })
 }

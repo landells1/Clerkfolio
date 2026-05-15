@@ -5,6 +5,7 @@ import { validateCronSecret } from '@/lib/cron'
 import { buildDigestSummary, type DigestEntry } from '@/lib/engagement/digest'
 import { currentLondonWeekWindow } from '@/lib/engagement/streaks'
 import { weeklyDigestEmail } from '@/lib/notifications/email-templates'
+import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
@@ -25,6 +26,7 @@ export async function GET(req: NextRequest) {
   const cronError = validateCronSecret(req)
   if (cronError) return cronError
 
+  return Sentry.withMonitor('cron-weekly-digest', async () => {
   const resendKey = process.env.RESEND_API_KEY
   if (!resendKey) return NextResponse.json({ ok: true, sent: 0, skipped: 'missing_resend_key' })
 
@@ -67,6 +69,13 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, sent })
+  }, {
+    schedule: { type: 'crontab', value: '0 9 * * 6' },
+    timezone: 'UTC',
+    checkinMargin: 5,
+    maxRuntime: 60,
+    failureIssueThreshold: 1,
+  })
 }
 
 async function fetchDigestEntries(

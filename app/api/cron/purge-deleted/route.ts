@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
+import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
@@ -53,6 +54,7 @@ export async function GET(request: NextRequest) {
   const cronError = validateCronSecret(request)
   if (cronError) return cronError
 
+  return Sentry.withMonitor('cron-purge-deleted', async () => {
   const supabase = createServiceClient()
   const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
 
@@ -87,5 +89,12 @@ export async function GET(request: NextRequest) {
   return NextResponse.json({
     ok: true,
     purged: { cases: caseIds.length, portfolio_entries: entryIds.length },
+  })
+  }, {
+    schedule: { type: 'crontab', value: '0 2 * * *' },
+    timezone: 'UTC',
+    checkinMargin: 5,
+    maxRuntime: 60,
+    failureIssueThreshold: 1,
   })
 }

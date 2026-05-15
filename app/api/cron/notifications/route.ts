@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
 import { validateCronSecret } from '@/lib/cron'
+import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 
@@ -43,6 +44,7 @@ export async function GET(req: NextRequest) {
   const cronError = validateCronSecret(req)
   if (cronError) return cronError
 
+  return Sentry.withMonitor('cron-notifications', async () => {
   const supabase = createServiceClient()
 
   const today = new Date()
@@ -224,4 +226,11 @@ export async function GET(req: NextRequest) {
   }
 
   return NextResponse.json({ ok: true, generated: drafts.length, inserted: inserted.length })
+  }, {
+    schedule: { type: 'crontab', value: '0 9 * * *' },
+    timezone: 'UTC',
+    checkinMargin: 5,
+    maxRuntime: 30,
+    failureIssueThreshold: 1,
+  })
 }

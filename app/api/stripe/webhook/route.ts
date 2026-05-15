@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
@@ -115,6 +116,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: `Webhook error: ${String(err)}` }, { status: 400 })
   }
 
+  Sentry.setTag('stripe.event_type', event.type)
+  Sentry.setTag('stripe.event_id', event.id)
+
   const supabase = createServiceClient()
   const { error: eventInsertError } = await supabase.from('stripe_webhook_events').insert({
     event_id: event.id,
@@ -132,7 +136,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Webhook idempotency write failed' }, { status: 500 })
   }
 
-  const response = await handleStripeEvent(event, supabase)
+  const response = await Sentry.startSpan(
+    { name: `stripe.webhook ${event.type}`, op: 'webhook.stripe', attributes: { 'stripe.event_id': event.id } },
+    () => handleStripeEvent(event, supabase),
+  )
 
   if (response.status >= 400) {
     await supabase.from('stripe_webhook_events').delete().eq('event_id', event.id)
