@@ -71,12 +71,12 @@ export async function GET(req: NextRequest) {
       templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
     })
 
-    // Only count the export against the lifetime cap once the PDF was generated
-    // successfully - a render error must not consume the user's only free PDF.
+    // Atomically claim the free PDF slot after a successful render.
     if (!sub.isPro) {
-      supabase
-        .rpc('increment_pro_feature_usage', { p_user_id: user.id, p_feature: 'pdf_exports_used' })
-        .then(() => {})
+      const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
+      if (!claimed) {
+        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+      }
     }
 
     return new NextResponse(new Uint8Array(buffer), {

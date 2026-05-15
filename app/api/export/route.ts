@@ -196,12 +196,14 @@ export async function POST(request: NextRequest) {
     })
     const filename = `clerkfolio-${safeSpecialty}-${dateStr}.pdf`
 
-    // Increment lifetime PDF export counter for free-tier usage tracking (fire-and-forget)
+    // Atomically claim the free PDF slot after a successful render.
+    // Returns false if a concurrent request already consumed it — in that case
+    // do not deliver the PDF so the user cannot receive two exports.
     if (!subInfo.isPro) {
-      supabase.rpc('increment_pro_feature_usage', {
-        p_user_id: user.id,
-        p_feature: 'pdf_exports_used',
-      }).then(() => {})
+      const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
+      if (!claimed) {
+        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+      }
     }
 
     return new NextResponse(new Uint8Array(buffer), {
