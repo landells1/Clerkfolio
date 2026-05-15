@@ -3,7 +3,11 @@ import JSZip from 'jszip'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+
+const IMPORT_RATE_MAX = 5
+const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 
@@ -107,6 +111,19 @@ export async function POST(req: NextRequest) {
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canBulkImport) {
     return NextResponse.json({ error: 'Bulk import requires a Pro subscription.' }, { status: 403 })
+  }
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: IMPORT_RATE_MAX,
+    windowSeconds: IMPORT_RATE_WINDOW_SECONDS,
+    prefix: 'import',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many import requests. Please wait before importing again.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, IMPORT_RATE_WINDOW_SECONDS) },
+    )
   }
 
   const form = await req.formData()

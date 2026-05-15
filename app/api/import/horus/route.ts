@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+
+// 5 imports per hour — each batch can be up to 500 rows so this caps at
+// 2,500 rows/hour per Pro user, well above realistic usage.
+const IMPORT_RATE_MAX = 5
+const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
 
 // Patterns that suggest patient-identifiable information.
 // Tighter than the previous version: title-prefixed names must start with capitals
@@ -103,6 +109,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { error: 'Bulk import requires a Pro subscription.' },
       { status: 403 }
+    )
+  }
+
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: IMPORT_RATE_MAX,
+    windowSeconds: IMPORT_RATE_WINDOW_SECONDS,
+    prefix: 'import',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many import requests. Please wait before importing again.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, IMPORT_RATE_WINDOW_SECONDS) },
     )
   }
 
