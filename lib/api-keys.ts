@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { checkRateLimit } from '@/lib/rate-limit'
 
 export type ApiKeyRow = {
   id: string
@@ -41,35 +42,17 @@ function clientIp(req: NextRequest) {
     || 'unknown'
 }
 
-// Best-effort per-IP rate limit on bearer-key auth. Each lambda has its own
-// counter (see app/api/feedback/route.ts for the same caveat) - adequate for
-// slowing brute-force probing of key prefixes; replace with a shared store
-// (Upstash) once API-key traffic is non-trivial.
-const RL_KEY = '__clerkfolio_apikey_rate_limit__'
-const rlScope = globalThis as Record<string, unknown>
-const rlMap: Map<string, { count: number; resetAt: number }> =
-  (rlScope[RL_KEY] as Map<string, { count: number; resetAt: number }>) ??
-  (rlScope[RL_KEY] = new Map())
-const RL_MAX = 60          // 60 requests
-const RL_WINDOW_MS = 60_000 // per minute, per IP
-
-function isRateLimited(ip: string) {
-  const now = Date.now()
-  const entry = rlMap.get(ip)
-  if (!entry || now > entry.resetAt) {
-    rlMap.set(ip, { count: 1, resetAt: now + RL_WINDOW_MS })
-    return false
-  }
-  if (entry.count >= RL_MAX) return true
-  entry.count++
-  return false
-}
-
 export async function authenticateApiKey(req: NextRequest): Promise<
   | { supabase: ReturnType<typeof createServiceClient>; key: ApiKeyRow }
   | { response: NextResponse }
 > {
-  if (isRateLimited(clientIp(req))) {
+  const rateLimit = await checkRateLimit({
+    key: clientIp(req),
+    max: 60,
+    windowSeconds: 60,
+    prefix: 'apikey',
+  })
+  if (!rateLimit.success) {
     return {
       response: NextResponse.json(
         { error: 'Too many requests' },
