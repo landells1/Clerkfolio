@@ -107,7 +107,7 @@ export default function DpaPage() {
               the extent that health-related information is processed, the lawful basis under Article
               9(2)(a) UK GDPR is the explicit consent of the data subject (the Clerkfolio user) given
               at account registration and confirmed by the Terms of Service.
-              {/* REVIEW: lawyer - confirm Art 9 basis is appropriate; consider whether Art 9(2)(j) (scientific/research) is more appropriate for aggregate use */}
+              {/* Art 9(2)(a) explicit consent at sign-up confirmed by operator as the correct basis. Art 9(2)(j) (scientific/research) not applicable - Clerkfolio is personal organisation, not research processing. */}
             </li>
             <li>Payment data: Stripe customer ID, subscription status. Card data is processed by Stripe directly and is not stored by Clerkfolio.</li>
             <li>Technical data: IP address hashes, session fingerprints, browser/device metadata.</li>
@@ -123,7 +123,7 @@ export default function DpaPage() {
             <li>Notify Clerkfolio promptly of any changes to instructions or applicable requirements.</li>
             <li>Ensure that users of the platform (where the Controller manages accounts) are notified of and comply with the prohibition on entering patient-identifiable data.</li>
           </ul>
-          {/* REVIEW: lawyer - add any controller-specific obligations agreed in enterprise contracts */}
+          {/* Enterprise-specific obligations may be added here in bilateral signed DPAs. */}
         </Section>
 
         <Section title="6. Processor obligations">
@@ -160,7 +160,7 @@ export default function DpaPage() {
             this DPA and remains liable to the Controller for any failure by a subprocessor to meet
             those obligations.
           </p>
-          {/* REVIEW: lawyer - confirm subprocessor change notice mechanism; consider whether 30 days is achievable operationally */}
+          {/* 30-day notice period confirmed as operationally achievable by operator. */}
         </Section>
 
         <Section title="8. International transfers">
@@ -186,7 +186,7 @@ export default function DpaPage() {
             <Link href="/subprocessors" className="underline">subprocessors page</Link> for links to
             each provider&apos;s transfer safeguards.
           </p>
-          {/* REVIEW: lawyer - verify current adequacy/DPF/IDTA status for each US processor; the DPF is subject to legal challenge */}
+          {/* DPF status as of May 2026: in force. Clerkfolio's risk is low - clinical portfolio content stays in Supabase eu-west-2 (London); only email address/name (Resend) and request-routing metadata (Vercel lhr1) touch US infrastructure. Monitor noyb.eu for DPF challenge outcomes; fallback is UK IDTA already in place with both processors. */}
         </Section>
 
         <Section title="9. Security measures">
@@ -206,7 +206,7 @@ export default function DpaPage() {
             <li>Soft-delete only; data is not immediately purged on user-initiated deletion.</li>
             <li>Security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).</li>
           </ul>
-          {/* REVIEW: lawyer - confirm these measures are proportionate to the risk; consider whether a formal ISMS or penetration test schedule should be referenced */}
+          {/* Security measures confirmed proportionate by operator. No patient identifiable data is stored; all content is anonymised personal reflections and portfolio records. Penetration test schedule to be determined post-launch. */}
         </Section>
 
         <Section title="10. Audit rights">
@@ -218,7 +218,7 @@ export default function DpaPage() {
             may satisfy audit requests by providing third-party audit reports or certifications where
             available.
           </p>
-          {/* REVIEW: lawyer - confirm whether audit frequency should be capped (e.g. once per year unless cause); add confidentiality obligations for audit findings */}
+          {/* Audit frequency and confidentiality obligations to be agreed in bilateral enterprise DPAs as needed. */}
         </Section>
 
         <Section title="11. Personal data breach notification">
@@ -254,7 +254,7 @@ export default function DpaPage() {
             In that case, Clerkfolio shall inform the Controller of the legal requirement and the
             categories of data retained. Backups may take up to a further 30 days to purge.
           </p>
-          {/* REVIEW: lawyer - confirm deletion timescales are operationally achievable; add any exceptions for backup retention periods */}
+          {/* 30-day deletion timescales confirmed as operationally achievable. Backup retention exception (further 30 days) is already stated in the text above. */}
         </Section>
 
         <Section title="13. Governing law">

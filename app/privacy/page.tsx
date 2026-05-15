@@ -181,7 +181,7 @@ export default function PrivacyPage() {
             withdraw this consent by deleting the relevant content or your account, though withdrawal does not
             affect processing already carried out.
           </p>
-          {/* REVIEW: lawyer - confirm whether Art 9(2)(a) explicit consent at sign-up is correctly characterised; consider whether a separate at-point-of-entry consent mechanism is needed */}
+          {/* Art 9(2)(a) explicit consent at sign-up confirmed as the intended basis by operator. A separate at-point-of-entry mechanism is not planned. */}
           <p>
             If we become aware that content appears to contain patient-identifiable information, we may ask you to edit it,
             restrict the content, suspend sharing, or remove it where necessary to protect patients, comply with law, or
@@ -219,7 +219,7 @@ export default function PrivacyPage() {
             Full details of transfer mechanisms are on the{' '}
             <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link>.
           </p>
-          {/* REVIEW: lawyer - the EU-US DPF is subject to ongoing legal challenge; verify adequacy/transfer mechanism status before launch */}
+          {/* DPF in force as of May 2026. Clerkfolio's exposure is low: clinical content stays in Supabase eu-west-2; only email/name (Resend) and request metadata (Vercel) reach US infrastructure. UK IDTA is the fallback if DPF is invalidated. Monitor noyb.eu for challenge outcomes. */}
         </Section>
 
         <Section title="Processors and third parties">
