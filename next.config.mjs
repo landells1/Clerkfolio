@@ -20,47 +20,19 @@ const nextConfig = {
     '@react-pdf/textkit',
     'yoga-layout',
   ],
-  // The export route loads lib/pdf/portfolio-pdf-runtime.cjs via createRequire
-  // at runtime (path is built from process.cwd() so webpack can't see it).
+  // The export routes load lib/pdf/portfolio-pdf-runtime.cjs via _compile at
+  // runtime (path is built from process.cwd() so webpack can't see it).
   // Without this tracing include the .cjs file is left out of the deployed
-  // lambda and the require fails with MODULE_NOT_FOUND. Next 15 expects the
-  // key to look like a URL path - try a few likely candidates to be safe.
-  // Include node_modules wholesale for the export lambda (the dynamic .cjs
-  // runtime's require()s aren't traceable). Pair with excludes to drop the
-  // heavyweights that pushed the lambda past 250MB on the wholesale attempt
-  // (next/dist + @next/swc dominated). Excludes only need to fire for paths
-  // the export lambda would otherwise pick up - dev/build-only tooling.
+  // lambda and the require fails with MODULE_NOT_FOUND.
+  //
+  // The CJS file's only external dependencies are react and @react-pdf/renderer,
+  // both listed in serverExternalPackages above. Next.js file tracing already
+  // traces and ships those packages automatically — no node_modules wildcard
+  // needed. The previous wholesale ./node_modules/** include was what pushed the
+  // lambda past the 250 MB limit.
   outputFileTracingIncludes: {
     'app/api/export/**': [
       './lib/pdf/portfolio-pdf-runtime.cjs',
-      './node_modules/**',
-    ],
-  },
-  outputFileTracingExcludes: {
-    'app/api/export/**': [
-      './node_modules/@next/swc-**/**',
-      './node_modules/next/dist/compiled/@vercel/**',
-      './node_modules/next/dist/build/**',
-      './node_modules/next/dist/compiled/babel-packages/**',
-      './node_modules/next/dist/compiled/webpack/**',
-      './node_modules/next/dist/compiled/babel/**',
-      './node_modules/typescript/**',
-      './node_modules/@img/**',
-      './node_modules/sharp/**',
-      './node_modules/prettier/**',
-      './node_modules/eslint/**',
-      './node_modules/eslint-**/**',
-      './node_modules/@typescript-eslint/**',
-      './node_modules/@types/**',
-      './node_modules/caniuse-lite/**',
-      './node_modules/recharts/**',
-      './node_modules/@reduxjs/**',
-      './node_modules/stripe/types/**',
-      './node_modules/pdf-lib/dist/**',
-      './node_modules/tailwindcss/peers/**',
-      './node_modules/es-toolkit/**',
-      './node_modules/@swc/core**/**',
-      './node_modules/@supabase/auth-js/dist/**',
     ],
   },
   experimental: {
