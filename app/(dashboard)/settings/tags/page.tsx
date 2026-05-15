@@ -34,13 +34,13 @@ export default function TagsSettingsPage() {
     e.preventDefault()
     if (!oldTag.trim() || !newTag.trim()) return
     setSaving(true)
-    const { error } = await supabase.rpc('rename_user_tag', {
-      p_old: oldTag.trim(),
-      p_new: newTag.trim(),
-      p_field: 'specialty_tags',
+    const res = await fetch('/api/settings/rename-tag', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ p_old: oldTag.trim(), p_new: newTag.trim(), p_field: 'specialty_tags' }),
     })
     setSaving(false)
-    if (error) {
+    if (!res.ok) {
       addToast('Could not rename tag', 'error')
       return
     }
