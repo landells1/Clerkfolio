@@ -97,6 +97,83 @@ async function handleStripeEvent(
 
       break
     }
+
+    case 'invoice.payment_failed': {
+      const invoice = event.data.object as Stripe.Invoice
+      const customerId = typeof invoice.customer === 'string' ? invoice.customer : invoice.customer?.id
+      if (!customerId) break
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('stripe_customer_id', customerId)
+        .maybeSingle()
+
+      if (profile?.id) {
+        await supabase.from('audit_log').insert({
+          user_id: profile.id,
+          action: 'stripe_payment_failed',
+          metadata: { invoice_id: invoice.id, attempt_count: invoice.attempt_count },
+        })
+        // Insert an in-app notification so the user sees the failure on next login
+        await supabase.from('notifications').insert({
+          user_id: profile.id,
+          type: 'payment_failed',
+          title: 'Payment failed - please update your billing details',
+          body: 'Your subscription payment could not be processed. Visit Settings to update your payment method.',
+          action_url: '/settings',
+        })
+      }
+      break
+    }
+
+    case 'charge.refunded': {
+      const charge = event.data.object as Stripe.Charge
+      const customerId = typeof charge.customer === 'string' ? charge.customer : charge.customer?.id
+      if (!customerId) break
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('stripe_customer_id', customerId)
+        .maybeSingle()
+
+      if (profile?.id) {
+        await supabase.from('audit_log').insert({
+          user_id: profile.id,
+          action: 'stripe_charge_refunded',
+          metadata: { charge_id: charge.id, amount_refunded: charge.amount_refunded },
+        })
+      }
+      break
+    }
+
+    case 'charge.dispute.created': {
+      const dispute = event.data.object as Stripe.Dispute
+      const chargeId = typeof dispute.charge === 'string' ? dispute.charge : dispute.charge?.id
+
+      // Look up the user via the associated charge's customer
+      if (chargeId) {
+        const charge = await stripe.charges.retrieve(chargeId)
+        const customerId = typeof charge.customer === 'string' ? charge.customer : charge.customer?.id
+        if (customerId) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('id')
+            .eq('stripe_customer_id', customerId)
+            .maybeSingle()
+
+          if (profile?.id) {
+            await supabase.from('audit_log').insert({
+              user_id: profile.id,
+              action: 'stripe_dispute_created',
+              metadata: { dispute_id: dispute.id, amount: dispute.amount, reason: dispute.reason },
+            })
+          }
+        }
+      }
+      break
+    }
   }
 
   return NextResponse.json({ received: true })
