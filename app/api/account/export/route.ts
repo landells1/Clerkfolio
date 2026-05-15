@@ -47,6 +47,17 @@ export async function POST(req: NextRequest) {
     { data: arcpLinks },
     { data: templates },
     { data: evidenceFiles },
+    { data: personalLog },
+    { data: auditLog },
+    { data: shareLinks },
+    { data: notifications },
+    { data: entryRevisions },
+    { data: customThemes },
+    { data: snippets },
+    { data: savedSearches },
+    { data: sessionFingerprints },
+    { data: referrals },
+    { data: apiKeys },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
     supabase.from('portfolio_entries').select('*').eq('user_id', user.id).is('deleted_at', null),
@@ -59,6 +70,20 @@ export async function POST(req: NextRequest) {
     includeEvidence
       ? supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean')
       : Promise.resolve({ data: [] }),
+    // GDPR Art. 20 — additional tables containing personal data
+    supabase.from('personal_log').select('*').eq('user_id', user.id).is('deleted_at', null),
+    supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+    supabase.from('share_links').select('id, created_at, updated_at, scope, specialty_key, expiry_date, view_count, revoked, revoked_at, label').eq('user_id', user.id),
+    supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+    supabase.from('entry_revisions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+    supabase.from('custom_competency_themes').select('*').eq('user_id', user.id),
+    supabase.from('snippets').select('*').eq('user_id', user.id),
+    supabase.from('saved_searches').select('*').eq('user_id', user.id),
+    // Exclude ip_hash from session fingerprints (derived from PII, not PII itself)
+    supabase.from('session_fingerprints').select('id, user_id, user_agent, created_at, last_seen_at, revoked_at').eq('user_id', user.id),
+    supabase.from('referrals').select('*').or(`referrer_id.eq.${user.id},referred_id.eq.${user.id}`),
+    // Include key names and prefixes; exclude hash (not personal data, not reconstructable)
+    supabase.from('api_keys').select('id, user_id, name, prefix, scopes, created_at, last_used_at, revoked_at').eq('user_id', user.id),
   ])
 
   const appIds = (specialtyApps ?? []).map(a => a.id)
@@ -96,6 +121,17 @@ export async function POST(req: NextRequest) {
       arcp_links: filteredArcpLinks.length,
       templates: templates?.length ?? 0,
       evidence_files: filteredEvidenceFiles.length,
+      personal_log: personalLog?.length ?? 0,
+      audit_log: auditLog?.length ?? 0,
+      share_links: shareLinks?.length ?? 0,
+      notifications: notifications?.length ?? 0,
+      entry_revisions: entryRevisions?.length ?? 0,
+      custom_competency_themes: customThemes?.length ?? 0,
+      snippets: snippets?.length ?? 0,
+      saved_searches: savedSearches?.length ?? 0,
+      session_fingerprints: sessionFingerprints?.length ?? 0,
+      referrals: referrals?.length ?? 0,
+      api_keys: apiKeys?.length ?? 0,
     },
     import_notes: includeEvidence
       ? 'Files in raw/ preserve database-shaped records. Files in readable/ add display labels for human review. Evidence binaries are grouped by entry id in evidence/.'
@@ -112,6 +148,17 @@ export async function POST(req: NextRequest) {
   raw.file('specialty-entry-links.json', JSON.stringify(filteredLinks, null, 2))
   raw.file('arcp-links.json', JSON.stringify(filteredArcpLinks, null, 2))
   raw.file('templates.json', JSON.stringify(templates ?? [], null, 2))
+  raw.file('personal-log.json', JSON.stringify(personalLog ?? [], null, 2))
+  raw.file('audit-log.json', JSON.stringify(auditLog ?? [], null, 2))
+  raw.file('share-links.json', JSON.stringify(shareLinks ?? [], null, 2))
+  raw.file('notifications.json', JSON.stringify(notifications ?? [], null, 2))
+  raw.file('entry-revisions.json', JSON.stringify(entryRevisions ?? [], null, 2))
+  raw.file('custom-competency-themes.json', JSON.stringify(customThemes ?? [], null, 2))
+  raw.file('snippets.json', JSON.stringify(snippets ?? [], null, 2))
+  raw.file('saved-searches.json', JSON.stringify(savedSearches ?? [], null, 2))
+  raw.file('session-fingerprints.json', JSON.stringify(sessionFingerprints ?? [], null, 2))
+  raw.file('referrals.json', JSON.stringify(referrals ?? [], null, 2))
+  raw.file('api-keys.json', JSON.stringify(apiKeys ?? [], null, 2))
 
   readable.file('portfolio-entries.json', JSON.stringify((portfolioEntries ?? []).map(withSpecialtyLabels), null, 2))
   readable.file('cases.json', JSON.stringify((cases ?? []).map(c => ({
