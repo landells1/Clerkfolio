@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
     .eq('id', user.id)
 
   const resend = new Resend(process.env.RESEND_API_KEY)
-  await resend.emails.send({
+  const { error: sendError } = await resend.emails.send({
     from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
     to: email,
     subject: 'Verify your Clerkfolio institutional email',
@@ -110,6 +110,11 @@ export async function POST(req: NextRequest) {
       </div>
     `,
   })
+
+  if (sendError) {
+    console.error('student-email send-verification: Resend error:', sendError.message)
+    return NextResponse.json({ error: 'Failed to send verification email. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }
