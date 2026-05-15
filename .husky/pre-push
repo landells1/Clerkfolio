@@ -1,7 +1,15 @@
-# Use .env.ci placeholder values when real public env vars are absent.
-# This matches the CLAUDE.md local-build guidance: dummy public values are
-# sufficient for compile and lint verification; runtime secrets are not needed.
-if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ] && [ -f .env.ci ]; then
-  set -a && . ./.env.ci && set +a
+# Supply placeholder public env vars when they are absent so npm run build
+# succeeds for compile/lint verification. Runtime secrets are not required here.
+if [ -z "$NEXT_PUBLIC_SUPABASE_URL" ]; then
+  export NEXT_PUBLIC_SUPABASE_URL=https://placeholder.supabase.co
+fi
+if [ -z "$NEXT_PUBLIC_SUPABASE_ANON_KEY" ]; then
+  export NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTYwMDAwMDAwMH0.placeholder
+fi
+if [ -z "$NEXT_PUBLIC_APP_URL" ]; then
+  export NEXT_PUBLIC_APP_URL=https://clerkfolio.co.uk
+fi
+if [ -z "$RESEND_API_KEY" ]; then
+  export RESEND_API_KEY=re_dummy_local_build_key
 fi
 npm run build
