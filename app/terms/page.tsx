@@ -1,12 +1,25 @@
 import BackButton from '@/components/legal/back-button'
+import LegalFooter from '@/components/legal/legal-footer'
+import Link from 'next/link'
 
-const lastUpdated = '29 April 2026'
+const lastUpdated = '15 May 2026'
 
 const planRows = [
   ['Free', '100 MB storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.'],
   ['Student', '1 GB storage for verified .ac.uk student users. The same feature limits as Free unless otherwise stated in the app.'],
   ['Foundation', '100 MB storage and the standard free feature allowance unless upgraded or covered by referral Pro.'],
-  ['Pro', 'GBP 9.99 per year, 5 GB storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available.'],
+  ['Pro', 'GBP 9.99 per year (price inclusive of VAT where applicable), 5 GB storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available.'],
+]
+
+const changelog = [
+  {
+    date: '15 May 2026',
+    changes: 'Added VAT-inclusive pricing statement; clarified medical device / CDS disclaimer; added REVIEW markers to liability cap and refund sections; added LegalFooter and changelog.',
+  },
+  {
+    date: '29 April 2026',
+    changes: 'Initial published version.',
+  },
 ]
 
 export default function TermsPage() {
@@ -25,9 +38,10 @@ export default function TermsPage() {
         </header>
 
         <Notice>
-          Clerkfolio is a personal portfolio organisation tool. It is not a clinical record system, not a Horus or
-          ePortfolio replacement, not a supervisor sign-off system, and not a source of medical, legal, career, ARCP, or
-          specialty application advice.
+          Clerkfolio is a personal portfolio organisation tool. It is not a clinical record system, not a clinical
+          decision support tool, not a Horus or ePortfolio replacement, not a supervisor sign-off system, and not a
+          source of medical, legal, career, ARCP, or specialty application advice. It must not be used as a substitute
+          for official systems, professional judgement, or regulated clinical processes.
         </Notice>
 
         <Section title="The service">
@@ -74,6 +88,7 @@ export default function TermsPage() {
         <Section title="No advice, predictions, or formal submission">
           <ul>
             <li>Clerkfolio does not provide clinical, medical, legal, financial, tax, educational, career, or immigration advice.</li>
+            <li>Clerkfolio is not a clinical decision support (CDS) tool. It does not interpret clinical information, suggest diagnoses, recommend treatments, or support clinical decision-making of any kind.</li>
             <li>Clerkfolio does not tell you whether you are competitive, on track, likely to succeed, or likely to receive a particular ARCP or application outcome.</li>
             <li>Clerkfolio does not replace Horus, NHS ePortfolio, ISCP, Royal College systems, deanery systems, university systems, or employer systems.</li>
             <li>Clerkfolio does not provide supervisor sign-off, workplace-based assessment sign-off, formal submission, verification, endorsement, or regulatory record keeping.</li>
@@ -123,6 +138,7 @@ export default function TermsPage() {
             </table>
           </div>
           <p>
+            All prices shown on the site include VAT at the applicable rate, unless stated otherwise.
             Prices, allowances, and features may change, but changes will not reduce the paid term you have already bought
             without notice or a lawful basis. Subscription billing is handled by Stripe. Paid plans renew until cancelled.
             You can manage or cancel your subscription through the billing portal where available.
@@ -135,11 +151,18 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Refunds and cancellations">
+          {/* REVIEW: lawyer - confirm refund policy for UK consumer digital services (Consumer Contracts Regulations 2013); review whether 14-day cooling-off period applies and whether s.36 CRA 2015 digital content rights are engaged */}
           <p>
             You can cancel future renewal of a paid plan through the Stripe billing portal where available or by contacting
             us. Unless the law gives you a right to cancel or receive a refund, fees already paid are not automatically
-            refundable. Where consumer cancellation rights apply, they may be affected once you ask us to start providing
-            digital services during the cancellation period.
+            refundable.
+          </p>
+          <p>
+            Where consumer cancellation rights apply under applicable UK law, including the Consumer Contracts
+            Regulations 2013, you may have a 14-day right to cancel a new subscription. This right may be affected once
+            you explicitly request that we begin providing the digital service during the cancellation period, in which
+            case you may owe a proportionate payment. Contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a> for
+            refund requests; we will respond within 10 business days.
           </p>
         </Section>
 
@@ -159,19 +182,30 @@ export default function TermsPage() {
         <Section title="Acceptable use">
           <ul>
             <li>Do not attempt to bypass plan limits, security controls, rate limits, storage quotas, authentication, row level security, or access controls.</li>
-            <li>Do not probe, scan, scrape, overload, reverse engineer, or interfere with Clerkfolio except where permitted by law and responsibly disclosed.</li>
+            <li>Do not probe, scan, scrape, overload, reverse engineer, or interfere with Clerkfolio except where permitted by law and responsibly disclosed under our <Link href="/security" className="underline hover:text-[#F5F5F2]">Security policy</Link>.</li>
             <li>Do not use Clerkfolio to store malware, regulated clinical records, patient-identifiable information, illegal material, or content that infringes another person&apos;s rights.</li>
             <li>Do not misrepresent Clerkfolio outputs as verified, formally approved, supervisor-signed, or submitted to any training body.</li>
             <li>Do not create accounts or share links for abusive, fraudulent, spam, or unauthorised commercial purposes.</li>
           </ul>
         </Section>
 
+        <Section title="Suspension and termination">
+          <p>
+            You may stop using Clerkfolio at any time and may delete your account through the app where available. We may
+            suspend or terminate access, remove content, disable share links, or refuse service if we reasonably believe
+            you have breached these terms, created risk for patients or other users, infringed rights, failed to pay fees,
+            threatened the security of the service, or used the service unlawfully. Where practical, we will give advance
+            notice; where we cannot, we will explain our decision as soon as reasonably possible.
+          </p>
+        </Section>
+
         <Section title="Third-party services">
           <p>
-            Clerkfolio relies on third-party services including Supabase, Vercel, Stripe, and Resend. Their systems and
-            terms may apply to parts of the service they provide. We are not responsible for third-party outages, policy
-            changes, or failures outside our reasonable control, but we will use reasonable care in selecting and operating
-            providers.
+            Clerkfolio relies on third-party services including Supabase, Vercel, Stripe, Resend, and Upstash. Their
+            systems and terms may apply to parts of the service they provide. We are not responsible for third-party
+            outages, policy changes, or failures outside our reasonable control, but we will use reasonable care in
+            selecting and operating providers. See our{' '}
+            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link> for details.
           </p>
         </Section>
 
@@ -181,15 +215,6 @@ export default function TermsPage() {
             suspend, withdraw, limit, or change features for maintenance, security, legal, operational, or product reasons.
             We may also correct or remove content, templates, specialty structures, or deadline information where we
             believe it is inaccurate, outdated, unsafe, or contrary to these terms.
-          </p>
-        </Section>
-
-        <Section title="Suspension and termination">
-          <p>
-            You may stop using Clerkfolio at any time and may delete your account through the app where available. We may
-            suspend or terminate access, remove content, disable share links, or refuse service if we reasonably believe
-            you have breached these terms, created risk for patients or other users, infringed rights, failed to pay fees,
-            threatened the security of the service, or used the service unlawfully.
           </p>
         </Section>
 
@@ -203,6 +228,7 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Liability">
+          {/* REVIEW: lawyer - confirm liability cap quantum is appropriate for a UK consumer SaaS; confirm the GBP 100 floor is legally sound; consider whether Consumer Rights Act 2015 s.57 affects any exclusions */}
           <p>
             Nothing in these terms limits liability that cannot legally be limited, including liability for death or
             personal injury caused by negligence, fraud, fraudulent misrepresentation, or rights you have under consumer
@@ -228,9 +254,9 @@ export default function TermsPage() {
 
         <Section title="Governing law">
           <p>
-            These terms are governed by the laws of England and Wales. The courts of England and Wales will have
+            These terms are governed by the laws of England and Wales. The courts of England and Wales will have exclusive
             jurisdiction, except that consumers may also have rights to bring claims in the courts of the part of the UK
-            where they live where applicable.
+            where they live where applicable under mandatory consumer protection law.
           </p>
         </Section>
 
@@ -240,7 +266,33 @@ export default function TermsPage() {
             <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
           </p>
         </Section>
+
+        <Section title="Changes to these terms">
+          <p>
+            We may update these terms as Clerkfolio changes or legal requirements develop. We will give notice of material
+            changes by updating the date above and, where appropriate, by in-app or email notice.
+          </p>
+          <div className="overflow-x-auto rounded-xl border border-white/[0.08] mt-4">
+            <table className="min-w-[400px] border-collapse text-left text-xs leading-6">
+              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+                <tr>
+                  <th className="px-4 py-3 font-semibold">Date</th>
+                  <th className="px-4 py-3 font-semibold">Changes</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.06]">
+                {changelog.map(row => (
+                  <tr key={row.date} className="align-top">
+                    <td className="px-4 py-3 font-medium text-[#F5F5F2] whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.changes}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Section>
       </article>
+      <LegalFooter />
     </main>
   )
 }

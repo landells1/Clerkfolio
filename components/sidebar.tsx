@@ -436,6 +436,27 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             </div>
             <span className="text-sm text-[rgba(245,245,242,0.6)] truncate font-medium">{fullName}</span>
           </div>
+
+          {/* Legal links */}
+          <div className="px-3 pt-2 pb-1 flex flex-wrap gap-x-2.5 gap-y-1 border-t border-white/[0.04] mt-1">
+            {[
+              ['Privacy', '/privacy'],
+              ['Terms', '/terms'],
+              ['Cookies', '/cookies'],
+              ['DPA', '/dpa'],
+              ['Security', '/security'],
+              ['Contact', '/contact'],
+            ].map(([label, href]) => (
+              <Link
+                key={href}
+                href={href}
+                onClick={() => setMobileOpen(false)}
+                className="text-[9px] text-[rgba(245,245,242,0.28)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
         </div>
       </aside>
 

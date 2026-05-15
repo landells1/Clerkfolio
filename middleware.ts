@@ -87,6 +87,10 @@ export async function middleware(request: NextRequest) {
   const alwaysAccessible =
     pathname === '/privacy' ||
     pathname === '/terms' ||
+    pathname === '/cookies' ||
+    pathname === '/dpa' ||
+    pathname === '/subprocessors' ||
+    pathname === '/security' ||
     pathname === '/contact' ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/showcase/') ||
