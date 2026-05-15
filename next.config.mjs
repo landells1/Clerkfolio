@@ -82,7 +82,10 @@ export default withSentryConfig(nextConfig, {
   widenClientFileUpload: true,
   // Hide source maps from the deployed bundle
   hideSourceMaps: true,
-  disableLogger: true,
-  // Cron monitors are wired manually via Sentry.withMonitor — disable auto-wrap
-  automaticVercelMonitors: false,
+  webpack: {
+    // Drop Sentry debug logging from the production bundle
+    treeshake: { removeDebugLogging: true },
+    // Cron monitors are wired manually via Sentry.withMonitor — disable auto-wrap
+    automaticVercelMonitors: false,
+  },
 })
