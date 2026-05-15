@@ -1,3 +1,5 @@
+import { withSentryConfig } from '@sentry/nextjs'
+
 /** @type {import('next').NextConfig} */
 const appUrl = process.env.NEXT_PUBLIC_APP_URL
 const appHost = appUrl ? new URL(appUrl).host : null
@@ -71,4 +73,16 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  // Upload source maps in CI only
+  silent: !process.env.CI,
+  widenClientFileUpload: true,
+  // Hide source maps from the deployed bundle
+  hideSourceMaps: true,
+  disableLogger: true,
+  // Cron monitors are wired manually via Sentry.withMonitor — disable auto-wrap
+  automaticVercelMonitors: false,
+})
