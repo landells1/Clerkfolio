@@ -423,8 +423,8 @@ export default function ExportPage() {
               <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
                 <p className="mb-1 font-semibold text-amber-300">
                   {subInfo.limits.canExportPdf
-                    ? 'Free tier: 1 lifetime PDF export'
-                    : 'You\'ve used your free PDF export'}
+                    ? '1 of 1 PDF remaining on Free'
+                    : 'PDF cap reached on Free'}
                 </p>
                 <p className="text-[rgba(245,245,242,0.55)]">
                   CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
@@ -635,10 +635,10 @@ export default function ExportPage() {
               <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
                 <p className="font-semibold">
                   {subInfo.limits.canCreateShareLink
-                    ? 'Free tier: 1 active share link'
+                    ? '1 of 1 share link available on Free'
                     : hasActiveShareLinks
                       ? 'Active link cap reached'
-                      : 'Free tier share link already used'}
+                      : 'Share link cap reached on Free'}
                 </p>
                 <p className="mt-0.5 text-[rgba(245,245,242,0.55)]">
                   {subInfo.limits.canCreateShareLink
