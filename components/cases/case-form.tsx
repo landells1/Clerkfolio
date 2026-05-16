@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { containsPII } from '@/lib/pii'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -164,6 +165,14 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
+    if (containsPII(title)) {
+      setError('This title looks like it contains patient-identifiable information (name, DOB, NHS number, ward/bay). Please anonymise it before saving.')
+      return
+    }
+    if (notes.trim() && containsPII(notes)) {
+      setError('These notes look like they contain patient-identifiable information (name, DOB, NHS number, ward/bay). Please anonymise the notes before saving.')
+      return
+    }
     setSaving(true)
     setError(null)
 
