@@ -3,7 +3,7 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 
 export const IMT_2026: SpecialtyConfig = {
   key: 'imt_2026',
-  name: 'IMT',
+  name: 'Internal Medicine Training (IMT)',
   cycleYear: 2026,
   totalMax: 30,
   source: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
