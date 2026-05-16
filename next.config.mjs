@@ -25,14 +25,25 @@ const nextConfig = {
   // Without this tracing include the .cjs file is left out of the deployed
   // lambda and the require fails with MODULE_NOT_FOUND.
   //
-  // The CJS file's only external dependencies are react and @react-pdf/renderer,
-  // both listed in serverExternalPackages above. Next.js file tracing already
-  // traces and ships those packages automatically — no node_modules wildcard
-  // needed. The previous wholesale ./node_modules/** include was what pushed the
-  // lambda past the 250 MB limit.
+  // The CJS file's dynamic `import('@react-pdf/renderer')` is a string that
+  // Next.js's static file tracer cannot follow, so the package and its
+  // transitive @react-pdf/* + yoga-layout + fontkit dependencies have to be
+  // listed explicitly. Without these the deployed lambda renders
+  // "Cannot find package '@react-pdf/renderer'" the moment a user clicks
+  // Export PDF (Sentry CLERKFOLIO-1, 2026-05-16).
   outputFileTracingIncludes: {
     'app/api/export/**': [
       './lib/pdf/portfolio-pdf-runtime.cjs',
+      './node_modules/@react-pdf/**',
+      './node_modules/yoga-layout/**',
+      './node_modules/fontkit/**',
+      './node_modules/restructure/**',
+      './node_modules/unicode-properties/**',
+      './node_modules/unicode-trie/**',
+      './node_modules/dfa/**',
+      './node_modules/tiny-inflate/**',
+      './node_modules/clone/**',
+      './node_modules/png-js/**',
     ],
   },
   experimental: {

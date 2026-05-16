@@ -50,8 +50,13 @@ jobs:
           node-version: ${{ env.NODE_VERSION }}
           cache: npm
       - run: npm ci
-      - name: Inject CI env vars
-        run: cp .env.ci .env.local
+      - name: Inject dummy build env
+        run: |
+          cat > .env.local <<'EOF'
+          NEXT_PUBLIC_SUPABASE_URL=https://dldhnstjngendpcywthv.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy
+          RESEND_API_KEY=re_dummy_ci_build_key
+          EOF
       - run: npm run build
         env:
           CI: true
@@ -90,8 +95,13 @@ jobs:
           restore-keys: playwright-${{ runner.os }}-
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Inject CI env vars
-        run: cp .env.ci .env.local
+      - name: Inject dummy build env
+        run: |
+          cat > .env.local <<'EOF'
+          NEXT_PUBLIC_SUPABASE_URL=https://dldhnstjngendpcywthv.supabase.co
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy
+          RESEND_API_KEY=re_dummy_ci_build_key
+          EOF
       - name: Start app
         run: npm run build && npm run start &
         env:

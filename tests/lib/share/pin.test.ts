@@ -53,13 +53,19 @@ describe('hashPin / verifyPin roundtrip', () => {
     expect(verifyPin('5678', h2)).toBe(true)
   })
 
-  it('stores hash in scrypt:<salt>:<key> format', () => {
+  it('stores hash in scrypt:<N>:<r>:<p>:<salt>:<key> format', () => {
+    // New hashes encode all scrypt parameters so the verifier can replay them
+    // exactly. Legacy 3-part `scrypt:<salt>:<key>` hashes are still accepted
+    // by verifyPin but no longer produced.
     const hash = hashPin('0000')
     const parts = hash.split(':')
+    expect(parts).toHaveLength(6)
     expect(parts[0]).toBe('scrypt')
-    expect(parts).toHaveLength(3)
-    expect(parts[1]).toMatch(/^[0-9a-f]+$/)
-    expect(parts[2]).toMatch(/^[0-9a-f]+$/)
+    expect(parts[1]).toMatch(/^\d+$/)
+    expect(parts[2]).toMatch(/^\d+$/)
+    expect(parts[3]).toMatch(/^\d+$/)
+    expect(parts[4]).toMatch(/^[0-9a-f]+$/)
+    expect(parts[5]).toMatch(/^[0-9a-f]+$/)
   })
 })
 

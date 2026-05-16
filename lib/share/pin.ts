@@ -20,7 +20,7 @@ export function normalizePin(pin: unknown) {
 
 export function hashPin(pin: string) {
   const salt = randomBytes(16).toString('hex')
-  const key = scryptSync(pin, salt, KEY_LENGTH, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P }).toString('hex')
+  const key = scryptSync(pin, salt, KEY_LENGTH, { N: SCRYPT_N, r: SCRYPT_R, p: SCRYPT_P, maxmem: 256 * 1024 * 1024 }).toString('hex')
   return `scrypt:${SCRYPT_N}:${SCRYPT_R}:${SCRYPT_P}:${salt}:${key}`
 }
 
@@ -47,7 +47,7 @@ export function verifyPin(pin: string, storedHash: string | null) {
   }
 
   const expected = Buffer.from(key, 'hex')
-  const actual = scryptSync(pin, salt, expected.length, { N, r, p })
+  const actual = scryptSync(pin, salt, expected.length, { N, r, p, maxmem: 256 * 1024 * 1024 })
   return expected.length === actual.length && timingSafeEqual(expected, actual)
 }
 
