@@ -221,12 +221,7 @@ export async function POST(request: NextRequest) {
     const message = err instanceof Error ? `${err.name}: ${err.message}` : 'non-error throw'
     console.error('PDF generation error:', message)
     Sentry.captureException(err, { tags: { route: '/api/export', userId: user.id } })
-    // Temporary: surface the message text in the response while the lambda
-    // packing is still being iterated on. The error class names ('Error',
-    // 'TypeError', 'ModuleNotFoundError') and the imported-package strings
-    // do not include user-typed content, so this is safe to expose for the
-    // pre-launch window. Revert once PDF export is stable.
-    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.', debug: message }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
   }
 }
 
