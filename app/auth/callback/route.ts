@@ -1,5 +1,7 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
+import { isAcUkEmail, isInstitutionEmail, isNhsEmail, normaliseEmail } from '@/lib/institutional-email'
+import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
 
 // Allowlist of safe post-auth destinations
 const ALLOWED_NEXT_PATHS = [
@@ -57,6 +59,67 @@ export async function GET(request: NextRequest) {
           )
         }
       }
+
+      // Auto-verify institutional email when the signup email itself is .ac.uk or NHS.
+      // Supabase has already verified the address end-to-end via the confirm link;
+      // forcing a second verification email to the same inbox is pure UX friction
+      // (logged as P3 in the 2026-05-16 e2e). Skip if already verified, or if a
+      // different institutional address is in flight, or if the user is already Pro.
+      if (user?.email) {
+        const signupEmail = normaliseEmail(user.email)
+        if (isInstitutionEmail(signupEmail)) {
+          const service = createServiceClient()
+          const { data: profile } = await service
+            .from('profiles')
+            .select('tier, career_stage, student_email, student_email_verified')
+            .eq('id', user.id)
+            .single()
+
+          const noInstitutionalSet = !profile?.student_email || normaliseEmail(profile.student_email) === signupEmail
+          if (profile && !profile.student_email_verified && noInstitutionalSet) {
+            // Belt-and-braces: ensure no other verified profile holds this address.
+            const { data: existingVerifiedProfile } = await service
+              .from('profiles')
+              .select('id')
+              .eq('student_email_verified', true)
+              .ilike('student_email', signupEmail)
+              .neq('id', user.id)
+              .maybeSingle()
+
+            if (!existingVerifiedProfile) {
+              const now = new Date()
+              const dueAt = new Date(now)
+              dueAt.setFullYear(dueAt.getFullYear() + 1)
+
+              const isStudent = isAcUkEmail(signupEmail)
+              const isFoundationEligible = isNhsEmail(signupEmail)
+                && ['FY1', 'FY2', 'POST_FY'].includes(profile.career_stage ?? '')
+              const nextTier = profile.tier === 'pro'
+                ? 'pro'
+                : isStudent
+                  ? 'student'
+                  : isFoundationEligible
+                    ? 'foundation'
+                    : profile.tier ?? 'free'
+
+              await service
+                .from('profiles')
+                .update({
+                  tier: nextTier,
+                  student_email: signupEmail,
+                  student_email_verified: true,
+                  student_email_verified_at: now.toISOString(),
+                  student_email_verification_due_at: dueAt.toISOString().split('T')[0],
+                })
+                .eq('id', user.id)
+
+              await grantEligibleReferralReward(service, user.id)
+              await grantPendingReferralRewardsForReferrer(service, user.id)
+            }
+          }
+        }
+      }
+
       return NextResponse.redirect(`${origin}${next}`)
     }
   }
