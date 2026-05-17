@@ -27,3 +27,6 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# Local notes / test reports - may contain personal email addresses
+/docs/
