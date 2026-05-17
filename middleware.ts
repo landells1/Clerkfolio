@@ -92,6 +92,7 @@ export async function middleware(request: NextRequest) {
     pathname === '/subprocessors' ||
     pathname === '/security' ||
     pathname === '/contact' ||
+    pathname === '/offline' ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/showcase/') ||
     pathname.startsWith('/api/share/access') ||

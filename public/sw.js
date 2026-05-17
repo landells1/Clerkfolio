@@ -1,8 +1,9 @@
 const STATIC_CACHE = 'clerkfolio-static-v4'
-const SHELL_CACHE = 'clerkfolio-shell-v2'
+const SHELL_CACHE = 'clerkfolio-shell-v3'
 const API_CACHE = 'clerkfolio-api-v2'
 const SHELL_PATHS = new Set(['/dashboard', '/cases', '/portfolio'])
 const OFFLINE_LATEST_PATH = '/api/offline/latest'
+const OFFLINE_FALLBACK_PATH = '/offline'
 
 // On a shared device, a previous user's authenticated API responses must not
 // be served to the next user. We cache only the explicitly-warmed offline-latest
@@ -18,7 +19,17 @@ const CACHEABLE_STATIC = (url) => {
   return ['css', 'woff', 'woff2', 'ttf', 'otf', 'ico', 'svg', 'png', 'jpg', 'jpeg', 'webp', 'gif', 'webmanifest'].includes(ext ?? '')
 }
 
-self.addEventListener('install', () => self.skipWaiting())
+self.addEventListener('install', (event) => {
+  // Pre-cache the /offline fallback so users without any cached dashboard
+  // shell still see a useful page instead of the browser default error
+  // ("This site can't be reached") when their connection drops.
+  event.waitUntil(
+    caches.open(SHELL_CACHE)
+      .then((cache) => cache.add(OFFLINE_FALLBACK_PATH))
+      .catch(() => undefined)
+      .then(() => self.skipWaiting())
+  )
+})
 
 self.addEventListener('activate', (event) => {
   const keep = new Set([STATIC_CACHE, SHELL_CACHE, API_CACHE])
@@ -56,7 +67,7 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return
 
   if (event.request.mode === 'navigate' && SHELL_PATHS.has(url.pathname)) {
-    event.respondWith(networkFirst(event.request, SHELL_CACHE))
+    event.respondWith(networkFirstWithOfflineFallback(event.request, SHELL_CACHE))
     return
   }
 
@@ -84,6 +95,22 @@ function networkFirst(request, cacheName) {
     }
     return response
   }).catch(() => caches.match(request))
+}
+
+function networkFirstWithOfflineFallback(request, cacheName) {
+  return fetch(request).then((response) => {
+    if (response.ok) {
+      const clone = response.clone()
+      caches.open(cacheName).then((cache) => cache.put(request, clone))
+    }
+    return response
+  }).catch(async () => {
+    const cached = await caches.match(request)
+    if (cached) return cached
+    const offline = await caches.match(OFFLINE_FALLBACK_PATH)
+    if (offline) return offline
+    return Response.error()
+  })
 }
 
 function cacheFirst(request, cacheName) {
