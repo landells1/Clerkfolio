@@ -15,11 +15,12 @@
 import { test, expect } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 import { loginAs, TEST_USER } from '../fixtures/auth'
+import { hasAuthTestUserEnv } from '../fixtures/env'
 
 test.describe('Stripe checkout → Pro tier', () => {
   test.skip(
-    !process.env.STRIPE_TEST_SECRET_KEY || !process.env.SUPABASE_TEST_URL,
-    'Skipped: STRIPE_TEST_SECRET_KEY and SUPABASE_TEST_URL required',
+    !process.env.STRIPE_TEST_SECRET_KEY || !hasAuthTestUserEnv(),
+    'Skipped: STRIPE_TEST_SECRET_KEY, Supabase E2E credentials and seeded auth user required',
   )
 
   test('completes Stripe checkout and upgrades to Pro', async ({ page }) => {

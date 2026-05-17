@@ -14,11 +14,12 @@
 import { test, expect } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 import { loginAs, TEST_USER } from '../fixtures/auth'
+import { hasAuthTestUserEnv } from '../fixtures/env'
 
 test.describe('PDF export — free tier quota', () => {
   test.skip(
-    !process.env.SUPABASE_TEST_URL,
-    'Skipped: SUPABASE_TEST_URL required',
+    !hasAuthTestUserEnv(),
+    'Skipped: Supabase E2E credentials and seeded auth user required',
   )
 
   test('exports a PDF and increments the pdf_exports_used counter', async ({ page }) => {

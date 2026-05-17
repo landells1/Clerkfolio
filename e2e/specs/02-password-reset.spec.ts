@@ -11,8 +11,16 @@
  */
 import { test, expect } from '@playwright/test'
 import { TEST_USER } from '../fixtures/auth'
+import { hasAuthTestUserEnv } from '../fixtures/env'
+
+const requiresSeededUser = !hasAuthTestUserEnv()
 
 test.describe('Password reset request', () => {
+  test.skip(
+    requiresSeededUser,
+    'Skipped: Supabase E2E credentials and E2E_TEST_USER_EMAIL/E2E_TEST_USER_PASSWORD required',
+  )
+
   test('submitting the reset form shows a confirmation UI', async ({ page }) => {
     await page.goto('/reset-password')
     await expect(page).toHaveTitle(/reset|forgot password|clerkfolio/i)

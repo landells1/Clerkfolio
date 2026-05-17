@@ -144,7 +144,9 @@ export default function PublicShareClient({ token }: { token: string }) {
           >
             <h1 className="text-lg font-semibold tracking-tight">PIN required</h1>
             <p className="mt-2 text-sm text-[rgba(245,245,242,0.45)]">Enter the PIN provided by the portfolio owner.</p>
+            <label htmlFor="share-pin" className="sr-only">PIN</label>
             <input
+              id="share-pin"
               value={pin}
               onChange={e => setPin(e.target.value)}
               inputMode="numeric"

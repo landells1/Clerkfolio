@@ -101,11 +101,16 @@ jobs:
           restore-keys: playwright-${{ runner.os }}-
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - name: Inject dummy build env
+      - name: Inject E2E build env
+        env:
+          SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+          SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
         run: |
-          cat > .env.local <<'EOF'
-          NEXT_PUBLIC_SUPABASE_URL=https://dldhnstjngendpcywthv.supabase.co
-          NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy
+          SUPABASE_URL="${SUPABASE_TEST_URL:-https://dldhnstjngendpcywthv.supabase.co}"
+          SUPABASE_ANON_KEY="${SUPABASE_TEST_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy}"
+          cat > .env.local <<EOF
+          NEXT_PUBLIC_SUPABASE_URL=$SUPABASE_URL
+          NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
           RESEND_API_KEY=re_dummy_ci_build_key
           EOF
       - name: Build app
@@ -130,6 +135,7 @@ jobs:
           CI: true
           E2E_BASE_URL: http://localhost:3000
           SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
+          SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
           SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
           E2E_TEST_USER_EMAIL: ${{ secrets.E2E_TEST_USER_EMAIL }}
           E2E_TEST_USER_PASSWORD: ${{ secrets.E2E_TEST_USER_PASSWORD }}

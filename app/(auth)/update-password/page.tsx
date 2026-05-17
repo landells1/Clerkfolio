@@ -48,10 +48,11 @@ export default function UpdatePasswordPage() {
 
       <form onSubmit={handleUpdate} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="new-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             New password
           </label>
           <input
+            id="new-password"
             type="password"
             required
             autoComplete="new-password"
@@ -63,10 +64,11 @@ export default function UpdatePasswordPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input
+            id="confirm-new-password"
             type="password"
             required
             autoComplete="new-password"

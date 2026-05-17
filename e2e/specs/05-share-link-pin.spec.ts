@@ -12,11 +12,17 @@
 import { test, expect } from '@playwright/test'
 import { createClient } from '@supabase/supabase-js'
 import { loginAs } from '../fixtures/auth'
+import { hasAuthTestUserEnv } from '../fixtures/env'
 
 const CORRECT_PIN = '5678'
 const WRONG_PIN = '0000'
 
 test.describe('Share link with PIN', () => {
+  test.skip(
+    !hasAuthTestUserEnv(),
+    'Skipped: Supabase E2E credentials and seeded auth user required',
+  )
+
   let shareToken: string
 
   test.beforeEach(async ({ page }) => {

@@ -15,14 +15,15 @@
  */
 import { test, expect } from '@playwright/test'
 import { loginAs } from '../fixtures/auth'
+import { hasSupabaseTestEnv } from '../fixtures/env'
 
 const GDPR_EMAIL = process.env.E2E_GDPR_TEST_USER_EMAIL ?? ''
 const GDPR_PASSWORD = process.env.E2E_GDPR_TEST_USER_PASSWORD ?? ''
 
 test.describe('Account delete + GDPR export', () => {
   test.skip(
-    !GDPR_EMAIL || !GDPR_PASSWORD,
-    'Skipped: E2E_GDPR_TEST_USER_EMAIL and E2E_GDPR_TEST_USER_PASSWORD required',
+    !hasSupabaseTestEnv() || !GDPR_EMAIL || !GDPR_PASSWORD,
+    'Skipped: Supabase E2E credentials plus E2E_GDPR_TEST_USER_EMAIL and E2E_GDPR_TEST_USER_PASSWORD required',
   )
 
   test('downloads a GDPR data-export ZIP before deletion', async ({ page }) => {

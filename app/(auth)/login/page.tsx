@@ -63,10 +63,11 @@ function LoginForm() {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="login-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
+            id="login-email"
             type="email"
             required
             autoComplete="email"
@@ -79,7 +80,7 @@ function LoginForm() {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            <label htmlFor="login-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
               Password
             </label>
             <Link href="/reset-password" className="text-xs text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
@@ -87,6 +88,7 @@ function LoginForm() {
             </Link>
           </div>
           <input
+            id="login-password"
             type="password"
             required
             autoComplete="current-password"

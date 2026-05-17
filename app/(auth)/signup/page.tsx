@@ -110,10 +110,11 @@ export default function SignupPage() {
 
       <form onSubmit={handleSignup} className="space-y-4">
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
+            id="signup-email"
             type="email"
             required
             autoComplete="email"
@@ -142,10 +143,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Password
           </label>
           <input
+            id="signup-password"
             type="password"
             required
             autoComplete="new-password"
@@ -157,10 +159,11 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input
+            id="signup-confirm-password"
             type="password"
             required
             autoComplete="off"
@@ -172,11 +175,12 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-referral-code" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Referral code <span className="normal-case text-[rgba(245,245,242,0.35)]">(optional)</span>
           </label>
           <div className="relative">
             <input
+              id="signup-referral-code"
               type="text"
               autoComplete="off"
               value={referralInput}

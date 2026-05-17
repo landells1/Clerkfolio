@@ -10,12 +10,19 @@
  * table so this user disappears on the next run.
  */
 import { test, expect } from '@playwright/test'
+import { hasSupabaseTestEnv } from '../fixtures/env'
 
 const TIMESTAMP = Date.now()
 const NEW_USER_EMAIL = `e2e+signup-${TIMESTAMP}@clerkfolio-test.co.uk`
 const NEW_USER_PASSWORD = 'E2eSignup@99!'
+const requiresSupabase = !hasSupabaseTestEnv()
 
 test.describe('Signup → onboarding → first portfolio entry → logout', () => {
+  test.skip(
+    requiresSupabase,
+    'Skipped: SUPABASE_TEST_URL, SUPABASE_TEST_ANON_KEY and SUPABASE_TEST_SERVICE_ROLE_KEY required',
+  )
+
   test('completes the full new-user flow', async ({ page }) => {
     // ── 1. Navigate to signup ────────────────────────────────────────────────
     await page.goto('/signup')

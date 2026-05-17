@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, type FormEvent, type ReactElement, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
@@ -95,11 +95,26 @@ function draftKeyForCategory(category: Category) {
   return `clerkfolio-${category}-draft`
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+const LABELABLE_FIELD_TYPES = new Set(['input', 'select', 'textarea'])
+
+function Field({ label, children }: { label: string; children: ReactNode }) {
+  const generatedId = useId()
+  const childArray = Children.toArray(children)
+  let fieldId: string | undefined
+
+  const labelledChildren = childArray.map((child, index) => {
+    if (index !== 0 || !isValidElement(child) || typeof child.type !== 'string') return child
+    if (!LABELABLE_FIELD_TYPES.has(child.type)) return child
+
+    const element = child as ReactElement<{ id?: string }>
+    fieldId = element.props.id ?? generatedId
+    return element.props.id ? element : cloneElement(element, { id: fieldId })
+  })
+
   return (
     <div className={FIELD}>
-      <label className={LABEL}>{label}</label>
-      {children}
+      <label htmlFor={fieldId} className={LABEL}>{label}</label>
+      {labelledChildren}
     </div>
   )
 }
@@ -461,7 +476,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
-  async function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
     // Flush any uncommitted specialty search text. If exactly one option
