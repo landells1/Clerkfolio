@@ -4,7 +4,7 @@
 
 import type { PortfolioEntry } from './portfolio'
 
-const titleCase = (s: string) =>
+export const titleCase = (s: string) =>
   s.replace(/[_-]+/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 
 export const AUDIT_TYPE_LABELS: Record<string, string> = {

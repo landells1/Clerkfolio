@@ -19,8 +19,41 @@ const PORTFOLIO_REQUIRED: Record<Category, string[]> = {
 
 const CASE_REQUIRED = ['title', 'date', 'clinical_domain', 'notes:30']
 
+// Human-readable labels surfaced in completeness tooltips ("Missing: …").
+// Keep in sync with the required-field lists above. Anything not listed here
+// falls back to a title-cased version of the slug rather than the raw slug.
+const FIELD_LABELS: Record<string, string> = {
+  title: 'Title',
+  date: 'Date',
+  notes: 'Notes',
+  audit_type: 'Audit type',
+  audit_role: 'Role',
+  audit_cycle_stage: 'Cycle stage',
+  audit_outcome: 'Outcome',
+  audit_trust: 'Trust / hospital',
+  teaching_type: 'Teaching type',
+  teaching_audience: 'Audience',
+  conf_event_name: 'Event name',
+  conf_attendance: 'Attendance type',
+  pub_journal: 'Journal',
+  pub_status: 'Status',
+  leader_role: 'Role',
+  leader_organisation: 'Organisation',
+  prize_body: 'Awarding body',
+  prize_level: 'Level',
+  proc_name: 'Procedure name',
+  proc_count: 'Number performed',
+  refl_type: 'Reflection type',
+  specialty_tags: 'Linked specialties',
+  clinical_domain: 'Clinical domain',
+}
+
 function fieldLabel(field: string) {
-  return field.split(':')[0].replace(/_/g, ' ')
+  const key = field.split(':')[0]
+  if (FIELD_LABELS[key]) return FIELD_LABELS[key]
+  // Last-resort fallback for slugs we have not labelled yet. Title-case the
+  // slug rather than leaking it as a raw "audit_role" string.
+  return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 function populated(entry: Record<string, unknown>, rule: string) {

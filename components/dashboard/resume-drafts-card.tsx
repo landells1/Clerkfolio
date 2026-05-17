@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 
 type Draft = {
   key: string
@@ -17,7 +18,10 @@ function draftHref(key: string, category?: string) {
 
 function draftLabel(key: string, category?: string) {
   if (key === 'clerkfolio-case-draft') return 'Case'
-  return (category ?? key.replace(/^clerkfolio-/, '').replace(/-draft$/, '')).replace(/_/g, ' ')
+  const slug = category ?? key.replace(/^clerkfolio-/, '').replace(/-draft$/, '')
+  // Prefer the canonical portfolio category label over a hand-mangled slug.
+  return CATEGORIES.find(c => c.value === slug as Category)?.label
+    ?? slug.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
 export default function ResumeDraftsCard() {

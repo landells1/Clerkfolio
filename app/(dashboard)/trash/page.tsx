@@ -2,6 +2,7 @@
 import TrashRow, { type TrashItem } from '@/components/trash/trash-row'
 import EmptyTrashButton from '@/components/trash/empty-trash-button'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { titleCase } from '@/lib/types/portfolio-labels'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
 
 export default async function TrashPage({
@@ -26,7 +27,7 @@ export default async function TrashPage({
     ...(deletedEntries ?? []).map(entry => ({
       id: entry.id,
       title: entry.title,
-      subtitle: CATEGORIES.find(c => c.value === entry.category as Category)?.label ?? entry.category?.replace(/_/g, ' ') ?? 'Portfolio entry',
+      subtitle: CATEGORIES.find(c => c.value === entry.category as Category)?.label ?? (entry.category ? titleCase(entry.category) : null) ?? 'Portfolio entry',
       category: entry.category ?? null,
       date: entry.date,
       deletedAt: entry.deleted_at,

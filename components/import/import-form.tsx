@@ -22,6 +22,16 @@ const VALID_CATEGORIES: PortfolioCategory[] = [
 const IMPORTABLE_FIELDS = ['title', 'category', 'date', 'notes', 'specialty_tags'] as const
 type ImportField = typeof IMPORTABLE_FIELDS[number]
 
+// User-facing labels for the importable column slugs - avoids leaking
+// `specialty_tags` etc. into the column-mapping UI.
+const IMPORT_FIELD_LABELS: Record<ImportField, string> = {
+  title: 'Title',
+  category: 'Category',
+  date: 'Date',
+  notes: 'Notes',
+  specialty_tags: 'Linked specialties',
+}
+
 // RFC 4180-compliant CSV parser.
 // Handles: quoted fields, escaped quotes (""), embedded commas, multiline cells,
 // CRLF and LF line endings.
@@ -246,8 +256,8 @@ export default function ImportForm() {
           <div className="space-y-3">
             {IMPORTABLE_FIELDS.map(field => (
               <div key={field} className="flex items-center gap-4">
-                <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] w-32 flex-shrink-0 capitalize">
-                  {field.replace(/_/g, ' ')}
+                <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] w-32 flex-shrink-0">
+                  {IMPORT_FIELD_LABELS[field]}
                   {field === 'title' && <span className="text-[#1B6FD9] ml-1">*</span>}
                 </label>
                 <select

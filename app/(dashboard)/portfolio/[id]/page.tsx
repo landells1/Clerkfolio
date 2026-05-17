@@ -11,6 +11,7 @@ import {
   REFL_TYPE_LABELS, REFL_FRAMEWORK_LABELS,
   formatCompetencyTheme,
   formatInterviewReady,
+  titleCase,
 } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
@@ -163,11 +164,11 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
               <DetailRow label="Type" value={entry.audit_type ? AUDIT_TYPE_LABELS[entry.audit_type] ?? entry.audit_type : null} />
               <DetailRow label="Role" value={entry.audit_role} />
               <DetailRow label="Trust / hospital" value={entry.audit_trust} />
-              <DetailRow label="Cycle stage" value={entry.audit_cycle_stage ? AUDIT_CYCLE_STAGE_LABELS[entry.audit_cycle_stage] ?? entry.audit_cycle_stage.replace(/_/g, ' ') : null} />
+              <DetailRow label="Cycle stage" value={entry.audit_cycle_stage ? AUDIT_CYCLE_STAGE_LABELS[entry.audit_cycle_stage] ?? titleCase(entry.audit_cycle_stage) : null} />
               <DetailRow label="Presented" value={entry.audit_presented} />
             </>}
             {entry.category === 'teaching' && <>
-              <DetailRow label="Type" value={entry.teaching_type ? TEACHING_TYPE_LABELS[entry.teaching_type] ?? entry.teaching_type.replace(/_/g, ' ') : null} />
+              <DetailRow label="Type" value={entry.teaching_type ? TEACHING_TYPE_LABELS[entry.teaching_type] ?? titleCase(entry.teaching_type) : null} />
               <DetailRow label="Audience" value={entry.teaching_audience ? TEACHING_AUDIENCE_LABELS[entry.teaching_audience] ?? entry.teaching_audience : null} />
               <DetailRow label="Setting" value={entry.teaching_setting ? LEVEL_LABELS[entry.teaching_setting] ?? entry.teaching_setting : null} />
               <DetailRow label="Event" value={entry.teaching_event} />
@@ -182,7 +183,7 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
               <DetailRow label="Certificate" value={entry.conf_certificate} />
             </>}
             {entry.category === 'publication' && <>
-              <DetailRow label="Type" value={entry.pub_type ? PUB_TYPE_LABELS[entry.pub_type] ?? entry.pub_type.replace(/_/g, ' ') : null} />
+              <DetailRow label="Type" value={entry.pub_type ? PUB_TYPE_LABELS[entry.pub_type] ?? titleCase(entry.pub_type) : null} />
               <DetailRow label="Status" value={entry.pub_status ? PUB_STATUS_LABELS[entry.pub_status] ?? entry.pub_status : null} />
               <DetailRow label="Journal" value={entry.pub_journal} />
               <DetailRow label="Authors" value={entry.pub_authors} />
