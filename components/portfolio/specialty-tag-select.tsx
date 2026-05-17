@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from 'react'
 import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/specialties'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 
@@ -20,9 +20,22 @@ type Props = {
   trackedOnly?: boolean
 }
 
-export default function SpecialtyTagSelect({ value, onChange, userInterests = [], trackedOnly = false }: Props) {
+/** Imperative API exposed via forwardRef so parent forms can ask "is the
+ *  search box still holding uncommitted typed text?" before they submit.
+ *  Returns null on success (no pending search, or the pending text matches a
+ *  single visible option and was auto-committed), or an error string the
+ *  parent should surface inline. */
+export type SpecialtyTagSelectHandle = {
+  commitPending: () => string | null
+}
+
+const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function SpecialtyTagSelect(
+  { value, onChange, userInterests = [], trackedOnly = false },
+  forwardedRef,
+) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
+  const [error, setError] = useState<string | null>(null)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -58,11 +71,42 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
     } else if (value.length < MAX_SPECIALTIES) {
       onChange([...value, s])
     }
+    setSearch('')
+    setError(null)
   }
 
   function removeTag(s: string) {
     onChange(value.filter(x => x !== s))
   }
+
+  // Auto-commit the typed search text when it matches exactly one visible
+  // option. Called from the input's Enter handler AND from parent forms via
+  // the imperative `commitPending` ref. Returns null on success or when no
+  // pending text needs handling; returns a user-facing error string when the
+  // search has text that doesn't resolve to a single option.
+  function commitPending(): string | null {
+    const trimmed = search.trim()
+    if (!trimmed) { setError(null); return null }
+    if (sorted.length === 1 && !value.includes(sorted[0])) {
+      if (value.length >= MAX_SPECIALTIES) {
+        const msg = `Tag limit reached (${MAX_SPECIALTIES})`
+        setError(msg)
+        return msg
+      }
+      onChange([...value, sorted[0]])
+      setSearch('')
+      setError(null)
+      return null
+    }
+    const msg = sorted.length === 0
+      ? `"${trimmed}" is not a tracked specialty. Pick an option or clear the search.`
+      : `Pick a specialty from the dropdown or clear the search before saving.`
+    setError(msg)
+    setOpen(true)
+    return msg
+  }
+
+  useImperativeHandle(forwardedRef, () => ({ commitPending }))
 
   return (
     <div ref={ref} className="relative">
@@ -80,6 +124,7 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
             <button
               type="button"
               onClick={e => { e.stopPropagation(); removeTag(tag) }}
+              aria-label={`Remove ${getOptionLabel(tag)}`}
               className="hover:text-white transition-colors ml-0.5"
             >
               &times;
@@ -89,12 +134,29 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
         <input
           type="text"
           value={search}
-          onChange={e => { setSearch(e.target.value); setOpen(true) }}
+          onChange={e => { setSearch(e.target.value); setOpen(true); if (error) setError(null) }}
           onFocus={() => setOpen(true)}
+          onKeyDown={e => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              commitPending()
+            } else if (e.key === 'Escape') {
+              setSearch('')
+              setError(null)
+              setOpen(false)
+            }
+          }}
           placeholder={value.length === 0 ? (trackedOnly ? 'Select programmes…' : 'Search specialties…') : ''}
+          aria-invalid={error ? true : undefined}
+          aria-describedby={error ? 'specialty-tag-select-error' : undefined}
           className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
         />
       </div>
+      {error && (
+        <p id="specialty-tag-select-error" role="alert" className="mt-1.5 text-xs text-amber-300">
+          {error}
+        </p>
+      )}
 
       {/* Dropdown */}
       {open && (
@@ -157,4 +219,6 @@ export default function SpecialtyTagSelect({ value, onChange, userInterests = []
       )}
     </div>
   )
-}
+})
+
+export default SpecialtyTagSelect

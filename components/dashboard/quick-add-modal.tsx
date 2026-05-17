@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
@@ -193,10 +193,14 @@ export default function QuickAddModal({
     setStep('form')
   }
 
+  const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
     if (type === 'procedure' && !procName.trim()) { setError('Procedure name is required.'); return }
+    const pendingTagError = specialtyRef.current?.commitPending()
+    if (pendingTagError) { setError(pendingTagError); return }
     setSaving(true)
     setError(null)
 
@@ -492,7 +496,7 @@ export default function QuickAddModal({
             {/* Application tags */}
             <div>
               <label className={LABEL}>Application tags</label>
-              <SpecialtyTagSelect value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
+              <SpecialtyTagSelect ref={specialtyRef} value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
             </div>
 
             {/* Notes */}

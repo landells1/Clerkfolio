@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
-import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
+import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
@@ -169,6 +169,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
 
   // Track the "Save & add another" intent across the submit handler.
   const addAnotherRef = useRef(false)
+  const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -181,6 +182,8 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       setError('These notes look like they contain patient-identifiable information (name, DOB, NHS number, ward/bay). Please anonymise the notes before saving.')
       return
     }
+    const pendingTagError = specialtyRef.current?.commitPending()
+    if (pendingTagError) { setError(pendingTagError); return }
     setSaving(true)
     setError(null)
 
@@ -352,6 +355,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       <div>
         <label className={LABEL}>Linked specialties</label>
         <SpecialtyTagSelect
+          ref={specialtyRef}
           value={specialtyTags}
           onChange={value => { setSpecialtyTags(value); markDirty() }}
           userInterests={userInterests}

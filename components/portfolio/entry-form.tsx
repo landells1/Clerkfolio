@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
 import type { Template } from '@/lib/types/templates'
-import SpecialtyTagSelect from './specialty-tag-select'
+import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from './specialty-tag-select'
 import CompetencyThemePicker from './competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import CategoryGuide from '@/components/portfolio/category-guide'
@@ -459,10 +459,16 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   // Allow callers (e.g. "Save & add another") to override the post-save destination.
   const addAnotherRef = useRef(false)
+  const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
+    // Flush any uncommitted specialty search text. If exactly one option
+    // matches we auto-commit it; otherwise the SpecialtyTagSelect surfaces an
+    // inline warning of its own and we block the save with a matching banner.
+    const pendingTagError = specialtyRef.current?.commitPending()
+    if (pendingTagError) { setError(pendingTagError); return }
     if (containsPII(title)) {
       setError('This title looks like it contains patient-identifiable information (name, DOB, NHS number, ward/bay). Please anonymise it before saving.')
       return
@@ -689,7 +695,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
           <Field label="Linked specialties">
             <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-1.5">Which of your tracked specialty programmes can you use this entry for?</p>
-            <SpecialtyTagSelect value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
+            <SpecialtyTagSelect ref={specialtyRef} value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
             {suggestedTags.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1.5">
                 {suggestedTags.map(tag => (
@@ -1121,8 +1127,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <div className="bg-[#141416] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[70vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
               <h2 className="text-base font-semibold text-[#F5F5F2]">Choose a template</h2>
-              <button onClick={() => setTemplatePickerOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button
+                onClick={() => setTemplatePickerOpen(false)}
+                aria-label="Close template picker"
+                className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B6FD9] rounded transition-colors"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
