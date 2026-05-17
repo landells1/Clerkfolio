@@ -203,7 +203,7 @@ export default function DpaPage() {
             <li>Rate limiting on public endpoints via Upstash Redis.</li>
             <li>CSRF origin validation on state-changing API routes.</li>
             <li>File type validation and malware scan status tracking for evidence uploads.</li>
-            <li>Soft-delete only; data is not immediately purged on user-initiated deletion.</li>
+            <li>User-initiated account deletion immediately and permanently removes all personal data, including evidence files, portfolio entries, cases, and all associated records.</li>
             <li>Security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).</li>
           </ul>
           {/* Security measures confirmed proportionate by operator. No patient identifiable data is stored; all content is anonymised personal reflections and portfolio records. Penetration test schedule to be determined post-launch. */}
