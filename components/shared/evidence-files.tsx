@@ -56,7 +56,7 @@ export default function EvidenceFiles({
   async function handleDelete(file: EvidenceFile) {
     setDeleting(file.id)
     setConfirmDeleteId(null)
-    const { error } = await deleteEvidenceFile(file.id, file.file_path)
+    const { error } = await deleteEvidenceFile(file.id)
     if (!error) {
       setFiles(prev => prev.filter(f => f.id !== file.id))
     }

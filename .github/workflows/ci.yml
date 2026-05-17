@@ -105,6 +105,10 @@ jobs:
         env:
           SUPABASE_TEST_URL: ${{ secrets.SUPABASE_TEST_URL }}
           SUPABASE_TEST_ANON_KEY: ${{ secrets.SUPABASE_TEST_ANON_KEY }}
+          SUPABASE_TEST_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_TEST_SERVICE_ROLE_KEY }}
+          STRIPE_TEST_SECRET_KEY: ${{ secrets.STRIPE_TEST_SECRET_KEY }}
+          STRIPE_TEST_PRICE_ID: ${{ secrets.STRIPE_TEST_PRICE_ID }}
+          STRIPE_TEST_WEBHOOK_SECRET: ${{ secrets.STRIPE_TEST_WEBHOOK_SECRET }}
         run: |
           SUPABASE_URL="${SUPABASE_TEST_URL:-https://dldhnstjngendpcywthv.supabase.co}"
           SUPABASE_ANON_KEY="${SUPABASE_TEST_ANON_KEY:-eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy}"
@@ -113,6 +117,22 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
           RESEND_API_KEY=re_dummy_ci_build_key
           EOF
+          # Map the *_TEST_* secrets the e2e job uses onto the env names the
+          # app reads at runtime. Without this the app server runs with
+          # STRIPE_SECRET_KEY undefined and the Stripe E2E spec (which DOES
+          # have its own STRIPE_TEST_SECRET_KEY) hits a broken /api/stripe/*.
+          if [ -n "$SUPABASE_TEST_SERVICE_ROLE_KEY" ]; then
+            echo "SUPABASE_SERVICE_ROLE_KEY=$SUPABASE_TEST_SERVICE_ROLE_KEY" >> .env.local
+          fi
+          if [ -n "$STRIPE_TEST_SECRET_KEY" ]; then
+            echo "STRIPE_SECRET_KEY=$STRIPE_TEST_SECRET_KEY" >> .env.local
+          fi
+          if [ -n "$STRIPE_TEST_PRICE_ID" ]; then
+            echo "STRIPE_PRICE_ID=$STRIPE_TEST_PRICE_ID" >> .env.local
+          fi
+          if [ -n "$STRIPE_TEST_WEBHOOK_SECRET" ]; then
+            echo "STRIPE_WEBHOOK_SECRET=$STRIPE_TEST_WEBHOOK_SECRET" >> .env.local
+          fi
       - name: Build app
         run: npm run build
         env:

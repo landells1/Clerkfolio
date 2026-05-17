@@ -36,8 +36,27 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
+      // Referral attribution from user_metadata.referral_code is permitted ONLY
+      // during the initial signup-confirmation callback. user_metadata is editable
+      // by the authenticated user (supabase.auth.updateUser), so without this
+      // freshness gate a user who initially signed up without a referral could
+      // later mutate their metadata to add one and trigger this callback (e.g.
+      // via a password reset) to backdate the attribution.
+      //
+      // The DB trigger handle_new_user is the primary source of truth for
+      // profiles.referred_by - this branch is a fallback for the case where the
+      // trigger did not see the metadata at insert time. The 10-minute window is
+      // tight enough to exclude post-hoc metadata edits but generous enough for
+      // email-confirmation latency.
       const referralCode = user?.user_metadata?.referral_code
-      if (user && typeof referralCode === 'string' && /^[A-Z]{5}$/.test(referralCode.trim().toUpperCase())) {
+      const accountCreatedAt = user?.created_at ? new Date(user.created_at).getTime() : null
+      const isFreshSignup = accountCreatedAt !== null && Date.now() - accountCreatedAt < 10 * 60 * 1000
+      if (
+        user
+        && isFreshSignup
+        && typeof referralCode === 'string'
+        && /^[A-Z]{5}$/.test(referralCode.trim().toUpperCase())
+      ) {
         const normalizedCode = referralCode.trim().toUpperCase()
         const service = createServiceClient()
         const { data: referrer } = await service

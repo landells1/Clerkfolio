@@ -40,7 +40,9 @@ export default async function CvGeneratorPage({
             {item.label}
           </Link>
         ))}
-        <a href={`/api/export/cv?template=${template}`} className="rounded-xl bg-[#F5F5F2] px-4 py-2 text-sm font-semibold text-[#0B0B0C]">Download PDF</a>
+        <form action={`/api/export/cv?template=${template}`} method="POST" className="inline">
+          <button type="submit" className="rounded-xl bg-[#F5F5F2] px-4 py-2 text-sm font-semibold text-[#0B0B0C]">Download PDF</button>
+        </form>
       </div>
       <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>

@@ -9,7 +9,10 @@ import * as Sentry from '@sentry/nextjs'
 const EXPORT_RATE_MAX = 20
 const EXPORT_RATE_WINDOW_SECONDS = 60 * 60
 
-export async function GET(req: NextRequest) {
+// POST (not GET) so cross-site <img src> / <a href> embeds cannot silently
+// trigger PDF generation and consume the user's free-tier claim_free_pdf_export
+// slot. validateOrigin requires Origin or an allowed Referer on POST.
+export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
 

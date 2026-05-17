@@ -173,9 +173,11 @@ export async function getSignedUrl(path: string): Promise<string | null> {
 
 /**
  * Delete a file from storage and remove its evidence_files record.
- * Verifies ownership before deleting to prevent IDOR.
+ * Verifies ownership before deleting to prevent IDOR. The storage delete uses
+ * `file_path` from the owned DB row, not a caller-supplied path, so a caller
+ * cannot delete a different file by mismatching the id and path arguments.
  */
-export async function deleteEvidenceFile(id: string, path: string): Promise<{ error: string | null }> {
+export async function deleteEvidenceFile(id: string): Promise<{ error: string | null }> {
   const supabase = createClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -183,14 +185,15 @@ export async function deleteEvidenceFile(id: string, path: string): Promise<{ er
 
   const { data: file, error: fetchError } = await supabase
     .from('evidence_files')
-    .select('user_id')
+    .select('user_id, file_path')
     .eq('id', id)
     .single()
 
   if (fetchError || !file) return { error: 'File not found' }
   if (file.user_id !== user.id) return { error: 'Unauthorised' }
+  if (!file.file_path) return { error: 'File path missing' }
 
-  const { error: storageError } = await supabase.storage.from(BUCKET).remove([path])
+  const { error: storageError } = await supabase.storage.from(BUCKET).remove([file.file_path])
   if (storageError) return { error: storageError.message }
   const { error: dbError } = await supabase.from('evidence_files').delete().eq('id', id)
   if (dbError) return { error: dbError.message }

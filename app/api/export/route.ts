@@ -8,6 +8,7 @@ import { mrcpTemplate } from '@/lib/pdf/mrcp'
 import { stApplicationTemplate } from '@/lib/pdf/st-application'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { safeJsonBody, badJson } from '@/lib/safe-json'
 import * as Sentry from '@sentry/nextjs'
 
 // PDF rendering is the most expensive thing the lambda does (~600ms+ cold,
@@ -76,8 +77,9 @@ export async function POST(request: NextRequest) {
     fetchSubscriptionInfo(supabase, user.id),
   ])
 
-  const body = await request.json()
-  const { entryIds, caseIds, specialty, format, template, theme, fields } = body as { entryIds: string[]; caseIds?: string[]; specialty: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null; fields?: string[] }
+  const body = await safeJsonBody<{ entryIds?: string[]; caseIds?: string[]; specialty?: string; format?: 'pdf' | 'csv' | 'json'; template?: keyof typeof PDF_TEMPLATES | 'default'; theme?: string | null; fields?: string[] }>(request)
+  if (!body) return badJson()
+  const { entryIds, caseIds, specialty, format, template, theme, fields } = body
   const selectedFields = parseFields(fields)
 
   // PDF-only lifetime cap: do not block CSV / JSON exports.

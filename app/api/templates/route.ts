@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { safeJsonBody, badJson } from '@/lib/safe-json'
 import type { Category } from '@/lib/types/portfolio'
 
 export async function POST(req: NextRequest) {
@@ -11,10 +12,14 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const { name, category, field_defaults, guidance_prompts } = body
+  const body = await safeJsonBody<{ name?: unknown; category?: unknown; field_defaults?: unknown; guidance_prompts?: unknown }>(req)
+  if (!body) return badJson()
+  const name = typeof body.name === 'string' ? body.name : ''
+  const category = body.category
+  const field_defaults = body.field_defaults
+  const guidance_prompts = body.guidance_prompts
 
-  if (!name?.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  if (!name.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
   if (!category) return NextResponse.json({ error: 'Category is required' }, { status: 400 })
 
   const { data, error } = await supabase
@@ -64,9 +69,11 @@ export async function PATCH(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
-  const { id, name } = body
-  if (!id || !name?.trim()) return NextResponse.json({ error: 'id and name required' }, { status: 400 })
+  const body = await safeJsonBody<{ id?: unknown; name?: unknown }>(req)
+  if (!body) return badJson()
+  const id = typeof body.id === 'string' ? body.id : ''
+  const name = typeof body.name === 'string' ? body.name : ''
+  if (!id || !name.trim()) return NextResponse.json({ error: 'id and name required' }, { status: 400 })
 
   const { error } = await supabase
     .from('templates')

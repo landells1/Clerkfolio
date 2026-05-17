@@ -298,6 +298,10 @@ export default function SettingsPage() {
       addToast('Failed to delete account', 'error')
       return
     }
+    // Drop the offline dashboard cache (written by offline-cache-primer.tsx).
+    // Account delete is privacy-critical - leaving stale portfolio / case
+    // titles in localStorage would defeat the deletion.
+    try { localStorage.removeItem('clerkfolio-offline-latest') } catch {}
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'LOGOUT' })
     }

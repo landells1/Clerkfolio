@@ -1,9 +1,8 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Papa from 'papaparse'
-import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -148,7 +147,6 @@ function isoDate(value: string | undefined) {
 }
 
 export default function CsvImportFlow() {
-  const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const { addToast } = useToast()
   const [step, setStep] = useState<Step>(1)
@@ -212,19 +210,13 @@ export default function CsvImportFlow() {
     }
 
     setImporting(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setImporting(false)
-      return
-    }
 
     const getValue = (row: Record<string, string>, field: FieldKey) => mapping[field] ? row[mapping[field]!] : ''
-    const payload = rows
+    const payloadRows = rows
       .filter(row => getValue(row, 'title')?.trim())
       .map(row => {
         if (target === 'portfolio') {
           return {
-            user_id: user.id,
             title: getValue(row, 'title').trim(),
             category: normaliseCategory(getValue(row, 'category'), PRESETS[preset].defaultCategory ?? 'custom'),
             date: isoDate(getValue(row, 'date')),
@@ -235,7 +227,6 @@ export default function CsvImportFlow() {
           }
         }
         return {
-          user_id: user.id,
           title: getValue(row, 'title').trim(),
           date: isoDate(getValue(row, 'date')),
           clinical_domain: getValue(row, 'clinical_domain') || null,
@@ -246,13 +237,29 @@ export default function CsvImportFlow() {
         }
       })
 
-    const { error } = await supabase.from(target === 'portfolio' ? 'portfolio_entries' : 'cases').insert(payload)
+    // Route through the server so the entitlement gate, PII scan and rate limit
+    // apply identically to CSV and JSON imports. Inserting from the browser would
+    // bypass containsPII() and the canBulkImport check.
+    const res = await fetch('/api/import/csv', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ target, rows: payloadRows }),
+    })
     setImporting(false)
-    if (error) {
-      addToast('Import failed. Check the column mapping and try again.', 'error')
+    const result = await res.json().catch(() => ({}))
+
+    if (!res.ok) {
+      addToast(result?.error ?? 'Import failed. Check the column mapping and try again.', 'error')
       return
     }
-    addToast(`Imported ${payload.length} ${target === 'portfolio' ? 'portfolio entries' : 'cases'}`, 'success')
+    const imported = Number(result?.imported ?? 0)
+    const blocked = Number(result?.blocked ?? 0)
+    const label = target === 'portfolio' ? 'portfolio entries' : 'cases'
+    if (blocked > 0) {
+      addToast(`Imported ${imported} ${label}. ${blocked} blocked for likely patient identifiers.`, 'success')
+    } else {
+      addToast(`Imported ${imported} ${label}`, 'success')
+    }
     setStep(4)
   }
 

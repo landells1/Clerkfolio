@@ -212,19 +212,43 @@ export async function POST(request: NextRequest) {
 
   if (eventInsertError) {
     if (eventInsertError.code === '23505') {
-      return NextResponse.json({ received: true, duplicate: true })
+      // Already-seen event. Only short-circuit if it was previously processed
+      // through to completion. If a prior attempt inserted the row but the
+      // handler threw before marking processed_at, fall through and reprocess
+      // so Stripe retries are not silently dropped.
+      const { data: existing } = await supabase
+        .from('stripe_webhook_events')
+        .select('processed_at')
+        .eq('event_id', event.id)
+        .maybeSingle()
+      if (existing?.processed_at) {
+        return NextResponse.json({ received: true, duplicate: true })
+      }
+      // Reprocess in place.
+    } else {
+      console.error('Webhook: failed to record Stripe event:', eventInsertError.message)
+      return NextResponse.json({ error: 'Webhook idempotency write failed' }, { status: 500 })
     }
-
-    console.error('Webhook: failed to record Stripe event:', eventInsertError.message)
-    return NextResponse.json({ error: 'Webhook idempotency write failed' }, { status: 500 })
   }
 
-  const response = await Sentry.startSpan(
-    { name: `stripe.webhook ${event.type}`, op: 'webhook.stripe', attributes: { 'stripe.event_id': event.id } },
-    () => handleStripeEvent(event, supabase),
-  )
+  let response: NextResponse
+  try {
+    response = await Sentry.startSpan(
+      { name: `stripe.webhook ${event.type}`, op: 'webhook.stripe', attributes: { 'stripe.event_id': event.id } },
+      () => handleStripeEvent(event, supabase),
+    )
+  } catch (err) {
+    // Handler threw. Leave the idempotency row unprocessed so Stripe's retry
+    // re-enters this route, hits the duplicate branch, sees processed_at IS NULL,
+    // and reprocesses. Return 500 so Stripe schedules a retry.
+    Sentry.captureException(err, { tags: { route: '/api/stripe/webhook', stripe_event_id: event.id } })
+    console.error('Webhook handler threw:', err instanceof Error ? `${err.name}: ${err.message}` : err)
+    return NextResponse.json({ error: 'Webhook handler failed' }, { status: 500 })
+  }
 
   if (response.status >= 400) {
+    // Handler returned a deliberate error response. Drop the idempotency row
+    // so Stripe's retry runs the handler again from scratch.
     await supabase.from('stripe_webhook_events').delete().eq('event_id', event.id)
     return response
   }

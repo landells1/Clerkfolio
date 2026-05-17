@@ -15,7 +15,11 @@ const LABELS: Record<string, string> = {
   st_application: 'ST application CV',
 }
 
-export async function GET(req: NextRequest) {
+// POST (not GET) so cross-site <img src> / <a href> embeds cannot silently
+// trigger PDF generation and consume the user's free-tier claim_free_pdf_export
+// slot. validateOrigin requires Origin or an allowed Referer on POST, so
+// CSRF-style cross-site form submits are rejected.
+export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
 

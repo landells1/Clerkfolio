@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { safeJsonBody, badJson } from '@/lib/safe-json'
 
 type EntryType = 'portfolio' | 'case'
 
@@ -32,7 +33,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await safeJsonBody<{ revisionId?: unknown; entryType?: unknown }>(req)
+  if (!body) return badJson()
   const revisionId = typeof body.revisionId === 'string' ? body.revisionId : ''
   const entryType = body.entryType === 'portfolio' || body.entryType === 'case' ? body.entryType as EntryType : null
   if (!revisionId || !entryType) {

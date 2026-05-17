@@ -17,7 +17,10 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
-      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://va.vercel-insights.com",
+      // Sentry browser SDK posts events to *.ingest.de.sentry.io for the
+      // EU-region project (see instrumentation-client.ts → NEXT_PUBLIC_SENTRY_DSN).
+      // Without this entry the CSP silently blocks every client-side capture.
+      "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://va.vercel-insights.com https://*.ingest.de.sentry.io https://*.ingest.sentry.io",
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
       "base-uri 'self'",

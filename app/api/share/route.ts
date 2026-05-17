@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { createShareToken, hashPin, normalizePin } from '@/lib/share/pin'
 import { isPublicWebhookHost } from '@/lib/share/ssrf'
+import { safeJsonBody, badJson } from '@/lib/safe-json'
 
 type ShareScope = 'specialty' | 'theme' | 'full'
 
@@ -102,7 +103,8 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await safeJsonBody<Record<string, unknown>>(req)
+  if (!body) return badJson()
   const scope = validScope(body.scope) ? body.scope : 'specialty'
   const specialtyKey = typeof body.specialty_key === 'string' && body.specialty_key.trim()
     ? body.specialty_key.trim()
@@ -203,7 +205,8 @@ export async function PATCH(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await safeJsonBody<{ id?: unknown; days?: unknown }>(req)
+  if (!body) return badJson()
   const id = typeof body.id === 'string' ? body.id : ''
   const days = Number.isFinite(Number(body.days)) ? Math.min(Math.max(Number(body.days), 1), 90) : 30
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })

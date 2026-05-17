@@ -180,6 +180,11 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
     Object.keys(sessionStorage)
       .filter(key => /^clerkfolio-.*-draft$/.test(key))
       .forEach(key => sessionStorage.removeItem(key))
+    // Clear the offline dashboard primer cache. It is written by
+    // components/offline/offline-cache-primer.tsx on dashboard load and
+    // contains recent portfolio / case titles; if left in localStorage it
+    // leaks to whoever next signs in on this device.
+    try { localStorage.removeItem('clerkfolio-offline-latest') } catch {}
     // Tell the service worker to drop its cache so authenticated pages aren't
     // served offline after the user logs out.
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {

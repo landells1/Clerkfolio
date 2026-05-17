@@ -618,9 +618,11 @@ export default function ExportPage() {
           <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
-          <a href="/api/export/year-review" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-            Year in review PDF
-          </a>
+          <form action="/api/export/year-review" method="POST" className="ml-3 inline">
+            <button type="submit" className="inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+              Year in review PDF
+            </button>
+          </form>
           <a href="/api/export/markdown" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
             Reflections MD
           </a>
