@@ -9,6 +9,11 @@ import { validateOrigin } from '@/lib/csrf'
 import { isPublicWebhookHost } from '@/lib/share/ssrf'
 
 const ACCESS_RATE_LIMIT = 5
+// Share-wide PIN lockout: cumulative wrong-PIN guesses against a share link
+// across ALL IPs in the trailing 15 minutes. Tied to the share link, not the
+// IP, so an attacker rotating proxies cannot keep guessing after 5 misses.
+const PIN_LOCKOUT_ATTEMPTS = 5
+const PIN_LOCKOUT_WINDOW_MINUTES = 15
 
 function rawIp(req: NextRequest) {
   return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
@@ -108,6 +113,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Share access is temporarily unavailable.' }, { status: 503 })
   }
 
+  // 1. Share-wide PIN lockout. Counts failed PIN attempts on this share link
+  //    from any IP in the trailing 15 minutes. Checked BEFORE the per-IP DOS
+  //    rate limit so the user-facing message is "PIN lockout", not the
+  //    generic "Too many requests" - and so an attacker rotating IPs cannot
+  //    keep guessing past the 5-attempt cap.
+  const { count: failedAttempts } = await supabase
+    .from('share_access_attempts')
+    .select('id', { count: 'exact', head: true })
+    .eq('share_link_id', link.id)
+    .eq('success', false)
+    .gte('created_at', minutesAgo(PIN_LOCKOUT_WINDOW_MINUTES))
+
+  if ((failedAttempts ?? 0) >= PIN_LOCKOUT_ATTEMPTS) {
+    return NextResponse.json(
+      {
+        error: `Too many incorrect PIN attempts on this share link. Try again in ${PIN_LOCKOUT_WINDOW_MINUTES} minutes.`,
+        pinRequired: true,
+      },
+      { status: 429, headers: { 'Retry-After': String(PIN_LOCKOUT_WINDOW_MINUTES * 60) } }
+    )
+  }
+
+  // 2. Per-IP request rate limit. Separate, generic DOS protection on the
+  //    endpoint itself (counts every attempt, success or fail). Cannot
+  //    replace the share-wide PIN lockout because an attacker rotating IPs
+  //    bypasses it.
   const { count: recentAttempts } = await supabase
     .from('share_access_attempts')
     .select('id', { count: 'exact', head: true })
@@ -129,31 +160,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { count: failedAttempts } = await supabase
-    .from('share_access_attempts')
-    .select('id', { count: 'exact', head: true })
-    .eq('share_link_id', link.id)
-    .eq('ip_hash', ipHash)
-    .eq('success', false)
-    .gte('created_at', minutesAgo(15))
-
-  if ((failedAttempts ?? 0) >= 10) {
-    return NextResponse.json({ error: 'Too many attempts. Try again later.' }, { status: 429 })
-  }
-
   // First page load asks "is a PIN needed?" with no pin in the body.
   // Don't count that probe as a failed attempt - it's not a real guess and
-  // it burns through the 10-attempt budget before the user types anything.
+  // it burns through the lockout budget before the user types anything.
   if (link.pin_hash && !pin) {
     return NextResponse.json({ pinRequired: true }, { status: 401 })
   }
   if (link.pin_hash && !verifyPin(pin, link.pin_hash)) {
     await supabase.from('share_access_attempts').insert({ share_link_id: link.id, ip_hash: ipHash, success: false })
     const used = (failedAttempts ?? 0) + 1
-    const remaining = Math.max(0, 10 - used)
+    const remaining = Math.max(0, PIN_LOCKOUT_ATTEMPTS - used)
     const message = remaining > 0
-      ? `Incorrect PIN. ${remaining} ${remaining === 1 ? 'attempt' : 'attempts'} remaining before a 15-minute lockout.`
-      : 'Too many incorrect attempts. Try again in 15 minutes.'
+      ? `Incorrect PIN. ${remaining} ${remaining === 1 ? 'attempt' : 'attempts'} remaining before a ${PIN_LOCKOUT_WINDOW_MINUTES}-minute lockout.`
+      : `Too many incorrect PIN attempts. Try again in ${PIN_LOCKOUT_WINDOW_MINUTES} minutes.`
     return NextResponse.json({ error: message, pinRequired: true }, { status: 403 })
   }
 
