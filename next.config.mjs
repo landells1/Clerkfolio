@@ -84,6 +84,24 @@ const nextConfig = {
       './node_modules/parse-svg-path/**',
       './node_modules/svg-arc-to-cubic-bezier/**',
       './node_modules/postcss-value-parser/**',
+      // Third round: fontkit's dist/module.mjs imports @swc/helpers (its
+      // dependency for the compiled output's TypeScript class fields polyfills)
+      // and brotli/fast-deep-equal at runtime.
+      './node_modules/@swc/helpers/**',
+      './node_modules/brotli/**',
+      './node_modules/fast-deep-equal/**',
+      // Defensive: pdfkit + textkit + reconciler often reach for these runtime
+      // helpers; add them upfront so we don't need another round-trip per
+      // missing module.
+      './node_modules/buffer/**',
+      './node_modules/process/**',
+      './node_modules/path-browserify/**',
+      './node_modules/inherits/**',
+      './node_modules/safe-buffer/**',
+      './node_modules/string_decoder/**',
+      './node_modules/util-deprecate/**',
+      './node_modules/readable-stream/**',
+      './node_modules/tslib/**',
     ],
   },
   experimental: {
