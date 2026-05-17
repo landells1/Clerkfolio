@@ -102,12 +102,23 @@ jobs:
           NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.dummy.dummy
           RESEND_API_KEY=re_dummy_ci_build_key
           EOF
-      - name: Start app
-        run: npm run build && npm run start &
+      - name: Build app
+        run: npm run build
+        env:
+          CI: true
+      - name: Start app in background
+        # `&` only backgrounds the LAST command in a chain - the prior
+        # `npm run build && npm run start &` was parsed as
+        # `(build && start) &`, so the whole expression returned in <5s
+        # while the build was still running, and wait-on then polled an
+        # empty port until it timed out. Split build (foreground above)
+        # from start (background here), and use `nohup` so the spawned
+        # next-server survives the step boundary.
+        run: nohup npm run start > /tmp/clerkfolio-e2e.log 2>&1 &
         env:
           CI: true
       - name: Wait for app to be ready
-        run: npx wait-on http://localhost:3000 --timeout 60000
+        run: npx wait-on http://localhost:3000 --timeout 90000
       - run: npm run e2e
         env:
           CI: true
