@@ -10,6 +10,12 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Least-privilege GITHUB_TOKEN: every job here only needs to read the repo.
+# No job pushes commits, creates releases, or comments on PRs, so withhold
+# every other permission. CodeQL flagged this (alerts #10-#14).
+permissions:
+  contents: read
+
 env:
   NODE_VERSION: '20.x'
 
