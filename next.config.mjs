@@ -102,6 +102,14 @@ const nextConfig = {
       './node_modules/util-deprecate/**',
       './node_modules/readable-stream/**',
       './node_modules/tslib/**',
+      // Round 4 — base64-js (unicode-properties + linebreak), pako (unicode-trie),
+      // and the chain of tiny readable-stream sub-deps so we don't burn another
+      // round per missing module.
+      './node_modules/base64-js/**',
+      './node_modules/pako/**',
+      './node_modules/core-util-is/**',
+      './node_modules/isarray/**',
+      './node_modules/process-nextick-args/**',
     ],
   },
   experimental: {
