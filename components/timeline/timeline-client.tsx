@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/types/portfolio'
@@ -75,21 +75,23 @@ function monthDays(month: Date) {
   })
 }
 
-export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, filterBar }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; filterBar?: React.ReactNode }) {
+export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, filterBar }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; filterBar?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
-  const [view, setView] = useState<'calendar' | 'list'>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(max-width: 640px)').matches) return 'list'
-    return 'calendar'
-  })
-  const [month, setMonth] = useState(new Date())
+  // SSR-safe defaults: matchMedia and Date() must not be called during render
+  // because they return different values on server (no window) vs client (with
+  // window + client clock), which triggers React hydration error #418.
+  const [view, setView] = useState<'calendar' | 'list'>('calendar')
+  // initialMonthIso is computed once on the server and passed in, so SSR HTML
+  // and the first client render see the same Date value even across midnight.
+  const [month, setMonth] = useState<Date>(() => new Date(initialMonthIso))
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [showEventForm, setShowEventForm] = useState(false)
   const [goalForm, setGoalForm] = useState({
     category: 'custom',
     target_count: '1',
-    due_date: iso(new Date()),
+    due_date: '',
     specialty_application_id: '',
     specific: '',
     measurable: '',
@@ -97,7 +99,16 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     relevant: '',
     time_bound: '',
   })
-  const [eventForm, setEventForm] = useState({ title: '', due_date: iso(new Date()), details: '', location: '', source_specialty_key: '' })
+  const [eventForm, setEventForm] = useState({ title: '', due_date: '', details: '', location: '', source_specialty_key: '' })
+
+  // Fill in client-only defaults after hydration so SSR HTML and first client
+  // render agree.
+  useEffect(() => {
+    if (window.matchMedia('(max-width: 640px)').matches) setView('list')
+    const today = iso(new Date())
+    setGoalForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
+    setEventForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
+  }, [])
   const [calendarToken, setCalendarToken] = useState<string | null>(null)
   const [hasCalendarFeed, setHasCalendarFeed] = useState(calendarFeedExists)
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null)

@@ -126,7 +126,12 @@ export default function QuickAddModal({
 
   // Shared fields
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  // Init empty to avoid SSR/client hydration mismatch when modal renders across
+  // UTC midnight. Today's date is filled in by the post-mount useEffect below.
+  const [date, setDate] = useState('')
+  useEffect(() => {
+    setDate(current => current || new Date().toISOString().split('T')[0])
+  }, [])
   const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
   // Case-specific - prefer domains[] array, fall back to single domain string

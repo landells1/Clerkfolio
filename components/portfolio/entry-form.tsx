@@ -138,7 +138,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   )
   const draftKey = draftKeyForCategory(category)
   const [title, setTitle] = useState(initialData?.title ?? '')
-  const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
+  // Init empty to avoid SSR/client hydration mismatch when the new-entry page
+  // straddles UTC midnight. Today's date is filled in by the post-mount
+  // useEffect below.
+  const [date, setDate] = useState(initialData?.date ?? '')
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
@@ -248,6 +251,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     markDirty()
     setTemplatePickerOpen(false)
   }
+
+  // After hydration, fill the date default if nothing restored it. Runs once.
+  useEffect(() => {
+    setDate(current => current || new Date().toISOString().split('T')[0])
+  }, [])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
 

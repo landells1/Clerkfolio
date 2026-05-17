@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
@@ -27,7 +27,12 @@ export default function PersonalLogForm({ kind }: Props) {
   const router = useRouter()
   const { addToast } = useToast()
   const [title, setTitle] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  // Init empty to avoid SSR/client hydration mismatch when this page straddles
+  // UTC midnight. Today's date is filled in by the post-mount useEffect below.
+  const [date, setDate] = useState('')
+  useEffect(() => {
+    setDate(current => current || new Date().toISOString().split('T')[0])
+  }, [])
   const [expiresAt, setExpiresAt] = useState('')
   const [cpdHours, setCpdHours] = useState('')
   const [attempts, setAttempts] = useState('')

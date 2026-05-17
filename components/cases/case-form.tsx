@@ -38,7 +38,10 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [draftRestored, setDraftRestored] = useState(false)
 
   const [title, setTitle] = useState(initialData?.title ?? '')
-  const [date, setDate] = useState(initialData?.date ?? new Date().toISOString().split('T')[0])
+  // Init empty to avoid SSR/client hydration mismatch when the new-case page
+  // straddles UTC midnight. Today's date is filled in by the post-mount
+  // useEffect below.
+  const [date, setDate] = useState(initialData?.date ?? '')
   const [clinicalDomains, setClinicalDomains] = useState<string[]>(
     initialData?.clinical_domains?.length
       ? initialData.clinical_domains
@@ -55,6 +58,11 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   // Dirty state — ref mirrors state so cleanup closures always see current value
   const [isDirty, setIsDirty] = useState(false)
   const isDirtyRef = useRef(false)
+
+  // After hydration, fill the date default if nothing restored it. Runs once.
+  useEffect(() => {
+    setDate(current => current || new Date().toISOString().split('T')[0])
+  }, [])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
   // sessionStorage is used deliberately: it is scoped to the browser tab and is

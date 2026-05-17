@@ -120,12 +120,19 @@ export default async function TimelinePage({
     category: 'deadline',
   }, parsedQuery))
 
+  // Compute the calendar's initial month once on the server. Passing this in as
+  // a stable prop avoids the new Date() / hydration mismatch the client would
+  // otherwise hit if the page renders straddling midnight UTC.
+  const now = new Date()
+  const initialMonthIso = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1)).toISOString()
+
   return (
     <TimelineClient
       goals={filteredGoals}
       specialties={specialtyRows}
       deadlines={filteredDeadlines}
       calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
+      initialMonthIso={initialMonthIso}
       filterBar={
         <div className="mb-6">
         <form className="mb-3 flex flex-wrap gap-2">
