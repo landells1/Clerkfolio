@@ -35,6 +35,7 @@ const nextConfig = {
     'app/api/export/**': [
       './lib/pdf/portfolio-pdf-runtime.cjs',
       './node_modules/@react-pdf/**',
+      // Listed already; kept for the file-trace tool to pick up.
       './node_modules/yoga-layout/**',
       './node_modules/fontkit/**',
       './node_modules/restructure/**',
@@ -44,6 +45,35 @@ const nextConfig = {
       './node_modules/tiny-inflate/**',
       './node_modules/clone/**',
       './node_modules/png-js/**',
+      // Transitive deps the @react-pdf packages reach for at runtime.
+      // Each @react-pdf/* package has its own dependencies block (see
+      // node_modules/@react-pdf/font/package.json etc.) - these are the ones
+      // missing from the deployed lambda, surfaced by Sentry CLERKFOLIO-2
+      // ("Cannot find package 'is-url'") and the package.json scrape.
+      './node_modules/is-url/**',
+      './node_modules/bidi-js/**',
+      './node_modules/emoji-regex-xs/**',
+      './node_modules/hyphen/**',
+      './node_modules/linebreak/**',
+      './node_modules/queue/**',
+      './node_modules/color-string/**',
+      './node_modules/jay-peg/**',
+      './node_modules/js-md5/**',
+      './node_modules/hsl-to-hex/**',
+      './node_modules/ast-types/**',
+      './node_modules/recast/**',
+      './node_modules/media-engine/**',
+      './node_modules/object-assign/**',
+      './node_modules/@babel/runtime/**',
+      './node_modules/prop-types/**',
+      './node_modules/vite-compatible-readable-stream/**',
+      './node_modules/react-reconciler-23/**',
+      './node_modules/react-reconciler-31/**',
+      './node_modules/react-reconciler-33/**',
+      './node_modules/@noble/ciphers/**',
+      './node_modules/@noble/hashes/**',
+      './node_modules/browserify-zlib/**',
+      './node_modules/iconv-lite/**',
     ],
   },
   experimental: {
