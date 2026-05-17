@@ -1,0 +1,100 @@
+'use client'
+
+import { Suspense, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
+
+const ALLOWED_NEXT_PATHS = new Set([
+  '/dashboard',
+  '/onboarding',
+  '/settings',
+  '/portfolio',
+  '/cases',
+  '/specialties',
+  '/export',
+  '/update-password',
+])
+
+function safeRedirectPath(next: string | null): string {
+  if (!next) return '/onboarding'
+  if (!next.startsWith('/') || next.startsWith('//')) return '/onboarding'
+  if (ALLOWED_NEXT_PATHS.has(next)) return next
+  for (const allowed of ALLOWED_NEXT_PATHS) {
+    if (next.startsWith(allowed + '/')) return next
+  }
+  return '/onboarding'
+}
+
+const ALLOWED_OTP_TYPES = new Set(['signup', 'email', 'invite', 'recovery', 'email_change'])
+
+function ConfirmContent() {
+  const searchParams = useSearchParams()
+  const tokenHash = searchParams.get('token_hash') ?? ''
+  const typeParam = searchParams.get('type') ?? ''
+  const type = ALLOWED_OTP_TYPES.has(typeParam) ? typeParam : 'signup'
+  const next = safeRedirectPath(searchParams.get('next'))
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleConfirm() {
+    if (!tokenHash) return
+    setLoading(true)
+    setError(null)
+    const supabase = createClient()
+    const { error: otpError } = await supabase.auth.verifyOtp({
+      token_hash: tokenHash,
+      type: type as 'signup' | 'email' | 'invite' | 'recovery' | 'email_change',
+    })
+    if (otpError) {
+      setError(otpError.message ?? 'This confirmation link is invalid or has expired. Please request a new one.')
+      setLoading(false)
+      return
+    }
+    window.location.href = next
+  }
+
+  return (
+    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
+      <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/15 flex items-center justify-center mx-auto mb-4">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+          <polyline points="22,6 12,13 2,6" />
+        </svg>
+      </div>
+      <h1 className="text-lg font-semibold text-[#F5F5F2] mb-2">
+        {type === 'recovery' ? 'Confirm your password reset' : 'Confirm your email'}
+      </h1>
+      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
+        {type === 'recovery'
+          ? 'Click the button below to continue with your password reset.'
+          : 'Click the button below to confirm your email and activate your account.'}
+      </p>
+      {tokenHash ? (
+        <button
+          onClick={handleConfirm}
+          disabled={loading}
+          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+        >
+          {loading ? 'Confirming...' : type === 'recovery' ? 'Continue to reset password' : 'Confirm email'}
+        </button>
+      ) : (
+        <p className="text-sm text-red-400">This link is missing a confirmation token. Please request a new one.</p>
+      )}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+    </div>
+  )
+}
+
+export default function ConfirmPage() {
+  return (
+    <div className="min-h-screen bg-[#0B0B0C] flex items-center justify-center p-4">
+      <Suspense fallback={
+        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
+          <p className="text-sm text-[rgba(245,245,242,0.55)]">Loading...</p>
+        </div>
+      }>
+        <ConfirmContent />
+      </Suspense>
+    </div>
+  )
+}
