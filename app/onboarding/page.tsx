@@ -6,14 +6,15 @@ import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
-function getSteps(careerStage: string): Step[] {
-  // Until a career stage is picked we cannot know whether the ARCP step
-  // applies. Default to the longest path (4 steps) so the step counter in
-  // the header does not grow from 1/3 to 2/4 once the user selects FY1/FY2.
-  if (!careerStage) return ['profile', 'specialties', 'arcp', 'first-entry']
-  return careerStage === 'FY1' || careerStage === 'FY2'
-    ? ['profile', 'specialties', 'arcp', 'first-entry']
-    : ['profile', 'specialties', 'first-entry']
+// Frozen step list across every career stage. The earlier version returned
+// 3 vs 4 entries depending on the picked stage, which made the header counter
+// jump from "1 / 4" to "2 / 3" on the first Continue click. The ARCP step
+// already renders content suitable for both Foundation and non-Foundation
+// audiences (Foundation gets the ARCP tracker; everyone else sees an evidence-
+// model explainer with a Skip button), so the same path is shown to all users.
+const ALL_STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
+function getSteps(_careerStage: string): Step[] {
+  return ALL_STEPS
 }
 
 const CAREER_STAGES = [
