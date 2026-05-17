@@ -74,6 +74,16 @@ const nextConfig = {
       './node_modules/@noble/hashes/**',
       './node_modules/browserify-zlib/**',
       './node_modules/iconv-lite/**',
+      // Second round, surfaced by debug-surface: @react-pdf/render needs the
+      // SVG path-conversion utilities + postcss-value-parser for stylesheet.
+      // Bundle each one explicitly so the trace tool packs them into the
+      // lambda even though the dynamic import('@react-pdf/...') string blocks
+      // automatic discovery.
+      './node_modules/abs-svg-path/**',
+      './node_modules/normalize-svg-path/**',
+      './node_modules/parse-svg-path/**',
+      './node_modules/svg-arc-to-cubic-bezier/**',
+      './node_modules/postcss-value-parser/**',
     ],
   },
   experimental: {
