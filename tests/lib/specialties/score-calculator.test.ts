@@ -236,7 +236,7 @@ describe('getEvidenceProgress', () => {
 
 describe('formatSpecialtyLabel', () => {
   it('returns the config name for a known key', () => {
-    expect(formatSpecialtyLabel('imt_2026')).toBe('IMT')
+    expect(formatSpecialtyLabel('imt_2026')).toBe('Internal Medicine Training (IMT)')
   })
 
   it('returns "Specialty" for null/undefined', () => {
@@ -262,7 +262,7 @@ describe('getSpecialtyConfig', () => {
     const config = getSpecialtyConfig('imt_2026')
     expect(config).toBeDefined()
     expect(config?.key).toBe('imt_2026')
-    expect(config?.name).toBe('IMT')
+    expect(config?.name).toBe('Internal Medicine Training (IMT)')
   })
 
   it('returns undefined for an unknown key', () => {
