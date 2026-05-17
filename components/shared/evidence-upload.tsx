@@ -139,9 +139,10 @@ export default function EvidenceUpload({
               <button
                 type="button"
                 onClick={() => remove(i)}
-                className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors"
+                aria-label={`Remove ${f.name}`}
+                className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-red-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B6FD9] rounded transition-colors"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
