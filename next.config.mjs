@@ -110,6 +110,8 @@ const nextConfig = {
       './node_modules/core-util-is/**',
       './node_modules/isarray/**',
       './node_modules/process-nextick-args/**',
+      // Round 5 — hsl-to-hex needs hsl-to-rgb-for-reals.
+      './node_modules/hsl-to-rgb-for-reals/**',
     ],
   },
   experimental: {
