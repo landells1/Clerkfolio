@@ -36,12 +36,11 @@ function LoginForm() {
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
-      const msg = error.message?.toLowerCase() ?? ''
-      setError(
-        msg.includes('email not confirmed') || (error as { code?: string }).code === 'email_not_confirmed'
-          ? 'Please check your inbox to confirm your email address before logging in.'
-          : 'Incorrect email or password. Please try again.'
-      )
+      // Always return a generic error so an attacker cannot probe whether
+      // a given address is signed up but unconfirmed (vs not signed up at
+      // all vs wrong password). Confirmation-pending users can still
+      // re-request the link from the "Forgot password?" / signup flows.
+      setError('Incorrect email or password. Please try again.')
       setLoading(false)
       return
     }

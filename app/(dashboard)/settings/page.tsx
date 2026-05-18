@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { fetchSubscriptionInfo, isMedStudentStage, type SubscriptionInfo } from '@/lib/subscription'
-import { grantFoundationGiftIfEligible, isFoundationStage } from '@/lib/billing/foundation-gift'
+import { isFoundationStage } from '@/lib/billing/foundation-gift'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
@@ -154,12 +154,14 @@ export default function SettingsPage() {
     const gradDate = typeof next.student_graduation_date === 'string' && next.student_graduation_date.trim() !== ''
       ? next.student_graduation_date
       : null
+    // referral_code is a server-owned field and the guard_profile_writes
+    // trigger reverts user-level writes to it. Sending it in the payload is
+    // a no-op but adds noise; omit it.
     const payload = {
       first_name: next.first_name,
       last_name: next.last_name,
       career_stage: next.career_stage,
       student_graduation_date: gradDate,
-      referral_code: next.referral_code,
       timezone: next.timezone,
       public_slug: publicSlug || null,
       public_showcase_enabled: next.public_showcase_enabled,
@@ -176,15 +178,21 @@ export default function SettingsPage() {
       addToast('Failed to save settings', 'error')
       return
     }
-    let updatedProfile = { ...next, public_slug: publicSlug }
+    // The foundation-gift grant is now applied by the guard_profile_writes
+    // trigger in the same UPDATE statement (atomic, can't be skipped by a
+    // race or a client-side failure). Re-fetch the profile to surface the
+    // newly-set foundation_gift_granted_at and refreshed referral_pro_until.
     const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
+    let updatedProfile = { ...next, public_slug: publicSlug }
     if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at) {
-      const gift = await grantFoundationGiftIfEligible(supabase, user.id, previousProfile.career_stage)
-      if (gift.granted) {
-        updatedProfile = {
-          ...updatedProfile,
-          foundation_gift_granted_at: gift.foundationGiftGrantedAt ?? updatedProfile.foundation_gift_granted_at,
-        }
+      const { data: refreshed } = await supabase
+        .from('profiles')
+        .select('foundation_gift_granted_at')
+        .eq('id', user.id)
+        .maybeSingle()
+      updatedProfile = {
+        ...updatedProfile,
+        foundation_gift_granted_at: refreshed?.foundation_gift_granted_at ?? updatedProfile.foundation_gift_granted_at,
       }
     }
 

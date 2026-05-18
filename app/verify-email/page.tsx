@@ -1,19 +1,39 @@
 'use client'
 
 import { Suspense, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 function VerifyEmailContent() {
+  const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token') ?? ''
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-  function handleVerify() {
+  async function handleVerify() {
     if (!token) return
     setLoading(true)
-    // Navigate to the API confirm route - token is consumed only on this explicit click,
-    // not by Outlook Safe Links or other email scanners that pre-fetch the page.
-    window.location.href = `/api/student-email/confirm?token=${encodeURIComponent(token)}`
+    setError(null)
+    // POST so corporate proxies / link-preview bots / browser speculative
+    // prefetch cannot consume the one-time token. The /verify-email page is
+    // already a defence against Outlook Safe Links; submitting via POST
+    // closes the secondary path where a browser auto-follows the landing
+    // page link.
+    try {
+      const res = await fetch('/api/student-email/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token }),
+      })
+      const body = await res.json().catch(() => ({}))
+      const status = body?.status ?? (res.ok ? 'verified' : 'invalid')
+      const target = `/settings?student_email=${encodeURIComponent(status)}`
+      router.push(target)
+      router.refresh()
+    } catch {
+      setError('Could not reach the verification service. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
@@ -38,6 +58,7 @@ function VerifyEmailContent() {
       ) : (
         <p className="text-sm text-red-400">This link is missing a verification token. Please request a new one from Settings.</p>
       )}
+      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
     </div>
   )
 }

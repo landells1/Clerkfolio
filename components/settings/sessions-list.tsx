@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 
 export type SessionRow = {
@@ -14,20 +13,23 @@ export type SessionRow = {
 }
 
 export default function SessionsList({ initialRows }: { initialRows: SessionRow[] }) {
-  const supabase = createClient()
   const { addToast } = useToast()
   const [rows, setRows] = useState(initialRows)
 
   async function revoke(id: string) {
-    const revokedAt = new Date().toISOString()
-    const { error } = await supabase
-      .from('session_fingerprints')
-      .update({ revoked_at: revokedAt })
-      .eq('id', id)
-    if (error) {
+    // Direct UPDATE of session_fingerprints was removed from the
+    // authenticated RLS policy in 2026-05-18; the revoked session could
+    // otherwise un-revoke itself. Server route uses service-role write.
+    const res = await fetch('/api/account/sessions/revoke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    if (!res.ok) {
       addToast('Could not revoke session', 'error')
       return
     }
+    const revokedAt = new Date().toISOString()
     setRows(current => current.map(row => row.id === id ? { ...row, revoked_at: revokedAt } : row))
     addToast('Session revoked', 'success')
   }

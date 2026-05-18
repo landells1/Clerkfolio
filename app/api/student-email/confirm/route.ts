@@ -1,88 +1,50 @@
 import { createHash } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
+import { validateOrigin } from '@/lib/csrf'
 import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
-import { isAcUkEmail } from '@/lib/institutional-email'
+import { safeJsonBody, badJson } from '@/lib/safe-json'
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
 
-function redirectToSettings(req: NextRequest, status: 'verified' | 'invalid' | 'expired' | 'already_used') {
-  const url = new URL('/settings', req.nextUrl.origin)
-  url.searchParams.set('student_email', status)
-  return NextResponse.redirect(url)
+type ConfirmStatus = 'verified' | 'invalid' | 'expired' | 'already_used'
+
+function respond(status: ConfirmStatus) {
+  return NextResponse.json({ status }, { status: status === 'verified' ? 200 : 400 })
 }
 
-export async function GET(req: NextRequest) {
-  const token = req.nextUrl.searchParams.get('token')
-  if (!token || token.length < 20) return redirectToSettings(req, 'invalid')
+// Confirmation is POST-only so corporate proxies, link-preview bots, and
+// browser speculative prefetch can't consume the token. The /verify-email
+// landing page submits this as a real form POST after explicit user click.
+export async function POST(req: NextRequest) {
+  const originError = validateOrigin(req)
+  if (originError) return originError
+
+  const body = await safeJsonBody<{ token?: unknown }>(req)
+  if (!body) return badJson()
+  const token = typeof body.token === 'string' ? body.token : ''
+  if (!token || token.length < 20) return respond('invalid')
 
   const service = createServiceClient()
-  const { data: verification } = await service
-    .from('student_email_verification_tokens')
-    .select('id, user_id, email, expires_at, consumed_at')
-    .eq('token_hash', hashToken(token))
-    .maybeSingle()
+  // confirm_student_email_token is a SECURITY DEFINER RPC that holds a row-
+  // level lock on the token, validates expiry/consumption/duplicate-email,
+  // and commits the profile update + token consumption together. Replaces
+  // the prior multi-step JS dance which could half-commit on partial errors.
+  const { data, error } = await service
+    .rpc('confirm_student_email_token', { p_token_hash: hashToken(token) })
+    .single<{ status: ConfirmStatus; user_id: string | null; email: string | null }>()
 
-  if (!verification || verification.consumed_at) return redirectToSettings(req, 'invalid')
-  if (new Date(verification.expires_at).getTime() < Date.now()) return redirectToSettings(req, 'expired')
-
-  const now = new Date()
-  const dueAt = new Date(now)
-  dueAt.setFullYear(dueAt.getFullYear() + 1)
-
-  const { data: existingVerifiedProfile } = await service
-    .from('profiles')
-    .select('id')
-    .eq('student_email_verified', true)
-    .ilike('student_email', verification.email)
-    .neq('id', verification.user_id)
-    .maybeSingle()
-
-  if (existingVerifiedProfile) {
-    await service
-      .from('student_email_verification_tokens')
-      .update({ consumed_at: now.toISOString() })
-      .eq('id', verification.id)
-    return redirectToSettings(req, 'already_used')
+  if (error || !data) {
+    console.error('student-email/confirm RPC failed:', error?.message ?? 'no data')
+    return respond('invalid')
   }
 
-  const { data: profile } = await service
-    .from('profiles')
-    .select('tier, career_stage')
-    .eq('id', verification.user_id)
-    .single()
+  if (data.status === 'verified' && data.user_id) {
+    await grantEligibleReferralReward(service, data.user_id)
+    await grantPendingReferralRewardsForReferrer(service, data.user_id)
+  }
 
-  const isStudentEmail = isAcUkEmail(verification.email)
-  const nextTier = profile?.tier === 'pro'
-    ? 'pro'
-    : isStudentEmail
-      ? 'student'
-      : ['FY1', 'FY2', 'POST_FY'].includes(profile?.career_stage ?? '')
-        ? 'foundation'
-        : 'free'
-
-  await service
-    .from('student_email_verification_tokens')
-    .update({ consumed_at: now.toISOString() })
-    .eq('id', verification.id)
-
-  const { error: profileError } = await service
-    .from('profiles')
-    .update({
-      tier: nextTier,
-      student_email: verification.email,
-      student_email_verified: true,
-      student_email_verified_at: now.toISOString(),
-      student_email_verification_due_at: dueAt.toISOString().split('T')[0],
-    })
-    .eq('id', verification.user_id)
-
-  if (profileError) return redirectToSettings(req, 'already_used')
-
-  await grantEligibleReferralReward(service, verification.user_id)
-  await grantPendingReferralRewardsForReferrer(service, verification.user_id)
-
-  return redirectToSettings(req, 'verified')
+  return respond(data.status)
 }

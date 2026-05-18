@@ -172,6 +172,30 @@ export async function middleware(request: NextRequest) {
     onboardingComplete = profile?.onboarding_complete ?? false
   }
 
+  // /update-password must only be reachable inside a Supabase recovery
+  // session, not just any logged-in session. Otherwise a 30-second laptop
+  // grab is enough to permanently take over an account: attacker opens
+  // /update-password while the victim is logged in and resets the password
+  // without a current-password challenge.
+  //
+  // We use an HTTP-only `cf_recovery` cookie that /auth/callback sets when
+  // the recovery code is exchanged and `next=/update-password`. The cookie
+  // is short-lived (10 min) and removed by /update-password on successful
+  // password change. AMR/JWT claim shape varies across Supabase SDK versions;
+  // an app-owned cookie is unambiguous.
+  if (user && pathname === '/update-password') {
+    const recoveryCookie = request.cookies.get('cf_recovery')
+    if (!recoveryCookie?.value) {
+      // No recovery cookie -> not a fresh recovery flow. Bounce to the
+      // settings page where the user can change their password from a
+      // properly-authenticated context, with a banner explaining the bounce.
+      const url = request.nextUrl.clone()
+      url.pathname = onboardingComplete ? '/settings' : '/onboarding'
+      url.searchParams.set('error', 'recovery_required')
+      return applySecurityHeaders(NextResponse.redirect(url))
+    }
+  }
+
   // Password reset lands here with a short-lived authenticated recovery session.
   // Do not bounce it away as a normal logged-in auth page.
   if (user && isUnauthRoute && pathname !== '/update-password') {

@@ -42,11 +42,39 @@ export async function POST(req: NextRequest) {
   const specialtySet = new Set(SPECIALTY_CONFIGS.map(s => s.key))
   const validSpecialties = selectedSpecialties.filter(key => specialtySet.has(key))
 
-  const { data: profile } = await supabase
+  // Reject if the user is already onboarded. The middleware redirects
+  // completed users away from /onboarding, but a stale tab or a crafted POST
+  // could still hit this route directly. Without this guard, a re-submit
+  // overwrites the user's profile name and career_stage with the values in
+  // whatever stale form state the browser held.
+  const { data: profile, error: profileFetchError } = await supabase
     .from('profiles')
-    .select('referred_by')
+    .select('referred_by, onboarding_complete')
     .eq('id', user.id)
-    .single()
+    .maybeSingle()
+
+  if (profileFetchError) {
+    return NextResponse.json({ error: profileFetchError.message }, { status: 500 })
+  }
+
+  // Self-heal missing profile (auth.users exists but public.profiles does
+  // not - e.g. handle_new_user failure or manual cleanup). The RPC rebuilds
+  // the row from auth.users metadata, mirroring handle_new_user's logic.
+  if (!profile) {
+    const service = createServiceClient()
+    const { error: repairError } = await service.rpc('ensure_profile_for_current_user').single()
+    if (repairError) {
+      return NextResponse.json(
+        { error: 'Could not initialise your profile. Please refresh and try again.' },
+        { status: 500 }
+      )
+    }
+  } else if (profile.onboarding_complete) {
+    return NextResponse.json(
+      { error: 'Onboarding already complete. Refresh your tab to see the latest dashboard.' },
+      { status: 409 }
+    )
+  }
 
   const { error: profileError } = await supabase
     .from('profiles')
@@ -58,9 +86,18 @@ export async function POST(req: NextRequest) {
       onboarding_complete: true,
     })
     .eq('id', user.id)
+    .eq('onboarding_complete', false)
+    .select('id')
+    .maybeSingle()
 
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
 
+  const service = createServiceClient()
+
+  // Starter notifications use the service-role client. The notifications RLS
+  // posture is "users do not INSERT their own notifications" (set in the
+  // 2026-05-15 audit migration). The user-bound client silently failed
+  // before; surfacing failures to Sentry-style logs is the audit fix.
   const { count: existingNotifications } = await supabase
     .from('notifications')
     .select('id', { count: 'exact', head: true })
@@ -83,37 +120,46 @@ export async function POST(req: NextRequest) {
         link: '/timeline',
       },
     ]
-    await supabase.from('notifications').insert(starterNotifications)
+    const { error: notifInsertError } = await service.from('notifications').insert(starterNotifications)
+    if (notifInsertError) {
+      console.error('onboarding/complete: notifications insert failed:', notifInsertError.message)
+    }
   }
 
   if (validSpecialties.length > 0) {
     // Upsert is atomic against the (user_id, specialty_key) unique constraint:
     // two concurrent onboarding completes can no longer race to double-insert.
+    // Service-role client so the specialty-track-cap trigger bypasses (a user
+    // running through onboarding is initialising their first tracker, not
+    // tripping the Free cap).
     const appRows = validSpecialties.map(key => {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)!
       return { user_id: user.id, specialty_key: key, cycle_year: Number(config.cycleYear) || new Date().getFullYear(), bonus_claimed: false }
     })
     if (appRows.length > 0) {
-      const { error } = await supabase
+      const { error } = await service
         .from('specialty_applications')
         .upsert(appRows, { onConflict: 'user_id,specialty_key', ignoreDuplicates: true })
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Only auto-create deadlines for specialties the user did not already have tracked
-    const { data: existingApps } = await supabase
-      .from('specialty_applications')
-      .select('specialty_key, created_at')
+    // Deterministic existence check: only auto-create deadlines for specialties
+    // that have no deadlines yet. The previous 60-second heuristic dropped
+    // deadlines when the user spent more than a minute on the page; the
+    // (user_id, source_specialty_key, title, due_date) partial unique index
+    // on deadlines makes duplicate inserts safe so we no longer need the
+    // freshness gate.
+    const { data: existingDeadlines } = await supabase
+      .from('deadlines')
+      .select('source_specialty_key')
       .eq('user_id', user.id)
-      .in('specialty_key', validSpecialties)
+      .eq('is_auto', true)
+      .in('source_specialty_key', validSpecialties)
 
-    // Treat any specialty whose row was created in the last 60 seconds as "newly added in this onboarding pass".
-    const sixtySecondsAgo = Date.now() - 60_000
-    const newSpecialties = (existingApps ?? [])
-      .filter(row => new Date(row.created_at).getTime() >= sixtySecondsAgo)
-      .map(row => row.specialty_key)
+    const have = new Set((existingDeadlines ?? []).map(d => d.source_specialty_key))
+    const need = validSpecialties.filter(key => !have.has(key))
 
-    const deadlineRows = newSpecialties.flatMap(key => {
+    const deadlineRows = need.flatMap(key => {
       const config = SPECIALTY_CONFIGS.find(s => s.key === key)
       if (!config?.applicationWindow) return []
       return [
@@ -130,7 +176,7 @@ export async function POST(req: NextRequest) {
   }
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    await grantEligibleReferralReward(createServiceClient(), user.id)
+    await grantEligibleReferralReward(service, user.id)
   }
 
   return NextResponse.json({ ok: true })

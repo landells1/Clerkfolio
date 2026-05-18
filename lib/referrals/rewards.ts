@@ -40,11 +40,15 @@ function hasCurrentInstitutionVerification(profile: Pick<ProfileForReward, 'stud
 }
 
 async function ensurePendingReferral(service: SupabaseClient, referrerId: string, referredId: string) {
+  // ignoreDuplicates so a concurrent caller cannot downgrade an already-
+  // completed referral row back to 'pending' (overwriting reward_granted_at).
+  // The early-return check at status === 'completed' in the caller is not
+  // atomic with the upsert; this flag is the safety net.
   await service.from('referrals').upsert({
     referrer_id: referrerId,
     referred_id: referredId,
     status: 'pending',
-  }, { onConflict: 'referred_id' })
+  }, { onConflict: 'referred_id', ignoreDuplicates: true })
 }
 
 export async function grantEligibleReferralReward(service: SupabaseClient, referredUserId: string) {

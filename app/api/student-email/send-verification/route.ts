@@ -37,11 +37,14 @@ export async function POST(req: NextRequest) {
   }
 
   const service = createServiceClient()
+  // Exact lowercase match (we store normalised emails). ilike would treat
+  // _ and % in user-supplied input as wildcards, which could false-match
+  // legitimate institutional addresses.
   const { data: existingVerifiedProfile } = await service
     .from('profiles')
     .select('id')
     .eq('student_email_verified', true)
-    .ilike('student_email', email)
+    .eq('student_email', email)
     .neq('id', user.id)
     .maybeSingle()
 
@@ -73,30 +76,19 @@ export async function POST(req: NextRequest) {
   const confirmUrl = new URL('/verify-email', appUrl)
   confirmUrl.searchParams.set('token', token)
 
-  const { error: insertError } = await service
-    .from('student_email_verification_tokens')
-    .insert({
-      user_id: user.id,
-      email,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-    })
-
-  if (insertError) {
-    return NextResponse.json({ error: 'Could not create verification link.' }, { status: 500 })
-  }
-
-  await service
-    .from('profiles')
-    .update({
-      student_email: email,
-      student_email_verified: false,
-      student_email_verified_at: null,
-      student_email_verification_due_at: null,
-      student_email_verification_sent_at: now,
-    })
-    .eq('id', user.id)
-
+  // Send the email BEFORE writing the verification-sent-at timestamp or the
+  // token row. A Resend outage previously left the profile in a "pending"
+  // state with a token row but no email - the user saw "verification sent"
+  // for an email they never received. New ordering: send -> insert token ->
+  // update profile.sent_at (rate-limit clock).
+  //
+  // Importantly we no longer downgrade the existing verification when the
+  // user submits a NEW email for verification. The new institutional email
+  // only takes effect once /api/student-email/confirm consumes the token;
+  // until then, the user's current verified email stays active. This closes
+  // the "typo in the new email irreversibly downgrades me" trap and the
+  // "spam someone else's institutional inbox by claiming their email"
+  // amplifier.
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { error: sendError } = await resend.emails.send({
     from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
@@ -117,6 +109,27 @@ export async function POST(req: NextRequest) {
     console.error('student-email send-verification: Resend error:', sendError.message)
     return NextResponse.json({ error: 'Failed to send verification email. Please try again.' }, { status: 500 })
   }
+
+  const { error: insertError } = await service
+    .from('student_email_verification_tokens')
+    .insert({
+      user_id: user.id,
+      email,
+      token_hash: tokenHash,
+      expires_at: expiresAt,
+    })
+
+  if (insertError) {
+    console.error('student-email send-verification: token insert failed:', insertError.message)
+    return NextResponse.json({ error: 'Could not record verification link. Please try again.' }, { status: 500 })
+  }
+
+  // Only the rate-limit clock is touched on profiles - the existing
+  // verified email and tier stay intact until confirm.
+  await service
+    .from('profiles')
+    .update({ student_email_verification_sent_at: now })
+    .eq('id', user.id)
 
   return NextResponse.json({ ok: true })
 }

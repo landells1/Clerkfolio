@@ -39,14 +39,31 @@ export async function POST(request: NextRequest) {
       // point the auth user is gone and the webhook update no-ops cleanly.
       // If the user wants an immediate refund they must contact support, and
       // we issue a pro-rated refund manually.
+      //
+      // Only `resource_missing` (subscription already gone / never existed)
+      // is safe to swallow. Any other error aborts the delete - otherwise
+      // a transient Stripe outage would result in a deleted account that is
+      // still being billed at the next renewal, with no DB pointer left to
+      // resolve the charge.
       try {
         await stripe.subscriptions.update(profile.stripe_subscription_id, {
           cancel_at_period_end: true,
         })
       } catch (err) {
-        // If the subscription is already canceled or doesn't exist (drift),
-        // log and continue so the account delete still succeeds.
-        console.error('Stripe subscription update on delete failed:', err instanceof Error ? err.message : 'unknown')
+        const code = (err as { code?: string })?.code
+        if (code !== 'resource_missing') {
+          console.error(
+            'Account delete blocked: Stripe cancel failed:',
+            err instanceof Error ? err.message : 'unknown'
+          )
+          return NextResponse.json(
+            {
+              error:
+                'Could not cancel your subscription. Account deletion is paused so you are not charged for a service you cannot access. Please email hello@clerkfolio.co.uk and we will cancel and refund manually.',
+            },
+            { status: 422 }
+          )
+        }
       }
     }
 

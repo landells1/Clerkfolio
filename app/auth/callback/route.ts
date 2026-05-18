@@ -26,6 +26,8 @@ function safeRedirectPath(next: string | null): string {
   return '/onboarding'
 }
 
+const RECOVERY_COOKIE = 'cf_recovery'
+
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
@@ -96,12 +98,15 @@ export async function GET(request: NextRequest) {
 
           const noInstitutionalSet = !profile?.student_email || normaliseEmail(profile.student_email) === signupEmail
           if (profile && !profile.student_email_verified && noInstitutionalSet) {
-            // Belt-and-braces: ensure no other verified profile holds this address.
+            // Belt-and-braces: ensure no other verified profile holds this
+            // address. Use a normalised-equality compare via service-role SQL
+            // rather than ilike (where _ and % are wildcards that can false-
+            // match similar-looking institutional addresses).
             const { data: existingVerifiedProfile } = await service
               .from('profiles')
               .select('id')
               .eq('student_email_verified', true)
-              .ilike('student_email', signupEmail)
+              .eq('student_email', signupEmail)
               .neq('id', user.id)
               .maybeSingle()
 
@@ -139,7 +144,21 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      return NextResponse.redirect(`${origin}${next}`)
+      const response = NextResponse.redirect(`${origin}${next}`)
+      // When the caller is finishing a password-reset flow, mark the response
+      // with a short-lived recovery cookie. Middleware requires this cookie
+      // to render /update-password, defeating the "logged-in attacker walks
+      // to /update-password and resets the password" takeover path.
+      if (next === '/update-password') {
+        response.cookies.set(RECOVERY_COOKIE, '1', {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === 'production',
+          sameSite: 'lax',
+          path: '/',
+          maxAge: 60 * 10,
+        })
+      }
+      return response
     }
   }
 

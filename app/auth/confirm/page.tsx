@@ -41,12 +41,24 @@ function ConfirmContent() {
     setLoading(true)
     setError(null)
     const supabase = createClient()
+    // If a different user is currently signed in on this browser, sign them
+    // out before verifying the OTP. Otherwise the session silently swaps
+    // (e.g. shared family device, mirrored inbox) without any user-facing
+    // indication that the account context has changed. Defense-in-depth: the
+    // recovery-AAL gate on /update-password closes the takeover path; this
+    // makes the swap explicit.
+    const { data: { user: existingUser } } = await supabase.auth.getUser()
+    if (existingUser) {
+      await supabase.auth.signOut()
+    }
     const { error: otpError } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,
       type: type as 'signup' | 'email' | 'invite' | 'recovery' | 'email_change',
     })
     if (otpError) {
-      setError(otpError.message ?? 'This confirmation link is invalid or has expired. Please request a new one.')
+      // Scrub Supabase error text so we don't expose specific token states
+      // (expired vs not found) that could fingerprint signed-up addresses.
+      setError('This confirmation link is invalid or has expired. Please request a new one.')
       setLoading(false)
       return
     }

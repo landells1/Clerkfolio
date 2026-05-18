@@ -134,7 +134,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { data, error } = await supabase
+  // share_links INSERT was previously allowed on the user-bound client via
+  // the ALL-own RLS policy. That meant a Free user could bypass the route
+  // (and the per-tier cap) by inserting directly from the browser. The
+  // 2026-05-18 audit migration replaced that policy with granular
+  // SELECT/UPDATE-only, so the INSERT here uses the service-role client.
+  const service = createServiceClient()
+  const { data, error } = await service
     .from('share_links')
     .insert({
       user_id: user.id,
@@ -169,7 +175,9 @@ export async function POST(req: NextRequest) {
       .gt('expires_at', new Date().toISOString())
 
     if ((actualCount ?? 0) > 1) {
-      await supabase.from('share_links').delete().eq('id', data.id)
+      // The compensating delete also uses service role: there is no user
+      // DELETE policy on share_links any more.
+      await service.from('share_links').delete().eq('id', data.id)
       return NextResponse.json(
         { error: 'limit_reached', limit: 1, used: actualCount, upgrade_url: '/upgrade' },
         { status: 403 }
@@ -181,7 +189,7 @@ export async function POST(req: NextRequest) {
       p_feature: 'share_links_used',
     })
     if (usageError) {
-      await supabase.from('share_links').delete().eq('id', data.id)
+      await service.from('share_links').delete().eq('id', data.id)
       return NextResponse.json({ error: 'Could not record share link usage. Please try again.' }, { status: 500 })
     }
   }

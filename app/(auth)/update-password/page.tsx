@@ -35,6 +35,11 @@ export default function UpdatePasswordPage() {
       return
     }
 
+    // Clear the short-lived recovery cookie so the route locks down again
+    // immediately. Middleware checks for this cookie before rendering the
+    // page; clearing it after a successful change prevents replay.
+    await fetch('/api/auth/clear-recovery', { method: 'POST' })
+
     router.push('/dashboard')
     router.refresh()
   }
