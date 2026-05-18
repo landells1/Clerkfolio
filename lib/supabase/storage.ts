@@ -33,67 +33,28 @@ export type EvidenceFile = {
   created_at: string
 }
 
-/**
- * Upload a file after server-side quota/MIME authorization.
- * Callers MUST call /api/upload/authorize first and surface any errors.
- * This function performs a final client-side MIME check as a UX guard only.
- */
-export async function uploadEvidence(
-  file: File,
-  userId: string,
-  entryId: string,
-  entryType: 'portfolio' | 'case',
-): Promise<{ path: string; error?: string }> {
-  const supabase = createClient()
-
-  // Client-side MIME guard (UX only - server enforce via /api/upload/authorize)
-  if (!ALLOWED_MIME_TYPES.has(file.type)) {
-    return { path: '', error: 'File type not allowed. Accepted: PDF, DOC, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.' }
-  }
-  if (file.size > MAX_FILE_BYTES) {
-    return { path: '', error: 'File too large. Maximum size is 50 MB.' }
-  }
-  if (!(await fileHasValidMagicBytes(file))) {
-    return { path: '', error: 'File contents do not match the selected file type.' }
-  }
-
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_')
-  const path = `${userId}/${entryType}/${entryId}/${Date.now()}-${safeName}`
-
-  const { error } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, file, { upsert: false })
-
-  if (error) return { path: '', error: error.message }
-  return { path }
-}
-
-/** Insert a record into evidence_files after a successful upload */
-export async function insertEvidenceRecord(
-  userId: string,
-  entryId: string,
-  entryType: 'portfolio' | 'case',
-  file: File,
-  path: string,
-) {
-  const supabase = createClient()
-  return supabase.from('evidence_files').insert({
-    user_id: userId,
-    entry_id: entryId,
-    entry_type: entryType,
-    file_name: file.name,
-    file_path: path,
-    file_size: file.size,
-    mime_type: file.type || null,
-    scan_status: 'pending',
-    scan_provider: null,
-  }).select('id').single()
+type AuthorizeResponse = {
+  fileId: string
+  path: string
+  signedUrl: string
+  token: string
 }
 
 /**
- * Upload all pending files after an entry is saved.
- * Calls the server-side authorize endpoint for each file before uploading.
- * Returns any errors encountered.
+ * Upload all pending files after an entry is saved. New 2-step flow (signed
+ * upload URL + finalize) - direct user storage INSERT was removed in
+ * 2026-05-18-phase2 so this is the only legitimate path now.
+ *
+ *   1. POST /api/upload/authorize  ->  pre-creates evidence_files row, returns
+ *      signed upload URL. Server validates entry ownership, MIME, quota.
+ *   2. PUT signedUrl               ->  browser uploads bytes directly to
+ *      Supabase storage. The URL is one-time, bound to the path and TTL.
+ *   3. POST /api/upload/verify     ->  server downloads a prefix of the object,
+ *      runs the magic-byte check, flips scan_status from 'pending' to
+ *      'clean' / 'quarantined'.
+ *
+ * If step 2 or 3 fails, the pending row + any partial storage object are
+ * cleaned up by /api/cron/purge-orphan-uploads after 24h.
  */
 export async function uploadPendingFiles(
   files: File[],
@@ -105,35 +66,77 @@ export async function uploadPendingFiles(
   const errors: string[] = []
 
   for (const file of files) {
-    // Server-side authorization: quota + MIME + plan limit enforced here
+    // Client-side MIME guard (UX only - server enforces via /api/upload/authorize)
+    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+      errors.push(`${file.name}: File type not allowed. Accepted: PDF, DOC, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.`)
+      continue
+    }
+    if (file.size > MAX_FILE_BYTES) {
+      errors.push(`${file.name}: File too large. Maximum size is 50 MB.`)
+      continue
+    }
+    if (!(await fileHasValidMagicBytes(file))) {
+      errors.push(`${file.name}: File contents do not match the selected file type.`)
+      continue
+    }
+
+    // 1. Pre-create row + get signed upload URL (server enforces ownership +
+    //    quota + MIME).
     const authRes = await fetch('/api/upload/authorize', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileSize: file.size, mimeType: file.type, entryType }),
+      body: JSON.stringify({
+        entryId,
+        entryType,
+        fileSize: file.size,
+        mimeType: file.type,
+        fileName: file.name,
+      }),
+      credentials: 'same-origin',
     })
     if (!authRes.ok) {
       const body = await authRes.json().catch(() => ({}))
-      errors.push(`${file.name}: ${body.error ?? 'Upload not authorized'}`)
+      errors.push(`${file.name}: ${body.error ?? 'Upload not authorised'}`)
+      continue
+    }
+    const { fileId, signedUrl } = (await authRes.json().catch(() => ({}))) as Partial<AuthorizeResponse>
+    if (!fileId || !signedUrl) {
+      errors.push(`${file.name}: Upload not authorised`)
       continue
     }
 
-    const { path, error } = await uploadEvidence(file, userId, entryId, entryType)
-    if (error) { errors.push(`${file.name}: ${error}`); continue }
-    const { data, error: insertError } = await insertEvidenceRecord(userId, entryId, entryType, file, path)
-    if (insertError || !data?.id) {
-      errors.push(`${file.name}: Could not save file record`)
+    // 2. PUT the bytes. Signed URLs do not need our session cookies; omit
+    //    credentials so the browser doesn't try to send them cross-origin.
+    let uploadOk = false
+    try {
+      const uploadRes = await fetch(signedUrl, {
+        method: 'PUT',
+        body: file,
+        headers: { 'Content-Type': file.type || 'application/octet-stream' },
+      })
+      uploadOk = uploadRes.ok
+    } catch {
+      uploadOk = false
+    }
+    if (!uploadOk) {
+      errors.push(`${file.name}: Upload failed - please try again`)
+      // Don't try to clean up here - the orphan cron handles it. Leaving the
+      // pending row also surfaces the failure if the user reloads.
       continue
     }
 
+    // 3. Server-side verify (magic bytes + flip scan_status). Try the edge
+    //    function first when available; fall back to /api/upload/verify so
+    //    every path still ends in a finalised row.
     const { data: scanData, error: scanError } = await supabase.functions.invoke('scan-evidence', {
-      body: { fileId: data.id },
+      body: { fileId },
     })
 
     if (scanError) {
       const verifyRes = await fetch('/api/upload/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ fileId: data.id }),
+        body: JSON.stringify({ fileId }),
       })
       if (!verifyRes.ok) {
         const body = await verifyRes.json().catch(() => ({}))

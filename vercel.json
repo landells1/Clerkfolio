@@ -37,6 +37,14 @@
     {
       "path": "/api/cron/purge-audit-log",
       "schedule": "0 3 * * 0"
+    },
+    {
+      "path": "/api/cron/purge-stale-tokens",
+      "schedule": "0 4 * * 0"
+    },
+    {
+      "path": "/api/cron/purge-orphan-uploads",
+      "schedule": "15 3 * * *"
     }
   ]
 }

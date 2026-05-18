@@ -136,7 +136,7 @@ export default function SignupPage() {
             return (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border border-pill-green bg-pill-green text-green-300">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                {isAcUk ? 'Student email detected - eligible for Student tier' : 'NHS email detected - eligible for Foundation tier'}
+                {isAcUk ? 'Student email - eligible for Student tier after verification' : 'NHS email - eligible for Foundation tier after verification'}
               </div>
             )
           })()}
@@ -191,7 +191,7 @@ export default function SignupPage() {
             />
             {referralInput.length === 5 && (
               <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-green-400">
-                Applied
+                Will apply if valid
               </span>
             )}
           </div>

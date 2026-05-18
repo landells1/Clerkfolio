@@ -52,6 +52,38 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This institutional email is already verified on another Clerkfolio account.' }, { status: 409 })
   }
 
+  // Block if another user has an unconsumed token for the same email. The
+  // partial index on lower(email) WHERE consumed_at IS NULL on the tokens
+  // table makes the lookup cheap. All writers normalise email to lower-case
+  // before insert, so an exact eq is safe. Stops the "spam someone else's
+  // NHS inbox by claiming their email from multiple accounts" amplifier.
+  const { data: crossUserPending } = await service
+    .from('student_email_verification_tokens')
+    .select('id')
+    .eq('email', email)
+    .is('consumed_at', null)
+    .gt('expires_at', new Date().toISOString())
+    .neq('user_id', user.id)
+    .limit(1)
+    .maybeSingle()
+
+  if (crossUserPending) {
+    return NextResponse.json(
+      { error: 'A verification is already pending for this email on another account. Please wait for it to expire (24h) before retrying.' },
+      { status: 409 }
+    )
+  }
+
+  // Invalidate any prior unconsumed tokens for THIS user, regardless of
+  // which email they were for. Keeps the "latest one" the only valid token
+  // and means a typo retry doesn't leave two valid links in different
+  // inboxes.
+  await service
+    .from('student_email_verification_tokens')
+    .update({ consumed_at: new Date().toISOString() })
+    .eq('user_id', user.id)
+    .is('consumed_at', null)
+
   const { data: profile } = await service
     .from('profiles')
     .select('student_email_verification_sent_at')
