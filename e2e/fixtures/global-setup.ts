@@ -7,7 +7,9 @@ const TRUNCATE_TABLES = [
   'specialty_applications',
   'specialty_entry_links',
   'share_links',
-  'share_access_logs',
+  // Live schema is share_access_attempts (renamed from share_access_logs).
+  // CLAUDE.md flagged this stale reference - keep aligned with reality.
+  'share_access_attempts',
   'goals',
   'profiles',
 ]
