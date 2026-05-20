@@ -1,6 +1,6 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { isAcUkEmail, isInstitutionEmail, isNhsEmail, normaliseEmail } from '@/lib/institutional-email'
+import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
 
 // Allowlist of safe post-auth destinations
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
           const service = createServiceClient()
           const { data: profile } = await service
             .from('profiles')
-            .select('tier, career_stage, student_email, student_email_verified')
+            .select('student_email, student_email_verified')
             .eq('id', user.id)
             .single()
 
@@ -115,21 +115,14 @@ export async function GET(request: NextRequest) {
               const dueAt = new Date(now)
               dueAt.setFullYear(dueAt.getFullYear() + 1)
 
-              const isStudent = isAcUkEmail(signupEmail)
-              const isFoundationEligible = isNhsEmail(signupEmail)
-                && ['FY1', 'FY2', 'POST_FY'].includes(profile.career_stage ?? '')
-              const nextTier = profile.tier === 'pro'
-                ? 'pro'
-                : isStudent
-                  ? 'student'
-                  : isFoundationEligible
-                    ? 'foundation'
-                    : profile.tier ?? 'free'
-
+              // Write verification fields only. tier is centrally re-derived by
+              // recompute_profile_tier below so that NHS-verified-before-
+              // onboarding (career_stage still null) is correctly bumped to
+              // 'foundation' once /api/onboarding/complete fires recompute
+              // again.
               await service
                 .from('profiles')
                 .update({
-                  tier: nextTier,
                   student_email: signupEmail,
                   student_email_verified: true,
                   student_email_verified_at: now.toISOString(),
@@ -137,6 +130,7 @@ export async function GET(request: NextRequest) {
                 })
                 .eq('id', user.id)
 
+              await service.rpc('recompute_profile_tier', { p_user_id: user.id })
               await grantEligibleReferralReward(service, user.id)
               await grantPendingReferralRewardsForReferrer(service, user.id)
             }

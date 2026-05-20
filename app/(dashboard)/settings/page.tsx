@@ -69,10 +69,11 @@ export default function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [sendingStudentEmail, setSendingStudentEmail] = useState(false)
   const [pendingStage, setPendingStage] = useState<string | null>(null)
-  const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' })
+  const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
+  const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('')
   const [exportLoading, setExportLoading] = useState(false)
   const [origin, setOrigin] = useState('')
   const [settingsSearch, setSettingsSearch] = useState('')
@@ -212,6 +213,10 @@ export default function SettingsPage() {
 
   async function handlePasswordChange(e: React.FormEvent) {
     e.preventDefault()
+    if (!passwordForm.current) {
+      addToast('Enter your current password to confirm.', 'error')
+      return
+    }
     if (passwordForm.next.length < 8) {
       addToast('Password must be at least 8 characters', 'error')
       return
@@ -222,13 +227,25 @@ export default function SettingsPage() {
     }
 
     setPasswordLoading(true)
-    const { error } = await supabase.auth.updateUser({ password: passwordForm.next })
+    // Route through /api/account/password so current-password reauth is
+    // enforced server-side. supabase.auth.updateUser({ password }) would skip
+    // reauth and let anyone with a briefly-unattended logged-in browser
+    // change the password.
+    const res = await fetch('/api/account/password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        currentPassword: passwordForm.current,
+        newPassword: passwordForm.next,
+      }),
+    })
     setPasswordLoading(false)
-    if (error) {
-      addToast('Could not update password. Check the password and try again.', 'error')
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      addToast(body?.error ?? 'Could not update password. Check the password and try again.', 'error')
       return
     }
-    setPasswordForm({ next: '', confirm: '' })
+    setPasswordForm({ current: '', next: '', confirm: '' })
     addToast('Password updated', 'success')
   }
 
@@ -283,11 +300,21 @@ export default function SettingsPage() {
   async function restartTutorial() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    // Re-show the in-dashboard tutorial overlay rather than re-running the
+    // onboarding flow. Flipping onboarding_complete back to false was a
+    // bypass for the Free specialty cap: re-running /api/onboarding/complete
+    // service-role-inserts another specialty_applications row, dodging the
+    // enforce_specialty_track_cap trigger. The actual tutorial overlay is
+    // gated by onboarding_checklist_dismissed (components/dashboard/
+    // onboarding-checklist.tsx), so we only need to flip that.
     await supabase
       .from('profiles')
-      .update({ onboarding_complete: false, onboarding_checklist_completed_items: [] })
+      .update({
+        onboarding_checklist_dismissed: false,
+        onboarding_checklist_completed_items: [],
+      })
       .eq('id', user.id)
-    router.push('/onboarding')
+    router.push('/dashboard')
   }
 
   async function copyReferralLink() {
@@ -297,13 +324,18 @@ export default function SettingsPage() {
   }
 
   async function deleteAccount() {
+    if (!deleteConfirmPassword) {
+      addToast('Enter your current password to confirm deletion.', 'error')
+      return
+    }
     const res = await fetch('/api/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ confirm: 'DELETE' }),
+      body: JSON.stringify({ confirm: 'DELETE', currentPassword: deleteConfirmPassword }),
     })
     if (!res.ok) {
-      addToast('Failed to delete account', 'error')
+      const body = await res.json().catch(() => ({}))
+      addToast(body?.error ?? 'Failed to delete account', 'error')
       return
     }
     // Drop the offline dashboard cache (written by offline-cache-primer.tsx).
@@ -608,8 +640,9 @@ export default function SettingsPage() {
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Password</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
-          <input type="password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
-          <input type="password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
+          <input type="password" autoComplete="current-password" placeholder="Current password" value={passwordForm.current} onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
+          <input type="password" autoComplete="new-password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
+          <input type="password" autoComplete="new-password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
           <button disabled={passwordLoading} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold rounded-lg px-5 py-2.5 text-sm">
             {passwordLoading ? 'Updating...' : 'Update password'}
           </button>
@@ -625,7 +658,7 @@ export default function SettingsPage() {
 
       <section className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
         <h2 className="text-base font-semibold text-red-300 mb-3">Delete account</h2>
-        <button onClick={() => { setDeleteConfirmText(''); setDeleteConfirm(true) }} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
+        <button onClick={() => { setDeleteConfirmText(''); setDeleteConfirmPassword(''); setDeleteConfirm(true) }} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
           Delete account
         </button>
       </section>
@@ -647,13 +680,16 @@ export default function SettingsPage() {
       {deleteConfirm && (
         <ConfirmModal
           title="Delete account?"
-          body={`This permanently deletes your Clerkfolio account, portfolio entries, cases, evidence metadata, goals, share links, and settings. Type DELETE to confirm.`}
+          body={`This permanently deletes your Clerkfolio account, portfolio entries, cases, evidence metadata, goals, share links, and settings. Type DELETE and enter your current password to confirm.`}
           confirmLabel="Delete account"
           danger
           confirmationText={deleteConfirmText}
           onConfirmationTextChange={setDeleteConfirmText}
           confirmationRequired="DELETE"
-          onCancel={() => { setDeleteConfirm(false); setDeleteConfirmText('') }}
+          passwordValue={deleteConfirmPassword}
+          onPasswordChange={setDeleteConfirmPassword}
+          passwordRequired
+          onCancel={() => { setDeleteConfirm(false); setDeleteConfirmText(''); setDeleteConfirmPassword('') }}
           onConfirm={deleteAccount}
         />
       )}
@@ -731,6 +767,9 @@ function ConfirmModal({
   confirmationText,
   onConfirmationTextChange,
   confirmationRequired,
+  passwordValue,
+  onPasswordChange,
+  passwordRequired,
   onCancel,
   onConfirm,
 }: {
@@ -741,10 +780,15 @@ function ConfirmModal({
   confirmationText?: string
   onConfirmationTextChange?: (value: string) => void
   confirmationRequired?: string
+  passwordValue?: string
+  onPasswordChange?: (value: string) => void
+  passwordRequired?: boolean
   onCancel: () => void
   onConfirm: () => void
 }) {
-  const disabled = confirmationRequired != null && confirmationText !== confirmationRequired
+  const textGate = confirmationRequired != null && confirmationText !== confirmationRequired
+  const passwordGate = passwordRequired === true && (!passwordValue || passwordValue.length === 0)
+  const disabled = textGate || passwordGate
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
@@ -756,6 +800,16 @@ function ConfirmModal({
             value={confirmationText ?? ''}
             onChange={e => onConfirmationTextChange?.(e.target.value)}
             placeholder={confirmationRequired}
+            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-red-400"
+          />
+        )}
+        {passwordRequired && (
+          <input
+            type="password"
+            autoComplete="current-password"
+            value={passwordValue ?? ''}
+            onChange={e => onPasswordChange?.(e.target.value)}
+            placeholder="Current password"
             className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-red-400"
           />
         )}

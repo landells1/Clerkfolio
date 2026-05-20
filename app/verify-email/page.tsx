@@ -2,6 +2,7 @@
 
 import { Suspense, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase/client'
 
 function VerifyEmailContent() {
   const router = useRouter()
@@ -27,6 +28,19 @@ function VerifyEmailContent() {
       })
       const body = await res.json().catch(() => ({}))
       const status = body?.status ?? (res.ok ? 'verified' : 'invalid')
+      // Wrong-account flow: confirm route did NOT consume the token because
+      // the current browser session is logged in as a different user than
+      // the token's owner. Sign the current user out and bounce to login so
+      // they can sign in as the right account and re-open the link.
+      if (status === 'wrong_account') {
+        try {
+          const supabase = createClient()
+          await supabase.auth.signOut()
+        } catch {}
+        router.push('/login?verify=wrong_account')
+        router.refresh()
+        return
+      }
       const target = `/settings?student_email=${encodeURIComponent(status)}`
       router.push(target)
       router.refresh()

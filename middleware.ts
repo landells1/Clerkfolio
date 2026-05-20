@@ -42,6 +42,24 @@ function requestIp(request: NextRequest) {
     || 'unknown'
 }
 
+// Decode a Supabase access-token JWT and pull the `session_id` claim.
+// Edge runtime: atob is available. We never trust this token (it's not the
+// auth check; supabase.auth.getUser handles that). We only use the session_id
+// for fingerprint scoping, so a malformed JWT just falls back to null and the
+// row keys on (user_id, ip_hash, user_agent) like before.
+function readSessionId(token: string | undefined): string | null {
+  if (!token) return null
+  const parts = token.split('.')
+  if (parts.length !== 3) return null
+  try {
+    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
+    const decoded = JSON.parse(atob(payload + '='.repeat((4 - payload.length % 4) % 4)))
+    return typeof decoded?.session_id === 'string' ? decoded.session_id : null
+  } catch {
+    return null
+  }
+}
+
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -122,13 +140,42 @@ export async function middleware(request: NextRequest) {
     )
     const userAgent = request.headers.get('user-agent') ?? 'unknown'
     const ipHash = await sha256Hex(`${requestIp(request)}:${process.env.SHARE_IP_HASH_SALT}`)
-    const { data: existing } = await admin
-      .from('session_fingerprints')
-      .select('id, revoked_at')
-      .eq('user_id', user.id)
-      .eq('ip_hash', ipHash)
-      .eq('user_agent', userAgent)
-      .maybeSingle()
+
+    // Supabase access-token's `session_id` claim identifies the specific
+    // Supabase session this browser holds. Tracking it on the fingerprint row
+    // means a revoke targets one session, not every future login from the
+    // same browser/IP/user-agent triple. Falls back to fingerprint-only if
+    // the JWT cannot be decoded.
+    const { data: sessionData } = await supabase.auth.getSession()
+    const sessionId = readSessionId(sessionData?.session?.access_token)
+
+    // Prefer matching on session_id when available. If the session_id matches
+    // and the row is revoked, kick the user back to login. If session_id is
+    // not yet known to us (fresh login or post-revoke re-login), match on the
+    // fingerprint triple but only when revoked_at IS NULL - so a revoked row
+    // with the same fingerprint no longer locks the user out forever.
+    let existing: { id: string; revoked_at: string | null } | null = null
+    if (sessionId) {
+      const { data } = await admin
+        .from('session_fingerprints')
+        .select('id, revoked_at')
+        .eq('user_id', user.id)
+        .eq('session_id', sessionId)
+        .maybeSingle()
+      existing = data ?? null
+    }
+    if (!existing) {
+      const { data } = await admin
+        .from('session_fingerprints')
+        .select('id, revoked_at')
+        .eq('user_id', user.id)
+        .eq('ip_hash', ipHash)
+        .eq('user_agent', userAgent)
+        .is('revoked_at', null)
+        .is('session_id', null)
+        .maybeSingle()
+      existing = data ?? null
+    }
 
     if (existing?.revoked_at) {
       const url = request.nextUrl.clone()
@@ -138,9 +185,17 @@ export async function middleware(request: NextRequest) {
     }
 
     if (existing?.id) {
-      await admin.from('session_fingerprints').update({ last_seen_at: new Date().toISOString() }).eq('id', existing.id)
+      // Backfill session_id on legacy rows the first time we see a JWT.
+      const patch: { last_seen_at: string; session_id?: string } = { last_seen_at: new Date().toISOString() }
+      if (sessionId) patch.session_id = sessionId
+      await admin.from('session_fingerprints').update(patch).eq('id', existing.id)
     } else {
-      await admin.from('session_fingerprints').insert({ user_id: user.id, ip_hash: ipHash, user_agent: userAgent })
+      await admin.from('session_fingerprints').insert({
+        user_id: user.id,
+        ip_hash: ipHash,
+        user_agent: userAgent,
+        session_id: sessionId,
+      })
     }
   }
 

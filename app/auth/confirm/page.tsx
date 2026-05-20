@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -35,6 +35,19 @@ function ConfirmContent() {
   const next = safeRedirectPath(searchParams.get('next'))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  // Recovery confirmations must run through the server route so the HTTP-only
+  // `cf_recovery` cookie can be set. Without that cookie, /update-password
+  // bounces to /settings?error=recovery_required and the user is stuck. We
+  // bounce the browser to /auth/recovery-confirm as soon as we see type=recovery
+  // here; the user never has to click the button below.
+  useEffect(() => {
+    if (type === 'recovery' && tokenHash) {
+      const url = new URL('/auth/recovery-confirm', window.location.origin)
+      url.searchParams.set('token_hash', tokenHash)
+      window.location.replace(url.toString())
+    }
+  }, [type, tokenHash])
 
   async function handleConfirm() {
     if (!tokenHash) return

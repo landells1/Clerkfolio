@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
-  let body: { confirm?: string } = {}
+  let body: { confirm?: string; currentPassword?: string } = {}
   try {
     body = await request.json()
   } catch {
@@ -19,6 +19,24 @@ export async function POST(request: NextRequest) {
 
   if (body.confirm !== 'DELETE') {
     return NextResponse.json({ error: 'Confirmation text required' }, { status: 400 })
+  }
+
+  // Reauth: a logged-in browser left briefly unattended must not be enough
+  // to destroy the account. Require the current password as a fresh-session
+  // proof. signInWithPassword issues a Supabase rate-limit hit on failure
+  // which acts as our brute-force guard.
+  if (typeof body.currentPassword !== 'string' || !body.currentPassword) {
+    return NextResponse.json({ error: 'Current password is required to delete your account.' }, { status: 400 })
+  }
+  if (!user.email) {
+    return NextResponse.json({ error: 'Account has no email on file. Contact support.' }, { status: 400 })
+  }
+  const { error: reauthError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: body.currentPassword,
+  })
+  if (reauthError) {
+    return NextResponse.json({ error: 'Current password is incorrect.' }, { status: 401 })
   }
 
   const service = createServiceClient()

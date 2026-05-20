@@ -60,9 +60,14 @@ export async function POST(req: NextRequest) {
   // Self-heal missing profile (auth.users exists but public.profiles does
   // not - e.g. handle_new_user failure or manual cleanup). The RPC rebuilds
   // the row from auth.users metadata, mirroring handle_new_user's logic.
+  //
+  // CRITICAL: must use the user-bound client. The RPC is SECURITY DEFINER and
+  // calls auth.uid() internally; the service-role client has no JWT, so
+  // auth.uid() returns NULL and the RPC raises 'not_authenticated'. The phase 3
+  // migration also drops the user-level INSERT policy on profiles so this RPC
+  // is now the only path for the rare missing-profile case.
   if (!profile) {
-    const service = createServiceClient()
-    const { error: repairError } = await service.rpc('ensure_profile_for_current_user').single()
+    const { error: repairError } = await supabase.rpc('ensure_profile_for_current_user').single()
     if (repairError) {
       return NextResponse.json(
         { error: 'Could not initialise your profile. Please refresh and try again.' },
@@ -76,7 +81,7 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { error: profileError } = await supabase
+  const { data: updatedRow, error: profileError } = await supabase
     .from('profiles')
     .update({
       first_name: firstName,
@@ -91,6 +96,18 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
+
+  // Two-tab race: a stale tab can hit this route after the first tab already
+  // flipped onboarding_complete to true. The eq('onboarding_complete', false)
+  // filter made the UPDATE a no-op; without this guard the route would still
+  // run the service-role specialty/notifications block and bypass the Free
+  // cap a second time.
+  if (!updatedRow) {
+    return NextResponse.json(
+      { error: 'Onboarding already complete. Refresh your tab to see the latest dashboard.' },
+      { status: 409 }
+    )
+  }
 
   const service = createServiceClient()
 
@@ -177,6 +194,15 @@ export async function POST(req: NextRequest) {
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
     await grantEligibleReferralReward(service, user.id)
+  }
+
+  // Recompute tier now that career_stage is final. Closes the
+  // "NHS-verified-before-onboarding leaves tier=free" gap because the
+  // auth/callback path now only writes verification fields, and this is the
+  // central derivation. Service-role caller; the RPC validates internally.
+  const { error: recomputeError } = await service.rpc('recompute_profile_tier', { p_user_id: user.id })
+  if (recomputeError) {
+    console.error('onboarding/complete: recompute_profile_tier failed:', recomputeError.message)
   }
 
   return NextResponse.json({ ok: true })

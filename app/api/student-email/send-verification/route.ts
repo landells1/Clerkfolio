@@ -5,8 +5,8 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { institutionalEmailHelpText, isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 
-const SEND_COOLDOWN_MS = 60 * 1000
 const TOKEN_TTL_HOURS = 24
+const SEND_COOLDOWN_SECONDS = 60
 
 function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
@@ -37,9 +37,10 @@ export async function POST(req: NextRequest) {
   }
 
   const service = createServiceClient()
-  // Exact lowercase match (we store normalised emails). ilike would treat
-  // _ and % in user-supplied input as wildcards, which could false-match
-  // legitimate institutional addresses.
+
+  // Pre-check: another verified profile already owns this institutional email.
+  // Done outside the reservation RPC because we never want to even create a
+  // token (and burn a cooldown slot) for a doomed verification.
   const { data: existingVerifiedProfile } = await service
     .from('profiles')
     .select('id')
@@ -52,75 +53,51 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This institutional email is already verified on another Clerkfolio account.' }, { status: 409 })
   }
 
-  // Block if another user has an unconsumed token for the same email. The
-  // partial index on lower(email) WHERE consumed_at IS NULL on the tokens
-  // table makes the lookup cheap. All writers normalise email to lower-case
-  // before insert, so an exact eq is safe. Stops the "spam someone else's
-  // NHS inbox by claiming their email from multiple accounts" amplifier.
-  const { data: crossUserPending } = await service
-    .from('student_email_verification_tokens')
-    .select('id')
-    .eq('email', email)
-    .is('consumed_at', null)
-    .gt('expires_at', new Date().toISOString())
-    .neq('user_id', user.id)
-    .limit(1)
-    .maybeSingle()
+  const token = randomBytes(32).toString('base64url')
+  const tokenHash = hashToken(token)
 
-  if (crossUserPending) {
+  // reserve_student_email_token holds a row-level lock on the profile, checks
+  // the cooldown, consumes any prior live token for this user, and inserts the
+  // new token row - all in one transaction. Unique partial index on
+  // (user_id) WHERE consumed_at IS NULL means a concurrent reservation from a
+  // second tab loses with a unique-violation rather than producing two live
+  // tokens. Cooldown check happens BEFORE consume-old, so a resend inside
+  // cooldown returns 'cooldown' without invalidating the inbox link.
+  const { data: reservation, error: reserveError } = await service
+    .rpc('reserve_student_email_token', {
+      p_user_id: user.id,
+      p_email: email,
+      p_token_hash: tokenHash,
+      p_ttl_hours: TOKEN_TTL_HOURS,
+      p_cooldown_seconds: SEND_COOLDOWN_SECONDS,
+    })
+    .single<{ status: string; last_sent_at: string | null }>()
+
+  if (reserveError || !reservation) {
+    console.error('student-email send-verification: reserve RPC failed:', reserveError?.message)
+    return NextResponse.json({ error: 'Could not reserve a verification link. Please try again.' }, { status: 500 })
+  }
+
+  if (reservation.status === 'no_profile') {
+    return NextResponse.json({ error: 'Profile not found.' }, { status: 404 })
+  }
+  if (reservation.status === 'cooldown') {
+    return NextResponse.json({ error: 'Please wait a minute before requesting another verification link.' }, { status: 429 })
+  }
+  if (reservation.status === 'cross_user_pending') {
     return NextResponse.json(
       { error: 'A verification is already pending for this email on another account. Please wait for it to expire (24h) before retrying.' },
       { status: 409 }
     )
   }
-
-  // Invalidate any prior unconsumed tokens for THIS user, regardless of
-  // which email they were for. Keeps the "latest one" the only valid token
-  // and means a typo retry doesn't leave two valid links in different
-  // inboxes.
-  await service
-    .from('student_email_verification_tokens')
-    .update({ consumed_at: new Date().toISOString() })
-    .eq('user_id', user.id)
-    .is('consumed_at', null)
-
-  const { data: profile } = await service
-    .from('profiles')
-    .select('student_email_verification_sent_at')
-    .eq('id', user.id)
-    .single()
-
-  const lastSentAt = profile?.student_email_verification_sent_at
-    ? new Date(profile.student_email_verification_sent_at).getTime()
-    : 0
-
-  if (lastSentAt && Date.now() - lastSentAt < SEND_COOLDOWN_MS) {
-    return NextResponse.json({ error: 'Please wait a minute before requesting another verification link.' }, { status: 429 })
+  if (reservation.status !== 'reserved') {
+    return NextResponse.json({ error: 'Unexpected verification state.' }, { status: 500 })
   }
 
-  const token = randomBytes(32).toString('base64url')
-  const tokenHash = hashToken(token)
-  const expiresAt = new Date(Date.now() + TOKEN_TTL_HOURS * 60 * 60 * 1000).toISOString()
-  const now = new Date().toISOString()
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? req.nextUrl.origin
-  // Use a landing page rather than the API route directly, so email scanners
-  // (e.g. Outlook Safe Links) that auto-fetch URLs cannot consume the one-time token.
   const confirmUrl = new URL('/verify-email', appUrl)
   confirmUrl.searchParams.set('token', token)
 
-  // Send the email BEFORE writing the verification-sent-at timestamp or the
-  // token row. A Resend outage previously left the profile in a "pending"
-  // state with a token row but no email - the user saw "verification sent"
-  // for an email they never received. New ordering: send -> insert token ->
-  // update profile.sent_at (rate-limit clock).
-  //
-  // Importantly we no longer downgrade the existing verification when the
-  // user submits a NEW email for verification. The new institutional email
-  // only takes effect once /api/student-email/confirm consumes the token;
-  // until then, the user's current verified email stays active. This closes
-  // the "typo in the new email irreversibly downgrades me" trap and the
-  // "spam someone else's institutional inbox by claiming their email"
-  // amplifier.
   const resend = new Resend(process.env.RESEND_API_KEY)
   const { error: sendError } = await resend.emails.send({
     from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
@@ -139,29 +116,18 @@ export async function POST(req: NextRequest) {
 
   if (sendError) {
     console.error('student-email send-verification: Resend error:', sendError.message)
+    // Roll back: mark the reserved token consumed and clear the cooldown so
+    // the user can retry immediately rather than wait 60s for a link they
+    // never received.
+    const { error: rollbackError } = await service.rpc('rollback_student_email_token', {
+      p_user_id: user.id,
+      p_token_hash: tokenHash,
+    })
+    if (rollbackError) {
+      console.error('student-email send-verification: rollback failed:', rollbackError.message)
+    }
     return NextResponse.json({ error: 'Failed to send verification email. Please try again.' }, { status: 500 })
   }
-
-  const { error: insertError } = await service
-    .from('student_email_verification_tokens')
-    .insert({
-      user_id: user.id,
-      email,
-      token_hash: tokenHash,
-      expires_at: expiresAt,
-    })
-
-  if (insertError) {
-    console.error('student-email send-verification: token insert failed:', insertError.message)
-    return NextResponse.json({ error: 'Could not record verification link. Please try again.' }, { status: 500 })
-  }
-
-  // Only the rate-limit clock is touched on profiles - the existing
-  // verified email and tier stay intact until confirm.
-  await service
-    .from('profiles')
-    .update({ student_email_verification_sent_at: now })
-    .eq('id', user.id)
 
   return NextResponse.json({ ok: true })
 }
