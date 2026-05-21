@@ -18,12 +18,14 @@ const state: {
   reserveStatus: string
   rollbackCalls: number
   sendShouldFail: boolean
+  dailyTokenCount: number
 } = {
   user: { id: USER_ID },
   verifiedByOther: null,
   reserveStatus: 'reserved',
   rollbackCalls: 0,
   sendShouldFail: false,
+  dailyTokenCount: 0,
 }
 
 vi.mock('@/lib/csrf', () => ({
@@ -46,6 +48,15 @@ vi.mock('@/lib/supabase/server', () => {
                     maybeSingle: async () => ({ data: state.verifiedByOther, error: null }),
                   }),
                 }),
+              }),
+            }),
+          }
+        }
+        if (table === 'student_email_verification_tokens') {
+          return {
+            select: () => ({
+              eq: () => ({
+                gte: async () => ({ count: state.dailyTokenCount, error: null }),
               }),
             }),
           }
@@ -101,6 +112,7 @@ beforeEach(() => {
   state.reserveStatus = 'reserved'
   state.rollbackCalls = 0
   state.sendShouldFail = false
+  state.dailyTokenCount = 0
 })
 
 describe('POST /api/student-email/send-verification — #4 token race fixes', () => {
@@ -139,6 +151,12 @@ describe('POST /api/student-email/send-verification — #4 token race fixes', ()
     // return 200; assert 409 instead.
     const res = await sendVerification(makeReq())
     expect(res.status).toBe(409)
+  })
+
+  it('#7 regression: daily cap — returns 429 when ≥10 tokens sent in 24h', async () => {
+    state.dailyTokenCount = 10
+    const res = await sendVerification(makeReq())
+    expect(res.status).toBe(429)
   })
 
   it('rejects non-institutional email with 400', async () => {

@@ -53,6 +53,25 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This institutional email is already verified on another Clerkfolio account.' }, { status: 409 })
   }
 
+  // #7: per-user daily hard cap to prevent inbox-spam / billing abuse.
+  // Product supports secondary institutional emails (different from auth email),
+  // so we don't reject on mismatch; instead we cap sends to 10 per 24 hours.
+  // The 60-second cooldown in reserve_student_email_token is per-request; this
+  // cap prevents a logged-in attacker from slowly spraying institutional inboxes.
+  const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  const { count: dailySends } = await service
+    .from('student_email_verification_tokens')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', user.id)
+    .gte('created_at', since24h)
+
+  if ((dailySends ?? 0) >= 10) {
+    return NextResponse.json(
+      { error: 'Too many verification requests. Please try again tomorrow.' },
+      { status: 429 }
+    )
+  }
+
   const token = randomBytes(32).toString('base64url')
   const tokenHash = hashToken(token)
 
