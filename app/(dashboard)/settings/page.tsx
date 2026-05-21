@@ -293,22 +293,14 @@ export default function SettingsPage() {
   }
 
   async function restartTutorial() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    // Re-show the in-dashboard tutorial overlay rather than re-running the
-    // onboarding flow. Flipping onboarding_complete back to false was a
-    // bypass for the Free specialty cap: re-running /api/onboarding/complete
-    // service-role-inserts another specialty_applications row, dodging the
-    // enforce_specialty_track_cap trigger. The actual tutorial overlay is
-    // gated by onboarding_checklist_dismissed (components/dashboard/
-    // onboarding-checklist.tsx), so we only need to flip that.
-    await supabase
-      .from('profiles')
-      .update({
-        onboarding_checklist_dismissed: false,
-        onboarding_checklist_completed_items: [],
-      })
-      .eq('id', user.id)
+    // These columns are protected by guard_profile_writes for user-role
+    // writes, so the reset must go through the service-role API route.
+    const res = await fetch('/api/settings/restart-tutorial', { method: 'POST' })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      addToast(body?.error ?? 'Failed to restart tutorial', 'error')
+      return
+    }
     router.push('/dashboard')
   }
 
