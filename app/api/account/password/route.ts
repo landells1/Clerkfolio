@@ -61,6 +61,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not update password. Please try again.' }, { status: 500 })
   }
 
+  // Revoke all other active sessions. A password change is a security event;
+  // any session that existed before the change (e.g. a stolen refresh token)
+  // should no longer be usable. 'others' scope leaves the current session
+  // intact so the user's own browser stays logged in.
+  await service.auth.admin.signOut(user.id, 'others')
+
   // Audit row so the user can see "password changed at X" in /settings/audit-log.
   await service.from('audit_log').insert({
     user_id: user.id,

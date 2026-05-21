@@ -25,7 +25,13 @@ function safeRedirectPath(next: string | null): string {
   return '/onboarding'
 }
 
-const ALLOWED_OTP_TYPES = new Set(['signup', 'email', 'invite', 'recovery', 'email_change'])
+// email_change is intentionally excluded. The settings page disables the email
+// field so users cannot initiate an email change through the UI. Keeping
+// email_change here would allow a dev-console caller to bypass the reauth
+// requirement in /api/account/email-change (not yet implemented). A full
+// email-change flow with current-password reauth should be added before
+// re-enabling this type.
+const ALLOWED_OTP_TYPES = new Set(['signup', 'email', 'invite', 'recovery'])
 
 function ConfirmContent() {
   const searchParams = useSearchParams()

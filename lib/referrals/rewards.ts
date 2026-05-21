@@ -34,7 +34,10 @@ function mergeUsage(usage: Record<string, unknown> | null, referralProUntil: str
 
 function hasCurrentInstitutionVerification(profile: Pick<ProfileForReward, 'student_email_verified' | 'student_email_verification_due_at'> | null) {
   if (!profile?.student_email_verified) return false
-  if (!profile.student_email_verification_due_at) return true
+  // Null due_at treated as expired, matching recompute_profile_tier in the DB.
+  // The verified path always writes due_at = now + 1 year; null means the row
+  // is in an inconsistent state and should not be treated as valid.
+  if (!profile.student_email_verification_due_at) return false
 
   return new Date(`${profile.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
 }

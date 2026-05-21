@@ -157,6 +157,24 @@ describe('grantEligibleReferralReward', () => {
     expect(result.reason).toBe('referred_not_eligible')
   })
 
+  it('#3 regression: null due_at treated as expired (not valid-forever)', async () => {
+    // hasCurrentInstitutionVerification must return false when due_at is null,
+    // aligning with recompute_profile_tier which also treats null as expired.
+    const service = makeService({
+      referred: {
+        id: 'referred-id',
+        referred_by: 'referrer-id',
+        onboarding_complete: true,
+        student_email_verified: true,
+        student_email_verification_due_at: null,
+        pro_features_used: {},
+      },
+    })
+    const result = await grantEligibleReferralReward(service, 'referred-id')
+    expect(result.granted).toBe(false)
+    expect(result.reason).toBe('referred_not_eligible')
+  })
+
   it('returns referrer_cap_reached at 5/year', async () => {
     const service = makeService({
       referred: {

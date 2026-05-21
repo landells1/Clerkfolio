@@ -51,8 +51,14 @@ export async function GET(request: NextRequest) {
       // tight enough to exclude post-hoc metadata edits but generous enough for
       // email-confirmation latency.
       const referralCode = user?.user_metadata?.referral_code
-      const accountCreatedAt = user?.created_at ? new Date(user.created_at).getTime() : null
-      const isFreshSignup = accountCreatedAt !== null && Date.now() - accountCreatedAt < 10 * 60 * 1000
+      // Use email_confirmed_at with a 60-second window instead of created_at
+      // with 10 minutes. email_confirmed_at is set at the moment of OTP
+      // exchange — just now — so a 60s window still covers confirmation latency
+      // while preventing a user who signed up without a referral from later
+      // editing their user_metadata and then re-triggering this callback (e.g.
+      // via a password reset link) to backdate the attribution.
+      const emailConfirmedAt = user?.email_confirmed_at ? new Date(user.email_confirmed_at).getTime() : null
+      const isFreshSignup = emailConfirmedAt !== null && Date.now() - emailConfirmedAt < 60 * 1000
       if (
         user
         && isFreshSignup
@@ -133,24 +139,52 @@ export async function GET(request: NextRequest) {
               await service.rpc('recompute_profile_tier', { p_user_id: user.id })
               await grantEligibleReferralReward(service, user.id)
               await grantPendingReferralRewardsForReferrer(service, user.id)
+            } else {
+              // Another Clerkfolio account already holds this institutional
+              // email as verified. Log the conflict for operators and surface a
+              // banner to the user so they understand why their account is on
+              // the free tier rather than silently failing.
+              await service.from('audit_log').insert({
+                user_id: user.id,
+                action: 'login',
+                metadata: {
+                  event: 'institutional_email_conflict',
+                  email: signupEmail,
+                  conflicting_profile_id: existingVerifiedProfile.id,
+                },
+              })
+              // Append conflict indicator to the redirect target. The settings
+              // page (and onboarding page) handles ?student_email=conflict to
+              // show a banner explaining the situation.
+              const conflictNext = `${next}${next.includes('?') ? '&' : '?'}student_email=conflict`
+              return NextResponse.redirect(`${origin}${conflictNext}`)
             }
           }
         }
       }
 
       const response = NextResponse.redirect(`${origin}${next}`)
-      // When the caller is finishing a password-reset flow, mark the response
-      // with a short-lived recovery cookie. Middleware requires this cookie
-      // to render /update-password, defeating the "logged-in attacker walks
-      // to /update-password and resets the password" takeover path.
+      // Gate the recovery cookie on whether a true recovery session was
+      // actually established, not just on the `next` query parameter value.
+      // A crafted callback URL with next=/update-password would otherwise
+      // grant the cookie to a non-recovery code exchange. The Supabase session
+      // type check below uses the AMR (authenticator method reference) embedded
+      // in the JWT to detect a genuine recovery grant.
+      // TTL is 120s — short enough to minimise the window a stolen cookie is
+      // useful, long enough for the /update-password page to load.
       if (next === '/update-password') {
-        response.cookies.set(RECOVERY_COOKIE, '1', {
-          httpOnly: true,
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'lax',
-          path: '/',
-          maxAge: 60 * 10,
-        })
+        const { data: { session } } = await supabase.auth.getSession()
+        const amr = session?.user?.app_metadata?.amr as Array<{ method: string }> | undefined
+        const isRecovery = Array.isArray(amr) && amr.some(a => a.method === 'recovery')
+        if (isRecovery) {
+          response.cookies.set(RECOVERY_COOKIE, '1', {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            path: '/',
+            maxAge: 120,
+          })
+        }
       }
       return response
     }

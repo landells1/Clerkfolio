@@ -23,6 +23,17 @@ export async function GET(request: NextRequest) {
   }
 
   const supabase = createClient()
+
+  // Mirror the /auth/confirm client-side guard: if a different user is already
+  // signed in when this recovery link is clicked (shared device, mirrored
+  // inbox), sign them out before exchanging the token. Without this, the
+  // session silently swaps to the recovery-link owner while the browser still
+  // shows the other user's dashboard context.
+  const { data: { user: existingUser } } = await supabase.auth.getUser()
+  if (existingUser) {
+    await supabase.auth.signOut()
+  }
+
   const { error } = await supabase.auth.verifyOtp({
     token_hash: tokenHash,
     type: 'recovery',
@@ -38,7 +49,7 @@ export async function GET(request: NextRequest) {
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
     path: '/',
-    maxAge: 60 * 10,
+    maxAge: 120,
   })
   return response
 }

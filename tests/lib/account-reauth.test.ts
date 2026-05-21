@@ -44,6 +44,7 @@ vi.mock('@/lib/supabase/server', () => ({
       admin: {
         updateUserById: async () => ({ error: state.adminUpdateError }),
         deleteUser: async () => ({ error: state.authDeleteError }),
+        signOut: async () => ({ error: null }),
       },
     },
     from: (table: string) => {

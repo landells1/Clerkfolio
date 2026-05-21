@@ -49,7 +49,12 @@ export async function POST(req: NextRequest) {
   const userClient = createClient()
   const { data: { user: currentUser } } = await userClient.auth.getUser()
 
-  if (tokenRow && currentUser && currentUser.id !== tokenRow.user_id) {
+  // Block: unauthenticated caller OR authenticated caller who is not the token
+  // owner. The original `&& currentUser &&` short-circuit meant that a null
+  // session (unauthenticated visitor clicking the link) bypassed this guard
+  // entirely and the service-role RPC ran unchecked, verifying the attacker's
+  // account with the victim's institutional email.
+  if (tokenRow && (!currentUser || currentUser.id !== tokenRow.user_id)) {
     return respond('wrong_account')
   }
 

@@ -1,8 +1,9 @@
 // @vitest-environment node
 //
 // ALLOWED_ORIGINS is a module-level const built at import time from env vars.
-// Tests use the three origins that are always present (no env var needed):
-//   https://clerkfolio.co.uk | https://www.clerkfolio.co.uk | https://clerkfolio.vercel.app
+// Tests use the two origins that are always present (no env var needed):
+//   https://clerkfolio.co.uk | https://www.clerkfolio.co.uk
+// clerkfolio.vercel.app was removed from the allowlist (#19 fix).
 // Localhost is only added when NODE_ENV === 'development'; vitest sets 'test'.
 import { describe, it, expect } from 'vitest'
 import { NextRequest } from 'next/server'
@@ -27,9 +28,11 @@ describe('validateOrigin — allowed origins', () => {
     expect(validateOrigin(req)).toBeNull()
   })
 
-  it('permits a POST from the Vercel preview origin', () => {
+  it('blocks a POST from the removed Vercel preview origin (#19)', async () => {
     const req = makeRequest('POST', { origin: 'https://clerkfolio.vercel.app' })
-    expect(validateOrigin(req)).toBeNull()
+    const res = validateOrigin(req)
+    expect(res).not.toBeNull()
+    expect(res?.status).toBe(403)
   })
 })
 
@@ -72,16 +75,19 @@ describe('validateOrigin — missing Origin header', () => {
     expect(validateOrigin(req)).toBeNull()
   })
 
-  it('blocks POST with no Origin and no Referer (CSRF vector)', async () => {
+  it('blocks POST with no Origin (#19: Referer fallback removed for mutating requests)', async () => {
     const req = makeRequest('POST')
     const res = validateOrigin(req)
     expect(res).not.toBeNull()
     expect(res?.status).toBe(403)
   })
 
-  it('permits POST with no Origin but a matching Referer', () => {
+  it('blocks POST with no Origin even if a matching Referer is present (#19)', async () => {
+    // Referer fallback removed: Origin is required on all mutating requests.
     const req = makeRequest('POST', { referer: 'https://clerkfolio.co.uk/some/page' })
-    expect(validateOrigin(req)).toBeNull()
+    const res = validateOrigin(req)
+    expect(res).not.toBeNull()
+    expect(res?.status).toBe(403)
   })
 
   it('blocks POST with no Origin and a non-matching Referer', async () => {

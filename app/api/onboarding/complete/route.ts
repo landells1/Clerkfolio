@@ -22,10 +22,20 @@ export async function POST(req: NextRequest) {
   const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : ''
   const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : ''
   const careerStage = typeof body.careerStage === 'string' && CAREER_STAGES.has(body.careerStage) ? body.careerStage : null
-  const studentGraduationDate =
-    typeof body.studentGraduationDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.studentGraduationDate)
-      ? body.studentGraduationDate
-      : null
+  const rawGradDate = typeof body.studentGraduationDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.studentGraduationDate)
+    ? body.studentGraduationDate
+    : null
+  // Sanity bounds: reject dates more than 2 years in the past or more than
+  // 8 years in the future. Mirrors the DB CHECK constraint added in phase 4b.
+  const studentGraduationDate = (() => {
+    if (!rawGradDate) return null
+    const d = new Date(rawGradDate)
+    const now = new Date()
+    const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate())
+    const eightYearsAhead = new Date(now.getFullYear() + 8, now.getMonth(), now.getDate())
+    if (d < twoYearsAgo || d > eightYearsAhead) return null
+    return rawGradDate
+  })()
   const selectedSpecialties: string[] = Array.isArray(body.specialties)
     ? body.specialties.filter((key: unknown): key is string => typeof key === 'string').slice(0, 1)
     : []

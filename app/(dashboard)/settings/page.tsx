@@ -63,6 +63,7 @@ export default function SettingsPage() {
     sentAt: '',
   })
   const [email, setEmail] = useState('')
+  const [userId, setUserId] = useState('')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [accountCreatedAt, setAccountCreatedAt] = useState('')
   const [loading, setLoading] = useState(true)
@@ -88,6 +89,7 @@ export default function SettingsPage() {
       if (!user) return
 
       setEmail(user.email ?? '')
+      setUserId(user.id)
       setAccountCreatedAt(user.created_at ?? '')
       const [{ data }, subInfo] = await Promise.all([
         supabase
@@ -139,69 +141,62 @@ export default function SettingsPage() {
     if (status === 'expired') addToast('Verification link expired. Request a new one.', 'error')
     if (status === 'invalid') addToast('Verification link is invalid or already used.', 'error')
     if (status === 'already_used') addToast('That institutional email is already verified on another account.', 'error')
+    if (status === 'conflict') addToast(
+      'Your signup email is already verified on another Clerkfolio account. If that wasn\'t you, please contact support.',
+      'error'
+    )
   }, [addToast, searchParams])
 
   async function saveProfile(next = profile) {
     setSavingProfile(true)
     const previousProfile = profile
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
 
     const publicSlug = normalisePublicSlug(next.public_slug)
-    // student_graduation_date is a Postgres DATE column. The form stores it as a
-    // string and starts at ''; sending '' to Postgres errors with 22007 and the
-    // whole PATCH fails (including showcase fields), which is why "Save showcase"
-    // looked silently broken for non-medical-student users.
     const gradDate = typeof next.student_graduation_date === 'string' && next.student_graduation_date.trim() !== ''
       ? next.student_graduation_date
       : null
-    // referral_code is a server-owned field and the guard_profile_writes
-    // trigger reverts user-level writes to it. Sending it in the payload is
-    // a no-op but adds noise; omit it.
-    const payload = {
-      first_name: next.first_name,
-      last_name: next.last_name,
-      career_stage: next.career_stage,
-      student_graduation_date: gradDate,
-      timezone: next.timezone,
-      public_slug: publicSlug || null,
-      public_showcase_enabled: next.public_showcase_enabled,
-      display_prefs: next.display_prefs,
-    }
 
-    const { error } = await supabase
-      .from('profiles')
-      .update(payload)
-      .eq('id', user.id)
+    // Route through the server endpoint so that:
+    //   1. Tier is recomputed after every career-stage change (#9).
+    //   2. Server enforces the graduation-date invariant for student stages (#10).
+    //   3. The foundation gift is returned in the same response (#2 mitigation).
+    const res = await fetch('/api/settings/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: next.first_name,
+        lastName: next.last_name,
+        careerStage: next.career_stage,
+        studentGraduationDate: gradDate,
+        timezone: next.timezone,
+        publicSlug: publicSlug || null,
+        publicShowcaseEnabled: next.public_showcase_enabled,
+        displayPrefs: next.display_prefs,
+      }),
+    })
 
     setSavingProfile(false)
-    if (error) {
-      addToast('Failed to save settings', 'error')
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}))
+      addToast(body?.error ?? 'Failed to save settings', 'error')
       return
     }
-    // The foundation-gift grant is now applied by the guard_profile_writes
-    // trigger in the same UPDATE statement (atomic, can't be skipped by a
-    // race or a client-side failure). Re-fetch the profile to surface the
-    // newly-set foundation_gift_granted_at and refreshed referral_pro_until.
+
+    const body = await res.json().catch(() => ({}))
+    const serverProfile = body?.profile ?? null
+
     const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
-    let updatedProfile = { ...next, public_slug: publicSlug }
-    if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at) {
-      const { data: refreshed } = await supabase
-        .from('profiles')
-        .select('foundation_gift_granted_at')
-        .eq('id', user.id)
-        .maybeSingle()
-      updatedProfile = {
-        ...updatedProfile,
-        foundation_gift_granted_at: refreshed?.foundation_gift_granted_at ?? updatedProfile.foundation_gift_granted_at,
-      }
+    const updatedProfile = {
+      ...next,
+      public_slug: publicSlug,
+      foundation_gift_granted_at: serverProfile?.foundation_gift_granted_at ?? next.foundation_gift_granted_at,
     }
 
     setProfile(updatedProfile)
     if (pendingStage === updatedProfile.career_stage) {
       setPendingStage(null)
     }
-    const refreshed = await fetchSubscriptionInfo(supabase, user.id)
+    const refreshed = await fetchSubscriptionInfo(supabase, userId)
     setSubInfo(refreshed)
     if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at && updatedProfile.foundation_gift_granted_at) {
       addToast('Welcome to foundation - 3 months of Pro added on us', 'success')

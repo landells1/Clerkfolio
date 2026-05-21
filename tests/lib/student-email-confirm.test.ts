@@ -98,11 +98,14 @@ describe('POST /api/student-email/confirm — Codex 2026-05-20 #5 (cross-account
     expect(state.recomputeCalls.length).toBe(0)
   })
 
-  it('proceeds normally when no session is active (cookies cleared)', async () => {
+  it('#6 regression: unauthenticated caller is blocked (wrong_account), token NOT consumed', async () => {
     state.currentUser = null
     const res = await confirm(makeReq())
-    expect(res.status).toBe(200)
-    expect((await res.json()).status).toBe('verified')
+    expect(res.status).toBe(400)
+    const body = await res.json()
+    expect(body.status).toBe('wrong_account')
+    // RPC must not have been called — token should remain unconsumed.
+    expect(state.recomputeCalls.length).toBe(0)
   })
 
   it('returns invalid for a missing/short token', async () => {
