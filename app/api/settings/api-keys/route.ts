@@ -7,6 +7,16 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 const APIKEY_CREATE_MAX = 5
 const APIKEY_CREATE_WINDOW_SECONDS = 60 * 60
 
+function suffixApiKeyName(baseName: string, existingNames: string[]) {
+  const used = new Set(existingNames.map(name => name.trim()).filter(Boolean))
+  if (!used.has(baseName)) return baseName
+  for (let index = 2; index < 100; index++) {
+    const candidate = `${baseName} ${index}`
+    if (!used.has(candidate)) return candidate
+  }
+  return `${baseName} ${Date.now()}`
+}
+
 export async function GET() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -45,7 +55,12 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const fullKey = generateApiKey()
-  const name = normalizeApiKeyName(body?.name)
+  const baseName = normalizeApiKeyName(body?.name)
+  const { data: existingKeys } = await supabase
+    .from('api_keys')
+    .select('name')
+    .eq('user_id', user.id)
+  const name = suffixApiKeyName(baseName, (existingKeys ?? []).map(row => row.name))
 
   const { data, error } = await supabase
     .from('api_keys')

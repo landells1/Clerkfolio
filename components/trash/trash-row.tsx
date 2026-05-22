@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import TrashActions from '@/components/trash/trash-actions'
+import { containsPII } from '@/lib/pii'
 
 export type TrashItem = {
   id: string
@@ -26,6 +27,10 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
   const entryType = item.type === 'entry' ? 'portfolio' : 'case'
+  const redactsTitle = containsPII(item.title)
+  const redactsSubtitle = containsPII(item.subtitle)
+  const displayTitle = redactsTitle ? 'Potential PII redacted' : item.title
+  const displaySubtitle = redactsSubtitle ? item.type === 'entry' ? 'Portfolio entry' : 'Case' : item.subtitle
 
   async function permanentlyDelete() {
     if (!canPermanentlyDelete) {
@@ -96,7 +101,7 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   return (
     <SwipeToDelete
       title="Delete permanently?"
-      description={`This permanently deletes "${item.title}" if its 30-day restore window has passed.`}
+      description={`This permanently deletes "${displayTitle}" if its 30-day restore window has passed.`}
       confirmLabel="Delete permanently"
       onConfirm={permanentlyDelete}
     >
@@ -106,10 +111,15 @@ export default function TrashRow({ item }: { item: TrashItem }) {
             <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[rgba(245,245,242,0.5)]">
               {typeLabel}
             </span>
-            <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{item.title}</p>
+            <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{displayTitle}</p>
+            {(redactsTitle || redactsSubtitle) && (
+              <span className="rounded bg-amber-400/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-300">
+                Redacted
+              </span>
+            )}
           </div>
           <p className="text-xs text-[rgba(245,245,242,0.55)] capitalize">
-            {item.subtitle} - {entryDate} - Deleted {deletedDate}
+            {displaySubtitle} - {entryDate} - Deleted {deletedDate}
           </p>
         </div>
         <TrashActions id={item.id} type={item.type} />

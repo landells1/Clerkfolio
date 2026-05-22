@@ -97,8 +97,11 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  if (!link || link.revoked || link.revoked_at) {
+  if (!link) {
     return NextResponse.json({ error: 'This share link is no longer available.' }, { status: 404 })
+  }
+  if (link.revoked || link.revoked_at) {
+    return NextResponse.json({ error: 'This share link was revoked by its owner.' }, { status: 410 })
   }
   if (new Date(link.expires_at).getTime() < Date.now()) {
     await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
