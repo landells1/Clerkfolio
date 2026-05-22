@@ -237,9 +237,8 @@ export default function CsvImportFlow() {
         }
       })
 
-    // Route through the server so the entitlement gate, PII scan and rate limit
-    // apply identically to CSV and JSON imports. Inserting from the browser would
-    // bypass containsPII() and the canBulkImport check.
+    // Route through the server so the entitlement gate and rate limit apply
+    // identically to CSV and JSON imports.
     const res = await fetch('/api/import/csv', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -253,13 +252,8 @@ export default function CsvImportFlow() {
       return
     }
     const imported = Number(result?.imported ?? 0)
-    const blocked = Number(result?.blocked ?? 0)
     const label = target === 'portfolio' ? 'portfolio entries' : 'cases'
-    if (blocked > 0) {
-      addToast(`Imported ${imported} ${label}. ${blocked} blocked for likely patient identifiers.`, 'success')
-    } else {
-      addToast(`Imported ${imported} ${label}`, 'success')
-    }
+    addToast(`Imported ${imported} ${label}`, 'success')
     setStep(4)
   }
 

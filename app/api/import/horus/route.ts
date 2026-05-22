@@ -4,7 +4,6 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { containsPII } from '@/lib/pii'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
@@ -124,23 +123,16 @@ export async function POST(req: NextRequest) {
 
   let created = 0
   let skipped = 0
-  let blocked = 0
 
-  // Scan for PII first
   const parsedRows = rows.map(parseRow)
   const validRows = parsedRows.filter((row): row is HorusRow => {
     if (!row) { skipped++; return false }
-    const combined = [row.title, row.notes, row.supervisor_name].join(' ')
-    if (containsPII(combined)) {
-      blocked++
-      return false
-    }
     if (!row.title?.trim()) { skipped++; return false }
     return true
   })
 
   if (validRows.length === 0) {
-    return NextResponse.json({ created: 0, skipped, blocked })
+    return NextResponse.json({ created: 0, skipped })
   }
 
   // If skip-duplicates mode, fetch existing titles+dates for this user
@@ -190,5 +182,5 @@ export async function POST(req: NextRequest) {
     skipped += validRows.length - toInsert.length
   }
 
-  return NextResponse.json({ created, skipped, blocked })
+  return NextResponse.json({ created, skipped })
 }

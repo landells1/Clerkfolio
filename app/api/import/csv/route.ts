@@ -4,12 +4,9 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { containsPII } from '@/lib/pii'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
-
-const PII_SCAN_FIELDS = ['title', 'notes', 'refl_free_text', 'clinical_domain'] as const
 
 const MAX_ROWS = 2000
 
@@ -23,13 +20,6 @@ const CASE_ALLOWED = new Set([
   'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
   'interview_themes', 'notes',
 ])
-
-function rowHasPII(row: Record<string, unknown>): boolean {
-  return PII_SCAN_FIELDS.some(field => {
-    const value = row[field]
-    return typeof value === 'string' && containsPII(value)
-  })
-}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
@@ -88,7 +78,6 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  let blocked = 0
   const allowed = target === 'portfolio' ? PORTFOLIO_ALLOWED : CASE_ALLOWED
   const validRows = rawRows
     .filter(row => {
@@ -97,13 +86,12 @@ export async function POST(req: NextRequest) {
         const category = String(row.category ?? 'custom')
         if (!CATEGORY_VALUES.has(category as Category)) return false
       }
-      if (rowHasPII(row)) { blocked++; return false }
       return true
     })
     .map(row => copyInsertable(row, user.id, allowed))
 
   if (validRows.length === 0) {
-    return NextResponse.json({ imported: 0, blocked }, { status: blocked > 0 ? 422 : 400 })
+    return NextResponse.json({ imported: 0 }, { status: 400 })
   }
 
   const table = target === 'portfolio' ? 'portfolio_entries' : 'cases'
@@ -112,5 +100,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ imported: validRows.length, blocked })
+  return NextResponse.json({ imported: validRows.length })
 }

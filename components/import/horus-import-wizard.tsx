@@ -112,7 +112,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [dupHandling, setDupHandling] = useState<DuplicateHandling>('skip')
   const [importing, setImporting] = useState(false)
-  const [result, setResult] = useState<{ created: number; skipped: number; blocked: number } | null>(null)
+  const [result, setResult] = useState<{ created: number; skipped: number } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -455,7 +455,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
               </svg>
             </div>
             <h2 className="text-xl font-semibold text-[#F5F5F2] mb-2">Import complete</h2>
-            <div className="grid grid-cols-3 gap-6 mt-4">
+            <div className="grid grid-cols-2 gap-6 mt-4">
               <div>
                 <p className="text-3xl font-bold text-[#F5F5F2]">{result.created}</p>
                 <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Created</p>
@@ -464,16 +464,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                 <p className="text-3xl font-bold text-[rgba(245,245,242,0.4)]">{result.skipped}</p>
                 <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Skipped</p>
               </div>
-              <div>
-                <p className="text-3xl font-bold text-amber-400">{result.blocked}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Blocked (PII)</p>
-              </div>
             </div>
-            {result.blocked > 0 && (
-              <p className="mt-4 text-xs text-amber-400/80 max-w-sm">
-                {result.blocked} row{result.blocked !== 1 ? 's were' : ' was'} blocked because they appeared to contain patient-identifiable information. Review and re-enter manually with patient data removed.
-              </p>
-            )}
           </div>
           <div className="flex justify-center gap-3">
             <Link
