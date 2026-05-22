@@ -7,7 +7,35 @@ const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
   { key: 'academic', label: 'Academic' },
   { key: 'st_application', label: 'ST application' },
-]
+] as const
+
+type CvTemplate = typeof TEMPLATES[number]['key']
+
+const TEMPLATE_CATEGORY_ORDER: Record<CvTemplate, Category[]> = {
+  clinical: ['procedure', 'audit_qip', 'teaching', 'reflection', 'leadership', 'conference', 'publication', 'prize', 'custom'],
+  academic: ['publication', 'audit_qip', 'conference', 'teaching', 'prize', 'leadership', 'custom', 'procedure', 'reflection'],
+  st_application: ['audit_qip', 'leadership', 'teaching', 'publication', 'procedure', 'conference', 'prize', 'reflection', 'custom'],
+}
+
+const TEMPLATE_INTRO: Record<CvTemplate, string> = {
+  clinical: 'Clinical template prioritises practical clinical experience, governance, teaching, and reflective development.',
+  academic: 'Academic template prioritises publications, research outputs, conferences, prizes, and scholarly activity.',
+  st_application: 'ST application template groups high-signal portfolio evidence for shortlisting and interview preparation.',
+}
+
+function normaliseTemplate(value: string | undefined): CvTemplate {
+  return TEMPLATES.some(item => item.key === value) ? value as CvTemplate : 'clinical'
+}
+
+function dedupeEntries(entries: PortfolioEntry[]) {
+  const seen = new Set<string>()
+  return entries.filter(entry => {
+    const key = `${entry.category}|${entry.date}|${entry.title.trim().toLowerCase()}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 export default async function CvGeneratorPage({
   searchParams,
@@ -15,7 +43,7 @@ export default async function CvGeneratorPage({
   searchParams: Promise<{ template?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const template = resolvedSearchParams.template ?? 'clinical'
+  const template = normaliseTemplate(resolvedSearchParams.template)
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: entries } = await supabase
@@ -25,7 +53,8 @@ export default async function CvGeneratorPage({
     .is('deleted_at', null)
     .order('date', { ascending: false })
     .limit(80)
-  const rows = (entries ?? []) as PortfolioEntry[]
+  const rows = dedupeEntries((entries ?? []) as PortfolioEntry[])
+  const categoryOrder = TEMPLATE_CATEGORY_ORDER[template]
 
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-8">
@@ -52,7 +81,12 @@ export default async function CvGeneratorPage({
           </div>
         ) : (
         <div className="mt-5 space-y-5">
-          {CATEGORIES.map(category => {
+          <p className="rounded-xl border border-white/[0.06] bg-[#0B0B0C] px-4 py-3 text-sm text-[rgba(245,245,242,0.65)]">
+            {TEMPLATE_INTRO[template]}
+          </p>
+          {categoryOrder.map(categoryKey => {
+            const category = CATEGORIES.find(item => item.value === categoryKey)
+            if (!category) return null
             const matching = rows.filter(entry => entry.category === category.value)
             if (matching.length === 0) return null
             return (

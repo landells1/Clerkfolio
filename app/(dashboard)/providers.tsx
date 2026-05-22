@@ -39,8 +39,9 @@ export default function DashboardProviders({ children, userInterests }: { childr
 
     function onKey(e: KeyboardEvent) {
       if (e.metaKey || e.ctrlKey || e.altKey) return
-      const tag = (document.activeElement as HTMLElement)?.tagName
-      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag) || (document.activeElement as HTMLElement)?.isContentEditable) return
+      const target = e.target instanceof HTMLElement ? e.target : document.activeElement as HTMLElement | null
+      const tag = target?.tagName
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag ?? '') || target?.isContentEditable) return
 
       if (e.key === '?') {
         e.preventDefault()

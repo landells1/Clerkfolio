@@ -113,11 +113,18 @@ export async function POST(req: NextRequest) {
     ? body.theme_slug.trim()
     : null
   const expiry = parseExpiry(body.expires_at)
+  const rawPin = typeof body.pin === 'string' ? body.pin.trim() : ''
   const pin = normalizePin(body.pin)
   const webhook = parseWebhookUrl(body.view_webhook_url)
 
   if (!expiry) {
     return NextResponse.json({ error: 'Expiry must be between tomorrow and 90 days from now.' }, { status: 400 })
+  }
+  if (body.pin != null && typeof body.pin !== 'string') {
+    return NextResponse.json({ error: 'PIN must be 4-8 digits.' }, { status: 400 })
+  }
+  if (rawPin && !pin) {
+    return NextResponse.json({ error: 'PIN must be 4-8 digits.' }, { status: 400 })
   }
   if ('error' in webhook) {
     return NextResponse.json({ error: webhook.error }, { status: 400 })
@@ -127,7 +134,7 @@ export async function POST(req: NextRequest) {
   if (scopeError) return NextResponse.json({ error: scopeError }, { status: 400 })
 
   const subInfo = await fetchSubscriptionInfo(supabase, user.id)
-  if (!subInfo.limits.canCreateShareLink) {
+  if (!subInfo.isPro && !subInfo.limits.canCreateShareLink) {
     return NextResponse.json(
       { error: 'limit_reached', limit: 1, used: subInfo.usage.shareLinksUsed, upgrade_url: '/upgrade' },
       { status: 403 }

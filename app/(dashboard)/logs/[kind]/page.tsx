@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PersonalLogForm, { type PersonalLogKind } from '@/components/logs/personal-log-form'
 import WbaHeatmap from '@/components/logs/wba-heatmap'
@@ -55,6 +55,7 @@ export default async function LogsKindPage({
   const resolvedSearchParams = await searchParams
   const q = resolvedSearchParams?.q ?? ''
   const parsedQuery = parseSearchQuery([q, resolvedSearchParams?.since ? `since:${resolvedSearchParams.since}` : ''].filter(Boolean).join(' '))
+  if (slug === 'conferences') redirect('/portfolio?category=conference')
   const tab = TABS.find(item => item.slug === slug)
   if (!tab) notFound()
 

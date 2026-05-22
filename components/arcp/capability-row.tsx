@@ -153,8 +153,9 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
                     <button
                       onClick={() => handleUnlink(link.id)}
                       disabled={unlinking === link.id}
-                      className="shrink-0 opacity-0 group-hover:opacity-100 text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-all disabled:opacity-30"
+                      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[rgba(245,245,242,0.55)] opacity-40 transition-all hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100 focus-visible:opacity-100 disabled:opacity-30"
                       title="Remove link"
+                      aria-label="Remove link"
                     >
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

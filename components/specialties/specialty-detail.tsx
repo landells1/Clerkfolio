@@ -103,10 +103,22 @@ export function SpecialtyDetail({
     if (tickingAll) return
     setTickingAll(true)
     const essentials = getEssentialDomains(config)
-    const unmetDomains = essentials.filter(
-      d => !links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
+    const metLinks = links.filter(l =>
+      essentials.some(d => d.key === l.domain_key) &&
+      l.is_checkbox &&
+      l.band_label === 'Met'
     )
-    if (unmetDomains.length > 0) {
+    const unmetDomains = essentials.filter(d => !metLinks.some(l => l.domain_key === d.key))
+
+    if (unmetDomains.length === 0 && metLinks.length > 0) {
+      const ids = metLinks.map(link => link.id).filter(Boolean)
+      const { error } = await supabase.from('specialty_entry_links').delete().in('id', ids)
+      if (error) {
+        alert(`Failed to untick essentials: ${error.message}`)
+      } else {
+        onLinksChange(allLinks.filter(link => !ids.includes(link.id)))
+      }
+    } else if (unmetDomains.length > 0) {
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
         .insert(unmetDomains.map(d => ({
@@ -634,7 +646,7 @@ function PointsLayoutTabs({
         activeDomainKey={activeDomainKey}
         onSelect={onSelect}
         isEvidenceMode
-        onTickAll={unmetCount > 0 ? onTickAllEssentials : undefined}
+        onTickAll={onTickAllEssentials}
         tickingAll={tickingAll}
         unmetCount={unmetCount}
       />
@@ -697,7 +709,7 @@ function GroupedDomainTabs({
           activeDomainKey={activeDomainKey}
           onSelect={onSelect}
           isEvidenceMode
-          onTickAll={unmetCount > 0 ? onTickAllEssentials : undefined}
+          onTickAll={onTickAllEssentials}
           tickingAll={tickingAll}
           unmetCount={unmetCount}
         />
@@ -753,7 +765,7 @@ function DomainGroup({
             disabled={tickingAll}
             className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#1B6FD9] disabled:opacity-50 transition-colors shrink-0"
           >
-            {tickingAll ? 'Ticking…' : `Tick all (${unmetCount})`}
+            {tickingAll ? 'Updating...' : unmetCount > 0 ? `Tick all (${unmetCount})` : 'Untick all'}
           </button>
         )}
       </div>

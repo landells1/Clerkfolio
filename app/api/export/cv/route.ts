@@ -15,6 +15,32 @@ const LABELS: Record<string, string> = {
   st_application: 'ST application CV',
 }
 
+const CATEGORY_ORDER: Record<string, string[]> = {
+  clinical: ['procedure', 'audit_qip', 'teaching', 'reflection', 'leadership', 'conference', 'publication', 'prize', 'custom'],
+  academic: ['publication', 'audit_qip', 'conference', 'teaching', 'prize', 'leadership', 'custom', 'procedure', 'reflection'],
+  st_application: ['audit_qip', 'leadership', 'teaching', 'publication', 'procedure', 'conference', 'prize', 'reflection', 'custom'],
+}
+
+function orderEntriesForTemplate(entries: Record<string, unknown>[], template: string) {
+  const order = CATEGORY_ORDER[template] ?? CATEGORY_ORDER.clinical
+  const seen = new Set<string>()
+  return entries
+    .filter(entry => {
+      const key = `${entry.category}|${entry.date}|${String(entry.title ?? '').trim().toLowerCase()}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .sort((a, b) => {
+      const categoryA = order.indexOf(String(a.category))
+      const categoryB = order.indexOf(String(b.category))
+      const rankA = categoryA === -1 ? order.length : categoryA
+      const rankB = categoryB === -1 ? order.length : categoryB
+      if (rankA !== rankB) return rankA - rankB
+      return new Date(String(b.date)).getTime() - new Date(String(a.date)).getTime()
+    })
+}
+
 // POST (not GET) so cross-site <img src> / <a href> embeds cannot silently
 // trigger PDF generation and consume the user's free-tier claim_free_pdf_export
 // slot. validateOrigin requires Origin or an allowed Referer on POST, so
@@ -63,11 +89,12 @@ export async function POST(req: NextRequest) {
   ])
 
   const label = LABELS[template] ?? LABELS.clinical
+  const orderedEntries = orderEntriesForTemplate((entries ?? []) as Record<string, unknown>[], template)
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   try {
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
     const buffer = await renderPortfolioPdf({
-      entries: entries ?? [],
+      entries: orderedEntries,
       userName,
       specialty: label,
       exportedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),

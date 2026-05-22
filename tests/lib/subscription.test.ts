@@ -42,20 +42,29 @@ describe('fetchSubscriptionInfo — fail-closed on RPC error', () => {
 
 describe('fetchSubscriptionInfo — entitlement mapping', () => {
   function makeSupabase(row: Record<string, unknown>, careerStage: string | null = null) {
+    const profileQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({
+          maybeSingle: vi.fn().mockResolvedValue({
+            data: careerStage ? { career_stage: careerStage } : null,
+            error: null,
+          }),
+        }),
+      }),
+    }
+    const shareLinksQuery = {
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnThis(),
+        is: vi.fn().mockReturnThis(),
+        gt: vi.fn().mockResolvedValue({ count: Number(row?.share_links_used ?? 0), error: null }),
+      }),
+    }
+
     return {
       rpc: vi.fn().mockReturnValue({
         single: vi.fn().mockResolvedValue({ data: row, error: null }),
       }),
-      from: vi.fn().mockReturnValue({
-        select: vi.fn().mockReturnValue({
-          eq: vi.fn().mockReturnValue({
-            maybeSingle: vi.fn().mockResolvedValue({
-              data: careerStage ? { career_stage: careerStage } : null,
-              error: null,
-            }),
-          }),
-        }),
-      }),
+      from: vi.fn((table: string) => table === 'share_links' ? shareLinksQuery : profileQuery),
     }
   }
 

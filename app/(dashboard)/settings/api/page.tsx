@@ -84,6 +84,10 @@ export default function ApiSettingsPage() {
   }
 
   async function revokeKey(id: string) {
+    const key = keys.find(row => row.id === id)
+    const keyName = key?.name ?? 'this API key'
+    if (!confirm(`Are you sure you want to revoke ${keyName}? Callers using it will start receiving 401 responses immediately.`)) return
+
     setRevoking(id)
     const res = await fetch(`/api/settings/api-keys?id=${id}`, { method: 'DELETE' })
     const body = await res.json().catch(() => ({}))
@@ -95,6 +99,7 @@ export default function ApiSettingsPage() {
     }
 
     setKeys(current => current.map(key => key.id === id ? { ...key, revoked_at: body.revoked_at } : key))
+    if (key?.prefix && newKey?.startsWith(key.prefix)) setNewKey(null)
     addToast('API key revoked', 'success')
   }
 

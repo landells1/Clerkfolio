@@ -45,7 +45,6 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
         {sorted.map(link => {
           const isCounting = !isEvidenceOnly && domain.scoringRule === 'highest' && link.points_claimed === highestPoints
           const isClaimed = link.is_checkbox && !link.entry_type
-          const entryIcon = '??'
 
           return (
             <div
@@ -61,7 +60,12 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1B6FD9' : 'rgba(245,245,242,0.55)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
-                ) : link.entry_type ? entryIcon : null}
+                ) : link.entry_type ? (
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isCounting ? '#1B6FD9' : 'rgba(245,245,242,0.55)'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                    <path d="M14 2v6h6" />
+                  </svg>
+                ) : null}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
@@ -95,13 +99,13 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                       rel="noopener noreferrer"
                       className="text-xs text-[#1B6FD9] hover:underline"
                     >
-                      View ?
+                      View
                     </a>
                   )}
                 </div>
                 {!isEvidenceOnly && domain.scoringRule === 'highest' && (
                   <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'}`}>
-                    {isCounting ? '? Counting' : 'Not counting (lower score)'}
+                    {isCounting ? 'Counting' : 'Not counting (lower score)'}
                   </p>
                 )}
               </div>

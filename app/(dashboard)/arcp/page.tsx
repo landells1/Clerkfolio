@@ -68,7 +68,7 @@ export default async function ARCPPage() {
           What are capabilities?
         </summary>
         <p className="mt-3 text-sm text-[rgba(245,245,242,0.6)] leading-6">
-          The Foundation Programme curriculum sets out 13 high-level capabilities (e.g. patient
+          The Foundation Programme curriculum sets out 17 high-level capabilities (e.g. patient
           care, professional behaviour, leadership). At ARCP your supervisor wants to see evidence
           across all of them. Linking a portfolio entry here records that you think it demonstrates
           a particular capability - the same entry can support multiple capabilities. Click any row

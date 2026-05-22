@@ -20,6 +20,16 @@ function categoryLabel(category: Category) {
   return CATEGORIES.find(item => item.value === category)?.label ?? category
 }
 
+function dedupeEntries(entries: Entry[]) {
+  const seen = new Set<string>()
+  return entries.filter(entry => {
+    const key = `${entry.category}|${entry.date}|${entry.title.trim().toLowerCase()}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 export default async function ShowcasePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params
   const supabase = createServiceClient()
@@ -41,6 +51,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
     .order('date', { ascending: false })
 
   const ownerName = [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Clerkfolio user'
+  const visibleEntries = dedupeEntries((entries ?? []) as Entry[])
 
   return (
     <main className="min-h-screen bg-[#0B0B0C] text-[#F5F5F2]">
@@ -48,16 +59,16 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
         <header className="mb-8 border-b border-white/[0.08] pb-6">
           <p className="text-xs font-medium uppercase tracking-wider text-[#1B6FD9]">Clerkfolio showcase</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{ownerName}</h1>
-          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{entries?.length ?? 0} portfolio entries</p>
+          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{visibleEntries.length} portfolio entries</p>
         </header>
 
-        {(entries ?? []).length === 0 ? (
+        {visibleEntries.length === 0 ? (
           <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-8 text-sm text-[rgba(245,245,242,0.55)]">
             No public portfolio entries have been added to this showcase yet.
           </div>
         ) : (
         <div className="space-y-4">
-          {((entries ?? []) as Entry[]).map(entry => (
+          {visibleEntries.map(entry => (
             <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>

@@ -1,6 +1,25 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import LinkedInSnippets from '@/components/export/linkedin-snippets'
+import type { Category } from '@/lib/types/portfolio'
+
+type LinkedInEntry = {
+  id: string
+  title: string
+  category: Category
+  date: string
+  notes: string | null
+}
+
+function dedupeEntries(entries: LinkedInEntry[]) {
+  const seen = new Set<string>()
+  return entries.filter(entry => {
+    const key = `${entry.category}|${entry.date}|${entry.title.trim().toLowerCase()}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
 
 export default async function LinkedInExportPage() {
   const supabase = createClient()
@@ -23,7 +42,7 @@ export default async function LinkedInExportPage() {
           <p className="mt-0.5 text-sm text-[rgba(245,245,242,0.45)]">One paragraph per portfolio entry.</p>
         </div>
       </div>
-      <LinkedInSnippets entries={entries ?? []} />
+      <LinkedInSnippets entries={dedupeEntries((entries ?? []) as LinkedInEntry[])} />
     </div>
   )
 }

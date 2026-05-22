@@ -16,8 +16,13 @@ export default function ContactPage() {
         <p className="mt-4 text-sm leading-6 text-ink-soft">
           Send a message to the Clerkfolio team. We&apos;ll reply by email.
         </p>
-        <div className="mt-8 inline-flex rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white">
-          <LegalContactButton />
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <div className="inline-flex rounded-lg bg-blue-500 px-4 py-3 text-sm font-semibold text-white">
+            <LegalContactButton />
+          </div>
+          <a href="mailto:admin@clerkfolio.co.uk" className="rounded-lg border border-white/[0.08] px-4 py-3 text-sm font-semibold text-ink-soft transition-colors hover:text-ink">
+            Email directly
+          </a>
         </div>
       </div>
     </main>

@@ -44,6 +44,15 @@ const QUERIES: Record<PublicApiResource, PublicQuery> = {
       .order('created_at', { ascending: false }),
 }
 
+function stripUserIds(data: unknown) {
+  if (!Array.isArray(data)) return data
+  return data.map(row => {
+    if (!row || typeof row !== 'object' || Array.isArray(row)) return row
+    const { user_id: _userId, ...rest } = row as Record<string, unknown>
+    return rest
+  })
+}
+
 export async function handlePublicApiResource(req: NextRequest, resource: PublicApiResource) {
   const auth = await authenticateApiKey(req)
   if ('response' in auth) return auth.response
@@ -52,7 +61,7 @@ export async function handlePublicApiResource(req: NextRequest, resource: Public
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
   return NextResponse.json({
-    data: data ?? [],
+    data: stripUserIds(data ?? []),
     meta: {
       resource,
       generated_at: new Date().toISOString(),

@@ -133,13 +133,17 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
     setMarkingReady(true)
     const { data: rows } = await supabase
       .from('portfolio_entries')
-      .select('id, interview_ready_for')
+      .select('id, interview_ready_for, specialty_tags')
       .in('id', Array.from(selected))
 
     const errors: string[] = []
-    for (const row of (rows ?? []) as { id: string; interview_ready_for: string[] | null }[]) {
-      const merged = Array.from(new Set([...(row.interview_ready_for ?? []), target]))
-      const { error } = await supabase.from('portfolio_entries').update({ interview_ready_for: merged }).eq('id', row.id)
+    for (const row of (rows ?? []) as { id: string; interview_ready_for: string[] | null; specialty_tags: string[] | null }[]) {
+      const readyFor = Array.from(new Set([...(row.interview_ready_for ?? []), target]))
+      const specialtyTags = Array.from(new Set([...(row.specialty_tags ?? []), target]))
+      const { error } = await supabase
+        .from('portfolio_entries')
+        .update({ interview_ready_for: readyFor, specialty_tags: specialtyTags })
+        .eq('id', row.id)
       if (error) errors.push(row.id)
     }
     setMarkingReady(false)

@@ -23,16 +23,13 @@ type Props = {
 }
 
 export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false, canTrackAnotherSpecialty = false, initialAppKey }: Props) {
-  const initialActiveApplications = initialApplications.filter(app => app.is_active !== false)
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
   const [links, setLinks] = useState<SpecialtyEntryLink[]>(initialLinks)
   const [selectedAppId, setSelectedAppId] = useState<string | null>(
     initialAppKey
       ? (initialApplications.find(a => a.specialty_key === initialAppKey)?.id ?? null)
-      : initialActiveApplications.length === 1
-        ? initialActiveApplications[0].id
-        : null
+      : null
   )
   const [showAddModal, setShowAddModal] = useState(false)
 
@@ -44,7 +41,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
     const activeApps = applications.filter(app => app.is_active !== false)
     setSelectedAppId(current => {
       if (current && activeApps.some(app => app.id === current)) return current
-      return activeApps.length === 1 ? activeApps[0].id : null
+      return null
     })
     setActiveTab('my_specialties')
   }, [applications, initialAppKey])
@@ -94,7 +91,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               Compare specialties
             </Link>
           )}
-          {activeTab === 'my_specialties' && !selectedAppId && (
+          {activeTab === 'my_specialties' && (
             <button
               onClick={() => setShowAddModal(true)}
               className="flex min-h-[40px] items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 transition-colors hover:bg-blue-600"

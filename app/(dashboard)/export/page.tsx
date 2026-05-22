@@ -49,6 +49,7 @@ type ShareLink = {
 }
 type TrackedApp = { id: string; specialty_key: string }
 type TagCount = { tag: string; count: number }
+type EntrySpecialtyFields = { specialty_tags: string[] | null; interview_ready_for: string[] | null }
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -120,7 +121,7 @@ export default function ExportPage() {
 
       const [subInfo, { data: tagRows }, { data: apps }, links] = await Promise.all([
         fetchSubscriptionInfo(supabase, user.id),
-        supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
+        supabase.from('portfolio_entries').select('specialty_tags, interview_ready_for').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
         fetch('/api/share').then(r => r.ok ? r.json() : []),
       ])
@@ -128,7 +129,10 @@ export default function ExportPage() {
       setSubInfo(subInfo)
 
       const counts: Record<string, number> = {}
-      tagRows?.forEach(row => row.specialty_tags?.forEach((tag: string) => { counts[tag] = (counts[tag] ?? 0) + 1 }))
+      ;((tagRows ?? []) as EntrySpecialtyFields[]).forEach(row => {
+        const tags = new Set([...(row.specialty_tags ?? []), ...(row.interview_ready_for ?? [])])
+        tags.forEach(tag => { counts[tag] = (counts[tag] ?? 0) + 1 })
+      })
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }))
       setPortfolioTags(sorted)
       setTrackedApps(apps ?? [])
@@ -156,7 +160,6 @@ export default function ExportPage() {
           .from('portfolio_entries')
           .select('*')
           .eq('user_id', user.id)
-          .contains('specialty_tags', [specialty])
           .is('deleted_at', null)
           .order('date', { ascending: false }),
         supabase
@@ -169,7 +172,10 @@ export default function ExportPage() {
       ])
 
       if (cancelled) return
-      const rows = (data ?? []) as PortfolioEntry[]
+      const rows = ((data ?? []) as PortfolioEntry[]).filter(entry =>
+        (entry.specialty_tags ?? []).includes(specialty) ||
+        (entry.interview_ready_for ?? []).includes(specialty)
+      )
       const caseData = (caseRows ?? []) as Case[]
       setEntries(rows)
       setCases(caseData)
@@ -195,6 +201,7 @@ export default function ExportPage() {
     return Array.from(set).sort()
   }, [entries])
   const hasActiveShareLinks = shareLinks.length > 0
+  const canCreateShareLink = subInfo ? (subInfo.isPro || shareLinks.length < 1) : false
 
   async function downloadBlob(res: Response, fallbackName: string) {
     const blob = await res.blob()
@@ -278,6 +285,12 @@ export default function ExportPage() {
   }
 
   async function createShareLink() {
+    const trimmedPin = sharePin.trim()
+    if (trimmedPin && !/^\d{4,8}$/.test(trimmedPin)) {
+      setError('PIN must be 4-8 digits.')
+      return
+    }
+
     setShareLoading(true)
     setError(null)
     const expiresAt = expiryPreset
@@ -301,7 +314,7 @@ export default function ExportPage() {
           specialty_key: shareScope === 'specialty' ? specialty : null,
           theme_slug: shareScope === 'theme' ? shareTheme : null,
           expires_at: expiresAt,
-          pin: sharePin || null,
+          pin: trimmedPin || null,
           hide_notes: hideNotes,
           hide_reflection: hideReflection,
           redact_tags: redactTags,
@@ -325,6 +338,7 @@ export default function ExportPage() {
   }
 
   async function revokeShareLink(id: string) {
+    if (!confirm('Are you sure you want to revoke this share link? Existing viewers will lose access immediately.')) return
     const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
     if (res.ok) setShareLinks(prev => prev.filter(link => link.id !== id))
   }
@@ -390,12 +404,12 @@ export default function ExportPage() {
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
             {portfolioTags.map(({ tag, count }) => (
-              <button key={tag} onClick={() => setSpecialty(tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
+              <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
                 {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
               </button>
             ))}
             {trackedApps.filter(app => !portfolioTags.some(t => t.tag === app.specialty_key)).map(app => (
-              <button key={app.id} onClick={() => setSpecialty(app.specialty_key)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === app.specialty_key ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
+              <button key={app.id} onClick={() => setSpecialty(current => current === app.specialty_key ? '' : app.specialty_key)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === app.specialty_key ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
                 {formatSpecialtyLabel(app.specialty_key)}
               </button>
             ))}
@@ -410,6 +424,7 @@ export default function ExportPage() {
               ? formatSpecialtyLabel(specialty)
               : specialty}
             onChange={e => setSpecialty(e.target.value)}
+            onFocus={e => e.currentTarget.select()}
             placeholder="Or type any specialty..."
             className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none transition-colors focus:border-[#1B6FD9]"
           />
@@ -512,7 +527,12 @@ export default function ExportPage() {
                   Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
                 </p>
                 <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[rgba(245,245,242,0.55)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[#F5F5F2]" />
-                <button onClick={handleAppendPdf} disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf} className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:opacity-40">
+                <button
+                  onClick={handleAppendPdf}
+                  disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf}
+                  title={!appendPdfFile ? 'Choose a PDF first' : selectedEntryIds.size === 0 ? 'Select at least one entry' : undefined}
+                  className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:cursor-not-allowed disabled:opacity-40"
+                >
                   {appendingPdf ? 'Appending...' : 'Append selected'}
                 </button>
               </div>
@@ -530,7 +550,7 @@ export default function ExportPage() {
               <div className="flex items-center gap-3">
                 <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[#1B6FD9]">Select visible</button>
                 <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
-                <button onClick={handleGenerate} disabled={!canGenerate} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40 disabled:cursor-not-allowed">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
@@ -636,18 +656,18 @@ export default function ExportPage() {
             {subInfo && !subInfo.isPro && (
               <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
                 <p className="font-semibold">
-                  {subInfo.limits.canCreateShareLink
+                  {canCreateShareLink
                     ? '1 of 1 share link available on Free'
                     : hasActiveShareLinks
                       ? 'Active link cap reached'
                       : 'Share link cap reached on Free'}
                 </p>
                 <p className="mt-0.5 text-[rgba(245,245,242,0.55)]">
-                  {subInfo.limits.canCreateShareLink
+                  {canCreateShareLink
                     ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
                     : hasActiveShareLinks
                       ? 'Revoke an existing link or upgrade to Pro for unlimited links.'
-                      : 'Free tier includes 1 lifetime share link. Upgrade to Pro to create another.'}
+                      : 'Free tier includes 1 active share link. Upgrade to Pro for unlimited links.'}
                 </p>
               </div>
             )}
@@ -698,7 +718,7 @@ export default function ExportPage() {
               </div>
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">PIN</span>
-                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
+                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
                 <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">Optional PIN (4-8 digits)</p>
               </label>
               <label className="block">
@@ -724,7 +744,7 @@ export default function ExportPage() {
                   Redact tags
                 </label>
               </div>
-              <button type="button" onClick={createShareLink} disabled={shareLoading || !subInfo?.limits.canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40">
+              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40 disabled:cursor-not-allowed">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>

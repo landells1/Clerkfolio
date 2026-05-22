@@ -111,11 +111,36 @@ export async function fetchSubscriptionInfo(
     }
   }
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('career_stage')
-    .eq('id', userId)
-    .maybeSingle<{ career_stage: string | null }>()
+  const [{ data: profile }, { count: activeShareLinks }] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('career_stage')
+      .eq('id', userId)
+      .maybeSingle<{ career_stage: string | null }>(),
+    supabase
+      .from('share_links')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('revoked', false)
+      .is('revoked_at', null)
+      .gt('expires_at', new Date().toISOString()),
+  ])
 
-  return mapEntitlements(data as EntitlementRow | null, profile?.career_stage ?? null)
+  const mapped = mapEntitlements(data as EntitlementRow | null, profile?.career_stage ?? null)
+  const activeShareLinkCount = activeShareLinks ?? mapped.usage.shareLinksUsed
+
+  return {
+    ...mapped,
+    usage: {
+      ...mapped.usage,
+      shareLinksUsed: activeShareLinkCount,
+    },
+    limits: {
+      ...mapped.limits,
+      canCreateShareLink:
+        (data as EntitlementRow | null)?.can_create_share_link == null
+          ? mapped.limits.canCreateShareLink
+          : mapped.isPro || activeShareLinkCount < 1,
+    },
+  }
 }
