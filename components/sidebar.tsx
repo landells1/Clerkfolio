@@ -150,12 +150,13 @@ function getBottomNavItems(careerStage: string | null) {
   ]
 }
 
-export default function Sidebar({ profile }: { profile: Profile }) {
+export default function Sidebar({ profile, userEmail = '' }: { profile: Profile; userEmail?: string }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
-  const [feedback, setFeedback] = useState({ name: '', email: '', comment: '' })
+  const prefillName = [profile.first_name, profile.last_name].filter(Boolean).join(' ')
+  const [feedback, setFeedback] = useState({ name: prefillName, email: userEmail, comment: '' })
   const [feedbackSending, setFeedbackSending] = useState(false)
   const { addToast } = useToast()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -206,7 +207,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
     })
 
     if (res.ok) {
-      setFeedback({ name: '', email: '', comment: '' })
+      setFeedback({ name: prefillName, email: userEmail, comment: '' })
       setFeedbackOpen(false)
       addToast('Feedback sent - thank you!', 'success')
     } else {
@@ -618,7 +619,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className={`absolute z-50 ${sidebar ? 'left-full ml-2 bottom-0' : 'right-0 top-full mt-2'} w-80 bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}>
+          <div className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}>
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <span className="text-sm font-semibold text-[#F5F5F2]">Notifications</span>
               {notifications.length > 0 && (

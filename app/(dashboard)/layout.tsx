@@ -32,7 +32,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <DashboardProviders userInterests={specialtyKeys}>
       <div className="flex h-screen bg-surface-0 overflow-hidden">
-        <Sidebar profile={profile} />
+        <Sidebar profile={profile} userEmail={user.email ?? ''} />
         <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
           <PrintHeader userName={userName} />
           {children}

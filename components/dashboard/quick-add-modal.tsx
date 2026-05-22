@@ -8,6 +8,7 @@ import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { useToast } from '@/components/ui/toast-provider'
+import { TEACHING_TYPE_LABELS, TEACHING_AUDIENCE_LABELS, REFL_TYPE_SHORT_LABELS } from '@/lib/types/portfolio-labels'
 
 const INPUT = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors'
 const TEXTAREA = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors resize-none'
@@ -82,9 +83,9 @@ const TYPES: TypeMeta[] = [
   { id: 'leadership',  label: 'Leadership',   description: 'Role or committee work',     colour: 'pink',   icon: ICONS.leadership },
 ]
 
-const TEACHING_TYPES = ['Taught session', 'Grand round', 'Poster', 'Oral presentation']
-const TEACHING_AUDIENCES = ['Students', 'Peers', 'Consultants', 'Public']
-const REFLECTION_TYPES = ['CBD', 'DOP', 'Mini-CEX', 'Personal reflection']
+const TEACHING_TYPES = ['taught_session', 'grand_round', 'poster', 'oral']
+const TEACHING_AUDIENCES = ['students', 'peers', 'consultants', 'public']
+const REFLECTION_TYPES = ['cbd', 'dop', 'mini_cex', 'reflection']
 const SUPERVISION_LEVELS: { id: string; label: string }[] = [
   { id: 'supervised', label: 'Supervised' },
   { id: 'unsupervised', label: 'Unsupervised' },
@@ -411,13 +412,13 @@ export default function QuickAddModal({
                 <div>
                   <label className={LABEL}>Teaching type</label>
                   <select value={teachingType} onChange={e => setTeachingType(e.target.value)} className={INPUT}>
-                    {TEACHING_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    {TEACHING_TYPES.map(t => <option key={t} value={t}>{TEACHING_TYPE_LABELS[t] ?? t}</option>)}
                   </select>
                 </div>
                 <div>
                   <label className={LABEL}>Audience</label>
                   <select value={teachingAudience} onChange={e => setTeachingAudience(e.target.value)} className={INPUT}>
-                    {TEACHING_AUDIENCES.map(a => <option key={a} value={a}>{a}</option>)}
+                    {TEACHING_AUDIENCES.map(a => <option key={a} value={a}>{TEACHING_AUDIENCE_LABELS[a] ?? a}</option>)}
                   </select>
                 </div>
               </div>
@@ -429,7 +430,7 @@ export default function QuickAddModal({
                 <div>
                   <label className={LABEL}>Reflection type</label>
                   <select value={reflType} onChange={e => setReflType(e.target.value)} className={INPUT}>
-                    {REFLECTION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                    {REFLECTION_TYPES.map(t => <option key={t} value={t}>{REFL_TYPE_SHORT_LABELS[t] ?? t}</option>)}
                   </select>
                 </div>
                 <div>

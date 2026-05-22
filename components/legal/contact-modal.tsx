@@ -23,6 +23,10 @@ export function LegalContactButton() {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
+    if (!name.trim() || !email.trim() || !comment.trim()) {
+      setError('Please fill in all fields.')
+      return
+    }
     setSending(true)
     try {
       const res = await fetch('/api/feedback', {

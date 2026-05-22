@@ -128,9 +128,6 @@ export default function PrivacyPage() {
             rights, or questions about this policy, contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
           </p>
           {/* REVIEW: lawyer - add registered address and company number once confirmed */}
-          <p className="text-xs text-[rgba(245,245,242,0.45)] border border-white/[0.08] rounded-lg px-3 py-2">
-            ICO registration: {ICO_REG}
-          </p>
           <p>
             If you are in the United Kingdom, you also have the right to complain to the Information Commissioner&apos;s
             Office (ICO) at <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="underline">ico.org.uk</a> or

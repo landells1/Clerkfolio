@@ -9,8 +9,8 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-20 text-ink md:px-14">
-      <div className="mx-auto max-w-2xl rounded-2xl border border-white/[0.08] bg-[#141416] p-8">
+    <main className="min-h-screen bg-[#0B0B0C] flex items-center justify-center px-6 py-20 text-ink md:px-14">
+      <div className="mx-auto w-full max-w-2xl rounded-2xl border border-white/[0.08] bg-[#141416] p-8">
         <Link href="/" className="font-mono text-[11px] uppercase tracking-[0.14em] text-accent">← Clerkfolio</Link>
         <h1 className="mt-8 text-4xl font-medium tracking-[-0.04em]">Contact</h1>
         <p className="mt-4 text-sm leading-6 text-ink-soft">

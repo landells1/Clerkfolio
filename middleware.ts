@@ -209,8 +209,34 @@ export async function middleware(request: NextRequest) {
   ])
   const isUnauthRoute = unauthAllowed.has(pathname)
 
-  // Not logged in on a protected route → login
-  if (!user && !isUnauthRoute) {
+  // /update-password requires a live session (recovery or regular). Without any
+  // session the form would submit and expose a raw JWT error. Redirect to login.
+  if (!user && pathname === '/update-password') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return applySecurityHeaders(NextResponse.redirect(url))
+  }
+
+  // Known authenticated page prefixes — only redirect these to /login when
+  // there is no session. Unknown routes fall through so Next.js can render its
+  // custom 404 page instead of silently bouncing the user to /login.
+  const isKnownProtectedPage = [
+    '/dashboard',
+    '/portfolio',
+    '/cases',
+    '/logs',
+    '/specialties',
+    '/arcp',
+    '/timeline',
+    '/export',
+    '/settings',
+    '/trash',
+    '/upgrade',
+    '/import',
+    '/onboarding',
+  ].some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))
+
+  if (!user && isKnownProtectedPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return applySecurityHeaders(NextResponse.redirect(url))
