@@ -91,7 +91,17 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const { data: updatedRow, error: profileError } = await supabase
+  // Service-role client is required for the profile UPDATE: the
+  // guard_profile_writes trigger (phase 4 audit) intentionally reverts
+  // onboarding_complete on every user-bound UPDATE to prevent self-onboarding
+  // bypasses. The trigger checks both current_user and the JWT role claim and
+  // only lets supabase_admin / service_role through. Using the user-bound
+  // client here made the UPDATE silently lose onboarding_complete=true while
+  // the route still returned ok:true, leaving every new account stuck on
+  // /onboarding step 4 indefinitely.
+  const service = createServiceClient()
+
+  const { data: updatedRow, error: profileError } = await service
     .from('profiles')
     .update({
       first_name: firstName,
@@ -118,8 +128,6 @@ export async function POST(req: NextRequest) {
       { status: 409 }
     )
   }
-
-  const service = createServiceClient()
 
   // Starter notifications use the service-role client. The notifications RLS
   // posture is "users do not INSERT their own notifications" (set in the

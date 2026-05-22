@@ -36,6 +36,7 @@ const supabaseState: {
   recomputeRpcCalls: Array<unknown>
   ensureRpcCalledOnUserClient: boolean
   ensureRpcCalledOnServiceClient: boolean
+  profileUpdateClientKinds: Array<'user' | 'service'>
 } = {
   user: { id: STARTING_USER_ID, email: 'student@example.ac.uk' },
   profileRow: { onboarding_complete: false, referred_by: null },
@@ -46,6 +47,7 @@ const supabaseState: {
   recomputeRpcCalls: [],
   ensureRpcCalledOnUserClient: false,
   ensureRpcCalledOnServiceClient: false,
+  profileUpdateClientKinds: [],
 }
 
 vi.mock('@/lib/csrf', () => ({
@@ -88,10 +90,15 @@ vi.mock('@/lib/supabase/server', () => {
               ctx.filters[k2] = v2
               return {
                 select: () => ({
-                  maybeSingle: async () => ({
-                    data: supabaseState.updateRow,
-                    error: supabaseState.updateError,
-                  }),
+                  maybeSingle: async () => {
+                    if (ctx.table === 'profiles') {
+                      supabaseState.profileUpdateClientKinds.push(ctx.clientKind)
+                    }
+                    return {
+                      data: supabaseState.updateRow,
+                      error: supabaseState.updateError,
+                    }
+                  },
                 }),
               }
             },
@@ -199,6 +206,7 @@ beforeEach(() => {
   supabaseState.recomputeRpcCalls = []
   supabaseState.ensureRpcCalledOnUserClient = false
   supabaseState.ensureRpcCalledOnServiceClient = false
+  supabaseState.profileUpdateClientKinds = []
 })
 
 describe('POST /api/onboarding/complete — Codex 2026-05-20 #1, #3, #6', () => {
@@ -209,6 +217,17 @@ describe('POST /api/onboarding/complete — Codex 2026-05-20 #1, #3, #6', () => 
     expect(body).toEqual({ ok: true })
     expect(supabaseState.recomputeRpcCalls.length).toBe(1)
     expect(supabaseState.recomputeRpcCalls[0]).toEqual({ p_user_id: STARTING_USER_ID })
+  })
+
+  it('regression: profile UPDATE must run on the service-role client so the guard_profile_writes trigger does not revert onboarding_complete', async () => {
+    // guard_profile_writes (phase 4 audit) silently reverts onboarding_complete
+    // for any user-bound UPDATE. The route must therefore route the profile
+    // write through the service-role client, otherwise the UPDATE returns a
+    // row id (so the route returns ok:true) but the DB stays with
+    // onboarding_complete=false and every new account is stuck on /onboarding.
+    const res = await onboardingComplete(makeRequest(happyBody))
+    expect(res.status).toBe(200)
+    expect(supabaseState.profileUpdateClientKinds).toEqual(['service'])
   })
 
   it('#1: missing-profile self-heal calls ensure_profile_for_current_user on the USER-bound client', async () => {
