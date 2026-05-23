@@ -178,10 +178,16 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
   async function handleLogout() {
     setLoggingOut(true)
-    clearClientStateOnAuthChange()
-    await supabase.auth.signOut()
-    router.push('/login')
-    router.refresh()
+    try {
+      clearClientStateOnAuthChange()
+      const { error } = await supabase.auth.signOut()
+      if (error) throw error
+      router.replace('/login')
+      router.refresh()
+    } catch {
+      addToast('We could not log you out. Please try again.', 'error')
+      setLoggingOut(false)
+    }
   }
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
