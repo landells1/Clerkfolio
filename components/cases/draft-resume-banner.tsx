@@ -2,30 +2,44 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase/client'
 
 const DRAFT_KEY = 'clerkfolio-case-draft'
+
+function draftKeyForUser(userId: string) {
+  return `${DRAFT_KEY}:${userId}`
+}
 
 export default function DraftResumeBanner() {
   const [hasDraft, setHasDraft] = useState(false)
 
   useEffect(() => {
-    try {
-      const raw = sessionStorage.getItem(DRAFT_KEY)
-      if (!raw) return
-      const d = JSON.parse(raw)
-      // Check not expired and has meaningful content
-      if (d._expires && Date.now() > d._expires) {
-        sessionStorage.removeItem(DRAFT_KEY)
-        return
+    let cancelled = false
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || cancelled) return
+      const key = draftKeyForUser(user.id)
+      try {
+        const raw = sessionStorage.getItem(key)
+        if (!raw) return
+        const d = JSON.parse(raw)
+        // Check not expired and has meaningful content
+        if (d._expires && Date.now() > d._expires) {
+          sessionStorage.removeItem(key)
+          return
+        }
+        if (d.title?.trim()) setHasDraft(true)
+      } catch {
+        // ignore
       }
-      if (d.title?.trim()) setHasDraft(true)
-    } catch {
-      // ignore
-    }
+    })
+    return () => { cancelled = true }
   }, [])
 
-  function discard() {
-    sessionStorage.removeItem(DRAFT_KEY)
+  async function discard() {
+    const supabase = createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) sessionStorage.removeItem(draftKeyForUser(user.id))
     setHasDraft(false)
   }
 

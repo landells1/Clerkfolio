@@ -25,6 +25,10 @@ const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 up
 const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.55)] mt-1 text-right'
 const DRAFT_KEY = 'clerkfolio-case-draft'
 
+function draftKeyForUser(userId: string) {
+  return `${DRAFT_KEY}:${userId}`
+}
+
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
 export default function CaseForm({ mode, initialData, userInterests = [] }: Props) {
@@ -53,6 +57,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [interviewThemes, setInterviewThemes] = useState<string[]>((initialData as { interview_themes?: string[] })?.interview_themes ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  const [draftKey, setDraftKey] = useState<string | null>(null)
 
   // Dirty state — ref mirrors state so cleanup closures always see current value
   const [isDirty, setIsDirty] = useState(false)
@@ -71,12 +76,21 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   // Restore draft on mount - notes are intentionally excluded (clinical free text).
   useEffect(() => {
     if (mode !== 'create') return
+    let cancelled = false
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled) setDraftKey(user ? draftKeyForUser(user.id) : null)
+    })
+    return () => { cancelled = true }
+  }, [mode, supabase.auth])
+
+  useEffect(() => {
+    if (mode !== 'create' || !draftKey) return
     try {
-      const raw = sessionStorage.getItem(DRAFT_KEY)
+      const raw = sessionStorage.getItem(draftKey)
       if (!raw) return
       const d = JSON.parse(raw)
       if (d._expires && Date.now() > d._expires) {
-        sessionStorage.removeItem(DRAFT_KEY)
+        sessionStorage.removeItem(draftKey)
         return
       }
       if (d.title !== undefined) setTitle(d.title)
@@ -89,16 +103,16 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       // ignore parse errors
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [draftKey, mode])
 
   // Debounced save to sessionStorage
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (mode !== 'create') return
+    if (mode !== 'create' || !draftKey) return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) - only structural metadata.
-      sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+      sessionStorage.setItem(draftKey, JSON.stringify({
         title, date, clinicalDomains, specialtyTags,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
@@ -109,14 +123,14 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       // the 1 s debounce fires doesn't lose the draft.
       if (isDirtyRef.current) {
         try {
-          sessionStorage.setItem(DRAFT_KEY, JSON.stringify({
+          sessionStorage.setItem(draftKey, JSON.stringify({
             title, date, clinicalDomains, specialtyTags,
             _expires: Date.now() + 24 * 60 * 60 * 1000,
           }))
         } catch {}
       }
     }
-  }, [mode, title, date, clinicalDomains, specialtyTags])
+  }, [mode, draftKey, title, date, clinicalDomains, specialtyTags])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
 
@@ -208,7 +222,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           return
         }
       }
-      sessionStorage.removeItem(DRAFT_KEY)
+      if (draftKey) sessionStorage.removeItem(draftKey)
       setIsDirty(false)
       isDirtyRef.current = false
       addToast('Case logged', 'success')
@@ -285,7 +299,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           <button
             type="button"
             onClick={() => {
-              sessionStorage.removeItem(DRAFT_KEY)
+              if (draftKey) sessionStorage.removeItem(draftKey)
               setDraftRestored(false)
               setTitle('')
               setDate(new Date().toISOString().split('T')[0])

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { createClient } from '@/lib/supabase/client'
 
 type Draft = {
   key: string
@@ -12,13 +13,13 @@ type Draft = {
 }
 
 function draftHref(key: string, category?: string) {
-  if (key === 'clerkfolio-case-draft') return '/cases/new'
+  if (key.startsWith('clerkfolio-case-draft:')) return '/cases/new'
   return category ? `/portfolio/new?category=${category}` : '/portfolio/new'
 }
 
 function draftLabel(key: string, category?: string) {
-  if (key === 'clerkfolio-case-draft') return 'Case'
-  const slug = category ?? key.replace(/^clerkfolio-/, '').replace(/-draft$/, '')
+  if (key.startsWith('clerkfolio-case-draft:')) return 'Case'
+  const slug = category ?? key.replace(/^clerkfolio-/, '').replace(/-draft(?::.+)?$/, '')
   // Prefer the canonical portfolio category label over a hand-mangled slug.
   return CATEGORIES.find(c => c.value === slug as Category)?.label
     ?? slug.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
@@ -29,30 +30,36 @@ export default function ResumeDraftsCard() {
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    const matches: Draft[] = []
-    for (let index = 0; index < sessionStorage.length; index++) {
-      const key = sessionStorage.key(index)
-      if (!key || !/^clerkfolio-.*-draft$/.test(key)) continue
-      try {
-        const raw = sessionStorage.getItem(key)
-        if (!raw) continue
-        const parsed = JSON.parse(raw)
-        if (parsed._expires && Date.now() > parsed._expires) {
-          sessionStorage.removeItem(key)
+    let cancelled = false
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || cancelled) return
+      const matches: Draft[] = []
+      for (let index = 0; index < sessionStorage.length; index++) {
+        const key = sessionStorage.key(index)
+        if (!key || !/^clerkfolio-.*-draft:.+$/.test(key) || !key.endsWith(`:${user.id}`)) continue
+        try {
+          const raw = sessionStorage.getItem(key)
+          if (!raw) continue
+          const parsed = JSON.parse(raw)
+          if (parsed._expires && Date.now() > parsed._expires) {
+            sessionStorage.removeItem(key)
+            continue
+          }
+          const category = key.startsWith('clerkfolio-case-draft:') ? 'case' : parsed.category ?? key.replace(/^clerkfolio-/, '').replace(/-draft:.+$/, '')
+          matches.push({
+            key,
+            title: parsed.title || 'Untitled draft',
+            href: draftHref(key, category),
+            label: draftLabel(key, category),
+          })
+        } catch {
           continue
         }
-        const category = key === 'clerkfolio-case-draft' ? 'case' : parsed.category ?? key.replace(/^clerkfolio-/, '').replace(/-draft$/, '')
-        matches.push({
-          key,
-          title: parsed.title || 'Untitled draft',
-          href: draftHref(key, category),
-          label: draftLabel(key, category),
-        })
-      } catch {
-        continue
       }
-    }
-    setDrafts(matches.slice(0, 3))
+      setDrafts(matches.slice(0, 3))
+    })
+    return () => { cancelled = true }
   }, [])
 
   if (drafts.length === 0 || dismissed) return null

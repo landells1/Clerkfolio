@@ -90,8 +90,8 @@ function detectFramework(text: string): 'gibbs' | 'rolfe' | 'driscoll' | 'none' 
   return 'none'
 }
 
-function draftKeyForCategory(category: Category) {
-  return `clerkfolio-${category}-draft`
+function draftKeyForCategory(category: Category, userId: string) {
+  return `clerkfolio-${category}-draft:${userId}`
 }
 
 const LABELABLE_FIELD_TYPES = new Set(['input', 'select', 'textarea'])
@@ -150,7 +150,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [category, setCategory] = useState<Category>(
     initialData?.category ?? defaultCategory ?? 'audit_qip'
   )
-  const draftKey = draftKeyForCategory(category)
+  const [userId, setUserId] = useState<string | null>(null)
+  const draftKey = userId ? draftKeyForCategory(category, userId) : null
   const [title, setTitle] = useState(initialData?.title ?? '')
   // Init empty to avoid SSR/client hydration mismatch when the new-entry page
   // straddles UTC midnight. Today's date is filled in by the post-mount
@@ -271,10 +272,19 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setDate(current => current || new Date().toISOString().split('T')[0])
   }, [])
 
+  useEffect(() => {
+    if (mode !== 'create') return
+    let cancelled = false
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!cancelled) setUserId(user?.id ?? null)
+    })
+    return () => { cancelled = true }
+  }, [mode, supabase.auth])
+
   // ── Auto-save draft (create mode only) ──────────────────────────────────
 
   useEffect(() => {
-    if (mode !== 'create') return
+    if (mode !== 'create' || !draftKey) return
     try {
       const raw = sessionStorage.getItem(draftKey)
       if (!raw) return
@@ -336,11 +346,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       // ignore parse errors
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [draftKey, mode])
 
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
-    if (mode !== 'create') return
+    if (mode !== 'create' || !draftKey) return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       sessionStorage.setItem(draftKey, JSON.stringify({
@@ -430,7 +440,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   }
 
   function resetForm() {
-    sessionStorage.removeItem(draftKey)
+    if (draftKey) sessionStorage.removeItem(draftKey)
     setDraftRestored(false)
     setCategory(defaultCategory ?? 'audit_qip')
     setTitle('')
@@ -514,7 +524,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           return
         }
       }
-      sessionStorage.removeItem(draftKey)
+      if (draftKey) sessionStorage.removeItem(draftKey)
       setIsDirty(false)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))

@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 
 const ALLOWED_NEXT_PATHS = new Set([
   '/dashboard',
@@ -68,6 +69,7 @@ function ConfirmContent() {
     // makes the swap explicit.
     const { data: { user: existingUser } } = await supabase.auth.getUser()
     if (existingUser) {
+      clearClientStateOnAuthChange()
       await supabase.auth.signOut()
     }
     const { error: otpError } = await supabase.auth.verifyOtp({

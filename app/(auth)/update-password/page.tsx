@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
+import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('')
@@ -11,6 +12,10 @@ export default function UpdatePasswordPage() {
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+
+  useEffect(() => {
+    clearClientStateOnAuthChange()
+  }, [])
 
   async function handleUpdate(e: React.FormEvent) {
     e.preventDefault()

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useSearch } from '@/app/(dashboard)/providers'
+import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 
 type Profile = {
   first_name: string | null
@@ -177,20 +178,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
   async function handleLogout() {
     setLoggingOut(true)
-    // Clear client-side draft storage so clinical notes don't linger after logout.
-    Object.keys(sessionStorage)
-      .filter(key => /^clerkfolio-.*-draft$/.test(key))
-      .forEach(key => sessionStorage.removeItem(key))
-    // Clear the offline dashboard primer cache. It is written by
-    // components/offline/offline-cache-primer.tsx on dashboard load and
-    // contains recent portfolio / case titles; if left in localStorage it
-    // leaks to whoever next signs in on this device.
-    try { localStorage.removeItem('clerkfolio-offline-latest') } catch {}
-    // Tell the service worker to drop its cache so authenticated pages aren't
-    // served offline after the user logs out.
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      navigator.serviceWorker.controller.postMessage({ type: 'CLEAR_CACHE' })
-    }
+    clearClientStateOnAuthChange()
     await supabase.auth.signOut()
     router.push('/login')
     router.refresh()
