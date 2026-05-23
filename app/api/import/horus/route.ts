@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { containsPII } from '@/lib/pii'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
@@ -123,11 +124,12 @@ export async function POST(req: NextRequest) {
 
   let created = 0
   let skipped = 0
+  const errors: { row: number; error: string }[] = []
 
-  const parsedRows = rows.map(parseRow)
-  const validRows = parsedRows.filter((row): row is HorusRow => {
-    if (!row) { skipped++; return false }
-    if (!row.title?.trim()) { skipped++; return false }
+  const parsedRows = rows.map((value, index) => ({ row: parseRow(value), index }))
+  const validRows = parsedRows.filter((item): item is { row: HorusRow; index: number } => {
+    if (!item.row) { skipped++; return false }
+    if (!item.row.title?.trim()) { skipped++; return false }
     return true
   })
 
@@ -151,9 +153,16 @@ export async function POST(req: NextRequest) {
   const today = new Date().toISOString().split('T')[0]
   const toInsert = []
 
-  for (const row of validRows) {
+  for (const { row, index } of validRows) {
     const parsedDate = parseDate(row.date) ?? today
     const key = `${row.title.toLowerCase().trim()}|${parsedDate}`
+    const notes = buildNotes(row)
+
+    if (containsPII([row.title, notes].filter(Boolean).join('\n'))) {
+      skipped++
+      errors.push({ row: index + 1, error: 'Possible patient-identifiable information detected.' })
+      continue
+    }
 
     if (dupHandling === 'skip' && existingPairs.has(key)) {
       skipped++
@@ -165,7 +174,7 @@ export async function POST(req: NextRequest) {
       title: row.title.trim(),
       date: parsedDate,
       category: row.category,
-      notes: buildNotes(row),
+      notes,
       specialty_tags: row.specialty_tags ?? [],
       refl_type: row.category === 'reflection' ? mapReflectionType(row.type) : null,
     })
@@ -182,5 +191,5 @@ export async function POST(req: NextRequest) {
     skipped += validRows.length - toInsert.length
   }
 
-  return NextResponse.json({ created, skipped })
+  return NextResponse.json({ created, skipped, errors })
 }

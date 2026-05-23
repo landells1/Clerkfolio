@@ -5,6 +5,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { containsPII } from '@/lib/pii'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -98,6 +99,10 @@ function caseKey(row: Record<string, unknown>) {
   return `${String(row.title ?? '').trim().toLowerCase()}|${String(row.date ?? '')}|case`
 }
 
+function rowText(row: Record<string, unknown>, fields: string[]) {
+  return fields.map(field => typeof row[field] === 'string' ? row[field] : '').join('\n')
+}
+
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
@@ -168,25 +173,44 @@ export async function POST(req: NextRequest) {
   ])
 
   let skipped = 0
+  const errors: { table: string; row: number; error: string }[] = []
   const portfolioRows = backup.portfolio_entries
-    .filter(row => {
+    .filter((row, index) => {
       const category = String(row.category ?? 'custom')
       const valid = row.title && CATEGORY_VALUES.has(category as Category)
       if (!valid || existing.has(entryKey(row))) { skipped++; return false }
+      if (containsPII(rowText(row, ['title', 'notes', 'refl_free_text', 'custom_free_text']))) {
+        skipped++
+        errors.push({ table: 'portfolio_entries', row: index + 1, error: 'Possible patient-identifiable information detected.' })
+        return false
+      }
       return true
     })
     .map(row => copyInsertable(row, user.id, PORTFOLIO_ALLOWED))
 
   const caseRows = backup.cases
-    .filter(row => {
+    .filter((row, index) => {
       const valid = row.title
       if (!valid || existing.has(caseKey(row))) { skipped++; return false }
+      if (containsPII(rowText(row, ['title', 'notes']))) {
+        skipped++
+        errors.push({ table: 'cases', row: index + 1, error: 'Possible patient-identifiable information detected.' })
+        return false
+      }
       return true
     })
     .map(row => copyInsertable(row, user.id, CASE_ALLOWED))
 
   const deadlineRows = backup.deadlines
-    .filter(row => row.title && row.due_date)
+    .filter((row, index) => {
+      if (!row.title || !row.due_date) return false
+      if (containsPII(rowText(row, ['title', 'notes']))) {
+        skipped++
+        errors.push({ table: 'deadlines', row: index + 1, error: 'Possible patient-identifiable information detected.' })
+        return false
+      }
+      return true
+    })
     .map(row => copyInsertable(row, user.id, DEADLINE_ALLOWED))
   const goalRows = backup.goals
     .filter(row => row.category)
@@ -208,5 +232,6 @@ export async function POST(req: NextRequest) {
     deadlines: deadlineResult.data?.length ?? 0,
     goals: goalResult.data?.length ?? 0,
     skipped,
+    errors,
   })
 }

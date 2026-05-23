@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { containsPII } from '@/lib/pii'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -31,6 +32,10 @@ function copyInsertable(row: Record<string, unknown>, userId: string, allowed: S
     if (allowed.has(key)) next[key] = value
   })
   return next
+}
+
+function rowText(row: Record<string, unknown>, fields: string[]) {
+  return fields.map(field => typeof row[field] === 'string' ? row[field] : '').join('\n')
 }
 
 export async function POST(req: NextRequest) {
@@ -79,19 +84,27 @@ export async function POST(req: NextRequest) {
   }
 
   const allowed = target === 'portfolio' ? PORTFOLIO_ALLOWED : CASE_ALLOWED
+  const errors: { row: number; error: string }[] = []
   const validRows = rawRows
-    .filter(row => {
+    .filter((row, index) => {
       if (!row.title || typeof row.title !== 'string' || !row.title.trim()) return false
       if (target === 'portfolio') {
         const category = String(row.category ?? 'custom')
         if (!CATEGORY_VALUES.has(category as Category)) return false
+        if (containsPII(rowText(row, ['title', 'notes', 'refl_free_text', 'custom_free_text']))) {
+          errors.push({ row: index + 1, error: 'Possible patient-identifiable information detected.' })
+          return false
+        }
+      } else if (containsPII(rowText(row, ['title', 'notes']))) {
+        errors.push({ row: index + 1, error: 'Possible patient-identifiable information detected.' })
+        return false
       }
       return true
     })
     .map(row => copyInsertable(row, user.id, allowed))
 
   if (validRows.length === 0) {
-    return NextResponse.json({ imported: 0 }, { status: 400 })
+    return NextResponse.json({ imported: 0, errors }, { status: 400 })
   }
 
   const table = target === 'portfolio' ? 'portfolio_entries' : 'cases'
@@ -100,5 +113,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ imported: validRows.length })
+  return NextResponse.json({ imported: validRows.length, errors })
 }
