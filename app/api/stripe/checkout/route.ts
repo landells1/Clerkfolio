@@ -19,11 +19,10 @@ export async function POST(request: NextRequest) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('stripe_customer_id, first_name, last_name')
+    .select('stripe_customer_id, stripe_subscription_id, tier, first_name, last_name')
     .eq('id', user.id)
     .single()
 
-  // Reuse or create Stripe customer
   let customerId = profile?.stripe_customer_id ?? null
 
   try {
@@ -39,6 +38,21 @@ export async function POST(request: NextRequest) {
         .from('profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id)
+    }
+
+    const subscriptionId = profile?.stripe_subscription_id ?? null
+    const hasActiveStripeSubscription = subscriptionId
+      ? await stripe.subscriptions.retrieve(subscriptionId)
+        .then(subscription => ['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status))
+        .catch(() => false)
+      : false
+
+    if (profile?.tier === 'pro' || hasActiveStripeSubscription) {
+      const portal = await stripe.billingPortal.sessions.create({
+        customer: customerId,
+        return_url: `${APP_URL}/settings`,
+      })
+      return NextResponse.json({ url: portal.url })
     }
 
     const session = await stripe.checkout.sessions.create({
