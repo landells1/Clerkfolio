@@ -4,7 +4,6 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { containsPII } from '@/lib/pii'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
@@ -157,12 +156,6 @@ export async function POST(req: NextRequest) {
     const parsedDate = parseDate(row.date) ?? today
     const key = `${row.title.toLowerCase().trim()}|${parsedDate}`
     const notes = buildNotes(row)
-
-    if (containsPII([row.title, notes].filter(Boolean).join('\n'))) {
-      skipped++
-      errors.push({ row: index + 1, error: 'Possible patient-identifiable information detected.' })
-      continue
-    }
 
     if (dupHandling === 'skip' && existingPairs.has(key)) {
       skipped++

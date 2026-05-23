@@ -15,7 +15,6 @@ import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { formatInterviewReady } from '@/lib/types/portfolio-labels'
-import { containsPII } from '@/lib/pii'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -147,9 +146,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draftRestored, setDraftRestored] = useState(false)
-  const [piiCertificationRequired, setPiiCertificationRequired] = useState(false)
-  const [piiCertified, setPiiCertified] = useState(false)
-
   const [category, setCategory] = useState<Category>(
     initialData?.category ?? defaultCategory ?? 'audit_qip'
   )
@@ -442,30 +438,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     }
   }
 
-  function piiCheckText() {
-    return [
-      title,
-      notes,
-      getReflFreeText(),
-      customFreeText,
-      auditTrust,
-      auditOutcome,
-      teachingAudience,
-      teachingSetting,
-      teachingEvent,
-      confEventName,
-      pubJournal,
-      pubAuthors,
-      leaderRole,
-      leaderOrg,
-      prizeBody,
-      prizeDescription,
-      procName,
-      procSetting,
-      reflContext,
-      reflSupervisor,
-    ].filter(Boolean).join('\n')
-  }
 
   function resetForm() {
     if (draftKey) sessionStorage.removeItem(draftKey)
@@ -500,12 +472,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     // inline warning of its own and we block the save with a matching banner.
     const pendingTagError = specialtyRef.current?.commitPending()
     if (pendingTagError) { setError(pendingTagError); return }
-    const hasPII = containsPII(piiCheckText())
-    setPiiCertificationRequired(hasPII)
-    if (hasPII && !piiCertified) {
-      setError('Confirm this entry contains no patient-identifiable information before saving.')
-      return
-    }
     setSaving(true)
     setError(null)
 
@@ -539,8 +505,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       }
       if (draftKey) sessionStorage.removeItem(draftKey)
       setIsDirty(false)
-      setPiiCertified(false)
-      setPiiCertificationRequired(false)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
         const { data: profileRow } = await supabase
@@ -581,8 +545,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         }
       }
       setIsDirty(false)
-      setPiiCertified(false)
-      setPiiCertificationRequired(false)
       addToast('Changes saved', 'success')
       router.push(`/portfolio/${initialData!.id}`)
     }
@@ -1073,18 +1035,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-400">
             {error}
           </div>
-        )}
-
-        {piiCertificationRequired && (
-          <label className="flex items-start gap-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3.5 py-2.5 text-sm text-amber-100">
-            <input
-              type="checkbox"
-              checked={piiCertified}
-              onChange={event => setPiiCertified(event.target.checked)}
-              className="mt-0.5 h-4 w-4 rounded border-amber-300/50 bg-[#0B0B0C]"
-            />
-            <span>I confirm this entry contains no patient-identifiable information.</span>
-          </label>
         )}
 
         <div className="flex flex-wrap gap-3 pt-2 border-t border-white/[0.06]">

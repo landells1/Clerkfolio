@@ -13,7 +13,6 @@ import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { containsPII } from '@/lib/pii'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -40,9 +39,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draftRestored, setDraftRestored] = useState(false)
-  const [piiCertificationRequired, setPiiCertificationRequired] = useState(false)
-  const [piiCertified, setPiiCertified] = useState(false)
-
   const [title, setTitle] = useState(initialData?.title ?? '')
   // Init empty to avoid SSR/client hydration mismatch when the new-case page
   // straddles UTC midnight. Today's date is filled in by the post-mount
@@ -171,12 +167,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     if (!title.trim()) { setError('Title is required.'); return }
     const pendingTagError = specialtyRef.current?.commitPending()
     if (pendingTagError) { setError(pendingTagError); return }
-    const hasPII = containsPII(`${title}\n${notes}`)
-    setPiiCertificationRequired(hasPII)
-    if (hasPII && !piiCertified) {
-      setError('Confirm this case contains no patient-identifiable information before saving.')
-      return
-    }
     setSaving(true)
     setError(null)
 
@@ -213,8 +203,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
       if (draftKey) sessionStorage.removeItem(draftKey)
       setIsDirty(false)
       isDirtyRef.current = false
-      setPiiCertified(false)
-      setPiiCertificationRequired(false)
       addToast('Case logged', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
@@ -240,8 +228,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         }
       }
       setIsDirty(false)
-      setPiiCertified(false)
-      setPiiCertificationRequired(false)
       addToast('Case updated', 'success')
       router.push(`/cases/${initialData!.id}`)
     }
@@ -384,18 +370,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-400">
           {error}
         </div>
-      )}
-
-      {piiCertificationRequired && (
-        <label className="flex items-start gap-3 rounded-lg border border-amber-500/25 bg-amber-500/10 px-3.5 py-2.5 text-sm text-amber-100">
-          <input
-            type="checkbox"
-            checked={piiCertified}
-            onChange={event => setPiiCertified(event.target.checked)}
-            className="mt-0.5 h-4 w-4 rounded border-amber-300/50 bg-[#0B0B0C]"
-          />
-          <span>I confirm this entry contains no patient-identifiable information.</span>
-        </label>
       )}
 
       <div className="flex flex-wrap gap-3 pt-2 border-t border-white/[0.06]">
