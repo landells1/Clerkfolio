@@ -16,13 +16,13 @@ const dataRows = [
   },
   {
     category: 'Portfolio content',
-    examples: 'Portfolio entries, categories, dates, specialty tags, competency themes, notes, reflections, procedures, teaching, publications, prizes, leadership roles, audit or QIP details, custom templates, and revision snapshots.',
-    purpose: 'To store, organise, restore, display, export, and share the portfolio content you choose to enter.',
+    examples: 'Portfolio entries, categories, dates, specialty tags, competency themes, notes, reflections, procedures, teaching, publications, prizes, leadership roles, audit or QIP details, and custom templates.',
+    purpose: 'To store, organise, display, export, and share the portfolio content you choose to enter.',
     lawfulBasis: 'Contract (Art 6(1)(b)); legitimate interests (Art 6(1)(f)) for security, integrity, backup, and abuse prevention.',
   },
   {
     category: 'Anonymised case diary',
-    examples: 'Case title, date, clinical area, specialty tags, competency themes, notes, pinned status, completeness score, and revision snapshots.',
+    examples: 'Case title, date, clinical area, specialty tags, competency themes, notes, pinned status, and completeness score.',
     purpose: 'To help you maintain a personal anonymised clinical diary. Clerkfolio is not designed for patient-identifiable data. To the extent that case notes incidentally contain health information about third parties, processing of that special category data is based on your explicit consent (Art 9(2)(a)).',
     lawfulBasis: 'Contract (Art 6(1)(b)); explicit consent (Art 9(2)(a)) for any special category health data incidentally contained in notes; legitimate interests (Art 6(1)(f)) for security and integrity.',
   },

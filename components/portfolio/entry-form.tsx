@@ -489,27 +489,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setCustomFreeText('')
   }
 
-  async function pruneRevisions(entryId: string, entryType: 'portfolio' | 'case') {
-    const { data: { user: currentUser } } = await supabase.auth.getUser()
-    if (!currentUser) return
-    const { data: revisions } = await supabase
-      .from('entry_revisions')
-      .select('id')
-      .eq('entry_id', entryId)
-      .eq('entry_type', entryType)
-      .eq('user_id', currentUser.id)
-      .order('created_at', { ascending: true })
-
-    if (revisions && revisions.length > 50) {
-      await supabase
-        .from('entry_revisions')
-        .delete()
-        .in('id', revisions.slice(0, revisions.length - 50).map(row => row.id))
-        .eq('user_id', currentUser.id)
-    }
-  }
-
-  // Allow callers (e.g. "Save & add another") to override the post-save destination.
   const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
@@ -586,30 +565,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       }
       router.push(`/portfolio/${data.id}`)
     } else {
-      const { data: currentRow, error: fetchError } = await supabase
-        .from('portfolio_entries')
-        .select('*')
-        .eq('id', initialData!.id!)
-        .eq('user_id', user.id)
-        .single()
-
-      if (fetchError || !currentRow) {
-        setError('Could not load current entry state. Please refresh and try again.')
-        setSaving(false)
-        return
-      }
-
-      const { error: revisionError } = await supabase.from('entry_revisions').insert({
-        user_id: user.id,
-        entry_id: initialData!.id!,
-        entry_type: 'portfolio',
-        snapshot: currentRow,
-      })
-      if (revisionError) {
-        console.error('Failed to save revision:', revisionError.message)
-        addToast('Saved, but revision history was not recorded', 'error')
-      }
-      await pruneRevisions(initialData!.id!, 'portfolio')
       const { error } = await supabase
         .from('portfolio_entries')
         .update(scoredPayload)

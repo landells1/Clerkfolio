@@ -51,7 +51,6 @@ export async function POST(req: NextRequest) {
     { data: auditLog },
     { data: shareLinks },
     { data: notifications },
-    { data: entryRevisions },
     { data: customThemes },
     { data: snippets },
     { data: savedSearches },
@@ -75,7 +74,6 @@ export async function POST(req: NextRequest) {
     supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('share_links').select('id, created_at, scope, specialty_key, theme_slug, expires_at, view_count, revoked, revoked_at, hide_notes, hide_reflection, redact_tags').eq('user_id', user.id),
     supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-    supabase.from('entry_revisions').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('custom_competency_themes').select('*').eq('user_id', user.id),
     supabase.from('snippets').select('*').eq('user_id', user.id),
     supabase.from('saved_searches').select('*').eq('user_id', user.id),
@@ -125,7 +123,6 @@ export async function POST(req: NextRequest) {
       audit_log: auditLog?.length ?? 0,
       share_links: shareLinks?.length ?? 0,
       notifications: notifications?.length ?? 0,
-      entry_revisions: entryRevisions?.length ?? 0,
       custom_competency_themes: customThemes?.length ?? 0,
       snippets: snippets?.length ?? 0,
       saved_searches: savedSearches?.length ?? 0,
@@ -152,7 +149,6 @@ export async function POST(req: NextRequest) {
   raw.file('audit-log.json', JSON.stringify(auditLog ?? [], null, 2))
   raw.file('share-links.json', JSON.stringify(shareLinks ?? [], null, 2))
   raw.file('notifications.json', JSON.stringify(notifications ?? [], null, 2))
-  raw.file('entry-revisions.json', JSON.stringify(entryRevisions ?? [], null, 2))
   raw.file('custom-competency-themes.json', JSON.stringify(customThemes ?? [], null, 2))
   raw.file('snippets.json', JSON.stringify(snippets ?? [], null, 2))
   raw.file('saved-searches.json', JSON.stringify(savedSearches ?? [], null, 2))
