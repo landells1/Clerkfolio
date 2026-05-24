@@ -9,8 +9,8 @@ export const maxDuration = 60
 
 const BUCKET = 'evidence'
 const CHUNK = 500
-// A pending evidence row older than 24h means /api/upload/authorize created
-// it but /api/upload/verify never finalised. Either the browser crashed
+// A pending/scanning evidence row older than 24h means the upload flow never
+// finalised. Either the browser crashed
 // between the two steps, or the user closed the tab, or the storage upload
 // failed silently. Either way the row + any half-uploaded object should be
 // cleaned up - otherwise the user's quota accumulates orphan bytes and the
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     const { data: orphans, error: lookupError } = await supabase
       .from('evidence_files')
       .select('id, file_path')
-      .eq('scan_status', 'pending')
+      .in('scan_status', ['pending', 'scanning'])
       .lt('created_at', cutoff)
 
     if (lookupError) {

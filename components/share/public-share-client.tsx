@@ -26,6 +26,7 @@ type SharePayload = {
   specialtyLabel: string | null
   themeSlug: string | null
   expiresAt: string
+  watermark?: string | null
   entries: SharedEntry[]
 }
 
@@ -184,6 +185,11 @@ export default function PublicShareClient({ token }: { token: string }) {
               <p className="mt-2 text-sm text-[rgba(245,245,242,0.45)]">
                 {payload.entries.length} shared portfolio {payload.entries.length === 1 ? 'entry' : 'entries'}
               </p>
+              {payload.watermark && (
+                <p className="mt-3 inline-flex rounded border border-white/[0.08] bg-white/[0.04] px-2 py-1 text-xs text-[rgba(245,245,242,0.55)]">
+                  {payload.watermark}
+                </p>
+              )}
             </section>
 
             {payload.entries.length === 0 ? (

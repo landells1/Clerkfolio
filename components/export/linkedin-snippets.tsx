@@ -32,12 +32,19 @@ function sentence(entry: Entry) {
 export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {
   const { addToast } = useToast()
   const [copied, setCopied] = useState<string | null>(null)
+  const [fallback, setFallback] = useState<{ id: string; text: string } | null>(null)
 
   async function copy(id: string, text: string) {
-    await navigator.clipboard.writeText(text)
-    setCopied(id)
-    addToast('Snippet copied', 'success')
-    setTimeout(() => setCopied(null), 1500)
+    try {
+      await navigator.clipboard.writeText(text)
+      setCopied(id)
+      setFallback(null)
+      addToast('Snippet copied', 'success')
+      setTimeout(() => setCopied(null), 1500)
+    } catch {
+      setFallback({ id, text })
+      addToast('Clipboard unavailable. Select the snippet text below.', 'error')
+    }
   }
 
   return (
@@ -50,6 +57,15 @@ export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {
             <button onClick={() => copy(entry.id, text)} className="mt-4 min-h-[36px] rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[#F5F5F2]">
               {copied === entry.id ? 'Copied' : 'Copy'}
             </button>
+            {fallback?.id === entry.id && (
+              <textarea
+                readOnly
+                value={fallback.text}
+                onFocus={event => event.currentTarget.select()}
+                className="mt-3 w-full rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-100"
+                rows={3}
+              />
+            )}
           </article>
         )
       })}

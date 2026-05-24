@@ -5,6 +5,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { completenessScore } from '@/lib/utils/completeness'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -22,7 +23,6 @@ const MAX_ROWS_PER_TABLE = 2000
 // shape of NewCase / NewPortfolioEntry from lib/types.
 const PORTFOLIO_ALLOWED = new Set([
   'title', 'date', 'category', 'notes', 'specialty_tags', 'interview_themes',
-  'pinned', 'completeness_score',
   'audit_type', 'audit_role', 'audit_cycle_stage', 'audit_trust',
   'audit_outcome', 'audit_presented',
   'teaching_type', 'teaching_audience', 'teaching_setting', 'teaching_event',
@@ -40,7 +40,7 @@ const PORTFOLIO_ALLOWED = new Set([
 ])
 const CASE_ALLOWED = new Set([
   'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
-  'interview_themes', 'notes', 'pinned', 'completeness_score',
+  'interview_themes', 'notes',
 ])
 const DEADLINE_ALLOWED = new Set([
   'title', 'due_date', 'completed', 'is_auto', 'source_specialty_key', 'notes',
@@ -176,7 +176,10 @@ export async function POST(req: NextRequest) {
       if (!valid || existing.has(entryKey(row))) { skipped++; return false }
       return true
     })
-    .map(row => copyInsertable(row, user.id, PORTFOLIO_ALLOWED))
+    .map(row => {
+      const payload = copyInsertable(row, user.id, PORTFOLIO_ALLOWED)
+      return { ...payload, completeness_score: completenessScore(payload, 'portfolio') }
+    })
 
   const caseRows = backup.cases
     .filter((row, index) => {
@@ -184,7 +187,10 @@ export async function POST(req: NextRequest) {
       if (!valid || existing.has(caseKey(row))) { skipped++; return false }
       return true
     })
-    .map(row => copyInsertable(row, user.id, CASE_ALLOWED))
+    .map(row => {
+      const payload = copyInsertable(row, user.id, CASE_ALLOWED)
+      return { ...payload, completeness_score: completenessScore(payload, 'case') }
+    })
 
   const deadlineRows = backup.deadlines
     .filter((row, index) => {

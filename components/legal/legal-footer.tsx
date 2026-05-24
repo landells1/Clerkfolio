@@ -8,7 +8,6 @@ const LEGAL_LINKS = [
   { label: 'Subprocessors', href: '/subprocessors' },
   { label: 'Security', href: '/security' },
   { label: 'Contact', href: '/contact' },
-  { label: 'Status', href: '#' },
 ]
 
 export default function LegalFooter({ className }: { className?: string }) {

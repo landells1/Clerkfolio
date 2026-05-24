@@ -112,6 +112,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   const [calendarToken, setCalendarToken] = useState<string | null>(null)
   const [hasCalendarFeed, setHasCalendarFeed] = useState(calendarFeedExists)
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null)
+  const [calendarFallbackUrl, setCalendarFallbackUrl] = useState<string | null>(null)
 
   const colourBySpecialty = useMemo(() => Object.fromEntries(specialties.map((specialty, index) => [specialty.id, COLOURS[index % COLOURS.length]])), [specialties])
 
@@ -242,12 +243,29 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     router.refresh()
   }
 
+  async function copyText(text: string, successMessage: string) {
+    try {
+      await navigator.clipboard.writeText(text)
+      setCalendarFallbackUrl(null)
+      addToast(successMessage, 'success')
+      return true
+    } catch {
+      setCalendarFallbackUrl(text)
+      addToast('Clipboard unavailable. Select the feed URL below.', 'error')
+      return false
+    }
+  }
+
   async function copyCalendarFeed() {
     let token = calendarToken
     if (!token) {
       const res = await fetch('/api/calendar/feed-token', { method: 'POST' })
       const body = await res.json()
-      if (body.requiresRotation) return rotateCalendarFeed()
+      if (body.requiresRotation) {
+        setHasCalendarFeed(true)
+        addToast('Existing feed URLs cannot be shown again. Use Rotate feed to create a new URL.', 'error')
+        return
+      }
       if (!res.ok || !body.token) {
         addToast(body.error ?? 'Failed to create calendar feed', 'error')
         return
@@ -257,8 +275,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       setHasCalendarFeed(true)
     }
     const url = `${window.location.origin}/api/calendar/feed/${token}`
-    await navigator.clipboard.writeText(url)
-    addToast('Calendar feed link copied', 'success')
+    await copyText(url, 'Calendar feed link copied')
   }
 
   async function rotateCalendarFeed(copy = true) {
@@ -276,8 +293,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     setHasCalendarFeed(true)
     const url = `${window.location.origin}/api/calendar/feed/${body.token}`
     if (copy) {
-      await navigator.clipboard.writeText(url)
-      addToast('New calendar feed link copied', 'success')
+      await copyText(url, 'New calendar feed link copied')
     }
     return url
   }
@@ -311,7 +327,9 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   async function openGoogleCalendar() {
     const url = await ensureCalendarFeedUrl()
     if (!url) return
+    setCalendarFallbackUrl(url)
     window.open(`https://calendar.google.com/calendar/render?cid=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
+    addToast('Opened Google Calendar. If it cannot subscribe automatically, use the feed URL shown below.', 'success')
   }
 
   const days = monthDays(month)
@@ -339,6 +357,19 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>
       </div>
+
+      {calendarFallbackUrl && (
+        <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
+          <p className="text-sm font-medium text-amber-100">Calendar feed URL</p>
+          <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">Select and copy this URL if your browser or calendar app cannot use the copy or handoff button.</p>
+          <input
+            readOnly
+            value={calendarFallbackUrl}
+            onFocus={event => event.currentTarget.select()}
+            className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2 text-xs text-[#F5F5F2]"
+          />
+        </div>
+      )}
 
       {filterBar}
 

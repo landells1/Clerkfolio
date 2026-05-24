@@ -48,7 +48,7 @@ export default function DeleteEntryButton({ id }: { id: string }) {
             Cancel
           </button>
         </div>
-        <p className="text-xs text-[rgba(245,245,242,0.55)]">Moved to trash. Recover from the Trash page.</p>
+        <p className="text-xs text-[rgba(245,245,242,0.55)]">This will move the entry to Trash. You can restore it within 30 days.</p>
       </div>
     )
   }

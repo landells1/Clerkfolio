@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
@@ -13,6 +13,7 @@ import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -35,6 +36,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
+  const snippets = useSnippets()
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -144,6 +146,21 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   }, [isDirty])
 
   function markDirty() { setIsDirty(true); isDirtyRef.current = true }
+
+  function handleNotesKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (event.key !== 'Enter' && event.key !== 'Tab') return
+    const target = event.currentTarget
+    if (target.selectionStart !== target.selectionEnd) return
+    const snippet = findSnippetForSlash(notes, target.selectionStart, snippets)
+    if (!snippet) return
+    const next = replaceSnippetShortcut(notes, target.selectionStart, snippet)
+    if (!next) return
+
+    event.preventDefault()
+    setNotes(next.value)
+    markDirty()
+    requestAnimationFrame(() => target.setSelectionRange(next.cursor, next.cursor))
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -353,6 +370,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
           value={notes}
           maxLength={10000}
           onChange={e => { setNotes(e.target.value); markDirty() }}
+          onKeyDown={handleNotesKeyDown}
           onFocus={() => markDirty()}
           className={INPUT}
           placeholder="Clinical context, learning points, what happened - anonymised…"

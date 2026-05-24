@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { stripe, STRIPE_PRICE_ID } from '@/lib/stripe'
 import { validateOrigin } from '@/lib/csrf'
 
@@ -34,10 +34,16 @@ export async function POST(request: NextRequest) {
       })
       customerId = customer.id
 
-      await supabase
+      const service = createServiceClient()
+      const { error: customerPersistError } = await service
         .from('profiles')
         .update({ stripe_customer_id: customerId })
         .eq('id', user.id)
+
+      if (customerPersistError) {
+        console.error('Stripe customer persistence failed:', customerPersistError.message)
+        return NextResponse.json({ error: 'Failed to prepare billing profile' }, { status: 500 })
+      }
     }
 
     const subscriptionId = profile?.stripe_subscription_id ?? null

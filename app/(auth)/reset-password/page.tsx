@@ -32,7 +32,8 @@ export default function ResetPasswordPage() {
     })
 
     if (error) {
-      setError(error.message)
+      console.error('Password reset failed:', error.code ?? error.name ?? 'auth_error')
+      setError('We could not process that reset request. Check the email address and try again.')
       setLoading(false)
       return
     }
@@ -51,8 +52,8 @@ export default function ResetPasswordPage() {
         </div>
         <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">Check your email</h2>
         <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
-          We&apos;ve sent a password reset link to <strong className="text-[#F5F5F2]">{email}</strong>.
-          Check your inbox and follow the link.
+          If a confirmed account exists for <strong className="text-[#F5F5F2]">{email}</strong>, we&apos;ll send a password reset link.
+          Check your inbox and follow the latest link.
         </p>
         <Link href="/login" className="text-sm text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
           ← Back to login

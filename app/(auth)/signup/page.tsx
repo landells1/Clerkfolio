@@ -60,7 +60,8 @@ export default function SignupPage() {
     })
 
     if (error) {
-      setError(error.message)
+      console.error('Signup failed:', error.code ?? error.name ?? 'auth_error')
+      setError('We could not create an account with those details. Check the form and try again.')
       setLoading(false)
       return
     }

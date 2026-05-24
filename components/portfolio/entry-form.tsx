@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, type FormEvent, type ReactElement, type ReactNode } from 'react'
+import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
@@ -15,6 +15,7 @@ import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { formatInterviewReady } from '@/lib/types/portfolio-labels'
+import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -142,6 +143,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
+  const snippets = useSnippets()
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -295,7 +297,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.category) setCategory(d.category)
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
-      if (d.notes !== undefined) setNotes(d.notes)
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.interviewThemes !== undefined) setInterviewThemes(d.interviewThemes)
       if (d.interviewReadyFor !== undefined) setInterviewReadyFor(d.interviewReadyFor)
@@ -303,7 +304,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.auditRole !== undefined) setAuditRole(d.auditRole)
       if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
       if (d.auditTrust !== undefined) setAuditTrust(d.auditTrust)
-      if (d.auditOutcome !== undefined) setAuditOutcome(d.auditOutcome)
       if (d.auditPresented !== undefined) setAuditPresented(d.auditPresented)
       if (d.teachingType !== undefined) setTeachingType(d.teachingType)
       if (d.teachingAudience !== undefined) setTeachingAudience(d.teachingAudience)
@@ -328,7 +328,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.leaderOngoing !== undefined) setLeaderOngoing(d.leaderOngoing)
       if (d.prizeBody !== undefined) setPrizeBody(d.prizeBody)
       if (d.prizeLevel !== undefined) setPrizeLevel(d.prizeLevel)
-      if (d.prizeDescription !== undefined) setPrizeDescription(d.prizeDescription)
       if (d.procName !== undefined) setProcName(d.procName)
       if (d.procSetting !== undefined) setProcSetting(d.procSetting)
       if (d.procSupervision !== undefined) setProcSupervision(d.procSupervision)
@@ -336,10 +335,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.reflType !== undefined) setReflType(d.reflType)
       if (d.reflContext !== undefined) setReflContext(d.reflContext)
       if (d.reflSupervisor !== undefined) setReflSupervisor(d.reflSupervisor)
-      if (d.reflFreeText !== undefined) setReflFreeText(d.reflFreeText)
       if (d.reflFramework !== undefined) setReflFramework(d.reflFramework)
-      if (d.reflParts !== undefined) setReflParts(d.reflParts)
-      if (d.customFreeText !== undefined) setCustomFreeText(d.customFreeText)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -353,31 +349,29 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       sessionStorage.setItem(draftKey, JSON.stringify({
-        category, title, date, notes, specialtyTags, interviewThemes, interviewReadyFor,
-        auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+        category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
+        auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
         confType, confEventName, confAttendance, confLevel, confCpdHours,
         pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
         leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-        prizeBody, prizeLevel, prizeDescription,
+        prizeBody, prizeLevel,
         procName, procSetting, procSupervision, procCount,
-        reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
-        customFreeText,
+        reflType, reflContext, reflSupervisor, reflFramework,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
   }, [
-    mode, category, title, date, notes, specialtyTags, interviewThemes, interviewReadyFor,
-    auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+    mode, category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
+    auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
     confType, confEventName, confAttendance, confLevel, confCpdHours,
     pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
     leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
-    prizeBody, prizeLevel, prizeDescription,
+    prizeBody, prizeLevel,
     procName, procSetting, procSupervision, procCount,
-    reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
-    customFreeText, draftKey,
+    reflType, reflContext, reflSupervisor, reflFramework, draftKey,
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
@@ -393,6 +387,25 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   }, [isDirty])
 
   function markDirty() { setIsDirty(true) }
+
+  function handleSnippetKeyDown(
+    event: KeyboardEvent<HTMLTextAreaElement>,
+    value: string,
+    setValue: (next: string) => void
+  ) {
+    if (event.key !== 'Enter' && event.key !== 'Tab') return
+    const target = event.currentTarget
+    if (target.selectionStart !== target.selectionEnd) return
+    const snippet = findSnippetForSlash(value, target.selectionStart, snippets)
+    if (!snippet) return
+    const next = replaceSnippetShortcut(value, target.selectionStart, snippet)
+    if (!next) return
+
+    event.preventDefault()
+    setValue(next.value)
+    markDirty()
+    requestAnimationFrame(() => target.setSelectionRange(next.cursor, next.cursor))
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -699,7 +712,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             </p>
           </Field>
           <Field label="Notes / comments">
-            <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
+            <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, notes, setNotes)} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
             {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
           </Field>
 
@@ -751,7 +764,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   ))}
                 </div>
               </Field>
-              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
+              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, auditOutcome, setAuditOutcome)} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
               <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={v => { setAuditPresented(v); markDirty() }} />
             </div>
           )}
@@ -883,7 +896,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   </select>
                 </Field>
               </div>
-              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} className={INPUT} placeholder="Brief description of the prize or award" />{prizeDescription && <p className={WORD_COUNT_CLASS}>{wordCount(prizeDescription)} words</p>}</Field>
+              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, prizeDescription, setPrizeDescription)} className={INPUT} placeholder="Brief description of the prize or award" />{prizeDescription && <p className={WORD_COUNT_CLASS}>{wordCount(prizeDescription)} words</p>}</Field>
             </div>
           )}
 
@@ -956,7 +969,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
               {reflFramework === 'none' && (
                 <Field label="Free text reflection">
-                  <textarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setReflFreeText(e.target.value); markDirty() }} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
+                  <textarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setReflFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, reflFreeText, setReflFreeText)} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
                   {reflFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(reflFreeText)} words</p>}
                 </Field>
               )}
@@ -1018,7 +1031,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           {category === 'custom' && (
             <div className="space-y-4">
               <Field label="Description">
-                <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
+                <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, customFreeText, setCustomFreeText)} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
                 {customFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(customFreeText)} words</p>}
               </Field>
             </div>

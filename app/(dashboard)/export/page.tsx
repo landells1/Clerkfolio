@@ -21,6 +21,8 @@ const EXPIRY_PRESETS = [
   { label: '1 month', days: 30 },
   { label: 'Custom', days: null },
 ]
+const ALL_RECORDS = '__all_records__'
+const UNTAGGED_RECORDS = '__untagged_records__'
 
 const EXPORT_FIELDS = [
   { value: 'record_type', label: 'Type' },
@@ -69,6 +71,12 @@ function shareLabel(link: ShareLink) {
   if (link.scope === 'full') return 'Full portfolio'
   if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
   return formatSpecialtyLabel(link.specialty_key)
+}
+
+function exportScopeLabel(value: string) {
+  if (value === ALL_RECORDS) return 'all records'
+  if (value === UNTAGGED_RECORDS) return 'untagged records'
+  return formatSpecialtyLabel(value)
 }
 
 export default function ExportPage() {
@@ -137,7 +145,7 @@ export default function ExportPage() {
       setPortfolioTags(sorted)
       setTrackedApps(apps ?? [])
       setShareLinks((links ?? []) as ShareLink[])
-      setSpecialty(sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? '')
+      setSpecialty(sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? ALL_RECORDS)
     }
     load()
   }, [supabase])
@@ -155,6 +163,12 @@ export default function ExportPage() {
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || cancelled) return
+      const caseQuery = supabase
+        .from('cases')
+        .select('*')
+        .eq('user_id', user.id)
+        .is('deleted_at', null)
+        .order('date', { ascending: false })
       const [{ data }, { data: caseRows }] = await Promise.all([
         supabase
           .from('portfolio_entries')
@@ -162,21 +176,22 @@ export default function ExportPage() {
           .eq('user_id', user.id)
           .is('deleted_at', null)
           .order('date', { ascending: false }),
-        supabase
-          .from('cases')
-          .select('*')
-          .eq('user_id', user.id)
-          .contains('specialty_tags', [specialty])
-          .is('deleted_at', null)
-          .order('date', { ascending: false }),
+        specialty === ALL_RECORDS || specialty === UNTAGGED_RECORDS
+          ? caseQuery
+          : caseQuery.contains('specialty_tags', [specialty]),
       ])
 
       if (cancelled) return
-      const rows = ((data ?? []) as PortfolioEntry[]).filter(entry =>
-        (entry.specialty_tags ?? []).includes(specialty) ||
-        (entry.interview_ready_for ?? []).includes(specialty)
-      )
-      const caseData = (caseRows ?? []) as Case[]
+      const rows = ((data ?? []) as PortfolioEntry[]).filter(entry => {
+        if (specialty === ALL_RECORDS) return true
+        const tags = [...(entry.specialty_tags ?? []), ...(entry.interview_ready_for ?? [])]
+        if (specialty === UNTAGGED_RECORDS) return tags.length === 0
+        return tags.includes(specialty)
+      })
+      const caseData = ((caseRows ?? []) as Case[]).filter(row => {
+        if (specialty !== UNTAGGED_RECORDS) return true
+        return (row.specialty_tags ?? []).length === 0
+      })
       setEntries(rows)
       setCases(caseData)
       setSelectedEntryIds(new Set(rows.map(e => e.id)))
@@ -227,7 +242,7 @@ export default function ExportPage() {
     const res = await fetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty, format, template: pdfTemplate, theme: themeFilter || null, fields: selectedFields }),
+      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty: exportScopeLabel(specialty), format, template: pdfTemplate, theme: themeFilter || null, fields: selectedFields }),
     })
     setGenerating(false)
     if (!res.ok) {
@@ -355,10 +370,15 @@ export default function ExportPage() {
 
   async function copyLink(token: string) {
     const url = `${window.location.origin}/share/${token}`
-    await navigator.clipboard.writeText(url)
-    setCopiedToken(token)
-    if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current)
-    copyTimerRef.current = window.setTimeout(() => setCopiedToken(null), 1500)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopiedToken(token)
+      setError(null)
+      if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current)
+      copyTimerRef.current = window.setTimeout(() => setCopiedToken(null), 1500)
+    } catch {
+      setError(`Clipboard unavailable. Copy this share URL manually: ${url}`)
+    }
   }
 
   return (
@@ -403,6 +423,14 @@ export default function ExportPage() {
         <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
+            {[
+              { value: ALL_RECORDS, label: 'All records' },
+              { value: UNTAGGED_RECORDS, label: 'Untagged' },
+            ].map(option => (
+              <button key={option.value} onClick={() => setSpecialty(option.value)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === option.value ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
+                {option.label}
+              </button>
+            ))}
             {portfolioTags.map(({ tag, count }) => (
               <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
                 {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
@@ -420,7 +448,9 @@ export default function ExportPage() {
               free-text override and store it verbatim - that's the slug we
               send to the API for filtering. */}
           <input
-            value={portfolioTags.some(t => t.tag === specialty) || trackedApps.some(a => a.specialty_key === specialty)
+            value={specialty === ALL_RECORDS || specialty === UNTAGGED_RECORDS
+              ? exportScopeLabel(specialty)
+              : portfolioTags.some(t => t.tag === specialty) || trackedApps.some(a => a.specialty_key === specialty)
               ? formatSpecialtyLabel(specialty)
               : specialty}
             onChange={e => setSpecialty(e.target.value)}
@@ -559,9 +589,9 @@ export default function ExportPage() {
             {!specialty ? (
               <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Choose a target specialty above to load your portfolio.</div>
             ) : loading ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Loading entries for {formatSpecialtyLabel(specialty)}...</div>
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Loading entries for {exportScopeLabel(specialty)}...</div>
             ) : visible.length === 0 && visibleCases.length === 0 ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases tagged with {formatSpecialtyLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}. Tag entries with this specialty in the portfolio to see them here.</div>
+              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {visible.map(entry => {

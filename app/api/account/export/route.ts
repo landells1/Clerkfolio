@@ -59,8 +59,8 @@ export async function POST(req: NextRequest) {
     { data: apiKeys },
   ] = await Promise.all([
     supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('portfolio_entries').select('*').eq('user_id', user.id).is('deleted_at', null),
-    supabase.from('cases').select('*').eq('user_id', user.id).is('deleted_at', null),
+    supabase.from('portfolio_entries').select('*').eq('user_id', user.id),
+    supabase.from('cases').select('*').eq('user_id', user.id),
     supabase.from('deadlines').select('*').eq('user_id', user.id),
     supabase.from('goals').select('*').eq('user_id', user.id),
     supabase.from('specialty_applications').select('*').eq('user_id', user.id),
@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
       ? supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean')
       : Promise.resolve({ data: [] }),
     // GDPR Art. 20 — additional tables containing personal data
-    supabase.from('personal_log').select('*').eq('user_id', user.id).is('deleted_at', null),
+    supabase.from('personal_log').select('*').eq('user_id', user.id),
     supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
     supabase.from('share_links').select('id, created_at, scope, specialty_key, theme_slug, expires_at, view_count, revoked, revoked_at, hide_notes, hide_reflection, redact_tags').eq('user_id', user.id),
     supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
@@ -103,6 +103,13 @@ export async function POST(req: NextRequest) {
     if (file.entry_type === 'case') return activeCaseIds.has(file.entry_id)
     return false
   })
+  const shareLinkIds = (shareLinks ?? []).map(link => link.id)
+  const [{ data: shareViews }, { data: shareAccessAttempts }] = shareLinkIds.length > 0
+    ? await Promise.all([
+        supabase.from('share_views').select('id, share_link_id, viewed_at').in('share_link_id', shareLinkIds),
+        supabase.from('share_access_attempts').select('id, share_link_id, success, created_at').in('share_link_id', shareLinkIds),
+      ])
+    : [{ data: [] }, { data: [] }]
 
   const manifest = {
     schema_version: BACKUP_SCHEMA_VERSION,
@@ -122,6 +129,8 @@ export async function POST(req: NextRequest) {
       personal_log: personalLog?.length ?? 0,
       audit_log: auditLog?.length ?? 0,
       share_links: shareLinks?.length ?? 0,
+      share_views: shareViews?.length ?? 0,
+      share_access_attempts: shareAccessAttempts?.length ?? 0,
       notifications: notifications?.length ?? 0,
       custom_competency_themes: customThemes?.length ?? 0,
       snippets: snippets?.length ?? 0,
@@ -148,6 +157,8 @@ export async function POST(req: NextRequest) {
   raw.file('personal-log.json', JSON.stringify(personalLog ?? [], null, 2))
   raw.file('audit-log.json', JSON.stringify(auditLog ?? [], null, 2))
   raw.file('share-links.json', JSON.stringify(shareLinks ?? [], null, 2))
+  raw.file('share-views.json', JSON.stringify(shareViews ?? [], null, 2))
+  raw.file('share-access-attempts.json', JSON.stringify(shareAccessAttempts ?? [], null, 2))
   raw.file('notifications.json', JSON.stringify(notifications ?? [], null, 2))
   raw.file('custom-competency-themes.json', JSON.stringify(customThemes ?? [], null, 2))
   raw.file('snippets.json', JSON.stringify(snippets ?? [], null, 2))

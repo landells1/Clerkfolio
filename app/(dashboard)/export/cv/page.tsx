@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
+import CvDownloadButton from '@/components/export/cv-download-button'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -69,9 +70,7 @@ export default async function CvGeneratorPage({
             {item.label}
           </Link>
         ))}
-        <form action={`/api/export/cv?template=${template}`} method="POST" className="inline">
-          <button type="submit" className="rounded-xl bg-[#F5F5F2] px-4 py-2 text-sm font-semibold text-[#0B0B0C]">Download PDF</button>
-        </form>
+        <CvDownloadButton template={template} />
       </div>
       <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>

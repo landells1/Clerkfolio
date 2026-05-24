@@ -31,3 +31,12 @@ export function findSnippetForSlash(text: string, cursor: number, snippets: Snip
   const needle = match[1].toLowerCase()
   return snippets.find(snippet => snippet.shortcut.toLowerCase().startsWith(needle)) ?? null
 }
+
+export function replaceSnippetShortcut(text: string, cursor: number, snippet: Snippet) {
+  const before = text.slice(0, cursor)
+  const match = before.match(/\/([a-z0-9_-]*)$/i)
+  if (!match || match.index === undefined) return null
+
+  const value = `${text.slice(0, match.index)}${snippet.body}${text.slice(cursor)}`
+  return { value, cursor: match.index + snippet.body.length }
+}

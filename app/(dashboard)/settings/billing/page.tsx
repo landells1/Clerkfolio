@@ -3,6 +3,13 @@ import { createClient } from '@/lib/supabase/server'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 
+const TIER_LABEL: Record<string, string> = {
+  free: 'Free',
+  student: 'Student',
+  foundation: 'Foundation',
+  pro: 'Pro',
+}
+
 export default async function BillingSettingsPage() {
   const supabase = createClient()
   const {
@@ -27,7 +34,7 @@ export default async function BillingSettingsPage() {
 
         <div className="mt-6 flex flex-col gap-3">
           <p className="text-sm text-[rgba(245,245,242,0.6)]">
-            Current plan: <span className="font-medium text-[#F5F5F2]">{subInfo?.isPro ? 'Pro' : 'Free'}</span>
+            Current plan: <span className="font-medium text-[#F5F5F2]">{TIER_LABEL[subInfo?.tier ?? 'free'] ?? 'Free'}</span>
           </p>
           <BillingActionButton isPro={Boolean(subInfo?.isPro)} />
         </div>

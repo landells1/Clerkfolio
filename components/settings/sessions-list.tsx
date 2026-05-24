@@ -12,6 +12,16 @@ export type SessionRow = {
   created_at: string
 }
 
+const SESSION_DATE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
+  dateStyle: 'short',
+  timeStyle: 'medium',
+  timeZone: 'UTC',
+})
+
+function formatSessionDate(value: string) {
+  return `${SESSION_DATE_FORMATTER.format(new Date(value))} UTC`
+}
+
 export default function SessionsList({ initialRows }: { initialRows: SessionRow[] }) {
   const { addToast } = useToast()
   const [rows, setRows] = useState(initialRows)
@@ -41,7 +51,7 @@ export default function SessionsList({ initialRows }: { initialRows: SessionRow[
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-[#F5F5F2]">{row.user_agent ?? 'Unknown browser'}</p>
-              <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.55)]">{row.ip_hash.slice(0, 12)}... - last seen {new Date(row.last_seen_at).toLocaleString('en-GB')}</p>
+              <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.55)]">{row.ip_hash.slice(0, 12)}... - last seen {formatSessionDate(row.last_seen_at)}</p>
             </div>
             {row.revoked_at ? (
               <span className="rounded bg-red-500/10 px-2 py-1 text-xs text-red-100">Revoked</span>
