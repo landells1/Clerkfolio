@@ -81,6 +81,7 @@ function exportScopeLabel(value: string) {
 
 export default function ExportPage() {
   const supabase = createClient()
+  const errorRef = useRef<HTMLDivElement | null>(null)
   const [tab, setTab] = useState<Tab>('pdf')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [portfolioTags, setPortfolioTags] = useState<TagCount[]>([])
@@ -98,6 +99,7 @@ export default function ExportPage() {
   const [loading, setLoading] = useState(false)
   const [generating, setGenerating] = useState(false)
   const [backupLoading, setBackupLoading] = useState(false)
+  const [yearReviewLoading, setYearReviewLoading] = useState(false)
   const [includeEvidenceBackup, setIncludeEvidenceBackup] = useState(true)
   const [appendPdfFile, setAppendPdfFile] = useState<File | null>(null)
   const [appendingPdf, setAppendingPdf] = useState(false)
@@ -121,6 +123,11 @@ export default function ExportPage() {
   useEffect(() => {
     return () => { if (copyTimerRef.current) window.clearTimeout(copyTimerRef.current) }
   }, [])
+
+  useEffect(() => {
+    if (!error) return
+    errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, [error])
 
   useEffect(() => {
     async function load() {
@@ -272,6 +279,19 @@ export default function ExportPage() {
     await downloadBlob(res, `clerkfolio-export-${dateStr}.zip`)
   }
 
+  async function handleYearReview() {
+    setYearReviewLoading(true)
+    setError(null)
+    const res = await fetch('/api/export/year-review', { method: 'POST' })
+    setYearReviewLoading(false)
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({}))
+      setError(json.error ?? 'Could not generate year in review PDF.')
+      return
+    }
+    await downloadBlob(res, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
+  }
+
   async function handleAppendPdf() {
     if (!appendPdfFile || selectedEntryIds.size === 0) return
     setAppendingPdf(true)
@@ -418,6 +438,12 @@ export default function ExportPage() {
           </button>
         ))}
       </div>
+
+      {error && (
+        <div ref={errorRef} role="alert" className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+          {error}
+        </div>
+      )}
 
       {tab !== 'backup' && (
         <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
@@ -668,11 +694,14 @@ export default function ExportPage() {
           <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
-          <form action="/api/export/year-review" method="POST" className="ml-3 inline">
-            <button type="submit" className="inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-              Year in review PDF
-            </button>
-          </form>
+          <button
+            type="button"
+            onClick={handleYearReview}
+            disabled={yearReviewLoading}
+            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
+          </button>
           <a href="/api/export/markdown" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
             Reflections MD
           </a>
@@ -809,8 +838,6 @@ export default function ExportPage() {
           </section>
         </div>
       )}
-
-      {error && <div className="mt-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">{error}</div>}
     </div>
   )
 }

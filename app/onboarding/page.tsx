@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 
@@ -29,6 +29,7 @@ const CAREER_STAGES = [
 ]
 
 const MAX_TRACKED_SPECIALTIES = 1
+const DRAFT_KEY = 'clerkfolio-onboarding-draft'
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -41,15 +42,64 @@ export default function OnboardingPage() {
   const [firstEntryTarget, setFirstEntryTarget] = useState<'dashboard' | 'portfolio' | 'case'>('portfolio')
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [draftLoaded, setDraftLoaded] = useState(false)
 
   const steps = getSteps(careerStage)
   const stepIndex = Math.max(steps.indexOf(step), 0)
   const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
   const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS'].includes(careerStage)
+  const missingProfileItems = [
+    !firstName.trim() ? 'first name' : null,
+    !lastName.trim() ? 'last name' : null,
+    !careerStage ? 'career stage' : null,
+    isMedicalStudent && !studentGraduationDate ? 'expected graduation date' : null,
+  ].filter((value): value is string => Boolean(value))
+  const profileStepBlocked = step === 'profile' && missingProfileItems.length > 0
+  const profileHintId = 'onboarding-profile-requirements'
   const entryLevelSpecialties = useMemo(
     () => SPECIALTY_CONFIGS.filter(config => getTrainingLevel(config) === 'entry').slice(0, 18),
     []
   )
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(DRAFT_KEY)
+      if (!raw) return
+      const draft = JSON.parse(raw) as {
+        step?: Step
+        firstName?: string
+        lastName?: string
+        careerStage?: string
+        studentGraduationDate?: string
+        selectedSpecialties?: string[]
+        firstEntryTarget?: 'dashboard' | 'portfolio' | 'case'
+      }
+      if (draft.step && ALL_STEPS.includes(draft.step)) setStep(draft.step)
+      if (typeof draft.firstName === 'string') setFirstName(draft.firstName)
+      if (typeof draft.lastName === 'string') setLastName(draft.lastName)
+      if (typeof draft.careerStage === 'string') setCareerStage(draft.careerStage)
+      if (typeof draft.studentGraduationDate === 'string') setStudentGraduationDate(draft.studentGraduationDate)
+      if (Array.isArray(draft.selectedSpecialties)) setSelectedSpecialties(draft.selectedSpecialties.slice(0, MAX_TRACKED_SPECIALTIES))
+      if (draft.firstEntryTarget) setFirstEntryTarget(draft.firstEntryTarget)
+    } catch {
+      window.localStorage.removeItem(DRAFT_KEY)
+    } finally {
+      setDraftLoaded(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!draftLoaded) return
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
+      step,
+      firstName,
+      lastName,
+      careerStage,
+      studentGraduationDate,
+      selectedSpecialties,
+      firstEntryTarget,
+    }))
+  }, [careerStage, draftLoaded, firstEntryTarget, firstName, lastName, selectedSpecialties, step, studentGraduationDate])
 
   function toggleSpecialty(key: string) {
     setSelectedSpecialties(prev => {
@@ -98,6 +148,7 @@ export default function OnboardingPage() {
     }
 
     setSaving(false)
+    window.localStorage.removeItem(DRAFT_KEY)
     if (target === 'portfolio') router.push('/portfolio/new')
     else if (target === 'case') router.push('/cases/new')
     else router.push('/dashboard')
@@ -256,11 +307,18 @@ export default function OnboardingPage() {
             <div className="flex flex-col items-end">
               <button
                 onClick={next}
-                disabled={step === 'profile' && (!firstName.trim() || !lastName.trim() || !careerStage || (isMedicalStudent && !studentGraduationDate))}
-                className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-surface-0 disabled:opacity-40 transition-colors"
+                disabled={profileStepBlocked}
+                title={profileStepBlocked ? `Complete: ${missingProfileItems.join(', ')}` : undefined}
+                aria-describedby={profileStepBlocked ? profileHintId : undefined}
+                className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-surface-0 disabled:cursor-not-allowed disabled:opacity-55 transition-colors"
               >
                 Continue
               </button>
+              {profileStepBlocked && (
+                <p id={profileHintId} className="mt-2 max-w-xs text-right text-xs text-amber-200">
+                  Add your {missingProfileItems.join(', ')} to continue.
+                </p>
+              )}
               {(step === 'specialties' || step === 'arcp') && (
                 <button
                   type="button"

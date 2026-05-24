@@ -46,7 +46,12 @@ const CAREER_STAGE_LABELS: Record<string, string> = {
   POST_FY:  'Core / Specialty Training',
 }
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ password?: string }>
+}) {
+  const resolvedSearchParams = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -96,12 +101,12 @@ export default async function DashboardPage() {
       .limit(20),
     supabase
       .from('portfolio_entries')
-      .select('id, category, specialty_tags, created_at, date')
+      .select('id, category, specialty_tags, created_at, date, is_demo')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
       .from('cases')
-      .select('specialty_tags, clinical_domain, clinical_domains, created_at, date')
+      .select('specialty_tags, clinical_domain, clinical_domains, created_at, date, is_demo')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -145,6 +150,9 @@ export default async function DashboardPage() {
   ])
   const seededDemos = await ensureDemoStarterPack(supabase, user!.id, profile?.demo_dismissed_at)
   const changelogEntries = CHANGELOG.filter(entry => !profile?.changelog_seen_at || new Date(entry.date).getTime() > new Date(profile.changelog_seen_at).getTime())
+  const realEntries = (allEntries ?? []).filter(entry => !entry.is_demo)
+  const realCases = (allCases ?? []).filter(c => !c.is_demo)
+  const showOnboardingChecklist = Boolean(profile && !profile.onboarding_checklist_dismissed)
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
   const { data: specialtyLinksRaw } = applicationIds.length > 0
@@ -326,18 +334,23 @@ export default async function DashboardPage() {
         <AnniversaryBanner userId={user!.id} year={anniversaryYear} />
       )}
       <ChangelogModal userId={user!.id} entries={changelogEntries} />
-      <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />
+      {resolvedSearchParams?.password === 'updated' && (
+        <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+          Password updated successfully.
+        </div>
+      )}
+      {!showOnboardingChecklist && <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />}
       <CareerWelcomeCard stage={profile?.career_stage} caseCount={allCases?.length ?? 0} />
       <DemoStarterCard show={seededDemos} />
 
-      {profile && !profile.onboarding_checklist_dismissed && (
+      {showOnboardingChecklist && (
         <OnboardingChecklist
           userId={user!.id}
           completedItems={(profile as { onboarding_checklist_completed_items?: string[] }).onboarding_checklist_completed_items ?? []}
           accountCreatedAt={user!.created_at}
           autoCompleted={[
-            (allEntries?.length ?? 0) > 0 ? 'portfolio_entry' : null,
-            (allCases?.length ?? 0) > 0 ? 'case' : null,
+            realEntries.length > 0 ? 'portfolio_entry' : null,
+            realCases.length > 0 ? 'case' : null,
             (trackedSpecialtyRows ?? []).length > 0 ? 'specialty' : null,
             (deadlines?.length ?? 0) > 0 || (goals?.length ?? 0) > 0 ? 'deadline' : null,
           ].filter((value): value is string => Boolean(value))}
@@ -348,10 +361,10 @@ export default async function DashboardPage() {
 
       {/* New-account quick-start: show until the user has logged 3 entries / 3 cases. */}
       {(() => {
-        const portfolioCount = allEntries?.length ?? 0
-        const caseCount = allCases?.length ?? 0
+        const portfolioCount = realEntries.length
+        const caseCount = realCases.length
         const isNew = portfolioCount < 3 && caseCount < 3
-        if (!isNew) return null
+        if (!isNew || showOnboardingChecklist) return null
         return (
           <NewAccountQuickStart
             hasFirstPortfolio={portfolioCount > 0}

@@ -95,6 +95,19 @@ const NAV_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: '/trash',
+    label: 'Trash',
+    icon: (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 6h18" />
+        <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+        <path d="M10 11v6" />
+        <path d="M14 11v6" />
+      </svg>
+    ),
+  },
 ]
 
 export function getNavItemsForStage(careerStage: string | null) {
@@ -263,7 +276,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
       </div>
 
       {/* Mobile bottom navigation bar - safe-area aware */}
-      <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface-1 border-t border-subtle flex items-center justify-around px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur">
+      <nav aria-label="Mobile navigation" className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface-1 border-t border-subtle flex items-center justify-around px-2 pt-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] backdrop-blur">
         {getBottomNavItems(profile.career_stage).map(item => {
           const active = pathname === item.href || pathname.startsWith(item.href + '/')
           return (
@@ -317,7 +330,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         </div>
 
         {/* Main nav */}
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto flex flex-col">
+        <nav aria-label="Main navigation" className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto flex flex-col">
           <div className="space-y-0.5">
             {navItems.map(item => {
               const active = pathname === item.href || pathname.startsWith(item.href + '/')

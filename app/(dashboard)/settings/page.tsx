@@ -21,6 +21,10 @@ const CAREER_STAGES = [
   { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
 ]
 
+const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
+  recovery_required: 'A valid password reset link is required to change your password.',
+}
+
 type ProfileState = {
   first_name: string
   last_name: string
@@ -78,6 +82,8 @@ export default function SettingsPage() {
   const [exportLoading, setExportLoading] = useState(false)
   const [origin, setOrigin] = useState('')
   const [settingsSearch, setSettingsSearch] = useState('')
+  const [studentEmailError, setStudentEmailError] = useState<string | null>(null)
+  const settingsErrorMessage = SETTINGS_ERROR_MESSAGES[searchParams.get('error') ?? ''] ?? null
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -145,7 +151,8 @@ export default function SettingsPage() {
       'Your signup email is already verified on another Clerkfolio account. If that wasn\'t you, please contact support.',
       'error'
     )
-  }, [addToast, searchParams])
+    if (settingsErrorMessage) addToast(settingsErrorMessage, 'error')
+  }, [addToast, searchParams, settingsErrorMessage])
 
   async function saveProfile(next = profile) {
     setSavingProfile(true)
@@ -268,13 +275,14 @@ export default function SettingsPage() {
   async function sendStudentEmailVerification(e: React.FormEvent) {
     e.preventDefault()
     setSendingStudentEmail(true)
+    setStudentEmailError(null)
     try {
       const res = await fetch('/api/student-email/send-verification', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: studentEmail.email }),
       })
-      const body = await res.json()
+      const body = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(body.error ?? 'Could not send verification link')
       setStudentEmail(current => ({
         ...current,
@@ -286,7 +294,9 @@ export default function SettingsPage() {
       addToast('Verification link sent', 'success')
       router.refresh()
     } catch (err) {
-      addToast(err instanceof Error ? err.message : 'Could not send verification link', 'error')
+      const message = err instanceof Error ? err.message : 'Could not send verification link'
+      setStudentEmailError(message)
+      addToast(message, 'error')
     } finally {
       setSendingStudentEmail(false)
     }
@@ -369,6 +379,12 @@ export default function SettingsPage() {
         <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Settings</h1>
         <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your profile, plan, data, and preferences.</p>
       </div>
+
+      {settingsErrorMessage && (
+        <div role="alert" className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+          {settingsErrorMessage}
+        </div>
+      )}
 
       <section className="bg-[#141416] border border-[#1B6FD9]/30 rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
@@ -576,6 +592,11 @@ export default function SettingsPage() {
           Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
           {studentEmail.sentAt && !studentEmail.verified ? ' Check your institution inbox for the verification link.' : ''}
         </p>
+        {studentEmailError && (
+          <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            {studentEmailError}
+          </p>
+        )}
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">

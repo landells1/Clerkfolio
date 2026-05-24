@@ -1,13 +1,13 @@
 # Clerkfolio Agent Memory
 
-Last reviewed: 2026-05-20 by Codex.
+Last reviewed: 2026-05-24 by Codex.
 Use this as a compact map, not as the source of truth. Verify details with `rg`, local files, tests, and connectors before changing behavior.
 
 ## What This File Is
 
 - Repo memory for agent sessions working in `C:\Users\SRL20\Documents\Clerkfolio`.
 - Claude Code may read `CLAUDE.md`. Codex does not automatically treat this as persistent memory unless it is explicitly opened in the session; Codex typically relies on its session context and repo instruction files such as `AGENTS.md` when present.
-- Current git state at review: `main` at `86d6e30` / `origin/main`; `CLAUDE.md` itself is untracked (`?? CLAUDE.md`). Decide deliberately whether to add it.
+- Current git state at review: `main` tracking `origin/main`; `CLAUDE.md` is tracked and should be kept current when agent-visible architecture or operational facts change.
 
 ## Project Snapshot
 
@@ -32,13 +32,12 @@ Notes: `npm run build` is the main compile gate. Hooks inject placeholder public
 
 ## Non-Negotiables
 
-- Medical portfolio product: do not add flows that invite or store patient identifiers. Preserve anonymisation warnings but do not include PII checks.
+- Medical portfolio product: do not add flows that invite or store patient identifiers. Preserve anonymisation warnings.
 - Never expose service role, Stripe secrets, Resend keys, webhook secrets, token/API-key hashes, IP hashes, or free-text clinical notes to browsers, logs, exports that should not contain them, share pages, or client components.
 - RLS is a core boundary. Service-role Supabase is only for trusted server contexts after auth/owner/origin/rate checks.
 - Entitlements must be enforced server-side, not only hidden in UI.
 - Stripe is currently treated as sandbox/test mode unless explicitly told otherwise.
 - Supabase leaked password protection is disabled because it requires Supabase Pro; this is a known accepted limitation for now.
-- Do not casually undo audit/remediation work from 2026-05-15 to 2026-05-18.
 - Do not remove the PDF bundling workarounds in `next.config.mjs` without deployed-style PDF export verification.
 
 ## Repo Map
@@ -49,24 +48,25 @@ Notes: `npm run build` is the main compile gate. Hooks inject placeholder public
 - `app/(marketing)/_components/landing/`: landing page and mock UI.
 - `components/`: feature and shared UI.
 - `lib/`: domain logic, Supabase/Stripe clients, entitlements, imports/exports, specialty scoring, PDFs, security helpers.
-- `supabase/migrations/`: audit/remediation migrations from 2026-05-15, 2026-05-16, and 2026-05-18.
+- `supabase/migrations/`: recent audit/remediation migrations and intentionally curated follow-up migrations. This folder is not a complete historical schema dump; some database changes were applied automatically/directly and may not be represented as full create-table history.
 - `tests/`: Vitest unit tests. `e2e/`: Playwright flows.
 
 ## Environment
 
-Documented in `.env.example`: Supabase public URL/anon key/service role, Resend, `CRON_SECRET`, `SHARE_IP_HASH_SALT`, `NEXT_PUBLIC_APP_URL`, Stripe secret/price/webhook secret, Sentry DSNs/auth/org/project/env.
+Documented in `.env.example`: Supabase public URL/anon key/service role, Resend, `CRON_SECRET`, `SHARE_IP_HASH_SALT`, optional Upstash Redis REST URL/token, `NEXT_PUBLIC_APP_URL`, Stripe secret/price/webhook secret, Sentry DSNs/auth/org/project/env.
 
-Rate limiting also supports `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; these are used by `lib/rate-limit.ts` but are not currently in `.env.example`.
+`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are optional but recommended in production. Without them, `lib/rate-limit.ts` falls back to per-instance in-memory buckets.
 
 ## Live Supabase State
 
-Verified read-only with connector on 2026-05-20.
+Verified read-only with connector on 2026-05-24 for `entry_revisions`; broader table list below should be re-checked before schema work.
 
 - Project ref/name: `dldhnstjngendpcywthv` / Clerkfolio.
 - Region/status: `eu-west-2`, `ACTIVE_HEALTHY`.
 - DB: Postgres 17.6.1.
 - All public tables reported by connector have RLS enabled.
-- Public tables: `profiles`, `portfolio_entries`, `cases`, `deadlines`, `evidence_files`, `goals`, `specialty_applications`, `specialty_entry_links`, `templates`, `arcp_capabilities`, `arcp_entry_links`, `share_links`, `notifications`, `custom_competency_themes`, `entry_revisions`, `audit_log`, `share_views`, `referrals`, `share_access_attempts`, `student_email_verification_tokens`, `snippets`, `personal_log`, `saved_searches`, `api_keys`, `session_fingerprints`, `stripe_webhook_events`.
+- Public tables previously verified: `profiles`, `portfolio_entries`, `cases`, `deadlines`, `evidence_files`, `goals`, `specialty_applications`, `specialty_entry_links`, `templates`, `arcp_capabilities`, `arcp_entry_links`, `share_links`, `notifications`, `custom_competency_themes`, `audit_log`, `share_views`, `referrals`, `share_access_attempts`, `student_email_verification_tokens`, `snippets`, `personal_log`, `saved_searches`, `api_keys`, `session_fingerprints`, `stripe_webhook_events`.
+- `entry_revisions` is intentionally absent as of 2026-05-24. Commit `fcb4f0a` (`fix: ISSUE-011 remove version history`) removed the history UI/API and added `supabase/migrations/2026_05_23_drop_entry_revisions.sql`. Do not recreate it for old test expectations unless version history is explicitly re-scoped as a new feature.
 - Edge Function: `scan-evidence`, active, JWT verification enabled.
 - Storage bucket `evidence`: private, 50 MB file cap. Bucket allows PDF, JPEG/JPG, PNG, HEIC/HEIF, DOC/DOCX, XLS/XLSX, PPT/PPTX, TXT.
 - App-side upload allowlist in `lib/supabase/storage.ts` is narrower: PDF, DOC/DOCX, XLSX, PPTX, TXT, PNG, JPEG, HEIC/HEIF. Reconcile intentionally before changing bucket or app MIME behavior.
@@ -86,6 +86,7 @@ Important local migrations:
 - `2026_05_16_grant_authenticated_rpcs.sql`: restores grants for user-callable RPCs.
 - `2026_05_18_audit_remediation.sql`: profile write guard, signup/profile self-healing, share link RLS, specialty cap, institutional email confirmation.
 - `2026_05_18_audit_remediation_phase2.sql`: removes direct storage upload policy, orphan upload cleanup, audit auth email trigger.
+- Later local migrations include phase 3/4 audit hardening, active share-link entitlement tracking, and the intentional `entry_revisions` removal. Treat migrations as change history, not as a complete database schema source.
 
 High-value functions: `claim_free_pdf_export`, `get_profile_entitlements`, `increment_pro_feature_usage`, `guard_profile_writes`, `handle_new_user`, `ensure_profile_for_current_user`, `confirm_student_email_token`, `enforce_specialty_track_cap`, `audit_auth_email_change`, `rename_user_tag`.
 
@@ -234,7 +235,8 @@ Dark, dense, professional medical dashboard. Primary background around `#0B0B0C`
 
 ## Known Gotchas
 
-- `CLAUDE.md` is currently untracked even though the old text said it was intended to be committed. `.claude/`, `HANDOVER.md`, and `/docs/` are ignored.
+- `CLAUDE.md` is tracked; `.claude/`, `HANDOVER.md`, and `/docs/` are ignored.
+- Supabase live schema is the source of truth when local migrations and `CLAUDE.md` disagree. The local `supabase/migrations` folder does not contain every historical schema creation statement.
 - Windows console may display UTF-8 comments as mojibake; do not rewrite source just for display artifacts.
 - `next.config.mjs` has long PDF tracing includes and `serverExternalPackages` for React/PDF compatibility. Ugly but intentional.
 - `lib/pdf/portfolio-pdf-runtime.cjs` is dynamically loaded; static tracing will miss it without explicit includes.

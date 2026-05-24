@@ -45,7 +45,7 @@ export default function UpdatePasswordPage() {
     // page; clearing it after a successful change prevents replay.
     await fetch('/api/auth/clear-recovery', { method: 'POST' })
 
-    router.push('/dashboard')
+    router.push('/dashboard?password=updated')
     router.refresh()
   }
 

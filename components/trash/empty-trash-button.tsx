@@ -31,6 +31,13 @@ export default function EmptyTrashButton() {
 
     const entryIds = (expiredEntries ?? []).map(row => row.id)
     const caseIds = (expiredCases ?? []).map(row => row.id)
+    if (entryIds.length === 0 && caseIds.length === 0) {
+      setLoading(false)
+      addToast('No items are eligible for permanent deletion yet. Deleted items stay restorable for 30 days.', 'info')
+      setOpen(false)
+      setConfirm('')
+      return
+    }
     const evidenceQueries = [
       entryIds.length
         ? supabase.from('evidence_files').select('id, file_path').eq('user_id', user.id).eq('entry_type', 'portfolio').in('entry_id', entryIds)

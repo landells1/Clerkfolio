@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { Resend } from 'resend'
-import { createServiceClient } from '@/lib/supabase/server'
+import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -106,6 +106,48 @@ export async function POST(req: NextRequest) {
   if (new Date(link.expires_at).getTime() < Date.now()) {
     await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
     return NextResponse.json({ error: 'This share link has expired.' }, { status: 410 })
+  }
+
+  const userClient = createClient()
+  const { data: { user: authenticatedUser } } = await userClient.auth.getUser()
+  if (authenticatedUser?.id === link.user_id) {
+    let ownerQuery = supabase
+      .from('portfolio_entries')
+      .select('id, title, date, category, specialty_tags, interview_themes, notes, refl_free_text, created_at, updated_at')
+      .eq('user_id', link.user_id)
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+
+    if (link.scope === 'specialty' && link.specialty_key) {
+      ownerQuery = ownerQuery.contains('specialty_tags', [link.specialty_key])
+    }
+    if (link.scope === 'theme' && link.theme_slug) {
+      ownerQuery = ownerQuery.contains('interview_themes', [link.theme_slug])
+    }
+
+    const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
+      supabase.from('profiles').select('first_name, last_name').eq('id', link.user_id).maybeSingle(),
+      ownerQuery,
+    ])
+
+    if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
+
+    return NextResponse.json({
+      ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio user',
+      scope: link.scope,
+      specialtyKey: link.specialty_key,
+      specialtyLabel: link.specialty_key ? formatTag(link.specialty_key) : null,
+      themeSlug: link.theme_slug,
+      expiresAt: link.expires_at,
+      entries: (entries ?? []).map(entry => ({
+        ...entry,
+        notes: link.hide_notes ? null : entry.notes,
+        refl_free_text: link.hide_reflection ? null : entry.refl_free_text,
+        specialty_tags: link.redact_tags ? [] : entry.specialty_tags,
+        specialty_tag_labels: link.redact_tags ? [] : (entry.specialty_tags ?? []).map(formatTag),
+      })),
+      watermark: 'Owner preview',
+    })
   }
 
   let ipHash: string
