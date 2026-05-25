@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { createClient } from '@/lib/supabase/client'
 
 type Draft = {
   key: string
@@ -25,42 +24,36 @@ function draftLabel(key: string, category?: string) {
     ?? slug.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase())
 }
 
-export default function ResumeDraftsCard() {
+export default function ResumeDraftsCard({ userId }: { userId: string }) {
   const [drafts, setDrafts] = useState<Draft[]>([])
   const [dismissed, setDismissed] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user || cancelled) return
-      const matches: Draft[] = []
-      for (let index = 0; index < sessionStorage.length; index++) {
-        const key = sessionStorage.key(index)
-        if (!key || !/^clerkfolio-.*-draft:.+$/.test(key) || !key.endsWith(`:${user.id}`)) continue
-        try {
-          const raw = sessionStorage.getItem(key)
-          if (!raw) continue
-          const parsed = JSON.parse(raw)
-          if (parsed._expires && Date.now() > parsed._expires) {
-            sessionStorage.removeItem(key)
-            continue
-          }
-          const category = key.startsWith('clerkfolio-case-draft:') ? 'case' : parsed.category ?? key.replace(/^clerkfolio-/, '').replace(/-draft:.+$/, '')
-          matches.push({
-            key,
-            title: parsed.title || 'Untitled draft',
-            href: draftHref(key, category),
-            label: draftLabel(key, category),
-          })
-        } catch {
+    const matches: Draft[] = []
+    for (let index = 0; index < sessionStorage.length; index++) {
+      const key = sessionStorage.key(index)
+      if (!key || !/^clerkfolio-.*-draft:.+$/.test(key) || !key.endsWith(`:${userId}`)) continue
+      try {
+        const raw = sessionStorage.getItem(key)
+        if (!raw) continue
+        const parsed = JSON.parse(raw)
+        if (parsed._expires && Date.now() > parsed._expires) {
+          sessionStorage.removeItem(key)
           continue
         }
+        const category = key.startsWith('clerkfolio-case-draft:') ? 'case' : parsed.category ?? key.replace(/^clerkfolio-/, '').replace(/-draft:.+$/, '')
+        matches.push({
+          key,
+          title: parsed.title || 'Untitled draft',
+          href: draftHref(key, category),
+          label: draftLabel(key, category),
+        })
+      } catch {
+        continue
       }
-      setDrafts(matches.slice(0, 3))
-    })
-    return () => { cancelled = true }
-  }, [])
+    }
+    setDrafts(matches.slice(0, 3))
+  }, [userId])
 
   if (drafts.length === 0 || dismissed) return null
 

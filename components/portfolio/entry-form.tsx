@@ -23,6 +23,7 @@ type Props = {
   userInterests?: string[]
   defaultCategory?: Category
   templates?: Template[]
+  authenticatedUserId?: string
 }
 
 const INTERVIEW_READY_OPTIONS = ['imt', 'cst', 'gp', 'accs', 'st3', 'arcp'] as const
@@ -139,7 +140,7 @@ function CheckboxField({ label, checked, onChange }: { label: string; checked: b
   )
 }
 
-export default function EntryForm({ mode, initialData, userInterests = [], defaultCategory, templates = [] }: Props) {
+export default function EntryForm({ mode, initialData, userInterests = [], defaultCategory, templates = [], authenticatedUserId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
@@ -151,8 +152,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [category, setCategory] = useState<Category>(
     initialData?.category ?? defaultCategory ?? 'audit_qip'
   )
-  const [userId, setUserId] = useState<string | null>(null)
-  const draftKey = userId ? draftKeyForCategory(category, userId) : null
+  const draftKey = mode === 'create' && authenticatedUserId ? draftKeyForCategory(category, authenticatedUserId) : null
   const [title, setTitle] = useState(initialData?.title ?? '')
   // Init empty to avoid SSR/client hydration mismatch when the new-entry page
   // straddles UTC midnight. Today's date is filled in by the post-mount
@@ -272,15 +272,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   useEffect(() => {
     setDate(current => current || new Date().toISOString().split('T')[0])
   }, [])
-
-  useEffect(() => {
-    if (mode !== 'create') return
-    let cancelled = false
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!cancelled) setUserId(user?.id ?? null)
-    })
-    return () => { cancelled = true }
-  }, [mode, supabase.auth])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
 
@@ -489,7 +480,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    if (!user) {
+      setError('Your session could not be confirmed. Refresh the page or sign in again, then retry.')
+      setSaving(false)
+      return
+    }
 
     const payload = buildPayload()
     const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'portfolio') }

@@ -12,6 +12,7 @@ const sentryEnvironment = process.env.VERCEL_ENV
   ?? (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
 const nextConfig = {
+  poweredByHeader: false,
   // Expose the resolved Vercel environment at build time. A literal
   // "$VERCEL_ENV" value is not expanded inside the browser bundle.
   env: {

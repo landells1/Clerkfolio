@@ -1,19 +1,13 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-function applySecurityHeaders(response: NextResponse): NextResponse {
-  response.headers.set('X-Frame-Options', 'DENY')
-  response.headers.set('X-Content-Type-Options', 'nosniff')
-  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
-  response.headers.set(
-    'Content-Security-Policy',
-    [
+function contentSecurityPolicy(nonce: string): string {
+  return [
       "default-src 'self'",
-      // Next.js requires unsafe-inline/unsafe-eval; nonce-based CSP would require
-      // per-request nonce injection across every page - adopt that separately.
-      `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://js.stripe.com https://va.vercel-insights.com`,
+      `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${process.env.NODE_ENV === 'development' ? " 'unsafe-eval'" : ''} https://js.stripe.com https://va.vercel-insights.com`,
+      // Dynamic style attributes are used throughout the dashboard for charts,
+      // progress bars and positioned UI. Moving these to nonce-aware styles is
+      // a separate migration; script execution is the higher-risk CSP control.
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com",
@@ -26,7 +20,15 @@ function applySecurityHeaders(response: NextResponse): NextResponse {
       "base-uri 'self'",
       "form-action 'self'",
     ].join('; ')
-  )
+}
+
+function applySecurityHeaders(response: NextResponse, nonce: string): NextResponse {
+  response.headers.set('X-Frame-Options', 'DENY')
+  response.headers.set('X-Content-Type-Options', 'nosniff')
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin')
+  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains')
+  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()')
+  response.headers.set('Content-Security-Policy', contentSecurityPolicy(nonce))
   return response
 }
 
@@ -61,7 +63,11 @@ function readSessionId(token: string | undefined): string | null {
 }
 
 export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+  const nonce = btoa(crypto.randomUUID()).replace(/=+$/, '')
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set('x-nonce', nonce)
+  requestHeaders.set('Content-Security-Policy', contentSecurityPolicy(nonce))
+  let supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -75,7 +81,7 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           )
-          supabaseResponse = NextResponse.next({ request })
+          supabaseResponse = NextResponse.next({ request: { headers: requestHeaders } })
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
           )
@@ -92,7 +98,7 @@ export async function middleware(request: NextRequest) {
     if (slug && slug !== 'www') {
       const url = request.nextUrl.clone()
       url.pathname = `/showcase/${slug}`
-      return applySecurityHeaders(NextResponse.rewrite(url))
+      return applySecurityHeaders(NextResponse.rewrite(url, { request: { headers: requestHeaders } }), nonce)
     }
   }
 
@@ -101,7 +107,7 @@ export async function middleware(request: NextRequest) {
   if (request.method === 'POST' && pathname === '/onboarding') {
     const url = request.nextUrl.clone()
     url.pathname = '/api/onboarding/complete'
-    return applySecurityHeaders(NextResponse.rewrite(url))
+    return applySecurityHeaders(NextResponse.rewrite(url, { request: { headers: requestHeaders } }), nonce)
   }
 
   // ── Always accessible - bypass auth logic entirely ──────────────────────────
@@ -127,7 +133,7 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/auth/') ||
     pathname.startsWith('/r/')
 
-  if (alwaysAccessible) return applySecurityHeaders(supabaseResponse)
+  if (alwaysAccessible) return applySecurityHeaders(supabaseResponse, nonce)
 
   // ── Refresh session - required for Supabase SSR ─────────────────────────────
   const { data: { user } } = await supabase.auth.getUser()
@@ -181,7 +187,7 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       url.searchParams.set('session', 'revoked')
-      return applySecurityHeaders(NextResponse.redirect(url))
+      return applySecurityHeaders(NextResponse.redirect(url), nonce)
     }
 
     if (existing?.id) {
@@ -214,7 +220,7 @@ export async function middleware(request: NextRequest) {
   if (!user && pathname === '/update-password') {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return applySecurityHeaders(NextResponse.redirect(url))
+    return applySecurityHeaders(NextResponse.redirect(url), nonce)
   }
 
   // Known authenticated page prefixes — only redirect these to /login when
@@ -239,7 +245,9 @@ export async function middleware(request: NextRequest) {
   if (!user && isKnownProtectedPage) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
-    return applySecurityHeaders(NextResponse.redirect(url))
+    url.search = ''
+    url.searchParams.set('next', `${pathname}${request.nextUrl.search}`)
+    return applySecurityHeaders(NextResponse.redirect(url), nonce)
   }
 
   // Single profile fetch covers both redirect paths below
@@ -273,7 +281,7 @@ export async function middleware(request: NextRequest) {
       const url = request.nextUrl.clone()
       url.pathname = onboardingComplete ? '/settings' : '/onboarding'
       url.searchParams.set('error', 'recovery_required')
-      return applySecurityHeaders(NextResponse.redirect(url))
+      return applySecurityHeaders(NextResponse.redirect(url), nonce)
     }
   }
 
@@ -282,7 +290,7 @@ export async function middleware(request: NextRequest) {
   if (user && isUnauthRoute && pathname !== '/update-password') {
     const url = request.nextUrl.clone()
     url.pathname = onboardingComplete ? '/dashboard' : '/onboarding'
-    return applySecurityHeaders(NextResponse.redirect(url))
+    return applySecurityHeaders(NextResponse.redirect(url), nonce)
   }
 
   // Logged in on a protected route - enforce onboarding
@@ -290,11 +298,11 @@ export async function middleware(request: NextRequest) {
     if (!onboardingComplete) {
       const url = request.nextUrl.clone()
       url.pathname = '/onboarding'
-      return applySecurityHeaders(NextResponse.redirect(url))
+      return applySecurityHeaders(NextResponse.redirect(url), nonce)
     }
   }
 
-  return applySecurityHeaders(supabaseResponse)
+  return applySecurityHeaders(supabaseResponse, nonce)
 }
 
 export const config = {

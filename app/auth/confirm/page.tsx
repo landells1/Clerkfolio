@@ -1,6 +1,7 @@
 'use client'
 
-import { Suspense, useEffect, useRef, useState } from 'react'
+import { Suspense, useState } from 'react'
+import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
@@ -42,30 +43,17 @@ function ConfirmContent() {
   const next = safeRedirectPath(searchParams.get('next'))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const attemptedRef = useRef(false)
 
-  // Verify email links as soon as their landing page is opened. Recovery
-  // confirmations still run through the server route so the HTTP-only
-  // `cf_recovery` cookie can be set before /update-password renders.
-  useEffect(() => {
-    if (!tokenHash || attemptedRef.current) return
-    attemptedRef.current = true
+  async function handleConfirm() {
+    if (!tokenHash || loading) return
+    setLoading(true)
+    setError(null)
     if (type === 'recovery') {
       const url = new URL('/auth/recovery-confirm', window.location.origin)
       url.searchParams.set('token_hash', tokenHash)
       window.location.replace(url.toString())
       return
     }
-    void handleConfirm()
-  // The token URL is a one-time landing action; handleConfirm intentionally
-  // runs only once for that URL and handles its own state changes.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, tokenHash])
-
-  async function handleConfirm() {
-    if (!tokenHash) return
-    setLoading(true)
-    setError(null)
     const supabase = createClient()
     // If a different user is currently signed in on this browser, sign them
     // out before verifying the OTP. Otherwise the session silently swaps
@@ -104,13 +92,34 @@ function ConfirmContent() {
         {type === 'recovery' ? 'Confirm your password reset' : 'Confirm your email'}
       </h1>
       {tokenHash && !error ? (
-        <p role="status" className="text-sm text-[rgba(245,245,242,0.55)]">
-          {type === 'recovery' ? 'Continuing to reset your password...' : loading ? 'Confirming your email...' : 'Preparing confirmation...'}
-        </p>
+        <>
+          <p role="status" className="mb-5 text-sm text-[rgba(245,245,242,0.55)]">
+            {loading
+              ? type === 'recovery' ? 'Continuing to reset your password...' : 'Confirming your email...'
+              : type === 'recovery'
+                ? 'Select continue to verify this password reset link.'
+                : 'Select confirm to verify your email address.'}
+          </p>
+          <button
+            type="button"
+            onClick={handleConfirm}
+            disabled={loading}
+            className="min-h-[44px] w-full rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50"
+          >
+            {type === 'recovery' ? 'Continue password reset' : 'Confirm email'}
+          </button>
+        </>
       ) : !tokenHash ? (
         <p className="text-sm text-red-400">This link is missing a confirmation token. Please request a new one.</p>
       ) : null}
-      {error && <p className="text-sm text-red-400">{error}</p>}
+      {error && (
+        <>
+          <p className="mb-5 text-sm text-red-400">{error} If you already confirmed your email, log in to continue.</p>
+          <Link href="/login" className="inline-flex min-h-[44px] items-center rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C]">
+            Log in
+          </Link>
+        </>
+      )}
     </div>
   )
 }

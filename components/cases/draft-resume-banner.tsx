@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
 
 const DRAFT_KEY = 'clerkfolio-case-draft'
 
@@ -10,36 +9,28 @@ function draftKeyForUser(userId: string) {
   return `${DRAFT_KEY}:${userId}`
 }
 
-export default function DraftResumeBanner() {
+export default function DraftResumeBanner({ userId }: { userId: string }) {
   const [hasDraft, setHasDraft] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user || cancelled) return
-      const key = draftKeyForUser(user.id)
-      try {
-        const raw = sessionStorage.getItem(key)
-        if (!raw) return
-        const d = JSON.parse(raw)
-        // Check not expired and has meaningful content
-        if (d._expires && Date.now() > d._expires) {
-          sessionStorage.removeItem(key)
-          return
-        }
-        if (d.title?.trim()) setHasDraft(true)
-      } catch {
-        // ignore
+    const key = draftKeyForUser(userId)
+    try {
+      const raw = sessionStorage.getItem(key)
+      if (!raw) return
+      const d = JSON.parse(raw)
+      // Check not expired and has meaningful content
+      if (d._expires && Date.now() > d._expires) {
+        sessionStorage.removeItem(key)
+        return
       }
-    })
-    return () => { cancelled = true }
-  }, [])
+      if (d.title?.trim()) setHasDraft(true)
+    } catch {
+      // ignore
+    }
+  }, [userId])
 
-  async function discard() {
-    const supabase = createClient()
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) sessionStorage.removeItem(draftKeyForUser(user.id))
+  function discard() {
+    sessionStorage.removeItem(draftKeyForUser(userId))
     setHasDraft(false)
   }
 

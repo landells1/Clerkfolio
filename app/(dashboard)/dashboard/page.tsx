@@ -444,7 +444,7 @@ export default async function DashboardPage({
 
         {/* Right widgets column */}
         <div className="space-y-4 mt-5 xl:mt-0">
-          <ResumeDraftsCard />
+          <ResumeDraftsCard userId={user!.id} />
           <CalendarWidget items={calendarItems} />
           <UpcomingTimeline items={upcomingItems} />
           {specialtyProgressRows.length > 0 && (

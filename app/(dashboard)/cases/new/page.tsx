@@ -31,6 +31,7 @@ export default async function NewCasePage() {
         <CaseForm
           mode="create"
           userInterests={specialtyKeys}
+          authenticatedUserId={user!.id}
         />
       </div>
     </div>

@@ -6,6 +6,28 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+const ALLOWED_NEXT_PATHS = new Set([
+  '/dashboard',
+  '/portfolio',
+  '/cases',
+  '/specialties',
+  '/timeline',
+  '/export',
+  '/settings',
+  '/trash',
+  '/upgrade',
+  '/import',
+])
+
+function safeNextPath(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
+  const parsed = new URL(value, 'https://clerkfolio.local')
+  const allowed = [...ALLOWED_NEXT_PATHS].some(path =>
+    parsed.pathname === path || parsed.pathname.startsWith(`${path}/`)
+  )
+  return allowed ? `${parsed.pathname}${parsed.search}` : '/dashboard'
+}
+
 function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -20,6 +42,7 @@ function LoginForm() {
   const wrongAccountVerify = searchParams.get('verify') === 'wrong_account'
   const sessionRevoked = searchParams.get('session') === 'revoked'
   const localLogout = searchParams.get('logout') === 'local'
+  const nextPath = safeNextPath(searchParams.get('next'))
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
@@ -51,7 +74,7 @@ function LoginForm() {
         return
       }
 
-      router.push('/dashboard')
+      router.push(nextPath)
       router.refresh()
     } catch {
       setError('Login is temporarily unavailable. Please try again.')
@@ -88,6 +111,12 @@ function LoginForm() {
       {localLogout && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
           You have been signed out on this device. Other active sessions could not be revoked; change your password if you need to invalidate them.
+        </div>
+      )}
+
+      {nextPath === '/upgrade' && (
+        <div className="bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-blue-100 mb-4">
+          Log in to continue your Pro upgrade.
         </div>
       )}
 
@@ -146,7 +175,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
         Don&apos;t have an account?{' '}
-        <Link href="/signup" className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
+        <Link href={nextPath === '/upgrade' ? '/signup?next=/upgrade' : '/signup'} className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
           Sign up free
         </Link>
       </p>

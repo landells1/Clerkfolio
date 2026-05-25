@@ -19,6 +19,7 @@ type Props = {
   mode: 'create' | 'edit'
   initialData?: Partial<NewCase> & { id?: string }
   userInterests?: string[]
+  authenticatedUserId?: string
 }
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
@@ -32,7 +33,7 @@ function draftKeyForUser(userId: string) {
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
-export default function CaseForm({ mode, initialData, userInterests = [] }: Props) {
+export default function CaseForm({ mode, initialData, userInterests = [], authenticatedUserId }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
@@ -58,7 +59,7 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   const [interviewThemes, setInterviewThemes] = useState<string[]>((initialData as { interview_themes?: string[] })?.interview_themes ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
-  const [draftKey, setDraftKey] = useState<string | null>(null)
+  const draftKey = mode === 'create' && authenticatedUserId ? draftKeyForUser(authenticatedUserId) : null
 
   // Dirty state — ref mirrors state so cleanup closures always see current value
   const [isDirty, setIsDirty] = useState(false)
@@ -73,16 +74,6 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
   // sessionStorage is used deliberately: it is scoped to the browser tab and is
   // cleared when the tab closes or the user logs out. Unlike localStorage it
   // cannot bleed between different users who share a device.
-
-  // Restore draft on mount - notes are intentionally excluded (clinical free text).
-  useEffect(() => {
-    if (mode !== 'create') return
-    let cancelled = false
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!cancelled) setDraftKey(user ? draftKeyForUser(user.id) : null)
-    })
-    return () => { cancelled = true }
-  }, [mode, supabase.auth])
 
   useEffect(() => {
     if (mode !== 'create' || !draftKey) return
@@ -188,7 +179,11 @@ export default function CaseForm({ mode, initialData, userInterests = [] }: Prop
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/login'); return }
+    if (!user) {
+      setError('Your session could not be confirmed. Refresh the page or sign in again, then retry.')
+      setSaving(false)
+      return
+    }
 
     const payload = {
       title: title.trim(),

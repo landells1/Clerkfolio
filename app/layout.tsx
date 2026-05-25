@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { headers } from 'next/headers'
 import './globals.css'
 import PreferencesApplier from '@/components/accessibility/preferences-applier'
 import CookieBanner from '@/components/legal/cookie-banner'
@@ -38,17 +39,20 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const nonce = (await headers()).get('x-nonce') ?? undefined
+
   return (
     <html lang="en" className="dark">
       <head>
         <meta name="theme-color" content="#1B6FD9" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `if ('serviceWorker' in navigator) { window.addEventListener('load', function() { navigator.serviceWorker.register('/sw.js'); }); }`,
           }}

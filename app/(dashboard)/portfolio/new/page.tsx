@@ -64,6 +64,7 @@ export default async function NewEntryPage({
           } : undefined}
           userInterests={specialtyKeys}
           templates={templates}
+          authenticatedUserId={user!.id}
         />
       </div>
     </div>

@@ -115,13 +115,14 @@ export default function SignupPage() {
         Free to start. No credit card required.
       </p>
 
-      <form onSubmit={handleSignup} className="space-y-4">
+      <form action="/api/auth/signup" method="post" onSubmit={handleSignup} className="space-y-4">
         <div>
           <label htmlFor="signup-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
             id="signup-email"
+            name="email"
             type="email"
             required
             autoComplete="email"
@@ -155,6 +156,7 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-password"
+            name="password"
             type="password"
             required
             autoComplete="new-password"
@@ -171,6 +173,7 @@ export default function SignupPage() {
           </label>
           <input
             id="signup-confirm-password"
+            name="confirmPassword"
             type="password"
             required
             autoComplete="off"
@@ -188,6 +191,7 @@ export default function SignupPage() {
           <div className="relative">
             <input
               id="signup-referral-code"
+              name="referralCode"
               type="text"
               autoComplete="off"
               value={referralInput}

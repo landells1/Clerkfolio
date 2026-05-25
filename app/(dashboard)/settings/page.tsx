@@ -613,8 +613,12 @@ export default function SettingsPage() {
         </form>
         <p className="mt-3 text-xs text-[rgba(245,245,242,0.55)]">
           Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
-          {studentEmail.sentAt && !studentEmail.verified ? ' Check your institution inbox for the verification link.' : ''}
         </p>
+        {studentEmail.sentAt && !studentEmail.verified && (
+          <p role="status" className="mt-3 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-sm text-blue-100">
+            We sent a verification link to {studentEmail.email}. Check your institution inbox.
+          </p>
+        )}
         {studentEmailError && (
           <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
             {studentEmailError}

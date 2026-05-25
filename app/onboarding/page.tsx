@@ -231,21 +231,10 @@ export default function OnboardingPage() {
 
         {step === 'specialties' && (
           <section>
-            {isMedicalStudent ? (
-              <>
-                <h2 className="mb-2 text-xl font-semibold tracking-tight">Which specialties interest you?</h2>
-                <p className="mb-4 max-w-2xl text-sm text-fg-2">
-                  Start building evidence early. You can update this any time in Specialties.
-                </p>
-              </>
-            ) : (
-              <>
-                <h2 className="mb-2 text-xl font-semibold tracking-tight">Add your tracked specialty programmes</h2>
-                <p className="mb-4 max-w-2xl text-sm text-fg-2">
-                  We&apos;ll auto-populate application deadlines when you track a programme.
-                </p>
-              </>
-            )}
+            <h2 className="mb-2 text-xl font-semibold tracking-tight">Track your first specialty programme</h2>
+            <p className="mb-4 max-w-2xl text-sm text-fg-2">
+              We&apos;ll organise relevant evidence and auto-populate application deadlines when available.
+            </p>
             <p className="mb-4 max-w-2xl text-sm text-fg-2">
               Free accounts track one specialty at a time. You can change this later from the specialty tracker.
             </p>
