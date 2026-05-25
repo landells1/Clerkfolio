@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 
@@ -10,16 +10,23 @@ function VerifyEmailContent() {
   const token = searchParams.get('token') ?? ''
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const attemptedRef = useRef(false)
+
+  useEffect(() => {
+    if (!token || attemptedRef.current) return
+    attemptedRef.current = true
+    void handleVerify()
+  // Submit exactly once when a user opens this token landing page. The POST
+  // route still checks the authenticated owner before consuming any token.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
 
   async function handleVerify() {
     if (!token) return
     setLoading(true)
     setError(null)
-    // POST so corporate proxies / link-preview bots / browser speculative
-    // prefetch cannot consume the one-time token. The /verify-email page is
-    // already a defence against Outlook Safe Links; submitting via POST
-    // closes the secondary path where a browser auto-follows the landing
-    // page link.
+    // Keep confirmation as POST: link-preview GET requests cannot consume a
+    // token, and the route rejects requests without the owning auth session.
     try {
       const res = await fetch('/api/student-email/confirm', {
         method: 'POST',
@@ -58,19 +65,20 @@ function VerifyEmailContent() {
         </svg>
       </div>
       <h1 className="text-lg font-semibold text-[#F5F5F2] mb-2">Verify your institutional email</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
-        Click the button below to confirm your institutional email address and activate your Student or Foundation tier access.
-      </p>
-      {token ? (
+      {token && !error ? (
+        <p role="status" className="text-sm text-[rgba(245,245,242,0.55)]">
+          {loading ? 'Verifying your institutional email...' : 'Preparing verification...'}
+        </p>
+      ) : !token ? (
+        <p className="text-sm text-red-400">This link is missing a verification token. Please request a new one from Settings.</p>
+      ) : (
         <button
           onClick={handleVerify}
           disabled={loading}
-          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors mt-4"
         >
-          {loading ? 'Verifying...' : 'Verify institutional email'}
+          {loading ? 'Retrying...' : 'Try again'}
         </button>
-      ) : (
-        <p className="text-sm text-red-400">This link is missing a verification token. Please request a new one from Settings.</p>
       )}
       {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
     </div>

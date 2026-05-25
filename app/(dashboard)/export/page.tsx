@@ -9,6 +9,7 @@ import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SectionHeader from '@/components/ui/section-header'
+import { useToast } from '@/components/ui/toast-provider'
 
 type Tab = 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
@@ -81,6 +82,7 @@ function exportScopeLabel(value: string) {
 
 export default function ExportPage() {
   const supabase = createClient()
+  const { addToast } = useToast()
   const errorRef = useRef<HTMLDivElement | null>(null)
   const [tab, setTab] = useState<Tab>('pdf')
   const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
@@ -120,6 +122,8 @@ export default function ExportPage() {
   const [customExpiry, setCustomExpiry] = useState('')
   const [shareLoading, setShareLoading] = useState(false)
   const [copiedToken, setCopiedToken] = useState<string | null>(null)
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
+  const [revokingLink, setRevokingLink] = useState<string | null>(null)
   const copyTimerRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -267,7 +271,7 @@ export default function ExportPage() {
     setGenerating(false)
     if (!res.ok) {
       const json = await res.json()
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free PDF export. Upgrade or delete one to free a slot.` : json.error ?? 'Export failed. Please try again.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Upgrade to Pro for unlimited PDF downloads.` : json.error ?? 'Export failed. Please try again.')
       if (format === 'pdf' && json.error === 'limit_reached') await refreshSubscriptionInfo()
       return
     }
@@ -301,7 +305,7 @@ export default function ExportPage() {
     setYearReviewLoading(false)
     if (!res.ok) {
       const json = await res.json().catch(() => ({}))
-      setError(json.error ?? 'Could not generate year in review PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
       return
     }
     await downloadBlob(res, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -319,7 +323,7 @@ export default function ExportPage() {
     setAppendingPdf(false)
     if (!res.ok) {
       const json = await res.json().catch(() => ({}))
-      setError(json.error ?? 'Could not append entries to PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Appended PDFs, Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
       return
     }
     await downloadBlob(res, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -412,9 +416,16 @@ export default function ExportPage() {
   }
 
   async function revokeShareLink(id: string) {
-    if (!confirm('Are you sure you want to revoke this share link? Existing viewers will lose access immediately.')) return
+    setRevokingLink(id)
     const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
-    if (res.ok) setShareLinks(prev => prev.filter(link => link.id !== id))
+    if (res.ok) {
+      setShareLinks(prev => prev.filter(link => link.id !== id))
+      setConfirmRevoke(null)
+      addToast('Share link revoked', 'success')
+    } else {
+      setError('Could not revoke share link. Please try again.')
+    }
+    setRevokingLink(null)
   }
 
   async function renewShareLink(id: string) {
@@ -423,8 +434,13 @@ export default function ExportPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, days: 30 }),
     })
-    const json = await res.json()
-    if (res.ok) setShareLinks(prev => prev.map(link => link.id === id ? { ...link, expires_at: json.expires_at } : link))
+    const json = await res.json().catch(() => ({}))
+    if (res.ok) {
+      setShareLinks(prev => prev.map(link => link.id === id ? { ...link, expires_at: json.expires_at } : link))
+      addToast(`Share link renewed - expires ${formatDate(json.expires_at)}`, 'success')
+    } else {
+      setError(json.error ?? 'Could not renew share link. Please try again.')
+    }
   }
 
   async function copyLink(token: string) {
@@ -537,7 +553,7 @@ export default function ExportPage() {
                     : 'PDF cap reached on Free'}
                 </p>
                 <p className="text-[rgba(245,245,242,0.55)]">
-                  CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
+                  Application PDF, appended PDFs, Year in review and CV downloads share this allowance. CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
                   {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £9.99/yr</Link>.
                 </p>
               </div>
@@ -730,13 +746,23 @@ export default function ExportPage() {
             <input type="checkbox" checked={includeEvidenceBackup} onChange={e => setIncludeEvidenceBackup(e.target.checked)} />
             Include evidence files
           </label>
+          {subInfo && !subInfo.isPro && (
+            <div className="mt-5 max-w-2xl rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-100">
+              <p className="font-semibold">
+                {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
+              </p>
+              <p className="mt-1 text-[rgba(245,245,242,0.6)]">
+                Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV downloads.
+              </p>
+            </div>
+          )}
           <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
           <button
             type="button"
             onClick={handleYearReview}
-            disabled={yearReviewLoading}
+            disabled={yearReviewLoading || Boolean(subInfo && !subInfo.isPro && !subInfo.limits.canExportPdf)}
             className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
@@ -882,7 +908,28 @@ export default function ExportPage() {
                       <div className="flex flex-wrap gap-2">
                         <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
                         <button onClick={() => renewShareLink(link.id)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">Renew</button>
-                        <button onClick={() => revokeShareLink(link.id)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300">Revoke</button>
+                        {confirmRevoke === link.id ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => setConfirmRevoke(null)}
+                              disabled={revokingLink === link.id}
+                              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] disabled:opacity-50"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => revokeShareLink(link.id)}
+                              disabled={revokingLink === link.id}
+                              className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-red-300 disabled:opacity-50"
+                            >
+                              {revokingLink === link.id ? 'Revoking...' : 'Confirm revoke'}
+                            </button>
+                          </>
+                        ) : (
+                          <button onClick={() => setConfirmRevoke(link.id)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300">Revoke</button>
+                        )}
                       </div>
                     </div>
                   </article>

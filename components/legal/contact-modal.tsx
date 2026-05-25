@@ -54,7 +54,7 @@ export function LegalContactButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        style={{ color: 'inherit', textDecoration: 'none', background: 'none', border: 'none', cursor: 'pointer', fontFamily: 'monospace', fontSize: 11, letterSpacing: 1, padding: 0 }}
+        className="rounded-lg border border-white/[0.08] px-4 py-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft transition-colors hover:border-white/[0.16] hover:text-ink"
       >
         CONTACT
       </button>

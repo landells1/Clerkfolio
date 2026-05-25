@@ -12,17 +12,40 @@ export type SessionRow = {
   created_at: string
 }
 
-const SESSION_DATE_FORMATTER = new Intl.DateTimeFormat('en-GB', {
-  dateStyle: 'short',
-  timeStyle: 'medium',
-  timeZone: 'UTC',
-})
-
-function formatSessionDate(value: string) {
-  return `${SESSION_DATE_FORMATTER.format(new Date(value))} UTC`
+function formatSessionDate(value: string, timezone: string) {
+  try {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: timezone,
+      timeZoneName: 'short',
+    }).format(new Date(value))
+  } catch {
+    return new Intl.DateTimeFormat('en-GB', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Europe/London',
+      timeZoneName: 'short',
+    }).format(new Date(value))
+  }
 }
 
-export default function SessionsList({ initialRows }: { initialRows: SessionRow[] }) {
+function relativeLastSeen(value: string) {
+  const minutes = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 60_000))
+  if (minutes < 1) return 'just now'
+  if (minutes < 60) return `${minutes}m ago`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `${hours}h ago`
+  return `${Math.floor(hours / 24)}d ago`
+}
+
+export default function SessionsList({ initialRows, timezone }: { initialRows: SessionRow[]; timezone: string }) {
   const { addToast } = useToast()
   const [rows, setRows] = useState(initialRows)
 
@@ -46,12 +69,13 @@ export default function SessionsList({ initialRows }: { initialRows: SessionRow[
 
   return (
     <div className="mt-6 space-y-3">
+      <p className="text-xs text-[rgba(245,245,242,0.55)]">Times shown in {timezone}.</p>
       {rows.map(row => (
         <article key={row.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-[#F5F5F2]">{row.user_agent ?? 'Unknown browser'}</p>
-              <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.55)]">{row.ip_hash.slice(0, 12)}... - last seen {formatSessionDate(row.last_seen_at)}</p>
+              <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.55)]">{row.ip_hash.slice(0, 12)}... - last seen {formatSessionDate(row.last_seen_at, timezone)} ({relativeLastSeen(row.last_seen_at)})</p>
             </div>
             {row.revoked_at ? (
               <span className="rounded bg-red-500/10 px-2 py-1 text-xs text-red-100">Revoked</span>

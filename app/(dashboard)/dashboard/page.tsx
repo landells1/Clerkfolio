@@ -149,7 +149,11 @@ export default async function DashboardPage({
       .limit(8),
   ])
   const seededDemos = await ensureDemoStarterPack(supabase, user!.id, profile?.demo_dismissed_at)
-  const changelogEntries = CHANGELOG.filter(entry => !profile?.changelog_seen_at || new Date(entry.date).getTime() > new Date(profile.changelog_seen_at).getTime())
+  // Do not interrupt newly onboarded users with release notes that predate
+  // their account. Existing users see announcements newer than their last
+  // dismissal, while dismissal remains persisted on the profile.
+  const changelogCutoff = profile?.changelog_seen_at ?? profile?.created_at
+  const changelogEntries = CHANGELOG.filter(entry => !changelogCutoff || new Date(entry.date).getTime() > new Date(changelogCutoff).getTime())
   const realEntries = (allEntries ?? []).filter(entry => !entry.is_demo)
   const realCases = (allCases ?? []).filter(c => !c.is_demo)
   const showOnboardingChecklist = Boolean(profile && !profile.onboarding_checklist_dismissed)

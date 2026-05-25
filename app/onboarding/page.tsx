@@ -43,6 +43,7 @@ export default function OnboardingPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [draftLoaded, setDraftLoaded] = useState(false)
+  const [profileContinueAttempted, setProfileContinueAttempted] = useState(false)
 
   const steps = getSteps(careerStage)
   const stepIndex = Math.max(steps.indexOf(step), 0)
@@ -110,6 +111,10 @@ export default function OnboardingPage() {
   }
 
   function next() {
+    if (profileStepBlocked) {
+      setProfileContinueAttempted(true)
+      return
+    }
     setStep(steps[Math.min(stepIndex + 1, steps.length - 1)])
   }
 
@@ -307,14 +312,12 @@ export default function OnboardingPage() {
             <div className="flex flex-col items-end">
               <button
                 onClick={next}
-                disabled={profileStepBlocked}
-                title={profileStepBlocked ? `Complete: ${missingProfileItems.join(', ')}` : undefined}
-                aria-describedby={profileStepBlocked ? profileHintId : undefined}
-                className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-surface-0 disabled:cursor-not-allowed disabled:opacity-55 transition-colors"
+                aria-describedby={profileStepBlocked && profileContinueAttempted ? profileHintId : undefined}
+                className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-surface-0 transition-colors"
               >
                 Continue
               </button>
-              {profileStepBlocked && (
+              {profileStepBlocked && profileContinueAttempted && (
                 <p id={profileHintId} className="mt-2 max-w-xs text-right text-xs text-amber-200">
                   Add your {missingProfileItems.join(', ')} to continue.
                 </p>

@@ -6,13 +6,17 @@ export default async function SessionsPage() {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data, error } = user
-    ? await supabase
-        .from('session_fingerprints')
-        .select('id, ip_hash, user_agent, last_seen_at, revoked_at, created_at')
-        .eq('user_id', user.id)
-        .order('last_seen_at', { ascending: false })
-    : { data: [] as SessionRow[], error: null }
+  const [{ data, error }, { data: profile }] = user
+    ? await Promise.all([
+        supabase
+          .from('session_fingerprints')
+          .select('id, ip_hash, user_agent, last_seen_at, revoked_at, created_at')
+          .eq('user_id', user.id)
+          .order('last_seen_at', { ascending: false }),
+        supabase.from('profiles').select('timezone').eq('id', user.id).maybeSingle(),
+      ])
+    : [{ data: [] as SessionRow[], error: null }, { data: null }]
+  const timezone = profile?.timezone ?? 'Europe/London'
 
   return (
     <div className="max-w-4xl mx-auto p-6 lg:p-8">
@@ -27,7 +31,7 @@ export default async function SessionsPage() {
           Could not load sessions. Refresh the page or try again later.
         </p>
       ) : (
-        <SessionsList initialRows={(data ?? []) as SessionRow[]} />
+        <SessionsList initialRows={(data ?? []) as SessionRow[]} timezone={timezone} />
       )}
     </div>
   )

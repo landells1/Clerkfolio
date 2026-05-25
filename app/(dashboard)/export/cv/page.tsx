@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
 import CvDownloadButton from '@/components/export/cv-download-button'
+import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -47,13 +48,16 @@ export default async function CvGeneratorPage({
   const template = normaliseTemplate(resolvedSearchParams.template)
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: entries } = await supabase
-    .from('portfolio_entries')
-    .select('id, title, date, category, notes, specialty_tags, conf_event_name, pub_journal, pub_status, leader_role, leader_organisation, prize_body')
-    .eq('user_id', user!.id)
-    .is('deleted_at', null)
-    .order('date', { ascending: false })
-    .limit(80)
+  const [{ data: entries }, subInfo] = await Promise.all([
+    supabase
+      .from('portfolio_entries')
+      .select('id, title, date, category, notes, specialty_tags, conf_event_name, pub_journal, pub_status, leader_role, leader_organisation, prize_body')
+      .eq('user_id', user!.id)
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+      .limit(80),
+    fetchSubscriptionInfo(supabase, user!.id),
+  ])
   const rows = dedupeEntries((entries ?? []) as PortfolioEntry[])
   const categoryOrder = TEMPLATE_CATEGORY_ORDER[template]
 
@@ -70,8 +74,14 @@ export default async function CvGeneratorPage({
             {item.label}
           </Link>
         ))}
-        <CvDownloadButton template={template} />
+        <CvDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
       </div>
+      {!subInfo.isPro && (
+        <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
+          {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining. ' : 'Your included PDF has been used. '}
+          CV downloads share the PDF allowance with Application PDF and Year in review downloads.
+        </p>
+      )}
       <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
         <h2 className="text-lg font-semibold text-[#F5F5F2]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
         {rows.length === 0 ? (

@@ -16,6 +16,7 @@ function LoginForm() {
   const supabase = createClient()
 
   const confirmationFailed = searchParams.get('error') === 'confirmation_failed'
+  const recoveryFailed = confirmationFailed && searchParams.get('type') === 'recovery'
   const wrongAccountVerify = searchParams.get('verify') === 'wrong_account'
   const sessionRevoked = searchParams.get('session') === 'revoked'
   const localLogout = searchParams.get('logout') === 'local'
@@ -66,7 +67,9 @@ function LoginForm() {
 
       {confirmationFailed && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100 mb-4">
-          The confirmation link has expired or is invalid. Please sign up again or contact support.
+          {recoveryFailed
+            ? 'This reset link has expired or is invalid. Please request a new password reset link.'
+            : 'The confirmation link has expired or is invalid. Please sign up again or contact support.'}
         </div>
       )}
 

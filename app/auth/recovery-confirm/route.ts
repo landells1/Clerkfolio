@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url)
   const tokenHash = searchParams.get('token_hash') ?? ''
   if (!tokenHash) {
-    return NextResponse.redirect(`${origin}/login?error=confirmation_failed`)
+    return NextResponse.redirect(`${origin}/login?error=confirmation_failed&type=recovery`)
   }
 
   const supabase = createClient()
@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
   })
 
   if (error) {
-    return NextResponse.redirect(`${origin}/login?error=confirmation_failed`)
+    return NextResponse.redirect(`${origin}/login?error=confirmation_failed&type=recovery`)
   }
 
   const response = NextResponse.redirect(`${origin}/update-password`)

@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
@@ -42,18 +42,24 @@ function ConfirmContent() {
   const next = safeRedirectPath(searchParams.get('next'))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const attemptedRef = useRef(false)
 
-  // Recovery confirmations must run through the server route so the HTTP-only
-  // `cf_recovery` cookie can be set. Without that cookie, /update-password
-  // bounces to /settings?error=recovery_required and the user is stuck. We
-  // bounce the browser to /auth/recovery-confirm as soon as we see type=recovery
-  // here; the user never has to click the button below.
+  // Verify email links as soon as their landing page is opened. Recovery
+  // confirmations still run through the server route so the HTTP-only
+  // `cf_recovery` cookie can be set before /update-password renders.
   useEffect(() => {
-    if (type === 'recovery' && tokenHash) {
+    if (!tokenHash || attemptedRef.current) return
+    attemptedRef.current = true
+    if (type === 'recovery') {
       const url = new URL('/auth/recovery-confirm', window.location.origin)
       url.searchParams.set('token_hash', tokenHash)
       window.location.replace(url.toString())
+      return
     }
+    void handleConfirm()
+  // The token URL is a one-time landing action; handleConfirm intentionally
+  // runs only once for that URL and handles its own state changes.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, tokenHash])
 
   async function handleConfirm() {
@@ -97,23 +103,14 @@ function ConfirmContent() {
       <h1 className="text-lg font-semibold text-[#F5F5F2] mb-2">
         {type === 'recovery' ? 'Confirm your password reset' : 'Confirm your email'}
       </h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
-        {type === 'recovery'
-          ? 'Click the button below to continue with your password reset.'
-          : 'Click the button below to confirm your email and activate your account.'}
-      </p>
-      {tokenHash ? (
-        <button
-          onClick={handleConfirm}
-          disabled={loading}
-          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
-        >
-          {loading ? 'Confirming...' : type === 'recovery' ? 'Continue to reset password' : 'Confirm email'}
-        </button>
-      ) : (
+      {tokenHash && !error ? (
+        <p role="status" className="text-sm text-[rgba(245,245,242,0.55)]">
+          {type === 'recovery' ? 'Continuing to reset your password...' : loading ? 'Confirming your email...' : 'Preparing confirmation...'}
+        </p>
+      ) : !tokenHash ? (
         <p className="text-sm text-red-400">This link is missing a confirmation token. Please request a new one.</p>
-      )}
-      {error && <p className="mt-4 text-sm text-red-400">{error}</p>}
+      ) : null}
+      {error && <p className="text-sm text-red-400">{error}</p>}
     </div>
   )
 }

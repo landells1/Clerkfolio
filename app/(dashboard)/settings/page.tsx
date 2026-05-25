@@ -9,6 +9,7 @@ import { isFoundationStage } from '@/lib/billing/foundation-gift'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
+import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 
 const CAREER_STAGES = [
   { value: 'Y1', label: 'Year 1 (Medical Student)' },
@@ -84,6 +85,7 @@ export default function SettingsPage() {
   const [settingsSearch, setSettingsSearch] = useState('')
   const [studentEmailError, setStudentEmailError] = useState<string | null>(null)
   const settingsErrorMessage = SETTINGS_ERROR_MESSAGES[searchParams.get('error') ?? ''] ?? null
+  const returnedFromCheckout = searchParams.get('upgraded') === 'true'
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -107,6 +109,8 @@ export default function SettingsPage() {
       ])
 
       if (data) {
+        const primaryEmail = normaliseEmail(user.email)
+        const suggestedInstitutionEmail = !data.student_email && isInstitutionEmail(primaryEmail) ? primaryEmail : ''
         let referralCode = data.referral_code ?? ''
         if (!/^[A-Z]{5}$/.test(referralCode)) {
           const res = await fetch('/api/referrals/ensure-code', { method: 'POST' })
@@ -129,7 +133,7 @@ export default function SettingsPage() {
         })
         setSubInfo(subInfo)
         setStudentEmail({
-          email: data.student_email ?? '',
+          email: data.student_email ?? suggestedInstitutionEmail,
           verified: data.student_email_verified ?? false,
           verifiedAt: data.student_email_verified_at ?? '',
           dueAt: data.student_email_verification_due_at ?? '',
@@ -394,6 +398,14 @@ export default function SettingsPage() {
       {settingsErrorMessage && (
         <div role="alert" className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
           {settingsErrorMessage}
+        </div>
+      )}
+
+      {returnedFromCheckout && subInfo && (
+        <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+          {subInfo.isPro
+            ? "You're now on Pro - enjoy unlimited exports, 5 GB storage, and unlimited share links."
+            : 'Completing your upgrade. Pro access will appear here once payment confirmation has been processed.'}
         </div>
       )}
 

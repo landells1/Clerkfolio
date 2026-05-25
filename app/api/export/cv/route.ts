@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canExportPdf) {
     return NextResponse.json(
-      { error: 'PDF export limit reached. Upgrade to Pro for unlimited exports.' },
+      { error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' },
       { status: 403 }
     )
   }

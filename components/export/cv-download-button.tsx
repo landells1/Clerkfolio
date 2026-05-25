@@ -2,9 +2,10 @@
 
 import { useState } from 'react'
 
-export default function CvDownloadButton({ template }: { template: string }) {
+export default function CvDownloadButton({ template, isPro, canExportPdf }: { template: string; isPro: boolean; canExportPdf: boolean }) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const allowanceUsed = !isPro && !canExportPdf
 
   async function download() {
     setLoading(true)
@@ -14,7 +15,9 @@ export default function CvDownloadButton({ template }: { template: string }) {
 
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      setError(body.error ?? 'Could not generate your CV PDF.')
+      setError(body.error === 'limit_reached'
+        ? 'Your included PDF has been used. CV, Application PDF and Year in review downloads share this allowance.'
+        : body.error ?? 'Could not generate your CV PDF.')
       return
     }
 
@@ -32,10 +35,11 @@ export default function CvDownloadButton({ template }: { template: string }) {
       <button
         type="button"
         onClick={download}
-        disabled={loading}
+        disabled={loading || allowanceUsed}
+        title={allowanceUsed ? 'Your included PDF allowance has been used' : undefined}
         className="rounded-xl bg-[#F5F5F2] px-4 py-2 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50"
       >
-        {loading ? 'Preparing PDF...' : 'Download PDF'}
+        {loading ? 'Preparing PDF...' : allowanceUsed ? 'PDF allowance used' : 'Download PDF'}
       </button>
       {error && (
         <div className="max-w-xs rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-100">

@@ -190,5 +190,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/login?error=confirmation_failed`)
+  const errorContext = next === '/update-password' ? '&type=recovery' : ''
+  return NextResponse.redirect(`${origin}/login?error=confirmation_failed${errorContext}`)
 }

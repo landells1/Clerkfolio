@@ -16,9 +16,10 @@ function respond(status: ConfirmStatus, extra: Record<string, unknown> = {}) {
   return NextResponse.json({ status, ...extra }, { status: ok ? 200 : 400 })
 }
 
-// Confirmation is POST-only so corporate proxies, link-preview bots, and
-// browser speculative prefetch can't consume the token. The /verify-email
-// landing page submits this as a real form POST after explicit user click.
+// Confirmation is POST-only so corporate proxies and link-preview GET
+// requests cannot consume the token. The /verify-email landing page submits
+// it after it opens in the authenticated browser; the owner check below
+// prevents an unauthenticated scanner from consuming it.
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
