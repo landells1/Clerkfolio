@@ -100,6 +100,7 @@ export default function ExportPage() {
   const [generating, setGenerating] = useState(false)
   const [backupLoading, setBackupLoading] = useState(false)
   const [yearReviewLoading, setYearReviewLoading] = useState(false)
+  const [markdownLoading, setMarkdownLoading] = useState(false)
   const [includeEvidenceBackup, setIncludeEvidenceBackup] = useState(true)
   const [appendPdfFile, setAppendPdfFile] = useState<File | null>(null)
   const [appendingPdf, setAppendingPdf] = useState(false)
@@ -108,6 +109,7 @@ export default function ExportPage() {
 
   const [shareLinks, setShareLinks] = useState<ShareLink[]>([])
   const [shareScope, setShareScope] = useState<ShareScope>('specialty')
+  const [shareSpecialty, setShareSpecialty] = useState('')
   const [shareTheme, setShareTheme] = useState('')
   const [sharePin, setSharePin] = useState('')
   const [hideNotes, setHideNotes] = useState(true)
@@ -150,7 +152,13 @@ export default function ExportPage() {
       })
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }))
       setPortfolioTags(sorted)
-      setTrackedApps(apps ?? [])
+      const activeApps = (apps ?? []) as TrackedApp[]
+      setTrackedApps(activeApps)
+      setShareSpecialty(current =>
+        activeApps.some(app => app.specialty_key === current)
+          ? current
+          : activeApps[0]?.specialty_key ?? ''
+      )
       setShareLinks((links ?? []) as ShareLink[])
       setSpecialty(sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? ALL_RECORDS)
     }
@@ -235,6 +243,11 @@ export default function ExportPage() {
     URL.revokeObjectURL(url)
   }
 
+  async function refreshSubscriptionInfo() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) setSubInfo(await fetchSubscriptionInfo(supabase, user.id))
+  }
+
   async function handleGenerate() {
     if (totalSelected === 0) return
     if (format === 'pdf' && selectedEntryIds.size === 0) {
@@ -255,10 +268,12 @@ export default function ExportPage() {
     if (!res.ok) {
       const json = await res.json()
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free PDF export. Upgrade or delete one to free a slot.` : json.error ?? 'Export failed. Please try again.')
+      if (format === 'pdf' && json.error === 'limit_reached') await refreshSubscriptionInfo()
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
     await downloadBlob(res, `clerkfolio-${specialty || 'portfolio'}-${dateStr}.${format}`)
+    if (format === 'pdf') await refreshSubscriptionInfo()
   }
 
   async function handleBackup() {
@@ -290,6 +305,7 @@ export default function ExportPage() {
       return
     }
     await downloadBlob(res, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
+    await refreshSubscriptionInfo()
   }
 
   async function handleAppendPdf() {
@@ -307,6 +323,25 @@ export default function ExportPage() {
       return
     }
     await downloadBlob(res, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
+    await refreshSubscriptionInfo()
+  }
+
+  async function handleMarkdownExport() {
+    setMarkdownLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/export/markdown')
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}))
+        setError(json.error ?? 'Could not export reflections. Please try again.')
+        return
+      }
+      await downloadBlob(res, `clerkfolio-reflections-${new Date().toISOString().split('T')[0]}.md`)
+    } catch {
+      setError('Could not export reflections. Please try again.')
+    } finally {
+      setMarkdownLoading(false)
+    }
   }
 
   async function downloadEvidenceZip(entryId: string, title: string) {
@@ -323,6 +358,10 @@ export default function ExportPage() {
     const trimmedPin = sharePin.trim()
     if (trimmedPin && !/^\d{4,8}$/.test(trimmedPin)) {
       setError('PIN must be 4-8 digits.')
+      return
+    }
+    if (shareScope === 'specialty' && !shareSpecialty) {
+      setError('Track a specialty before creating a specialty-scoped link.')
       return
     }
 
@@ -346,7 +385,7 @@ export default function ExportPage() {
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           scope: shareScope,
-          specialty_key: shareScope === 'specialty' ? specialty : null,
+          specialty_key: shareScope === 'specialty' ? shareSpecialty : null,
           theme_slug: shareScope === 'theme' ? shareTheme : null,
           expires_at: expiresAt,
           pin: trimmedPin || null,
@@ -417,7 +456,7 @@ export default function ExportPage() {
                 Free plan limits active
               </Link>
             )}
-            <Link href="/export/cv" className="rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors">
+            <Link href="/export/cv" prefetch={false} className="rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors">
               CV generator
             </Link>
             <Link href="/export/linkedin" className="rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors">
@@ -702,9 +741,14 @@ export default function ExportPage() {
           >
             {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
           </button>
-          <a href="/api/export/markdown" className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
-            Reflections MD
-          </a>
+          <button
+            type="button"
+            onClick={handleMarkdownExport}
+            disabled={markdownLoading}
+            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16] disabled:opacity-50"
+          >
+            {markdownLoading ? 'Exporting...' : 'Reflections MD'}
+          </button>
         </section>
       )}
 
@@ -734,11 +778,21 @@ export default function ExportPage() {
               <label className="block">
                 <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Scope</span>
                 <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
-                  <option value="specialty">Current specialty</option>
+                  <option value="specialty">Tracked specialty</option>
                   <option value="theme">Competency theme</option>
                   <option value="full">Full portfolio</option>
                 </select>
               </label>
+              {shareScope === 'specialty' && (
+                <label className="block">
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Specialty</span>
+                  <select value={shareSpecialty} onChange={e => setShareSpecialty(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+                    {trackedApps.length === 0 && <option value="">No tracked specialties</option>}
+                    {trackedApps.map(app => <option key={app.id} value={app.specialty_key}>{formatSpecialtyLabel(app.specialty_key)}</option>)}
+                  </select>
+                  {trackedApps.length === 0 && <p className="mt-1 text-xs text-amber-200">Track a specialty before creating this type of link.</p>}
+                </label>
+              )}
               {shareScope === 'theme' && (
                 <label className="block">
                   <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Theme</span>
@@ -803,7 +857,7 @@ export default function ExportPage() {
                   Redact tags
                 </label>
               </div>
-              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40 disabled:cursor-not-allowed">
+              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-40 disabled:cursor-not-allowed">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>

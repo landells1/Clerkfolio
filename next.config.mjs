@@ -4,8 +4,19 @@ import { withSentryConfig } from '@sentry/nextjs'
 const appUrl = process.env.NEXT_PUBLIC_APP_URL
 const appHost = appUrl ? new URL(appUrl).host : null
 const vercelHost = process.env.VERCEL_URL ?? null
+const configuredSentryEnvironment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT
+const sentryEnvironment = process.env.VERCEL_ENV
+  ?? (configuredSentryEnvironment && configuredSentryEnvironment !== '$VERCEL_ENV'
+    ? configuredSentryEnvironment
+    : null)
+  ?? (process.env.NODE_ENV === 'production' ? 'production' : 'development')
 
 const nextConfig = {
+  // Expose the resolved Vercel environment at build time. A literal
+  // "$VERCEL_ENV" value is not expanded inside the browser bundle.
+  env: {
+    NEXT_PUBLIC_SENTRY_ENVIRONMENT: sentryEnvironment,
+  },
   // Keep @react-pdf out of Next.js's React 19 vendoring. Next 15 routes use a
   // vendored React 19 that creates elements with $$typeof =
   // Symbol.for("react.transitional.element"), but @react-pdf/reconciler only

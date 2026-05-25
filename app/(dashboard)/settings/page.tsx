@@ -244,11 +244,22 @@ export default function SettingsPage() {
     setPasswordLoading(false)
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
+      if (body?.signInRequired) {
+        router.replace('/login?session=revoked')
+        router.refresh()
+        return
+      }
       addToast(body?.error ?? 'Could not update password. Check the password and try again.', 'error')
       return
     }
+    const body = await res.json().catch(() => ({}))
     setPasswordForm({ current: '', next: '', confirm: '' })
-    addToast('Password updated', 'success')
+    addToast(
+      body?.sessionsRevoked === false
+        ? 'Password updated, but other sessions could not be signed out.'
+        : 'Password updated',
+      body?.sessionsRevoked === false ? 'error' : 'success'
+    )
   }
 
   async function handleDataExport() {

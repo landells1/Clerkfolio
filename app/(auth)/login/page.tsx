@@ -18,37 +18,45 @@ function LoginForm() {
   const confirmationFailed = searchParams.get('error') === 'confirmation_failed'
   const wrongAccountVerify = searchParams.get('verify') === 'wrong_account'
   const sessionRevoked = searchParams.get('session') === 'revoked'
+  const localLogout = searchParams.get('logout') === 'local'
 
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
     setLoading(true)
 
-    const preflight = await fetch('/api/auth/preflight', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'login' }),
-    })
-    if (preflight.status === 429) {
-      setError('Too many login attempts from this network. Please wait an hour and try again.')
+    try {
+      const preflight = await fetch('/api/auth/preflight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'login', email }),
+      })
+      if (preflight.status === 429) {
+        setError('Too many login attempts for this account. Please wait an hour and try again.')
+        return
+      }
+      if (!preflight.ok) {
+        setError('Login is temporarily unavailable. Please try again.')
+        return
+      }
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+      if (error) {
+        // Always return a generic error so an attacker cannot probe whether
+        // a given address is signed up but unconfirmed (vs not signed up at
+        // all vs wrong password).
+        setError('Incorrect email or password. Please try again.')
+        return
+      }
+
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      setError('Login is temporarily unavailable. Please try again.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-
-    if (error) {
-      // Always return a generic error so an attacker cannot probe whether
-      // a given address is signed up but unconfirmed (vs not signed up at
-      // all vs wrong password). Confirmation-pending users can still
-      // re-request the link from the "Forgot password?" / signup flows.
-      setError('Incorrect email or password. Please try again.')
-      setLoading(false)
-      return
-    }
-
-    router.push('/dashboard')
-    router.refresh()
   }
 
   return (
@@ -71,6 +79,12 @@ function LoginForm() {
       {sessionRevoked && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
           That session was revoked. Sign in again to continue.
+        </div>
+      )}
+
+      {localLogout && (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
+          You have been signed out on this device. Other active sessions could not be revoked; change your password if you need to invalidate them.
         </div>
       )}
 

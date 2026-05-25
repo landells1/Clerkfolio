@@ -14,16 +14,20 @@ const USER_EMAIL = 'jetrax20000@gmail.com'
 const state: {
   user: { id: string; email: string } | null
   reauthOk: boolean
+  refreshOk: boolean
   adminUpdateError: { message: string } | null
   authDeleteError: { message: string } | null
   signInCallCount: number
+  signOutScopes: string[]
   auditInsertCount: number
 } = {
   user: { id: USER_ID, email: USER_EMAIL },
   reauthOk: true,
+  refreshOk: true,
   adminUpdateError: null,
   authDeleteError: null,
   signInCallCount: 0,
+  signOutScopes: [],
   auditInsertCount: 0,
 }
 
@@ -35,7 +39,12 @@ vi.mock('@/lib/supabase/server', () => ({
       getUser: async () => ({ data: { user: state.user } }),
       signInWithPassword: async () => {
         state.signInCallCount++
-        return { error: state.reauthOk ? null : { message: 'invalid' } }
+        const ok = state.signInCallCount === 1 ? state.reauthOk : state.refreshOk
+        return { error: ok ? null : { message: 'invalid' } }
+      },
+      signOut: async ({ scope }: { scope: string }) => {
+        state.signOutScopes.push(scope)
+        return { error: null }
       },
     },
   }),
@@ -95,9 +104,11 @@ function req(path: string, body: Record<string, unknown>) {
 beforeEach(() => {
   state.user = { id: USER_ID, email: USER_EMAIL }
   state.reauthOk = true
+  state.refreshOk = true
   state.adminUpdateError = null
   state.authDeleteError = null
   state.signInCallCount = 0
+  state.signOutScopes = []
   state.auditInsertCount = 0
 })
 
@@ -108,8 +119,20 @@ describe('/api/account/password — Codex 2026-05-20 #8 (password change reauth)
       newPassword: 'newPass1234',
     }))
     expect(res.status).toBe(200)
-    expect(state.signInCallCount).toBe(1)
+    expect(state.signInCallCount).toBe(2)
+    expect(state.signOutScopes).toEqual(['others'])
     expect(state.auditInsertCount).toBe(1)
+  })
+
+  it('requires a new sign-in when the replacement session cannot be created', async () => {
+    state.refreshOk = false
+    const res = await changePassword(req('/api/account/password', {
+      currentPassword: 'correct',
+      newPassword: 'newPass1234',
+    }))
+    expect(res.status).toBe(409)
+    expect(await res.json()).toMatchObject({ signInRequired: true })
+    expect(state.signOutScopes).toEqual(['local'])
   })
 
   it('rejects when currentPassword is missing', async () => {

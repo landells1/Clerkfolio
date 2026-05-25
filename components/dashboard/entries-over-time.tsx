@@ -1,5 +1,6 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
 
 export type EntriesOverTimeBucket = {
@@ -30,6 +31,10 @@ const SERIES = [
 ] as const
 
 export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[] }) {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => setMounted(true), [])
+
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
       <div className="mb-4">
@@ -37,7 +42,7 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
         <p className="mt-0.5 text-xs text-[rgba(245,245,242,0.4)]">Last 12 months, grouped by category</p>
       </div>
       <div className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
+        {mounted ? <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 8, right: 8, left: -24, bottom: 0 }}>
             <defs>
               {SERIES.map(([key, color]) => (
@@ -58,7 +63,7 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
               <Area key={key} type="monotone" dataKey={key} stackId="entries" stroke={color} fill={`url(#entry-${key})`} strokeWidth={1.5} />
             ))}
           </AreaChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer> : <div className="h-full w-full" aria-hidden="true" />}
       </div>
     </div>
   )

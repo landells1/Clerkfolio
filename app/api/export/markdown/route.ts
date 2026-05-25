@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import * as Sentry from '@sentry/nextjs'
 
 function escapeHeading(value: string | null | undefined) {
   return (value ?? 'Untitled reflection').replace(/\r?\n/g, ' ').trim()
@@ -18,7 +19,10 @@ export async function GET() {
     .is('deleted_at', null)
     .order('date', { ascending: true })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    Sentry.captureException(error, { tags: { route: '/api/export/markdown' } })
+    return NextResponse.json({ error: 'Could not export reflections. Please try again.' }, { status: 500 })
+  }
 
   const markdown = (data ?? []).map(entry => [
     `# ${entry.date} ${escapeHeading(entry.title)}`,

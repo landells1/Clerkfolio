@@ -71,7 +71,7 @@ async function verifyShareScope(
       .eq('specialty_key', specialtyKey)
       .eq('is_active', true)
       .maybeSingle()
-    return data ? null : 'Specialty not tracked.'
+    return data ? null : 'Select an actively tracked specialty before creating a specialty link.'
   }
 
   if (!themeSlug) return 'Choose a theme to share.'

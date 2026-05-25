@@ -512,7 +512,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
         setUploading(false)
         if (uploadErrors.length > 0) {
-          setError(`Entry saved, but some files failed to upload: ${uploadErrors.join('; ')}`)
+          if (draftKey) sessionStorage.removeItem(draftKey)
+          setIsDirty(false)
+          addToast('Entry saved, but some files failed to upload.', 'error')
+          router.push(`/portfolio/${data.id}?upload=failed`)
           return
         }
       }

@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
-import { checkRateLimit } from '@/lib/rate-limit'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 export type ApiKeyRow = {
   id: string
@@ -51,12 +51,21 @@ export async function authenticateApiKey(req: NextRequest): Promise<
     max: 60,
     windowSeconds: 60,
     prefix: 'apikey',
+    requireDistributed: true,
   })
   if (!rateLimit.success) {
+    if (rateLimit.unavailable) {
+      return {
+        response: NextResponse.json(
+          { error: 'Public API temporarily unavailable' },
+          { status: 503 }
+        ),
+      }
+    }
     return {
       response: NextResponse.json(
         { error: 'Too many requests' },
-        { status: 429, headers: { 'Retry-After': '60' } }
+        { status: 429, headers: rateLimitHeaders(rateLimit, 60) }
       ),
     }
   }

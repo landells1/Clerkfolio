@@ -41,8 +41,15 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   )
 }
 
-export default async function EntryDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function EntryDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ upload?: string }>
+}) {
   const { id } = await params
+  const { upload } = await searchParams
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -100,6 +107,12 @@ export default async function EntryDetailPage({ params }: { params: Promise<{ id
           <DeleteEntryButton id={entry.id} />
         </div>
       </div>
+
+      {upload === 'failed' && (
+        <div className="mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100">
+          This entry was saved, but one or more evidence files could not be uploaded. Use Edit to retry the upload.
+        </div>
+      )}
 
       {/* Main card */}
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 space-y-6">

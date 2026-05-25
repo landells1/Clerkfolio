@@ -191,16 +191,18 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
   async function handleLogout() {
     setLoggingOut(true)
+    clearClientStateOnAuthChange()
     try {
-      clearClientStateOnAuthChange()
       const { error } = await supabase.auth.signOut()
       if (error) throw error
       router.replace('/login')
-      router.refresh()
     } catch {
-      addToast('We could not log you out. Please try again.', 'error')
-      setLoggingOut(false)
+      // A global sign-out can fail upstream. Still clear this browser's
+      // session and be explicit that other sessions may remain valid.
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
+      router.replace('/login?logout=local')
     }
+    router.refresh()
   }
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
@@ -253,6 +255,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         <div className="flex items-center gap-1">
           <Link
             href="/export"
+            prefetch={false}
             className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Share and export"
           >
@@ -283,6 +286,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             <Link
               key={item.href}
               href={item.href}
+              prefetch={false}
               aria-current={active ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 py-1 px-3 min-w-[44px] min-h-[44px] justify-center rounded-lg transition-colors ${
                 active ? 'text-blue-400' : 'text-fg-2'
@@ -306,7 +310,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
       <aside className={`w-[240px] h-screen bg-[#0E0E10] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="flex items-center justify-between border-b border-white/[0.06]">
-        <Link href="/dashboard" onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">
+        <Link href="/dashboard" prefetch={false} onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">
           <div className="w-7 h-7 rounded-md flex items-center justify-center flex-shrink-0" style={{ background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)' }}>
             <svg viewBox="0 0 64 64" width="18" height="18" fill="none">
               <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
@@ -338,6 +342,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 <Link
                   key={item.href}
                   href={item.href}
+                  prefetch={false}
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                     active
@@ -390,6 +395,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           {profile.tier !== 'pro' && (
             <Link
               href="/upgrade"
+              prefetch={false}
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                 pathname === '/upgrade'
@@ -427,6 +433,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           {/* Settings */}
           <Link
             href="/settings"
+            prefetch={false}
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/settings' || pathname.startsWith('/settings/')
@@ -551,9 +558,10 @@ function useUnreadCount() {
       if (!user) return
       const { count: n } = await supabase
         .from('notifications')
-        .select('id', { count: 'exact', head: true })
+        .select('id', { count: 'exact' })
         .eq('user_id', user.id)
         .eq('read', false)
+        .limit(0)
       setCount(n ?? 0)
     }
     load()

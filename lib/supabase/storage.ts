@@ -21,6 +21,14 @@ export const ALLOWED_MIME_TYPES = new Set([
   'image/heic',
   'image/heif',
 ])
+const ALLOWED_FILE_EXTENSIONS = new Set([
+  'pdf', 'doc', 'docx', 'xlsx', 'pptx', 'txt', 'png', 'jpg', 'jpeg', 'heic', 'heif',
+])
+
+export function isAllowedEvidenceFile(file: Pick<File, 'name' | 'type'>) {
+  const extension = file.name.toLowerCase().split('.').pop() ?? ''
+  return ALLOWED_MIME_TYPES.has(file.type) && ALLOWED_FILE_EXTENSIONS.has(extension)
+}
 
 export type EvidenceFile = {
   id: string
@@ -67,7 +75,7 @@ export async function uploadPendingFiles(
 
   for (const file of files) {
     // Client-side MIME guard (UX only - server enforces via /api/upload/authorize)
-    if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    if (!isAllowedEvidenceFile(file)) {
       errors.push(`${file.name}: File type not allowed. Accepted: PDF, DOC, DOCX, XLSX, PPTX, TXT, PNG, JPEG, or HEIC.`)
       continue
     }

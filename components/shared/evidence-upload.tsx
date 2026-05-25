@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { isAllowedEvidenceFile, MAX_FILE_BYTES } from '@/lib/supabase/storage'
 
 /** Renders a live image thumbnail for a local File object, cleaning up the object URL on unmount. */
 function ImagePreview({ file }: { file: File }) {
@@ -18,7 +19,6 @@ function ImagePreview({ file }: { file: File }) {
 }
 
 const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.pptx,.txt,.heic,.heif'
-const MAX_FILE_BYTES = 50 * 1024 * 1024 // 50 MB
 
 function formatBytes(bytes: number) {
   if (bytes < 1024) return `${bytes} B`
@@ -50,6 +50,10 @@ export default function EvidenceUpload({
     const valid: File[] = []
     const errs: string[] = []
     for (const f of Array.from(incoming)) {
+      if (!isAllowedEvidenceFile(f)) {
+        errs.push(`"${f.name}" has an unsupported file type.`)
+        continue
+      }
       if (f.size > MAX_FILE_BYTES) {
         errs.push(`"${f.name}" is too large (max 50 MB per file).`)
         continue
@@ -58,7 +62,7 @@ export default function EvidenceUpload({
         valid.push(f)
       }
     }
-    if (errs.length > 0) setUploadErrors(errs)
+    setUploadErrors(errs)
     onChange([...files, ...valid])
   }
 

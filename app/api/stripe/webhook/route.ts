@@ -24,6 +24,31 @@ function hasPaidAccess(subscription: Stripe.Subscription) {
   return ['active', 'trialing', 'past_due'].includes(subscription.status)
 }
 
+async function recordSubscriptionChange(
+  supabase: ReturnType<typeof createServiceClient>,
+  userId: string,
+  metadata: Record<string, string | null>,
+  title: string,
+  body: string,
+) {
+  const [{ error: auditError }, { error: notificationError }] = await Promise.all([
+    supabase.from('audit_log').insert({
+      user_id: userId,
+      action: 'subscription_changed',
+      metadata,
+    }),
+    supabase.from('notifications').insert({
+      user_id: userId,
+      type: 'billing',
+      title,
+      body,
+      link: '/settings',
+    }),
+  ])
+  if (auditError) console.error('Webhook: failed to write subscription audit event:', auditError.message)
+  if (notificationError) console.error('Webhook: failed to write subscription notification:', notificationError.message)
+}
+
 async function handleStripeEvent(
   event: Stripe.Event,
   supabase: ReturnType<typeof createServiceClient>,
@@ -68,20 +93,38 @@ async function handleStripeEvent(
         return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
       }
 
+      await recordSubscriptionChange(
+        supabase,
+        userId,
+        { event: 'activated', period_end: getPeriodEnd(subscription) },
+        'Pro subscription activated',
+        'Your Clerkfolio Pro access is active.',
+      )
+
       break
     }
 
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription
 
-      const { error: updateError } = await supabase.from('profiles').update({
+      const { data: profile, error: updateError } = await supabase.from('profiles').update({
         tier: hasPaidAccess(subscription) ? 'pro' : 'free',
         subscription_period_end: getPeriodEnd(subscription),
-      }).eq('stripe_subscription_id', subscription.id)
+      }).eq('stripe_subscription_id', subscription.id).select('id').maybeSingle()
 
       if (updateError) {
         console.error('Webhook: failed to update subscription:', updateError.message)
         return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
+
+      if (profile?.id && subscription.cancel_at_period_end) {
+        await recordSubscriptionChange(
+          supabase,
+          profile.id,
+          { event: 'cancellation_scheduled', period_end: getPeriodEnd(subscription) },
+          'Subscription cancellation scheduled',
+          'Your Pro access remains active until the end of your billing period.',
+        )
       }
 
       break
@@ -90,15 +133,25 @@ async function handleStripeEvent(
     case 'customer.subscription.deleted': {
       const subscription = event.data.object as Stripe.Subscription
 
-      const { error: deleteError } = await supabase.from('profiles').update({
+      const { data: profile, error: deleteError } = await supabase.from('profiles').update({
         tier: 'free',
         stripe_subscription_id: null,
         subscription_period_end: null,
-      }).eq('stripe_subscription_id', subscription.id)
+      }).eq('stripe_subscription_id', subscription.id).select('id').maybeSingle()
 
       if (deleteError) {
         console.error('Webhook: failed to cancel subscription:', deleteError.message)
         return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
+
+      if (profile?.id) {
+        await recordSubscriptionChange(
+          supabase,
+          profile.id,
+          { event: 'cancelled', period_end: null },
+          'Pro subscription ended',
+          'Your account has returned to the Free plan.',
+        )
       }
 
       break
@@ -127,7 +180,7 @@ async function handleStripeEvent(
           type: 'payment_failed',
           title: 'Payment failed - please update your billing details',
           body: 'Your subscription payment could not be processed. Visit Settings to update your payment method.',
-          action_url: '/settings',
+          link: '/settings',
         })
       }
       break

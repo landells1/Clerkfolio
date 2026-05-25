@@ -37,48 +37,54 @@ export default function SignupPage() {
 
     setLoading(true)
 
-    const preflight = await fetch('/api/auth/preflight', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'signup' }),
-    })
-    if (preflight.status === 429) {
-      setError('Too many sign-up attempts from this network. Please wait an hour and try again.')
-      setLoading(false)
-      return
-    }
+    try {
+      const preflight = await fetch('/api/auth/preflight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'signup' }),
+      })
+      if (preflight.status === 429) {
+        setError('Too many sign-up attempts from this network. Please wait an hour and try again.')
+        return
+      }
+      if (!preflight.ok) {
+        setError('Sign up is temporarily unavailable. Please try again.')
+        return
+      }
 
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
-        data: {
-          referral_code: referralCode?.match(/^[A-Z]{5}$/) ? referralCode : null,
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          data: {
+            referral_code: referralCode?.match(/^[A-Z]{5}$/) ? referralCode : null,
+          },
         },
-      },
-    })
+      })
 
-    if (error) {
-      console.error('Signup failed:', error.code ?? error.name ?? 'auth_error')
-      setError('We could not create an account with those details. Check the form and try again.')
+      if (error) {
+        console.error('Signup failed:', error.code ?? error.name ?? 'auth_error')
+        setError('We could not create an account with those details. Check the form and try again.')
+        return
+      }
+
+      // If session is null, Supabase requires email confirmation first
+      if (!data.session) {
+        setAwaitingConfirmation(true)
+        return
+      }
+
+      // The referral code travels via raw_user_meta_data and is resolved
+      // server-side in handle_new_user (sets profiles.referred_by) and in the
+      // auth/callback OAuth flow.
+      router.push('/onboarding')
+      router.refresh()
+    } catch {
+      setError('Sign up is temporarily unavailable. Please try again.')
+    } finally {
       setLoading(false)
-      return
     }
-
-    // If session is null, Supabase requires email confirmation first
-    if (!data.session) {
-      setAwaitingConfirmation(true)
-      setLoading(false)
-      return
-    }
-
-    // The referral code travels via raw_user_meta_data and is resolved
-    // server-side in handle_new_user (sets profiles.referred_by) and in the
-    // auth/callback OAuth flow. No client-side lookup needed - that path was
-    // dead code (RLS prevents the SELECT from seeing another user's row).
-    router.push('/onboarding')
-    router.refresh()
   }
 
   if (awaitingConfirmation) {

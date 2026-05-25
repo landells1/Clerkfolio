@@ -61,12 +61,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not update password. Please try again.' }, { status: 500 })
   }
 
-  // Revoke all other active sessions. A password change is a security event;
-  // any session that existed before the change (e.g. a stolen refresh token)
-  // should no longer be usable. 'others' scope leaves the current session
-  // intact so the user's own browser stays logged in.
-  await service.auth.admin.signOut(user.id, 'others')
-
   // Audit row so the user can see "password changed at X" in /settings/audit-log.
   await service.from('audit_log').insert({
     user_id: user.id,
@@ -74,5 +68,25 @@ export async function POST(req: NextRequest) {
     metadata: { at: new Date().toISOString() },
   })
 
-  return NextResponse.json({ ok: true })
+  // Updating the password invalidates the session used above. Establish a
+  // fresh current session through the SSR client so its cookie callbacks
+  // persist valid access and refresh tokens in the browser.
+  const { error: refreshError } = await supabase.auth.signInWithPassword({
+    email: user.email,
+    password: newPassword,
+  })
+  if (refreshError) {
+    await supabase.auth.signOut({ scope: 'local' })
+    return NextResponse.json(
+      { error: 'Password changed. Sign in again to continue.', signInRequired: true },
+      { status: 409 }
+    )
+  }
+
+  // Revoke every older session while preserving the newly created current
+  // session. Client signOut accepts a session scope; the admin API expects a
+  // JWT rather than a user ID.
+  const { error: revokeError } = await supabase.auth.signOut({ scope: 'others' })
+
+  return NextResponse.json({ ok: true, sessionsRevoked: !revokeError })
 }

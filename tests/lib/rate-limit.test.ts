@@ -3,7 +3,7 @@
 // Upstash env vars are not set in tests so checkRateLimit falls through to the
 // per-instance in-memory sliding-window fallback. Tests verify that fallback's
 // behaviour without any Upstash dependency.
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 const GLOBAL_KEY = '__clerkfolio_local_rate_limits__'
@@ -14,6 +14,7 @@ function clearLocalLimits() {
 }
 
 beforeEach(clearLocalLimits)
+afterEach(() => vi.unstubAllEnvs())
 
 describe('checkRateLimit — in-memory fallback (no Upstash)', () => {
   it('allows the first request', async () => {
@@ -55,6 +56,19 @@ describe('checkRateLimit — in-memory fallback (no Upstash)', () => {
     await checkRateLimit({ ...opts, key: 'ip-a' }) // exhausts ip-a
     const r = await checkRateLimit({ ...opts, key: 'ip-b' }) // ip-b is fresh
     expect(r.success).toBe(true)
+  })
+
+  it('fails closed for public API limits in production without Redis', async () => {
+    vi.stubEnv('NODE_ENV', 'production')
+    const result = await checkRateLimit({
+      key: 'public-ip',
+      max: 60,
+      windowSeconds: 60,
+      prefix: 'apikey',
+      requireDistributed: true,
+    })
+    expect(result.success).toBe(false)
+    expect(result.unavailable).toBe(true)
   })
 })
 

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { createHash } from 'crypto'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
@@ -40,8 +41,17 @@ export async function POST(req: NextRequest) {
   }
 
   const limit = LIMITS[action]
+  const email = typeof body?.email === 'string' ? body.email.trim().toLowerCase() : ''
+  if (action === 'login' && !email) {
+    return NextResponse.json({ error: 'Email is required.' }, { status: 400 })
+  }
+  // Prevent one account's failed attempts from blocking other users sharing
+  // a hospital or university network.
+  const loginAccount = email
+    ? createHash('sha256').update(email).digest('hex')
+    : ''
   const rl = await checkRateLimit({
-    key: clientIp(req),
+    key: action === 'login' ? `${clientIp(req)}:${loginAccount}` : clientIp(req),
     max: limit.max,
     windowSeconds: limit.windowSeconds,
     prefix: limit.prefix,

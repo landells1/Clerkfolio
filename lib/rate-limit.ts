@@ -6,6 +6,7 @@ type RateLimitOptions = {
   max: number
   windowSeconds: number
   prefix: string
+  requireDistributed?: boolean
 }
 
 type RateLimitCheck = {
@@ -84,6 +85,16 @@ let warnedNoRedis = false
 export async function checkRateLimit(options: RateLimitOptions): Promise<RateLimitCheck> {
   const limiter = getLimiter(options.prefix, options.max, options.windowSeconds)
   if (limiter) return limiter.limit(options.key)
+
+  if (process.env.NODE_ENV === 'production' && options.requireDistributed) {
+    return {
+      success: false,
+      limit: options.max,
+      remaining: 0,
+      reset: Date.now() + options.windowSeconds * 1000,
+      unavailable: true,
+    }
+  }
 
   if (process.env.NODE_ENV === 'production' && !warnedNoRedis) {
     warnedNoRedis = true
