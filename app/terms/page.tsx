@@ -2,7 +2,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '26 May 2026'
 
 const planRows = [
   ['Free', '100 MB storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.'],
@@ -12,6 +12,10 @@ const planRows = [
 ]
 
 const changelog = [
+  {
+    date: '26 May 2026',
+    changes: 'Clarified that evidence file controls perform file type and format verification; antivirus scanning is not currently provided.',
+  },
   {
     date: '15 May 2026',
     changes: 'Added VAT-inclusive pricing statement; clarified medical device / CDS disclaimer; added REVIEW markers to liability cap and refund sections; added LegalFooter and changelog.',
@@ -112,8 +116,8 @@ export default function TermsPage() {
         <Section title="Evidence files and upload limits">
           <p>
             Evidence uploads are intended for your own certificates, documents, and portfolio evidence. The app currently
-            accepts selected document and image types and applies a per-file size limit, storage quota, MIME type checks,
-            and malware scan status tracking. We may reject, quarantine, remove, or disable files that appear unsafe,
+            accepts selected document and image types and applies a per-file size limit, storage quota, and server-side
+            file type and format checks. We may reject, quarantine, remove, or disable files that appear unsafe,
             unsupported, unlawful, excessive, or contrary to these terms.
           </p>
         </Section>

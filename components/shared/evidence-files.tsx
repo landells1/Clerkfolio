@@ -86,7 +86,7 @@ export default function EvidenceFiles({
             const blocked = status !== 'clean'
             const statusLabel = status === 'clean'
               ? file.scan_provider === 'clamav' ? ' - virus scanned' : ' - MIME verified'
-              : status === 'quarantined' ? ' - quarantined' : ' - scanning'
+              : status === 'quarantined' ? ' - quarantined' : ' - verifying'
             return (
           <li
             key={file.id}

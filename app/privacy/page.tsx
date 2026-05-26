@@ -2,7 +2,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '26 May 2026'
 
 {/* REVIEW: lawyer - replace ICO_REG_PLACEHOLDER with actual ICO registration number once registered, or confirm exemption applies */}
 const ICO_REG = 'REVIEW: ICO registration number not yet confirmed - see note in this file'
@@ -28,8 +28,8 @@ const dataRows = [
   },
   {
     category: 'Evidence files',
-    examples: 'Uploaded file name, storage path, MIME type, file size, linked entry, upload date, and virus scan status. Accepted formats include PDF, DOCX, XLSX, PPTX, TXT, PNG, JPG, JPEG, and HEIC.',
-    purpose: 'To store evidence you upload, enforce storage limits, scan files for malware, and include eligible files in user-requested exports.',
+    examples: 'Uploaded file name, storage path, MIME type, file size, linked entry, upload date, and file verification status. Accepted formats include PDF, DOCX, XLSX, PPTX, TXT, PNG, JPG, JPEG, and HEIC.',
+    purpose: 'To store evidence you upload, enforce storage limits, verify permitted file types and formats, and include eligible files in user-requested exports.',
     lawfulBasis: 'Contract (Art 6(1)(b)); legitimate interests (Art 6(1)(f)) in platform security.',
   },
   {
@@ -88,6 +88,10 @@ const processors = [
 ]
 
 const changelog = [
+  {
+    date: '26 May 2026',
+    changes: 'Clarified that evidence upload controls verify permitted file types and formats; Clerkfolio does not currently claim antivirus scanning of uploaded evidence.',
+  },
   {
     date: '15 May 2026',
     changes: 'Added Art 9 lawful basis for case diary health data; added ICO registration placeholder; expanded international transfers section to include DPF and IDTA details; added Upstash to processors; added links to Cookie policy and DPA; added changelog.',
@@ -279,7 +283,7 @@ export default function PrivacyPage() {
         <Section title="Account deletion and export">
           <p>
             You can export your account data from Clerkfolio. The account export includes database-shaped records and
-            readable JSON, and may include clean evidence files where available. You can also delete your account from the
+            readable JSON, and may include verified evidence files where available. You can also delete your account from the
             app. Account deletion cancels any active Clerkfolio Stripe subscription where possible, removes stored evidence
             files, and deletes the Supabase user account. Some information may remain temporarily in backups, payment
             records, provider logs, or records we must keep for legal, tax, security, or dispute purposes.
@@ -312,7 +316,7 @@ export default function PrivacyPage() {
         <Section title="Security">
           <p>
             Clerkfolio uses Supabase authentication, row level security, private storage paths, plan-aware upload checks,
-            CSRF origin validation on sensitive routes, file type limits, malware scan status tracking, hashed PINs for
+            CSRF origin validation on sensitive routes, server-side file type and format checks, hashed PINs for
             protected share links, hashed IP addresses for share access records, and rate limiting on selected public
             endpoints. No online service can guarantee perfect security, so you should use a strong unique password and
             avoid entering sensitive information that Clerkfolio does not need.

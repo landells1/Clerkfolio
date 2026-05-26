@@ -1,7 +1,7 @@
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '26 May 2026'
 
 export default function SecurityPage() {
   return (
@@ -113,7 +113,7 @@ export default function SecurityPage() {
             <li>CSRF origin validation on all state-changing API routes</li>
             <li>Rate limiting via Upstash Redis on public and sensitive endpoints</li>
             <li>Hashed IP addresses and hashed PINs for share-link access control</li>
-            <li>Server-side MIME type validation and malware scan tracking for evidence uploads</li>
+            <li>Server-side MIME type and file-format validation for evidence uploads; antivirus scanning is not currently provided</li>
             <li>Content Security Policy, X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy headers</li>
             <li>Soft-delete only across all user data; no immediate hard deletes</li>
             <li>Session fingerprint tracking to detect and revoke suspicious sessions</li>

@@ -4,7 +4,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '26 May 2026'
 
 export default function DpaPage() {
   return (
@@ -202,7 +202,7 @@ export default function DpaPage() {
             <li>Hashed PINs for share links; hashed IP addresses for share access audit logs.</li>
             <li>Rate limiting on public endpoints via Upstash Redis.</li>
             <li>CSRF origin validation on state-changing API routes.</li>
-            <li>File type validation and malware scan status tracking for evidence uploads.</li>
+            <li>Server-side file type and file-format validation for evidence uploads; antivirus scanning is not currently provided.</li>
             <li>User-initiated account deletion immediately and permanently removes all personal data, including evidence files, portfolio entries, cases, and all associated records.</li>
             <li>Security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).</li>
           </ul>
