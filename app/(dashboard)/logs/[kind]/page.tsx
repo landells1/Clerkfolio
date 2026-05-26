@@ -126,7 +126,7 @@ export default async function LogsKindPage({
               <p className="mt-1 text-sm text-fg-2">{EMPTY_COPY[tab.kind]}</p>
             </div>
           ) : (
-            <LogList rows={logRows} />
+            <LogList rows={logRows} kind={tab.kind} />
           )}
         </section>
       </div>

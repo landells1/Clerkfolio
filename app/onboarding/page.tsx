@@ -6,15 +6,13 @@ import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
-// Frozen step list across every career stage. The earlier version returned
-// 3 vs 4 entries depending on the picked stage, which made the header counter
-// jump from "1 / 4" to "2 / 3" on the first Continue click. The ARCP step
-// already renders content suitable for both Foundation and non-Foundation
-// audiences (Foundation gets the ARCP tracker; everyone else sees an evidence-
-// model explainer with a Skip button), so the same path is shown to all users.
 const ALL_STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
-function getSteps(_careerStage: string): Step[] {
-  return ALL_STEPS
+const MEDICAL_STUDENT_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
+function isMedicalStudentStage(careerStage: string) {
+  return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS'].includes(careerStage)
+}
+function getSteps(careerStage: string): Step[] {
+  return isMedicalStudentStage(careerStage) ? MEDICAL_STUDENT_STEPS : ALL_STEPS
 }
 
 const CAREER_STAGES = [
@@ -31,6 +29,12 @@ const CAREER_STAGES = [
 const MAX_TRACKED_SPECIALTIES = 1
 const DRAFT_KEY = 'clerkfolio-onboarding-draft'
 
+function safePostOnboardingNext(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
+  const parsed = new URL(value, 'https://clerkfolio.local')
+  return parsed.pathname === '/upgrade' ? `${parsed.pathname}${parsed.search}` : null
+}
+
 export default function OnboardingPage() {
   const router = useRouter()
   const [step, setStep] = useState<Step>('profile')
@@ -44,11 +48,16 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   const [draftLoaded, setDraftLoaded] = useState(false)
   const [profileContinueAttempted, setProfileContinueAttempted] = useState(false)
+  const [postOnboardingNext] = useState<string | null>(() =>
+    typeof window !== 'undefined'
+      ? safePostOnboardingNext(new URLSearchParams(window.location.search).get('next'))
+      : null
+  )
 
   const steps = getSteps(careerStage)
   const stepIndex = Math.max(steps.indexOf(step), 0)
   const progress = Math.round(((stepIndex + 1) / steps.length) * 100)
-  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS'].includes(careerStage)
+  const isMedicalStudent = isMedicalStudentStage(careerStage)
   const missingProfileItems = [
     !firstName.trim() ? 'first name' : null,
     !lastName.trim() ? 'last name' : null,
@@ -102,6 +111,10 @@ export default function OnboardingPage() {
     }))
   }, [careerStage, draftLoaded, firstEntryTarget, firstName, lastName, selectedSpecialties, step, studentGraduationDate])
 
+  useEffect(() => {
+    if (draftLoaded && !steps.includes(step)) setStep('first-entry')
+  }, [draftLoaded, step, steps])
+
   function toggleSpecialty(key: string) {
     setSelectedSpecialties(prev => {
       if (prev.includes(key)) return prev.filter(item => item !== key)
@@ -154,7 +167,8 @@ export default function OnboardingPage() {
 
     setSaving(false)
     window.localStorage.removeItem(DRAFT_KEY)
-    if (target === 'portfolio') router.push('/portfolio/new')
+    if (postOnboardingNext) router.push(postOnboardingNext)
+    else if (target === 'portfolio') router.push('/portfolio/new')
     else if (target === 'case') router.push('/cases/new')
     else router.push('/dashboard')
     router.refresh()
@@ -183,7 +197,7 @@ export default function OnboardingPage() {
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">
             {step === 'profile' && 'Set up your portfolio profile'}
             {step === 'specialties' && 'Choose your first tracked specialty'}
-            {step === 'arcp' && 'Foundation training setup'}
+            {step === 'arcp' && 'Set up your training tracker'}
             {step === 'first-entry' && 'Start with one useful entry'}
           </h1>
         </div>

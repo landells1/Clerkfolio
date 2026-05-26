@@ -1,6 +1,6 @@
 'use client'
 
-import { Suspense, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
@@ -20,9 +20,20 @@ const ALLOWED_NEXT_PATHS = new Set([
 function safeRedirectPath(next: string | null): string {
   if (!next) return '/onboarding'
   if (!next.startsWith('/') || next.startsWith('//')) return '/onboarding'
-  if (ALLOWED_NEXT_PATHS.has(next)) return next
+  const parsed = new URL(next, 'https://clerkfolio.local')
+  if (parsed.pathname === '/onboarding') {
+    const postOnboardingNext = parsed.searchParams.get('next')
+    if (postOnboardingNext?.startsWith('/') && !postOnboardingNext.startsWith('//')) {
+      const target = new URL(postOnboardingNext, 'https://clerkfolio.local')
+      if (target.pathname === '/upgrade') {
+        return `/onboarding?next=${encodeURIComponent(`${target.pathname}${target.search}`)}`
+      }
+    }
+    return '/onboarding'
+  }
+  if (ALLOWED_NEXT_PATHS.has(parsed.pathname)) return `${parsed.pathname}${parsed.search}`
   for (const allowed of ALLOWED_NEXT_PATHS) {
-    if (next.startsWith(allowed + '/')) return next
+    if (parsed.pathname.startsWith(allowed + '/')) return `${parsed.pathname}${parsed.search}`
   }
   return '/onboarding'
 }
@@ -43,6 +54,18 @@ function ConfirmContent() {
   const next = safeRedirectPath(searchParams.get('next'))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [existingEmail, setExistingEmail] = useState<string | null>(null)
+
+  useEffect(() => {
+    let active = true
+    const supabase = createClient()
+    void supabase.auth.getUser().then(({ data: { user } }) => {
+      if (active) setExistingEmail(user?.email ?? null)
+    })
+    return () => {
+      active = false
+    }
+  }, [])
 
   async function handleConfirm() {
     if (!tokenHash || loading) return
@@ -77,6 +100,12 @@ function ConfirmContent() {
       setLoading(false)
       return
     }
+    const claimResponse = await fetch('/api/auth/claim-institutional-email', { method: 'POST' })
+    if (claimResponse.status === 409) {
+      const separator = next.includes('?') ? '&' : '?'
+      window.location.href = `${next}${separator}student_email=conflict`
+      return
+    }
     window.location.href = next
   }
 
@@ -93,6 +122,12 @@ function ConfirmContent() {
       </h1>
       {tokenHash && !error ? (
         <>
+          {existingEmail && (
+            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-left text-sm text-amber-100">
+              You are currently signed in as {existingEmail}. Continuing will sign out this account
+              {type === 'recovery' ? ' before resetting the password for the account linked in this email.' : ' before confirming the email link.'}
+            </p>
+          )}
           <p role="status" className="mb-5 text-sm text-[rgba(245,245,242,0.55)]">
             {loading
               ? type === 'recovery' ? 'Continuing to reset your password...' : 'Confirming your email...'

@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { Logo } from './logo'
+import CookiePreferencesButton from '@/components/legal/cookie-preferences-button'
 
 export function CtaFooter() {
   return (
@@ -29,6 +30,7 @@ export function CtaFooter() {
           <Link href="/security">Security</Link>
           <Link href="/subprocessors">Subprocessors</Link>
           <Link href="/contact">Contact</Link>
+          <CookiePreferencesButton className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim transition-colors hover:text-ink" />
         </div>
       </div>
     </footer>

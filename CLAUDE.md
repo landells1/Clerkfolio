@@ -1,6 +1,6 @@
 # Clerkfolio Agent Memory
 
-Last reviewed: 2026-05-24 by Codex.
+Last reviewed: 2026-05-26 by Codex after settings and QOL remediation work.
 Use this as a compact map, not as the source of truth. Verify details with `rg`, local files, tests, and connectors before changing behavior.
 
 ## What This File Is
@@ -14,7 +14,7 @@ Use this as a compact map, not as the source of truth. Verify details with `rg`,
 - Product: Clerkfolio, a UK doctor / medical student portfolio app.
 - Live site: `https://clerkfolio.co.uk`.
 - GitHub: `https://github.com/landells1/Clerkfolio`.
-- Stack: Next.js App Router 15.5.x, React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash optional rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
+- Stack: Next.js App Router 15.5.x, React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
 - Node engine: `20.x`.
 
 ## Commands
@@ -53,9 +53,11 @@ Notes: `npm run build` is the main compile gate. Hooks inject placeholder public
 
 ## Environment
 
-Documented in `.env.example`: Supabase public URL/anon key/service role, Resend, `CRON_SECRET`, `SHARE_IP_HASH_SALT`, optional Upstash Redis REST URL/token, `NEXT_PUBLIC_APP_URL`, Stripe secret/price/webhook secret, Sentry DSNs/auth/org/project/env.
+Documented in `.env.example`: Supabase public URL/anon key/service role, Resend, `CRON_SECRET`, `SHARE_IP_HASH_SALT`, Upstash Redis REST URL/token, `NEXT_PUBLIC_APP_URL`, Stripe secret/price/webhook secret, Sentry DSNs/auth/org/project/env.
 
-`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are optional but recommended in production. Without them, `lib/rate-limit.ts` falls back to per-instance in-memory buckets.
+`UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` are required before exposing the public API in production. Without them, general UI endpoints can still use per-instance in-memory limiting, but API-key authentication deliberately fails closed with HTTP 503 because a 60/min public limit cannot be enforced cluster-wide.
+
+`next.config.mjs` derives `NEXT_PUBLIC_SENTRY_ENVIRONMENT` from Vercel's `VERCEL_ENV` at build time. Do not configure the client environment as the literal string `$VERCEL_ENV`.
 
 ## Live Supabase State
 
@@ -98,7 +100,11 @@ Auth notes:
 
 - `/auth/callback` handles Supabase confirmation/recovery and sets `cf_recovery` only for password reset flow.
 - Login/reset messaging is generic to reduce enumeration.
-- `/api/auth/preflight` rate-limits signup/login/reset but direct Supabase Auth limits still matter.
+- `/api/auth/preflight` rate-limits signup/login/reset but direct Supabase Auth limits still matter. Login keys include both network IP and a SHA-256 hash of normalized email to avoid hospital/university shared-network lockout.
+- `/api/account/password` verifies the existing password, updates through admin auth, creates a fresh current SSR session with the new password, and requests revocation of other sessions. Do not replace this with a bare admin update.
+- Sidebar logout attempts global sign-out; if Supabase global revocation fails upstream, it still performs best-effort local sign-out and redirects with an explicit warning.
+- Confirmed `.ac.uk`/NHS signup addresses are claimed through `lib/institutional-auth-email.ts` from both PKCE callback and token-hash OTP confirmation paths, then tier is re-derived by `recompute_profile_tier`. Do not restore a second same-inbox verification step.
+- Password-reset confirmation warns before replacing an existing browser session; keep that explicit account-switch acknowledgement in recovery flows.
 - Avoid `user_metadata` for authorization. It is user-editable; use DB/app metadata for authz decisions.
 
 ## Tiers And Entitlements
@@ -123,19 +129,20 @@ Files: `lib/stripe.ts`, `app/api/stripe/checkout/route.ts`, `portal/route.ts`, `
 - Checkout creates/reuses customers, subscription checkout, promotion codes allowed.
 - Webhook verifies signature and uses `stripe_webhook_events` for idempotency.
 - Paid access is `active`, `trialing`, or `past_due`; deleted subscription downgrades to free.
-- Payment failed creates audit log + notification. Refund/dispute creates audit log rows.
+- Activation, scheduled cancellation, and completed cancellation create `subscription_changed` audit rows and billing notifications. Payment failed creates audit log + notification; refund/dispute creates audit log rows.
 - Keep webhook/platform logs free of customer IDs and PII.
 
 ## Evidence Uploads
 
 Canonical flow in `lib/supabase/storage.ts`, `/api/upload/authorize`, `/api/upload/verify`, `/api/cron/purge-orphan-uploads`:
 
+0. The browser rejects unsupported extension/MIME combinations before adding files to staging; this is UX protection only.
 1. Browser asks `/api/upload/authorize`.
 2. Server checks auth, owner, MIME, size, quota and pre-creates `evidence_files` with `scan_status='pending'`.
 3. Server returns a one-time Supabase signed upload URL.
 4. Browser PUTs bytes, then calls `/api/upload/verify`.
 5. Server downloads prefix, magic-byte checks, marks `clean` or `quarantined`.
-6. Edge Function `scan-evidence` is attempted first from client upload helper; route fallback still finalises.
+6. The client attempts Edge Function `scan-evidence` first and uses `/api/upload/verify` as fallback. Current production finalisation records `scan_provider='mime_only'`: that means MIME/signature validation, not antivirus scanning.
 7. Orphan cron purges stale pending rows/storage after 24h.
 
 Do not reintroduce direct user storage INSERTs. Clean signed downloads only (`scan_status='clean'`). Storage caps: Free 100 MB, Student 1 GB, Pro 5 GB, max file 50 MB.
@@ -145,6 +152,7 @@ Do not reintroduce direct user storage INSERTs. Clean signed downloads only (`sc
 Files: `/api/share`, `/api/share/access`, `/share/[token]`, `lib/share/pin.ts`, `lib/share/ssrf.ts`.
 
 - Scopes: `specialty`, `theme`, `full`. Expiry must be future and <= 90 days.
+- Specialty-scoped creation accepts active tracked specialties only; portfolio tags are valid export filters but not valid specialty share scopes.
 - Creation uses user-bound checks first, then service-role insert because user INSERT is intentionally blocked by RLS.
 - Free users get 1 active share link; route has compensating race check and increments usage only after link survives.
 - Tokens: app uses 48 hex; access route accepts 48 or 64 hex for DB/default compatibility.
@@ -160,6 +168,7 @@ Exports:
 - `/api/export`: selected portfolio/cases as PDF/CSV/JSON; PDF currently requires at least one portfolio entry.
 - `/api/export/cv`, `/api/export/pdf-append`, `/api/export/year-review`, `/api/export/markdown`, `/api/export/evidence`, `/api/account/export`.
 - PDF free quota is claimed only after successful render via `claim_free_pdf_export`; CSV/JSON are not blocked by PDF quota.
+- Export UI refreshes entitlement/usage state after PDF-producing operations so displayed free quota is current.
 - CSV prefixes formula-leading chars to prevent spreadsheet execution. Preserve this.
 - PDF runtime uses `lib/pdf/portfolio-pdf-runtime.cjs` via dynamic loader; `next.config.mjs` and `vercel.json` include tracing workarounds for Vercel lambdas.
 - Do not log free-text export content; Sentry captures scrubbed metadata where needed.
@@ -186,6 +195,7 @@ Configured in `vercel.json`, region `lhr1`:
 - Monthly/yearly: monthly-digest day 1 09:00, year-in-review Jan 2 09:00.
 
 All cron routes should call `validateCronSecret` before service-role work.
+Missed `expire-share-links` invocations observed on 2026-05-25 remain a Vercel runtime/dashboard investigation; do not alter schedules without evidence from platform logs.
 
 ## Public API
 
@@ -194,7 +204,7 @@ Files: `lib/api-keys.ts`, `lib/public-api.ts`, `/api/v1/me/*`, `/api/settings/ap
 - API keys are `cfk_` plus base64url token; only prefix is shown/stored for display.
 - SHA-256 token hash is stored for lookup; this is correct for high-entropy API keys.
 - Current scope model is read-only `read`.
-- Auth is Bearer token; API-key auth is per-IP rate-limited at 60/min.
+- Auth is Bearer token; API-key auth is per-IP rate-limited at 60/min through distributed Upstash limiting in production. If Upstash is absent in production, public API authentication returns HTTP 503 rather than accepting unenforceably limited traffic.
 - Public API uses service role but always scopes queries to authenticated key owner.
 
 ## Privacy And Account Lifecycle
@@ -233,6 +243,8 @@ Known test gotcha: check `e2e/fixtures/global-setup.ts` before relying on cleanu
 
 Dark, dense, professional medical dashboard. Primary background around `#0B0B0C`, elevated panels around `#141416`, brand blue `#1B6FD9`. Use existing `components/ui`, feature folders, dashboard providers, sidebar/mobile nav/FAB/command palette patterns. Avoid patient-identifiable example copy.
 
+Optional Vercel Analytics is off by default and configured from the footer `Analytics preferences` control; do not restore a first-visit blocking consent modal while only essential storage loads by default.
+
 ## Known Gotchas
 
 - `CLAUDE.md` is tracked; `.claude/`, `HANDOVER.md`, and `/docs/` are ignored.
@@ -240,10 +252,11 @@ Dark, dense, professional medical dashboard. Primary background around `#0B0B0C`
 - Windows console may display UTF-8 comments as mojibake; do not rewrite source just for display artifacts.
 - `next.config.mjs` has long PDF tracing includes and `serverExternalPackages` for React/PDF compatibility. Ugly but intentional.
 - `lib/pdf/portfolio-pdf-runtime.cjs` is dynamically loaded; static tracing will miss it without explicit includes.
-- Upstash missing in production means per-instance rate limiting fallback; weaker than cross-lambda Redis.
+- Upstash missing in production means per-instance fallback for UI routes and HTTP 503 fail-closed behavior for public API-key routes.
 - Student email verification sends email before writing token/profile sent timestamp to avoid pending-with-no-email states.
 - Share link creation and notifications insert use service role by design after checks.
 - Session fingerprint maintenance is service-role in middleware; revoke route uses service role after owner check.
+- Do not reintroduce segment `loading.tsx` boundaries beneath authenticated settings routes without hard-navigation testing; the prior streaming boundary stranded settings payloads behind a permanent skeleton.
 
 ## Change Playbook
 

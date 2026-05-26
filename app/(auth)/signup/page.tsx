@@ -6,6 +6,12 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { isAcUkEmail, isNhsEmail } from '@/lib/institutional-email'
 
+function safeUpgradeIntent(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return null
+  const parsed = new URL(value, 'https://clerkfolio.local')
+  return parsed.pathname === '/upgrade' ? `${parsed.pathname}${parsed.search}` : null
+}
+
 export default function SignupPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -18,9 +24,17 @@ export default function SignupPage() {
       ? new URLSearchParams(window.location.search).get('ref')?.trim().toUpperCase() ?? ''
       : ''
   )
+  const [upgradeIntent] = useState<string | null>(() =>
+    typeof window !== 'undefined'
+      ? safeUpgradeIntent(new URLSearchParams(window.location.search).get('next'))
+      : null
+  )
   const router = useRouter()
   const supabase = createClient()
   const referralCode = referralInput.trim().toUpperCase() || null
+  const afterConfirmation = upgradeIntent
+    ? `/onboarding?next=${encodeURIComponent(upgradeIntent)}`
+    : '/onboarding'
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -56,7 +70,7 @@ export default function SignupPage() {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?next=/onboarding`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(afterConfirmation)}`,
           data: {
             referral_code: referralCode?.match(/^[A-Z]{5}$/) ? referralCode : null,
           },
@@ -78,7 +92,7 @@ export default function SignupPage() {
       // The referral code travels via raw_user_meta_data and is resolved
       // server-side in handle_new_user (sets profiles.referred_by) and in the
       // auth/callback OAuth flow.
-      router.push('/onboarding')
+      router.push(afterConfirmation)
       router.refresh()
     } catch {
       setError('Sign up is temporarily unavailable. Please try again.')
@@ -116,6 +130,7 @@ export default function SignupPage() {
       </p>
 
       <form action="/api/auth/signup" method="post" onSubmit={handleSignup} className="space-y-4">
+        <input type="hidden" name="next" value={upgradeIntent ?? ''} />
         <div>
           <label htmlFor="signup-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
             Email address

@@ -5,7 +5,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 
-export default function EmptyTrashButton() {
+export default function EmptyTrashButton({
+  eligibleCount,
+  retainedCount,
+  nextEligibleAt,
+}: {
+  eligibleCount: number
+  retainedCount: number
+  nextEligibleAt: string | null
+}) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -17,7 +25,11 @@ export default function EmptyTrashButton() {
     if (confirm !== 'EMPTY') return
     setLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    if (!user) {
+      setLoading(false)
+      addToast('Please sign in again', 'error')
+      return
+    }
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
     const [{ data: expiredEntries, error: entryLookupError }, { data: expiredCases, error: caseLookupError }] = await Promise.all([
       supabase.from('portfolio_entries').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
@@ -87,7 +99,8 @@ export default function EmptyTrashButton() {
       addToast('Could not empty trash', 'error')
       return
     }
-    addToast('Expired trash emptied', 'success')
+    const deletedCount = entryIds.length + caseIds.length
+    addToast(`${deletedCount} expired ${deletedCount === 1 ? 'item' : 'items'} permanently deleted`, 'success')
     setOpen(false)
     setConfirm('')
     router.refresh()
@@ -95,9 +108,25 @@ export default function EmptyTrashButton() {
 
   return (
     <>
-      <button onClick={() => setOpen(true)} className="min-h-[44px] rounded-xl border border-red-500/20 px-4 text-sm font-medium text-red-300">
-        Empty trash
-      </button>
+      <div className="sm:max-w-[260px]">
+        <button
+          onClick={() => setOpen(true)}
+          disabled={eligibleCount === 0}
+          className="min-h-[44px] w-full rounded-xl border border-red-500/20 px-4 text-sm font-medium text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+        >
+          Empty trash
+        </button>
+        {eligibleCount === 0 && retainedCount > 0 && nextEligibleAt && (
+          <p className="mt-2 text-xs leading-relaxed text-[rgba(245,245,242,0.48)]">
+            No items can be permanently deleted yet. The next item becomes eligible after{' '}
+            {new Date(new Date(nextEligibleAt).getTime() + 30 * 86_400_000).toLocaleDateString('en-GB', {
+              day: 'numeric',
+              month: 'short',
+              year: 'numeric',
+            })}.
+          </p>
+        )}
+      </div>
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
           <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl">

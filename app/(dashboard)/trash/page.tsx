@@ -52,6 +52,12 @@ export default async function TrashPage({
   })
 
   const totalItems = filteredItems.length
+  const permanentDeleteCutoff = Date.now() - 30 * 86_400_000
+  const eligibleItems = items.filter(item => new Date(item.deletedAt).getTime() <= permanentDeleteCutoff)
+  const retainedItems = items.filter(item => new Date(item.deletedAt).getTime() > permanentDeleteCutoff)
+  const nextEligibleAt = retainedItems.length > 0
+    ? retainedItems.reduce((next, item) => item.deletedAt < next ? item.deletedAt : next, retainedItems[0].deletedAt)
+    : null
   const totals = {
     entry: filteredItems.filter(item => item.type === 'entry').length,
     case: filteredItems.filter(item => item.type === 'case').length,
@@ -84,7 +90,11 @@ export default async function TrashPage({
             <TrashStat label="Portfolio" value={totals.entry} />
             <TrashStat label="Cases" value={totals.case} />
           </div>
-          <EmptyTrashButton />
+          <EmptyTrashButton
+            eligibleCount={eligibleItems.length}
+            retainedCount={retainedItems.length}
+            nextEligibleAt={nextEligibleAt}
+          />
         </div>
       )}
 

@@ -1,7 +1,6 @@
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { NextRequest, NextResponse } from 'next/server'
-import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
-import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
+import { claimVerifiedInstitutionalAuthEmail } from '@/lib/institutional-auth-email'
 
 // Allowlist of safe post-auth destinations
 const ALLOWED_NEXT_PATHS = [
@@ -17,13 +16,22 @@ const ALLOWED_NEXT_PATHS = [
 
 function safeRedirectPath(next: string | null): string {
   if (!next) return '/onboarding'
-  // Must be a relative path (starts with / but not //)
   if (!next.startsWith('/') || next.startsWith('//')) return '/onboarding'
-  // Must match an allowed prefix
-  if (ALLOWED_NEXT_PATHS.some(allowed => next === allowed || next.startsWith(allowed + '/'))) {
-    return next
+  const parsed = new URL(next, 'https://clerkfolio.local')
+  if (!ALLOWED_NEXT_PATHS.some(allowed => parsed.pathname === allowed || parsed.pathname.startsWith(allowed + '/'))) {
+    return '/onboarding'
   }
-  return '/onboarding'
+  if (parsed.pathname === '/onboarding') {
+    const postOnboardingNext = parsed.searchParams.get('next')
+    if (postOnboardingNext?.startsWith('/') && !postOnboardingNext.startsWith('//')) {
+      const target = new URL(postOnboardingNext, 'https://clerkfolio.local')
+      if (target.pathname === '/upgrade') {
+        return `/onboarding?next=${encodeURIComponent(`${target.pathname}${target.search}`)}`
+      }
+    }
+    return '/onboarding'
+  }
+  return `${parsed.pathname}${parsed.search}`
 }
 
 const RECOVERY_COOKIE = 'cf_recovery'
@@ -87,79 +95,14 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Auto-verify institutional email when the signup email itself is .ac.uk or NHS.
-      // Supabase has already verified the address end-to-end via the confirm link;
-      // forcing a second verification email to the same inbox is pure UX friction
-      // (logged as P3 in the 2026-05-16 e2e). Skip if already verified, or if a
-      // different institutional address is in flight, or if the user is already Pro.
-      if (user?.email) {
-        const signupEmail = normaliseEmail(user.email)
-        if (isInstitutionEmail(signupEmail)) {
-          const service = createServiceClient()
-          const { data: profile } = await service
-            .from('profiles')
-            .select('student_email, student_email_verified')
-            .eq('id', user.id)
-            .single()
-
-          const noInstitutionalSet = !profile?.student_email || normaliseEmail(profile.student_email) === signupEmail
-          if (profile && !profile.student_email_verified && noInstitutionalSet) {
-            // Belt-and-braces: ensure no other verified profile holds this
-            // address. Use a normalised-equality compare via service-role SQL
-            // rather than ilike (where _ and % are wildcards that can false-
-            // match similar-looking institutional addresses).
-            const { data: existingVerifiedProfile } = await service
-              .from('profiles')
-              .select('id')
-              .eq('student_email_verified', true)
-              .eq('student_email', signupEmail)
-              .neq('id', user.id)
-              .maybeSingle()
-
-            if (!existingVerifiedProfile) {
-              const now = new Date()
-              const dueAt = new Date(now)
-              dueAt.setFullYear(dueAt.getFullYear() + 1)
-
-              // Write verification fields only. tier is centrally re-derived by
-              // recompute_profile_tier below so that NHS-verified-before-
-              // onboarding (career_stage still null) is correctly bumped to
-              // 'foundation' once /api/onboarding/complete fires recompute
-              // again.
-              await service
-                .from('profiles')
-                .update({
-                  student_email: signupEmail,
-                  student_email_verified: true,
-                  student_email_verified_at: now.toISOString(),
-                  student_email_verification_due_at: dueAt.toISOString().split('T')[0],
-                })
-                .eq('id', user.id)
-
-              await service.rpc('recompute_profile_tier', { p_user_id: user.id })
-              await grantEligibleReferralReward(service, user.id)
-              await grantPendingReferralRewardsForReferrer(service, user.id)
-            } else {
-              // Another Clerkfolio account already holds this institutional
-              // email as verified. Log the conflict for operators and surface a
-              // banner to the user so they understand why their account is on
-              // the free tier rather than silently failing.
-              await service.from('audit_log').insert({
-                user_id: user.id,
-                action: 'login',
-                metadata: {
-                  event: 'institutional_email_conflict',
-                  email: signupEmail,
-                  conflicting_profile_id: existingVerifiedProfile.id,
-                },
-              })
-              // Append conflict indicator to the redirect target. The settings
-              // page (and onboarding page) handles ?student_email=conflict to
-              // show a banner explaining the situation.
-              const conflictNext = `${next}${next.includes('?') ? '&' : '?'}student_email=conflict`
-              return NextResponse.redirect(`${origin}${conflictNext}`)
-            }
-          }
+      // A confirmed signup email is sufficient proof for institutional tier
+      // eligibility. Use the same claim routine as token-hash confirmation so
+      // the two Supabase email-template modes cannot drift.
+      if (user) {
+        const status = await claimVerifiedInstitutionalAuthEmail(createServiceClient(), user)
+        if (status === 'conflict') {
+          const conflictNext = `${next}${next.includes('?') ? '&' : '?'}student_email=conflict`
+          return NextResponse.redirect(`${origin}${conflictNext}`)
         }
       }
 

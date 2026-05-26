@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Analytics } from '@vercel/analytics/next'
-import { getConsent } from '@/lib/consent'
+import { CONSENT_CHANGED_EVENT, getConsent } from '@/lib/consent'
 
 export default function AnalyticsGate() {
   const [enabled, setEnabled] = useState(false)
@@ -21,7 +21,12 @@ export default function AnalyticsGate() {
       }
     }
     window.addEventListener('storage', onStorage)
-    return () => window.removeEventListener('storage', onStorage)
+    const onConsentChanged = () => setEnabled(getConsent()?.analytics === true)
+    window.addEventListener(CONSENT_CHANGED_EVENT, onConsentChanged)
+    return () => {
+      window.removeEventListener('storage', onStorage)
+      window.removeEventListener(CONSENT_CHANGED_EVENT, onConsentChanged)
+    }
   }, [])
 
   if (!enabled) return null

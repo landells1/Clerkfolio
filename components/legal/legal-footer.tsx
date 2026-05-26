@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import CookiePreferencesButton from '@/components/legal/cookie-preferences-button'
 
 const LEGAL_LINKS = [
   { label: 'Privacy', href: '/privacy' },
@@ -23,6 +24,7 @@ export default function LegalFooter({ className }: { className?: string }) {
             {label}
           </Link>
         ))}
+        <CookiePreferencesButton className="text-xs text-[rgba(245,245,242,0.35)] transition-colors hover:text-[rgba(245,245,242,0.65)]" />
       </div>
       <p className="mt-3 px-6 mx-auto max-w-4xl text-[11px] text-[rgba(245,245,242,0.25)]">
         &copy; {new Date().getFullYear()} Clerkfolio Ltd. Registered in England and Wales.

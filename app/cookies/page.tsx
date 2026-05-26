@@ -36,7 +36,7 @@ const rows: CookieRow[] = [
     category: 'strictly-necessary',
     purpose: 'Records your cookie consent choice (analytics: true/false, timestamp, schema version). Used to decide whether to load Vercel Analytics.',
     expiry: 'Persistent until you clear browser storage or change your preferences',
-    setBy: 'Clerkfolio (consent banner)',
+    setBy: 'Clerkfolio (analytics preferences control)',
   },
   {
     name: 'clerkfolio-case-draft',
@@ -128,15 +128,15 @@ export default function CookiesPage() {
 
         <Section title="Your choices">
           <p>
-            When you first visit Clerkfolio you are shown a cookie banner. You can accept all cookies,
-            reject non-essential cookies, or customise your choices. Your preference is stored in
+            Optional analytics is off by default, so essential-only visitors are not interrupted by a
+            consent banner. Select <strong>Analytics preferences</strong> in the page footer to enable or
+            disable aggregate analytics. Your preference is stored in
             <code className="mx-1 rounded bg-white/[0.06] px-1 py-0.5 text-xs">cf_consent_v1</code>
             in your browser&apos;s local storage.
           </p>
           <p>
-            To change your preferences, clear your browser&apos;s local storage for clerkfolio.co.uk (the banner
-            will reappear on your next visit), or contact{' '}
-            <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
+            You can revisit the footer control at any time to change this choice, or clear your browser&apos;s
+            local storage for clerkfolio.co.uk to return to the default analytics-off state.
           </p>
         </Section>
 
@@ -193,10 +193,9 @@ export default function CookiesPage() {
 
         <Section title="Do Not Track">
           <p>
-            Clerkfolio respects the{' '}
-            <code className="rounded bg-white/[0.06] px-1 py-0.5 text-xs">DNT: 1</code> signal. If your
-            browser sends a Do Not Track header, the cookie banner will default analytics consent to
-            off. Strictly necessary storage is unaffected.
+            Optional analytics remains off unless you explicitly enable it, regardless of your browser&apos;s{' '}
+            <code className="rounded bg-white/[0.06] px-1 py-0.5 text-xs">DNT</code> setting. Strictly
+            necessary storage is unaffected.
           </p>
         </Section>
 

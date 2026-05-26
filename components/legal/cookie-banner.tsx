@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { getConsent, setConsent } from '@/lib/consent'
+import { getConsent, OPEN_CONSENT_EVENT, setConsent } from '@/lib/consent'
 
 export default function CookieBanner() {
   const [visible, setVisible] = useState(false)
@@ -10,11 +10,14 @@ export default function CookieBanner() {
   const [analyticsOn, setAnalyticsOn] = useState(false)
 
   useEffect(() => {
-    if (getConsent() !== null) return
-    // Respect Do Not Track as default-off for analytics
-    const dnt = typeof navigator !== 'undefined' && navigator.doNotTrack === '1'
-    setAnalyticsOn(!dnt)
-    setVisible(true)
+    function openPreferences() {
+      const consent = getConsent()
+      setAnalyticsOn(consent?.analytics === true)
+      setCustomising(true)
+      setVisible(true)
+    }
+    window.addEventListener(OPEN_CONSENT_EVENT, openPreferences)
+    return () => window.removeEventListener(OPEN_CONSENT_EVENT, openPreferences)
   }, [])
 
   if (!visible) return null
@@ -38,13 +41,12 @@ export default function CookieBanner() {
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Cookie preferences"
+      aria-label="Analytics preferences"
       className="fixed bottom-0 left-0 right-0 z-[9999] border-t border-white/[0.08] bg-[#0E0E10] px-4 py-4 shadow-2xl sm:bottom-4 sm:left-4 sm:right-auto sm:max-w-sm sm:rounded-2xl sm:border"
     >
-      <p className="mb-1 text-sm font-semibold text-[#F5F5F2]">We use cookies</p>
+      <p className="mb-1 text-sm font-semibold text-[#F5F5F2]">Analytics preferences</p>
       <p className="mb-3 text-xs leading-6 text-[rgba(245,245,242,0.68)]">
-        Clerkfolio uses essential cookies to keep you signed in. We also use Vercel Analytics to
-        understand aggregate usage - these are off by default.{' '}
+        Essential storage keeps you signed in. Optional Vercel Analytics is off unless you enable it.{' '}
         <Link href="/cookies" className="underline transition-colors hover:text-[#F5F5F2]">
           Cookie policy
         </Link>
@@ -84,21 +86,12 @@ export default function CookieBanner() {
         >
           Reject non-essential
         </button>
-        {customising ? (
-          <button
-            onClick={save}
-            className="w-full rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[rgba(245,245,242,0.72)] transition-colors hover:border-white/[0.18] hover:text-[#F5F5F2]"
-          >
-            Save preferences
-          </button>
-        ) : (
-          <button
-            onClick={() => setCustomising(true)}
-            className="w-full rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[rgba(245,245,242,0.45)] transition-colors hover:text-[rgba(245,245,242,0.8)]"
-          >
-            Customise
-          </button>
-        )}
+        <button
+          onClick={save}
+          className="w-full rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[rgba(245,245,242,0.72)] transition-colors hover:border-white/[0.18] hover:text-[#F5F5F2]"
+        >
+          Save preferences
+        </button>
       </div>
     </div>
   )

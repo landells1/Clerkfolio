@@ -3,6 +3,7 @@ import * as Sentry from '@sentry/nextjs'
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart
 
 const isProd = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT === 'production'
+const isLandingPage = () => typeof window !== 'undefined' && window.location.pathname === '/'
 
 const sensitivePattern = /email|password|token|stripe|key|secret/i
 
@@ -21,7 +22,7 @@ Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
   environment: process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT ?? 'development',
 
-  tracesSampleRate: isProd ? 0.1 : 1.0,
+  tracesSampler: () => isLandingPage() ? 0 : isProd ? 0.1 : 1.0,
 
   // No session replay — medical app
   replaysSessionSampleRate: 0,

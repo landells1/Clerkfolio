@@ -114,7 +114,7 @@ function LoginForm() {
         </div>
       )}
 
-      {nextPath === '/upgrade' && (
+      {nextPath.startsWith('/upgrade') && (
         <div className="bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-blue-100 mb-4">
           Log in to continue your Pro upgrade.
         </div>
@@ -175,7 +175,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
         Don&apos;t have an account?{' '}
-        <Link href={nextPath === '/upgrade' ? '/signup?next=/upgrade' : '/signup'} className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
+        <Link href={nextPath.startsWith('/upgrade') ? `/signup?next=${encodeURIComponent(nextPath)}` : '/signup'} className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
           Sign up free
         </Link>
       </p>

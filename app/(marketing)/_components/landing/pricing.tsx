@@ -9,7 +9,7 @@ export function Pricing() {
         number="005"
         label="Pricing"
         title="Free forever. Pro when you need it."
-        sub={`No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about a coffee an academic term.`}
+        sub={`No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about the price of a coffee per academic term.`}
       />
       <div className="mt-16 grid gap-6 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {
@@ -35,10 +35,10 @@ export function Pricing() {
                 ))}
               </ul>
               <Link
-                href={tier.name === 'Pro' ? '/upgrade' : '/signup'}
+                href={tier.name === 'Pro' ? '/signup?next=%2Fupgrade%3Fsource%3Dpricing' : '/signup'}
                 className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-surface' : 'border border-white/[0.12] text-ink'}`}
               >
-                {tier.name === 'Pro' ? 'Upgrade to Pro' : 'Start free'}
+                {tier.name === 'Pro' ? 'Get Pro' : 'Start free'}
               </Link>
             </article>
           )

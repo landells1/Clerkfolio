@@ -93,6 +93,11 @@ export default function TrashRow({ item }: { item: TrashItem }) {
     router.refresh()
   }
 
+  async function confirmPermanentDelete() {
+    if (!window.confirm(`Permanently delete "${item.title}"? This cannot be undone.`)) return
+    await permanentlyDelete()
+  }
+
   return (
     <SwipeToDelete
       title="Delete permanently?"
@@ -112,7 +117,18 @@ export default function TrashRow({ item }: { item: TrashItem }) {
             {item.subtitle} - {entryDate} - Deleted {deletedDate}
           </p>
         </div>
-        <TrashActions id={item.id} type={item.type} />
+        <div className="flex shrink-0 items-center gap-3">
+          <TrashActions id={item.id} type={item.type} />
+          {canPermanentlyDelete && (
+            <button
+              type="button"
+              onClick={confirmPermanentDelete}
+              className="text-xs text-red-300 transition-colors hover:text-red-200"
+            >
+              Delete permanently
+            </button>
+          )}
+        </div>
       </div>
     </SwipeToDelete>
   )
