@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This share link has expired.' }, { status: 410 })
   }
 
-  const userClient = createClient()
+  const userClient = await createClient()
   const { data: { user: authenticatedUser } } = await userClient.auth.getUser()
   if (authenticatedUser?.id === link.user_id) {
     let ownerQuery = supabase

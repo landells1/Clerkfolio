@@ -6,7 +6,7 @@ import MemberDiscountCard from '@/components/upgrade/member-discount-card'
 import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 
 export default async function UpgradePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const subInfo = await fetchSubscriptionInfo(supabase, user!.id)
 

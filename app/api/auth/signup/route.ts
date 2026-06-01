@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
     : '/onboarding'
   const callbackUrl = new URL('/auth/callback', appUrl)
   callbackUrl.searchParams.set('next', afterConfirmation)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { error } = await supabase.auth.signUp({
     email,
     password,

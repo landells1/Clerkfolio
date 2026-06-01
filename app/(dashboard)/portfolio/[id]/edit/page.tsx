@@ -5,7 +5,7 @@ import EntryForm from '@/components/portfolio/entry-form'
 
 export default async function EditEntryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: entry }, { data: trackedSpecialties }] = await Promise.all([

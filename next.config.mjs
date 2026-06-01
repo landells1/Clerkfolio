@@ -1,9 +1,6 @@
 import { withSentryConfig } from '@sentry/nextjs'
 
 /** @type {import('next').NextConfig} */
-const appUrl = process.env.NEXT_PUBLIC_APP_URL
-const appHost = appUrl ? new URL(appUrl).host : null
-const vercelHost = process.env.VERCEL_URL ?? null
 const configuredSentryEnvironment = process.env.NEXT_PUBLIC_SENTRY_ENVIRONMENT
 const sentryEnvironment = process.env.VERCEL_ENV
   ?? (configuredSentryEnvironment && configuredSentryEnvironment !== '$VERCEL_ENV'
@@ -125,14 +122,6 @@ const nextConfig = {
       // Round 5 — hsl-to-hex needs hsl-to-rgb-for-reals.
       './node_modules/hsl-to-rgb-for-reals/**',
     ],
-  },
-  experimental: {
-    serverActions: {
-      allowedOrigins:
-        process.env.NODE_ENV === 'development'
-          ? ['localhost:3000', '127.0.0.1:3000']
-          : ['clerkfolio.co.uk', 'www.clerkfolio.co.uk', appHost, vercelHost].filter(Boolean),
-    },
   },
 };
 

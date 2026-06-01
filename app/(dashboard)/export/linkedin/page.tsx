@@ -22,7 +22,7 @@ function dedupeEntries(entries: LinkedInEntry[]) {
 }
 
 export default async function LinkedInExportPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: entries } = user
     ? await supabase

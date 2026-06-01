@@ -11,7 +11,7 @@ export default async function TrashPage({
   searchParams: Promise<{ recent?: string; category?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: deletedEntries }, { data: deletedCases }] = await Promise.all([

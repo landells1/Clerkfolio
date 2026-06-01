@@ -10,7 +10,7 @@ export default async function SpecialtiesPage({
   searchParams: Promise<{ app?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const {
     data: { user },

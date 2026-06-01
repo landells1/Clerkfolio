@@ -4,7 +4,7 @@ import TemplatesManager from '@/components/settings/templates-manager'
 import type { Template } from '@/lib/types/templates'
 
 export default async function TemplatesSettingsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) redirect('/login?next=/settings/templates')

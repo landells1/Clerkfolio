@@ -52,7 +52,7 @@ export default async function DashboardPage({
   searchParams?: Promise<{ password?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const cutoff = new Date()

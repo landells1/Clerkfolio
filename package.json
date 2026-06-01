@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": ">=20.9.0"
   },
   "scripts": {
-    "build": "next build",
+    "build": "next build --webpack",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint app components lib --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "test": "vitest run",
@@ -34,7 +34,7 @@
     "canvas-confetti": "^1.9.4",
     "diff": "^9.0.0",
     "jszip": "^3.10.1",
-    "next": "^15.5.15",
+    "next": "16.2.6",
     "papaparse": "^5.5.3",
     "pdf-lib": "^1.17.1",
     "react": "^18.3.1",

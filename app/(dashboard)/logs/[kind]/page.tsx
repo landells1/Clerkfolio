@@ -59,7 +59,7 @@ export default async function LogsKindPage({
   const tab = TABS.find(item => item.slug === slug)
   if (!tab) notFound()
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const { data: rows } = await supabase
     .from('personal_log')

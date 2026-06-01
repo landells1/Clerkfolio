@@ -23,7 +23,7 @@ export default async function PortfolioPage({
   searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string; ready?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const view = resolvedSearchParams.view ?? 'categories'

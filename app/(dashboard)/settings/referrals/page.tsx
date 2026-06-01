@@ -3,7 +3,7 @@ import { ensureFiveLetterReferralCode } from '@/lib/referrals/codes'
 import Link from 'next/link'
 
 export default async function ReferralsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: profile }, { data: referrals }] = await Promise.all([

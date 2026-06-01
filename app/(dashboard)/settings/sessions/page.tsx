@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import SessionsList, { type SessionRow } from '@/components/settings/sessions-list'
 
 export default async function SessionsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data, error }, { data: profile }] = user

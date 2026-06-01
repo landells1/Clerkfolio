@@ -9,7 +9,7 @@ import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-li
 const ARCP_VISIBLE_STAGES = new Set(['FY1', 'FY2'])
 
 export default async function ARCPPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: profile } = await supabase

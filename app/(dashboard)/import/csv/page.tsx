@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 export default async function CsvImportPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const sub = user ? await fetchSubscriptionInfo(supabase, user.id) : null
 

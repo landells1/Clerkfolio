@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     .eq('token_hash', tokenHash)
     .maybeSingle()
 
-  const userClient = createClient()
+  const userClient = await createClient()
   const { data: { user: currentUser } } = await userClient.auth.getUser()
 
   // Block: unauthenticated caller OR authenticated caller who is not the token

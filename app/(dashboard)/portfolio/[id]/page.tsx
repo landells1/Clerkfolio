@@ -50,7 +50,7 @@ export default async function EntryDetailPage({
 }) {
   const { id } = await params
   const { upload } = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: entry }, { data: evidenceFiles, error: evidenceError }] = await Promise.all([

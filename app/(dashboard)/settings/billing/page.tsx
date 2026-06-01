@@ -11,7 +11,7 @@ const TIER_LABEL: Record<string, string> = {
 }
 
 export default async function BillingSettingsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

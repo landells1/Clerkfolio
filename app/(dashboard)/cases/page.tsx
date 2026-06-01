@@ -16,7 +16,7 @@ export default async function CasesPage({
   searchParams: Promise<{ q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const q = resolvedSearchParams.q ?? ''
   const completeOnly = resolvedSearchParams.complete === '1'

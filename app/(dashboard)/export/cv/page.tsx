@@ -46,7 +46,7 @@ export default async function CvGeneratorPage({
 }) {
   const resolvedSearchParams = await searchParams
   const template = normaliseTemplate(resolvedSearchParams.template)
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const [{ data: entries }, subInfo] = await Promise.all([
     supabase

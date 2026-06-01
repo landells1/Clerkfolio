@@ -37,7 +37,7 @@ export default async function AuditLogPage({
   searchParams: Promise<{ action?: string; from?: string; to?: string }>
 }) {
   const params = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   let query = supabase
     .from('audit_log')

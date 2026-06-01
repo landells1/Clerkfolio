@@ -11,7 +11,7 @@ export default async function TimelinePage({
   searchParams: Promise<{ q?: string; since?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const q = resolvedSearchParams.q ?? ''
   const parsedQuery = parseSearchQuery([q, resolvedSearchParams.since ? `since:${resolvedSearchParams.since}` : ''].filter(Boolean).join(' '))

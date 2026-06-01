@@ -1,6 +1,6 @@
 import type { createClient } from '@/lib/supabase/server'
 
-type SupabaseClient = ReturnType<typeof createClient>
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>
 
 type PortfolioEntryLink = {
   entry_id: string | null

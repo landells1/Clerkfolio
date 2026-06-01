@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${origin}/login?error=confirmation_failed&type=recovery`)
   }
 
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Mirror the /auth/confirm client-side guard: if a different user is already
   // signed in when this recovery link is clicked (shared device, mirrored

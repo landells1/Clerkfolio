@@ -5,7 +5,7 @@ import CaseForm from '@/components/cases/case-form'
 
 export default async function EditCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: c }, { data: trackedSpecialties }] = await Promise.all([

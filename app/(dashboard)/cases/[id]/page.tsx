@@ -15,7 +15,7 @@ function formatDate(d: string) {
 
 export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: c }, { data: evidenceFiles }] = await Promise.all([

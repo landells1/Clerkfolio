@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import CaseForm from '@/components/cases/case-form'
 
 export default async function NewCasePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: trackedSpecialties } = await supabase

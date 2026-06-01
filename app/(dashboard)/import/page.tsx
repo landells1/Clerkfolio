@@ -5,7 +5,7 @@ import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 
 export default async function ImportPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const [sub, { data: specialties }] = user
     ? await Promise.all([

@@ -10,7 +10,7 @@ export default async function NewEntryPage({
   searchParams: Promise<{ category?: string; title?: string; text?: string; url?: string }>
 }) {
   const resolvedSearchParams = await searchParams
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const [{ data: trackedSpecialties }, { data: rawTemplates }] = await Promise.all([

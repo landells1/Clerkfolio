@@ -22,7 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ code
 
   if (error || !referrer) return unknownReferralResponse()
 
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const url = req.nextUrl.clone()
   url.pathname = user

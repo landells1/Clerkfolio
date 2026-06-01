@@ -4,7 +4,7 @@ import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-li
 import { calculateDomainScore, getSpecialtyConfig, type SpecialtyApplication, type SpecialtyEntryLink } from '@/lib/specialties'
 
 export default async function SpecialtyComparePage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const { data: applications } = await supabase
