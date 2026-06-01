@@ -15,7 +15,7 @@ Use this as a compact map, not as the source of truth. Verify details with `rg`,
 - Live site: `https://clerkfolio.co.uk`.
 - GitHub: `https://github.com/landells1/Clerkfolio`.
 - Stack: Next.js App Router 15.5.x, React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
-- Node engine: `20.x`.
+- Node engine: `24.x`.
 
 ## Commands
 

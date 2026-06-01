@@ -10,7 +10,11 @@ const patterns = [
   // like `ensure_profile_for_current_user` (matches `re_profile_for_current_user`).
   // Require at least one digit anywhere in the suffix to discriminate.
   { name: 'Resend API key', regex: /re_(?=[A-Za-z0-9_]*[0-9])[A-Za-z0-9_]{16,}/ },
-  { name: 'Supabase service role JWT', regex: /eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/ },
+  // Require realistic minimum lengths on all three JWT segments so obvious
+  // placeholders like `eyJ...dummy.dummy` (used in CI's dummy build env and
+  // .github/workflows/ci.yml) no longer false-positive, while real Supabase
+  // tokens (long base64url header/payload/signature) still match.
+  { name: 'Supabase service role JWT', regex: /eyJ[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}/ },
 ]
 
 function stagedFiles() {
