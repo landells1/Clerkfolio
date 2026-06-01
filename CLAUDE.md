@@ -14,7 +14,7 @@ Use this as a compact map, not as the source of truth. Verify details with `rg`,
 - Product: Clerkfolio, a UK doctor / medical student portfolio app.
 - Live site: `https://clerkfolio.co.uk`.
 - GitHub: `https://github.com/landells1/Clerkfolio`.
-- Stack: Next.js App Router 15.5.x, React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
+- Stack: Next.js App Router 16.2.x (webpack build), React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
 - Node engine: `24.x`.
 
 ## Commands
