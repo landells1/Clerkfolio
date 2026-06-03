@@ -47,6 +47,21 @@ describe('isPublicWebhookHost — rejects private/reserved hosts', () => {
     expect(isPublicWebhookHost('0x7f000001')).toBe(false)
   })
 
+  // Leading-zero octets are octal in inet_aton / many HTTP clients, so
+  // "0177.0.0.1" dials loopback 127.0.0.1 — NOT the public 177.0.0.1 a naive
+  // decimal parse would see. These lock the octal/hex-octet SSRF bypass shut.
+  it.each([
+    '0177.0.0.1', // octal first octet -> 127.0.0.1
+    '0177.0000.0000.0001', // fully-octal loopback
+    '017700000001', // single octal integer == 2130706433 == 127.0.0.1
+    '0x7f.0.0.1', // hex first octet -> 127.0.0.1
+    '0x7f.0x0.0x0.0x1', // fully-hex octets -> 127.0.0.1
+    '0xa.0.0.1', // octal/hex form of 10.0.0.1 (private)
+    '0251.0xfe.0xa9.0376', // 169.254.169.254 metadata via mixed octal/hex
+  ])('rejects octal/hex-octet obfuscated private IPv4 %s', host => {
+    expect(isPublicWebhookHost(host)).toBe(false)
+  })
+
   it.each([
     '[::1]',
     '::1',

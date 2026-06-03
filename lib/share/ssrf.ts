@@ -46,36 +46,63 @@ function rangeOf(cidr: string): [number, number] {
   return [start, end]
 }
 
+// Parse a single dotted IPv4 octet the way C `inet_aton` and many HTTP
+// clients / resolvers do: a leading "0x"/"0X" is hex, a leading "0" followed
+// by more digits is OCTAL (so "0177" === 127, not 177), otherwise decimal.
+// Returns null for anything malformed or outside the 0-255 octet range.
+//
+// Treating leading-zero octets as octal is the crux of the SSRF guard: a naive
+// decimal parse reads "0177.0.0.1" as the public 177.0.0.1, while a real client
+// dials octal 127.0.0.1 (loopback). We must match the client, then reject.
+function parseIpv4Octet(seg: string): number | null {
+  let n: number
+  if (/^0[xX][0-9a-fA-F]+$/.test(seg)) {
+    n = parseInt(seg.slice(2), 16)
+  } else if (/^0[0-7]+$/.test(seg)) {
+    n = parseInt(seg, 8)
+  } else if (/^(0|[1-9]\d*)$/.test(seg)) {
+    n = Number(seg)
+  } else {
+    // Ambiguous / invalid (e.g. "08", "0", trailing junk) -> not a clean octet.
+    return null
+  }
+  return Number.isInteger(n) && n >= 0 && n <= 255 ? n : null
+}
+
 function ipv4ToInt(part: string): number | null {
   const segs = part.split('.')
   if (segs.length !== 4) return null
   let result = 0
   for (const seg of segs) {
-    if (!/^\d+$/.test(seg)) return null
-    const n = Number(seg)
-    if (n < 0 || n > 255) return null
+    const n = parseIpv4Octet(seg)
+    if (n === null) return null
     result = (result * 256 + n) >>> 0
   }
   return result
 }
 
-// Parse `host` as IPv4 in dotted, decimal, octal, or hex. Returns the 32-bit
-// integer form, or null if the host is not parseable as IPv4.
+// Parse `host` as IPv4 in dotted (decimal/octal/hex octets), single-integer
+// decimal/octal, or single-integer hex form. Returns the 32-bit integer form,
+// or null if the host is not parseable as IPv4.
 function parseIpv4(host: string): number | null {
-  if (/^\d+\.\d+\.\d+\.\d+$/.test(host)) return ipv4ToInt(host)
-  // Decimal: a single 32-bit integer like "2130706433"
-  if (/^\d{1,10}$/.test(host)) {
-    const n = Number(host)
-    if (n >= 0 && n <= 0xffffffff) return n
-  }
-  // Hex: "0x7f000001"
+  // Dotted form: "127.0.0.1", "0177.0.0.1" (octal), "0x7f.0.0.1" (hex).
+  if (host.includes('.')) return ipv4ToInt(host)
+  // Single hex integer: "0x7f000001"
   if (/^0[xX][0-9a-fA-F]+$/.test(host)) {
     const n = parseInt(host.slice(2), 16)
     if (Number.isFinite(n) && n >= 0 && n <= 0xffffffff) return n
+    return null
   }
-  // Octal: "0177.0.0.1" or full-octal "017700000001"
-  if (/^0[0-7]+(\.0[0-7]+){3}$/.test(host)) {
-    return ipv4ToInt(host.split('.').map(seg => String(parseInt(seg, 8))).join('.'))
+  // Single octal integer: leading zero, e.g. "017700000001" === 2130706433
+  if (/^0[0-7]+$/.test(host)) {
+    const n = parseInt(host, 8)
+    if (Number.isFinite(n) && n >= 0 && n <= 0xffffffff) return n
+    return null
+  }
+  // Single decimal integer: "2130706433"
+  if (/^\d{1,10}$/.test(host)) {
+    const n = Number(host)
+    if (n >= 0 && n <= 0xffffffff) return n
   }
   return null
 }
