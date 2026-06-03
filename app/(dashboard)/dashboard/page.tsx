@@ -49,7 +49,7 @@ const CAREER_STAGE_LABELS: Record<string, string> = {
 export default async function DashboardPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ password?: string }>
+  searchParams?: Promise<{ password?: string; referral?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
@@ -341,6 +341,11 @@ export default async function DashboardPage({
       {resolvedSearchParams?.password === 'updated' && (
         <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
           Password updated successfully.
+        </div>
+      )}
+      {resolvedSearchParams?.referral === 'existing-account' && (
+        <div role="status" className="mb-6 rounded-2xl border border-blue-400/25 bg-blue-400/10 px-4 py-3 text-sm text-blue-100">
+          Referral links only apply to brand-new signups, so this one couldn&apos;t be added to your existing account.
         </div>
       )}
       {!showOnboardingChecklist && <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />}

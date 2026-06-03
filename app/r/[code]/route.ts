@@ -25,16 +25,28 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ code
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const url = req.nextUrl.clone()
-  url.pathname = user
-    ? user.id === referrer.id
-      ? '/settings/referrals'
-      : '/dashboard'
-    : '/signup'
   url.search = ''
-  if (!user || user.id !== referrer.id) {
+
+  if (!user) {
+    // New / logged-out visitor: carry the code into signup, where referral
+    // attribution is actually applied.
+    url.pathname = '/signup'
     url.searchParams.set('ref', code)
-  } else {
-    url.searchParams.set('ref', 'self')
+    return NextResponse.redirect(url)
   }
+
+  if (user.id === referrer.id) {
+    // The referrer clicked their own link - send them to manage referrals.
+    url.pathname = '/settings/referrals'
+    url.searchParams.set('ref', 'self')
+    return NextResponse.redirect(url)
+  }
+
+  // Already-authenticated, different user: referrals only apply to new
+  // signups, so there is nothing to attribute. Don't append a dangling `ref`
+  // the dashboard never consumes; explain the no-op with a flag the dashboard
+  // can surface.
+  url.pathname = '/dashboard'
+  url.searchParams.set('referral', 'existing-account')
   return NextResponse.redirect(url)
 }
