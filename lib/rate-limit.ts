@@ -30,6 +30,9 @@ const localLimits: Map<string, { timestamps: number[] }> =
   (globalScope[RATE_LIMIT_GLOBAL_KEY] as Map<string, { timestamps: number[] }>) ??
   (globalScope[RATE_LIMIT_GLOBAL_KEY] = new Map())
 
+// Timestamp of the last full eviction sweep over `localLimits` (see below).
+let lastSweep = 0
+
 function localSlidingWindow({ key, max, windowSeconds, prefix }: RateLimitOptions): RateLimitCheck {
   const now = Date.now()
   const windowMs = windowSeconds * 1000
@@ -49,6 +52,20 @@ function localSlidingWindow({ key, max, windowSeconds, prefix }: RateLimitOption
 
   timestamps.push(now)
   localLimits.set(bucketKey, { timestamps })
+
+  // Opportunistic eviction: once a window's worth of requests has elapsed we
+  // sweep buckets whose timestamps have all expired. Without this, every
+  // distinct IP / calendar token / share token leaves a permanent (empty)
+  // bucket and the map grows unbounded on long-lived instances when Upstash
+  // is absent. Throttled to once per window so the sweep cost is amortised.
+  if (now - lastSweep > windowMs) {
+    lastSweep = now
+    for (const [existingKey, bucket] of localLimits) {
+      if (bucket.timestamps.every(timestamp => now - timestamp >= windowMs)) {
+        localLimits.delete(existingKey)
+      }
+    }
+  }
 
   return {
     success: true,
@@ -82,9 +99,35 @@ function getLimiter(prefix: string, max: number, windowSeconds: number) {
 // either (a) silently fail-closing every request (which broke feedback and
 // would have broken PDF export here) or (b) fail-opening with no limit at all.
 let warnedNoRedis = false
+let warnedUpstashError = false
 export async function checkRateLimit(options: RateLimitOptions): Promise<RateLimitCheck> {
   const limiter = getLimiter(options.prefix, options.max, options.windowSeconds)
-  if (limiter) return limiter.limit(options.key)
+  if (limiter) {
+    try {
+      return await limiter.limit(options.key)
+    } catch (err) {
+      // Upstash REST unreachable (network blip, quota, outage). Without this
+      // guard the rejection propagates as an unhandled 500 on every
+      // rate-limited route (feedback, calendar feed, share access, public
+      // API). A limiter outage should fail soft, not take routes down.
+      if (!warnedUpstashError) {
+        warnedUpstashError = true
+        console.warn('[rate-limit] Upstash limiter threw; falling back to in-memory bucket.', err instanceof Error ? err.message : err)
+      }
+      // Routes that demand cluster-wide enforcement (public API) must not be
+      // silently downgraded to per-instance limiting - fail closed instead.
+      if (options.requireDistributed) {
+        return {
+          success: false,
+          limit: options.max,
+          remaining: 0,
+          reset: Date.now() + options.windowSeconds * 1000,
+          unavailable: true,
+        }
+      }
+      return localSlidingWindow(options)
+    }
+  }
 
   if (process.env.NODE_ENV === 'production' && options.requireDistributed) {
     return {

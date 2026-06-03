@@ -58,6 +58,32 @@ describe('checkRateLimit — in-memory fallback (no Upstash)', () => {
     expect(r.success).toBe(true)
   })
 
+  it('evicts buckets whose timestamps have all expired', async () => {
+    // The sweep throttle compares against a module-level `lastSweep` that prior
+    // tests advanced using the real clock, so start fake time *after* real now
+    // to guarantee the throttle window has elapsed.
+    const base = Date.now() + 60_000
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(base)
+      const map = (globalThis as Record<string, unknown>)[GLOBAL_KEY] as Map<string, unknown>
+
+      await checkRateLimit({ key: 'evict-a', max: 5, windowSeconds: 1, prefix: 'evict' })
+      expect(map.has('evict:evict-a')).toBe(true)
+
+      // Advance well past the 1s window (so evict-a's timestamps expire) and
+      // past the sweep throttle, then touch a different bucket to trigger the
+      // opportunistic sweep.
+      vi.setSystemTime(base + 5_000)
+      await checkRateLimit({ key: 'evict-b', max: 5, windowSeconds: 1, prefix: 'evict' })
+
+      expect(map.has('evict:evict-a')).toBe(false)
+      expect(map.has('evict:evict-b')).toBe(true)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('fails closed for public API limits in production without Redis', async () => {
     vi.stubEnv('NODE_ENV', 'production')
     const result = await checkRateLimit({
