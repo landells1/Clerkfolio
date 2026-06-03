@@ -7,6 +7,7 @@ import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { validateOrigin } from '@/lib/csrf'
 import { isPublicWebhookHost } from '@/lib/share/ssrf'
+import { requestIp } from '@/lib/request-ip'
 
 const ACCESS_RATE_LIMIT = 5
 // Share-wide PIN lockout: cumulative wrong-PIN guesses against a share link
@@ -14,15 +15,33 @@ const ACCESS_RATE_LIMIT = 5
 // IP, so an attacker rotating proxies cannot keep guessing after 5 misses.
 const PIN_LOCKOUT_ATTEMPTS = 5
 const PIN_LOCKOUT_WINDOW_MINUTES = 15
+// Auto-revoke a share link once it is viewed this many times within a rolling
+// hour, to bound damage if a link leaks publicly. The owner is emailed.
+const VIEW_AUTO_REVOKE_THRESHOLD = 100
 
-function rawIp(req: NextRequest) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || req.headers.get('x-real-ip')
-    || 'unknown'
+type RedactableLink = { hide_notes: boolean | null; hide_reflection: boolean | null; redact_tags: boolean | null }
+type PortfolioEntry = {
+  specialty_tags: string[] | null
+  notes: string | null
+  refl_free_text: string | null
+  [key: string]: unknown
+}
+
+// Apply the share link's redaction flags to a set of entries. Identical logic
+// is needed for both the owner-preview and public-viewer responses, so it
+// lives in one place to keep the two paths from drifting.
+function redactEntries(entries: PortfolioEntry[] | null, link: RedactableLink) {
+  return (entries ?? []).map(entry => ({
+    ...entry,
+    notes: link.hide_notes ? null : entry.notes,
+    refl_free_text: link.hide_reflection ? null : entry.refl_free_text,
+    specialty_tags: link.redact_tags ? [] : entry.specialty_tags,
+    specialty_tag_labels: link.redact_tags ? [] : (entry.specialty_tags ?? []).map(formatTag),
+  }))
 }
 
 function hashIp(req: NextRequest) {
-  const ip = rawIp(req)
+  const ip = requestIp(req)
   const salt = process.env.SHARE_IP_HASH_SALT
   if (!salt) throw new Error('SHARE_IP_HASH_SALT is not configured')
   return createHash('sha256').update(`${ip}:${salt}`).digest('hex')
@@ -139,13 +158,7 @@ export async function POST(req: NextRequest) {
       specialtyLabel: link.specialty_key ? formatTag(link.specialty_key) : null,
       themeSlug: link.theme_slug,
       expiresAt: link.expires_at,
-      entries: (entries ?? []).map(entry => ({
-        ...entry,
-        notes: link.hide_notes ? null : entry.notes,
-        refl_free_text: link.hide_reflection ? null : entry.refl_free_text,
-        specialty_tags: link.redact_tags ? [] : entry.specialty_tags,
-        specialty_tag_labels: link.redact_tags ? [] : (entry.specialty_tags ?? []).map(formatTag),
-      })),
+      entries: redactEntries(entries as PortfolioEntry[] | null, link),
       watermark: 'Owner preview',
     })
   }
@@ -227,7 +240,7 @@ export async function POST(req: NextRequest) {
     .eq('share_link_id', link.id)
     .gte('viewed_at', new Date(Date.now() - 60 * 60 * 1000).toISOString())
 
-  if ((recentViews ?? 0) >= 100) {
+  if ((recentViews ?? 0) >= VIEW_AUTO_REVOKE_THRESHOLD) {
     await supabase.from('share_links').update({ revoked_at: new Date().toISOString(), revoked: true }).eq('id', link.id)
     const { data: ownerProfile } = await supabase
       .from('profiles')
@@ -248,7 +261,7 @@ export async function POST(req: NextRequest) {
             html: buildAutoRevokeEmail({
               userName: ownerProfile?.first_name ?? 'there',
               linkScope: link.scope,
-              viewCount: 100,
+              viewCount: VIEW_AUTO_REVOKE_THRESHOLD,
             }),
           })
         }
@@ -311,13 +324,7 @@ export async function POST(req: NextRequest) {
     specialtyLabel: link.specialty_key ? formatTag(link.specialty_key) : null,
     themeSlug: link.theme_slug,
     expiresAt: link.expires_at,
-    entries: (entries ?? []).map(entry => ({
-      ...entry,
-      notes: link.hide_notes ? null : entry.notes,
-      refl_free_text: link.hide_reflection ? null : entry.refl_free_text,
-      specialty_tags: link.redact_tags ? [] : entry.specialty_tags,
-      specialty_tag_labels: link.redact_tags ? [] : (entry.specialty_tags ?? []).map(formatTag),
-    })),
+    entries: redactEntries(entries as PortfolioEntry[] | null, link),
     watermark: link.pin_hash ? 'PIN-protected viewer' : null,
   })
 }
