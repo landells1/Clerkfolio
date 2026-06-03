@@ -2,6 +2,7 @@ import { Resend } from 'resend'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { requestIp } from '@/lib/request-ip'
 
 // Simple HTML escaper - prevents injection into email body
 function esc(str: string): string {
@@ -28,10 +29,7 @@ export async function POST(req: NextRequest) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     // Rate limit by IP
-    const ip =
-      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
-      req.headers.get('x-real-ip') ??
-      'unknown'
+    const ip = requestIp(req)
 
     const rateLimit = await checkRateLimit({
       key: ip,

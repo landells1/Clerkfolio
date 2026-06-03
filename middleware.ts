@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { requestIp } from '@/lib/request-ip'
 
 function contentSecurityPolicy(nonce: string): string {
   return [
@@ -36,12 +37,6 @@ async function sha256Hex(value: string) {
   const data = new TextEncoder().encode(value)
   const digest = await crypto.subtle.digest('SHA-256', data)
   return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('')
-}
-
-function requestIp(request: NextRequest) {
-  return request.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || request.headers.get('x-real-ip')
-    || 'unknown'
 }
 
 // Decode a Supabase access-token JWT and pull the `session_id` claim.

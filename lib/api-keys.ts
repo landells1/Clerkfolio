@@ -2,6 +2,7 @@ import { createHash, randomBytes } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { requestIp } from '@/lib/request-ip'
 
 export type ApiKeyRow = {
   id: string
@@ -36,18 +37,12 @@ function bearerToken(req: NextRequest) {
   return match?.[1]?.trim() ?? ''
 }
 
-function clientIp(req: NextRequest) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || req.headers.get('x-real-ip')
-    || 'unknown'
-}
-
 export async function authenticateApiKey(req: NextRequest): Promise<
   | { supabase: ReturnType<typeof createServiceClient>; key: ApiKeyRow }
   | { response: NextResponse }
 > {
   const rateLimit = await checkRateLimit({
-    key: clientIp(req),
+    key: requestIp(req),
     max: 60,
     windowSeconds: 60,
     prefix: 'apikey',
