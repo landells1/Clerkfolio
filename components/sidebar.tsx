@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useSearch } from '@/app/(dashboard)/providers'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
@@ -549,7 +549,10 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 
-function useUnreadCount() {
+// Returns the unread count plus its setter so the bell can keep the badge in
+// sync with the list: marking notifications read decrements/zeroes the badge
+// in place instead of leaving a stale count until a full page reload.
+function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
   const [count, setCount] = useState(0)
   useEffect(() => {
     const supabase = createBrowserClient()
@@ -566,7 +569,7 @@ function useUnreadCount() {
     }
     load()
   }, [])
-  return count
+  return [count, setCount]
 }
 
 function NotificationBellSidebar() {
@@ -581,7 +584,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
   const [open, setOpen] = useState(false)
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(false)
-  const unread = useUnreadCount()
+  const [unread, setUnread] = useUnreadCount()
 
   async function handleOpen() {
     setOpen(v => !v)
@@ -605,12 +608,14 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
     if (!user) return
     await supabase.from('notifications').update({ read: true }).eq('user_id', user.id).eq('read', false)
     setNotifications([])
+    setUnread(0)
   }
 
   async function handleMarkRead(id: string, link?: string | null) {
     const supabase = createBrowserClient()
     await supabase.from('notifications').update({ read: true }).eq('id', id)
     setNotifications(prev => prev.filter(n => n.id !== id))
+    setUnread(c => Math.max(0, c - 1))
     if (link) window.location.href = link
   }
 
