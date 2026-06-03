@@ -87,28 +87,10 @@ export async function fetchSubscriptionInfo(
 
   if (error) {
     console.error('fetchSubscriptionInfo RPC failed:', error.message)
-    return {
-      tier: 'free',
-      isPro: false,
-      isStudent: false,
-      isMedStudent: false,
-      storageQuotaMB: 100,
-      usage: {
-        pdfExportsUsed: 0,
-        shareLinksUsed: 0,
-        specialtiesTracked: 0,
-        storageUsedMB: 0,
-        referralProUntil: null,
-        studentGraduationDate: null,
-      },
-      limits: {
-        canExportPdf: false,
-        canCreateShareLink: false,
-        canTrackAnotherSpecialty: false,
-        canBulkImport: false,
-        canUploadFiles: false,
-      },
-    }
+    // mapEntitlements(null) already produces the fail-closed default (free
+    // tier, all gated booleans denied), so reuse it instead of duplicating
+    // the shape - one place to keep correct if SubscriptionInfo grows.
+    return mapEntitlements(null)
   }
 
   const [{ data: profile }, { count: activeShareLinks }] = await Promise.all([
