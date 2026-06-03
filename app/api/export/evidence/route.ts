@@ -45,11 +45,35 @@ export async function GET(req: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   if (!files?.length) return NextResponse.json({ error: 'No clean evidence files found for this entry.' }, { status: 404 })
 
+  // Pre-compute a unique archive name for every file so two evidence files
+  // that share a display name don't silently overwrite each other in the ZIP
+  // (which would be data loss in the export). On collision, insert a "-N"
+  // counter before the extension: "report.pdf", "report-2.pdf", ...
+  const usedNames = new Set<string>()
+  const archiveNames = files.map(file => {
+    const base = file.file_name ?? file.file_path.split('/').pop() ?? 'evidence-file'
+    if (!usedNames.has(base)) {
+      usedNames.add(base)
+      return base
+    }
+    const dot = base.lastIndexOf('.')
+    const stem = dot > 0 ? base.slice(0, dot) : base
+    const ext = dot > 0 ? base.slice(dot) : ''
+    let counter = 2
+    let candidate = `${stem}-${counter}${ext}`
+    while (usedNames.has(candidate)) {
+      counter += 1
+      candidate = `${stem}-${counter}${ext}`
+    }
+    usedNames.add(candidate)
+    return candidate
+  })
+
   const zip = new JSZip()
-  await Promise.allSettled(files.map(async file => {
+  await Promise.allSettled(files.map(async (file, index) => {
     const { data } = await supabase.storage.from('evidence').download(file.file_path)
     if (!data) return
-    zip.file(file.file_name ?? file.file_path.split('/').pop() ?? 'evidence-file', await data.arrayBuffer())
+    zip.file(archiveNames[index], await data.arrayBuffer())
   }))
 
   const buffer = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } })
