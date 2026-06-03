@@ -5,6 +5,7 @@ import { CATEGORIES } from '@/lib/types/portfolio'
 import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { requestIp } from '@/lib/request-ip'
 
 const RL_WINDOW_SECONDS = 60
 const RL_MAX_PER_TOKEN = 20
@@ -14,32 +15,51 @@ function hashToken(token: string) {
   return createHash('sha256').update(token).digest('hex')
 }
 
-function clientIp(req: NextRequest) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || req.headers.get('x-real-ip')
-    || 'unknown'
-}
-
 function escapeIcs(value: string | null | undefined) {
+  // Normalise CRLF / lone CR to LF first, then escape per RFC 5545. Without
+  // the CR normalisation a carriage return inside notes/title would survive
+  // into the line and break the fold/line structure for strict parsers.
   return (value ?? '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
     .replace(/\\/g, '\\\\')
     .replace(/\n/g, '\\n')
     .replace(/,/g, '\\,')
     .replace(/;/g, '\\;')
 }
 
+// `due_date` may arrive as a bare date ('YYYY-MM-DD') or, defensively, with a
+// time component. Coerce to date-only before stripping separators so DTSTART
+// is always a valid VALUE=DATE (YYYYMMDD).
 function icsDate(date: string) {
-  return date.replace(/-/g, '')
+  return date.slice(0, 10).replace(/-/g, '')
 }
 
+// RFC 5545 limits content lines to 75 *octets* (not JS string chars). A
+// multi-byte SUMMARY/DESCRIPTION folded on char length can exceed the octet
+// limit and break strict calendar clients, so we measure UTF-8 byte length
+// and never split inside a multi-byte sequence.
 function fold(line: string) {
+  const encoder = new TextEncoder()
   const chunks: string[] = []
-  let rest = line
-  while (rest.length > 74) {
-    chunks.push(rest.slice(0, 74))
-    rest = ` ${rest.slice(74)}`
+  let current = ''
+  let currentBytes = 0
+  let isContinuation = false
+  // First line allows 75 octets; continuation lines start with a leading space
+  // (1 octet) so they carry 74 octets of content.
+  for (const char of line) {
+    const charBytes = encoder.encode(char).length
+    const limit = isContinuation ? 74 : 75
+    if (currentBytes + charBytes > limit) {
+      chunks.push(isContinuation ? ` ${current}` : current)
+      current = ''
+      currentBytes = 0
+      isContinuation = true
+    }
+    current += char
+    currentBytes += charBytes
   }
-  chunks.push(rest)
+  chunks.push(isContinuation ? ` ${current}` : current)
   return chunks.join('\r\n')
 }
 
@@ -57,7 +77,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
       prefix: 'calendar-feed-token',
     }),
     checkRateLimit({
-      key: clientIp(req),
+      key: requestIp(req),
       max: RL_MAX_PER_IP,
       windowSeconds: RL_WINDOW_SECONDS,
       prefix: 'calendar-feed-ip',
