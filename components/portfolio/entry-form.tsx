@@ -10,6 +10,8 @@ import CompetencyThemePicker from './competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import CategoryGuide from '@/components/portfolio/category-guide'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
+import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
+import { portfolioDraftKeysFor } from '@/lib/drafts/draft-keys'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
@@ -285,6 +287,15 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         sessionStorage.removeItem(draftKey)
         return
       }
+      // Don't restore (or show the "Draft restored" banner for) an empty draft -
+      // e.g. one autosaved from an untouched form. Clean it up instead. (BUG-005)
+      const hasContent = Object.entries(d).some(([key, value]) =>
+        key !== 'category' && key !== '_expires' && typeof value === 'string' && value.trim().length > 0
+      )
+      if (!hasContent) {
+        sessionStorage.removeItem(draftKey)
+        return
+      }
       if (d.category) setCategory(d.category)
       if (d.title !== undefined) setTitle(d.title)
       if (d.date !== undefined) setDate(d.date)
@@ -334,11 +345,16 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftKey, mode])
 
+  // When set, the next scheduled autosave write is skipped (then re-armed).
+  // Used after a successful save or an explicit Discard so the form doesn't
+  // immediately re-persist a draft we just cleared (BUG-005).
+  const suppressDraftRef = useRef(false)
   const draftTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => {
     if (mode !== 'create' || !draftKey) return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
+      if (suppressDraftRef.current) { suppressDraftRef.current = false; return }
       sessionStorage.setItem(draftKey, JSON.stringify({
         category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
         auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
@@ -377,7 +393,29 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  function markDirty() { setIsDirty(true) }
+  function markDirty() { suppressDraftRef.current = false; setIsDirty(true) }
+
+  // Clear every portfolio draft fragment for this user. The new-entry form only
+  // edits one entry at a time, so once it is saved (or discarded) any per-category
+  // draft left in sessionStorage is stale - this also clears the dashboard
+  // "Pick up where you left off" card. (BUG-005)
+  function clearPortfolioDrafts() {
+    if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
+    suppressDraftRef.current = true
+    if (!authenticatedUserId) return
+    try {
+      const keys: string[] = []
+      for (let index = 0; index < sessionStorage.length; index++) {
+        const key = sessionStorage.key(index)
+        if (key) keys.push(key)
+      }
+      for (const key of portfolioDraftKeysFor(keys, authenticatedUserId)) {
+        sessionStorage.removeItem(key)
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }
 
   function handleSnippetKeyDown(
     event: KeyboardEvent<HTMLTextAreaElement>,
@@ -408,7 +446,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   function addPendingFiles(files: FileList | null) {
     const nextFiles = Array.from(files ?? [])
     if (nextFiles.length === 0) return
-    setPendingFiles(current => [...current, ...nextFiles])
+    setPendingFiles(current => mergeUniqueFiles(current, nextFiles))
     markDirty()
   }
 
@@ -444,7 +482,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
 
   function resetForm() {
-    if (draftKey) sessionStorage.removeItem(draftKey)
+    clearPortfolioDrafts()
+    setIsDirty(false)
     setDraftRestored(false)
     setCategory(defaultCategory ?? 'audit_qip')
     setTitle('')
@@ -507,14 +546,14 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
         setUploading(false)
         if (uploadErrors.length > 0) {
-          if (draftKey) sessionStorage.removeItem(draftKey)
+          clearPortfolioDrafts()
           setIsDirty(false)
           addToast('Entry saved, but some files failed to upload.', 'error')
           router.push(`/portfolio/${data.id}?upload=failed`)
           return
         }
       }
-      if (draftKey) sessionStorage.removeItem(draftKey)
+      clearPortfolioDrafts()
       setIsDirty(false)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
@@ -593,7 +632,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         onPaste={event => {
           const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
           if (files.length === 0) return
-          setPendingFiles(current => [...current, ...files])
+          setPendingFiles(current => mergeUniqueFiles(current, files))
           markDirty()
         }}
         onDragOver={event => event.preventDefault()}
