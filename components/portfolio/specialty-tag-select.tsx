@@ -1,6 +1,6 @@
 'use client'
 
-import { forwardRef, useImperativeHandle, useState, useRef, useEffect } from 'react'
+import { forwardRef, useId, useImperativeHandle, useState, useRef, useEffect } from 'react'
 import { PREDEFINED_SPECIALTIES, MAX_SPECIALTIES } from '@/lib/constants/specialties'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 
@@ -36,7 +36,12 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState('')
   const [error, setError] = useState<string | null>(null)
+  // Index of the keyboard-highlighted option in `sorted` (-1 = none). Drives
+  // ArrowUp/ArrowDown + Enter so the combobox is operable without a mouse
+  // (WCAG 2.1.1). (BUG-006)
+  const [activeIndex, setActiveIndex] = useState(-1)
   const ref = useRef<HTMLDivElement>(null)
+  const listboxId = useId()
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -134,15 +139,37 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
         <input
           type="text"
           value={search}
-          onChange={e => { setSearch(e.target.value); setOpen(true); if (error) setError(null) }}
+          onChange={e => { setSearch(e.target.value); setOpen(true); setActiveIndex(-1); if (error) setError(null) }}
           onFocus={() => setOpen(true)}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listboxId}
+          aria-autocomplete="list"
+          aria-activedescendant={open && activeIndex >= 0 && activeIndex < sorted.length ? `${listboxId}-opt-${activeIndex}` : undefined}
           onKeyDown={e => {
-            if (e.key === 'Enter') {
+            if (e.key === 'ArrowDown') {
               e.preventDefault()
-              commitPending()
+              if (!open) { setOpen(true); return }
+              if (sorted.length === 0) return
+              setActiveIndex(prev => Math.min(prev + 1, sorted.length - 1))
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault()
+              if (sorted.length === 0) return
+              setActiveIndex(prev => Math.max(prev - 1, 0))
+            } else if (e.key === 'Enter') {
+              e.preventDefault()
+              // Commit the highlighted option if one is active; otherwise fall
+              // back to resolving typed search text.
+              if (open && activeIndex >= 0 && activeIndex < sorted.length) {
+                toggle(sorted[activeIndex])
+                setActiveIndex(-1)
+              } else {
+                commitPending()
+              }
             } else if (e.key === 'Escape') {
               setSearch('')
               setError(null)
+              setActiveIndex(-1)
               setOpen(false)
             }
           }}
@@ -167,7 +194,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
               Your specialties
             </div>
           )}
-          <div className="max-h-52 overflow-y-auto">
+          <div className="max-h-52 overflow-y-auto" id={listboxId} role="listbox">
             {trackedOnly && userInterests.length === 0 ? (
               /* Empty state when no programmes tracked */
               <div className="px-3 py-4 text-center">
@@ -180,6 +207,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
               sorted.map((s, i) => {
                 const isInterest = !trackedOnly && userInterests.includes(s)
                 const isSelected = value.includes(s)
+                const isActive = i === activeIndex
                 const showDivider = !trackedOnly && i > 0 && isInterest !== userInterests.includes(sorted[i - 1])
 
                 return (
@@ -191,11 +219,17 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
                     )}
                     <button
                       type="button"
+                      id={`${listboxId}-opt-${i}`}
+                      role="option"
+                      aria-selected={isSelected}
+                      onMouseEnter={() => setActiveIndex(i)}
                       onClick={() => toggle(s)}
                       className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
                         isSelected
                           ? 'bg-[#1B6FD9]/10 text-[#1B6FD9]'
-                          : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
+                          : isActive
+                            ? 'bg-white/[0.06] text-[#F5F5F2]'
+                            : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
                       }`}
                     >
                       <span>{getOptionLabel(s)}</span>
