@@ -192,16 +192,26 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   async function handleLogout() {
     setLoggingOut(true)
     clearClientStateOnAuthChange()
+    // Attempt a global sign-out (revokes refresh tokens on every device).
+    // Supabase Auth can 503 or stall under load; if the global call errors or
+    // doesn't return promptly we fall back to a best-effort local sign-out and
+    // redirect with an explicit warning, so the button never appears to "do
+    // nothing" and the user is told other sessions may still be valid (BUG-002).
+    let globalOk = false
     try {
-      const { error } = await supabase.auth.signOut()
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('global-signout-timeout')), 4000)
+      )
+      const { error } = await Promise.race([
+        supabase.auth.signOut({ scope: 'global' }),
+        timeout,
+      ])
       if (error) throw error
-      router.replace('/login')
+      globalOk = true
     } catch {
-      // A global sign-out can fail upstream. Still clear this browser's
-      // session and be explicit that other sessions may remain valid.
       await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
-      router.replace('/login?logout=local')
     }
+    router.replace(globalOk ? '/login' : '/login?logout=local')
     router.refresh()
   }
 
