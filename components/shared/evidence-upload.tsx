@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { isAllowedEvidenceFile, MAX_FILE_BYTES } from '@/lib/supabase/storage'
+import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 
 /** Renders a live image thumbnail for a local File object, cleaning up the object URL on unmount. */
 function ImagePreview({ file }: { file: File }) {
@@ -58,12 +59,10 @@ export default function EvidenceUpload({
         errs.push(`"${f.name}" is too large (max 50 MB per file).`)
         continue
       }
-      if (!files.some(existing => existing.name === f.name && existing.size === f.size)) {
-        valid.push(f)
-      }
+      valid.push(f)
     }
     setUploadErrors(errs)
-    onChange([...files, ...valid])
+    onChange(mergeUniqueFiles(files, valid))
   }
 
   function remove(index: number) {
@@ -72,6 +71,9 @@ export default function EvidenceUpload({
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
+    // Stop the drop from also bubbling to the surrounding form's onDrop, which
+    // would stage the same files a second time (BUG-007).
+    e.stopPropagation()
     if (disabled) return
     handleFiles(e.dataTransfer.files)
   }

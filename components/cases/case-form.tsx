@@ -9,6 +9,7 @@ import CompetencyThemePicker from '@/components/portfolio/competency-theme-picke
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import { uploadPendingFiles } from '@/lib/supabase/storage'
+import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
@@ -163,7 +164,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
   function addPendingFiles(files: FileList | null) {
     const nextFiles = Array.from(files ?? [])
     if (nextFiles.length === 0) return
-    setPendingFiles(current => [...current, ...nextFiles])
+    setPendingFiles(current => mergeUniqueFiles(current, nextFiles))
     markDirty()
   }
 
@@ -252,7 +253,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       onPaste={event => {
         const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
         if (files.length === 0) return
-        setPendingFiles(current => [...current, ...files])
+        setPendingFiles(current => mergeUniqueFiles(current, files))
         markDirty()
       }}
       onDragOver={event => event.preventDefault()}
