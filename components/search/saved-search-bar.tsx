@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { parseSearchQuery } from '@/lib/search/parser'
+import { resolveFilterPersistence } from '@/lib/search/filter-persistence'
 
 type Surface = 'cases' | 'portfolio' | 'timeline' | 'logs'
 
@@ -28,13 +29,12 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
 
   useEffect(() => {
     const key = `clerkfolio-filters:${pathname}`
-    const current = searchParams.toString()
-    if (!current) {
-      const previous = localStorage.getItem(key)
-      if (previous) router.replace(`${pathname}?${previous}`)
-      return
+    const decision = resolveFilterPersistence(searchParams.toString(), localStorage.getItem(key))
+    if (decision.action === 'restore') {
+      router.replace(`${pathname}?${decision.params}`)
+    } else if (decision.action === 'persist') {
+      localStorage.setItem(key, decision.params)
     }
-    localStorage.setItem(key, current)
   }, [pathname, router, searchParams])
 
   useEffect(() => {
