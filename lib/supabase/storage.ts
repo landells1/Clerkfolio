@@ -161,8 +161,17 @@ export async function uploadPendingFiles(
   return errors
 }
 
-/** Get a 1-hour signed download URL for a stored file */
-export async function getSignedUrl(path: string): Promise<string | null> {
+/**
+ * Get a 1-hour signed URL for a stored file.
+ *
+ * Pass `downloadName` to force a download with the original filename: Supabase
+ * adds `Content-Disposition: attachment; filename="<downloadName>"` to the
+ * signed URL. Without it the browser inlines viewable types (PDF/PNG) and, for
+ * cross-origin URLs, ignores the anchor `download` attribute and saves under
+ * the storage object key (the UUID-prefixed path). Omit it for inline previews
+ * (image thumbnails/lightbox). (BUG-009)
+ */
+export async function getSignedUrl(path: string, downloadName?: string): Promise<string | null> {
   const supabase = createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
@@ -178,7 +187,7 @@ export async function getSignedUrl(path: string): Promise<string | null> {
 
   const { data } = await supabase.storage
     .from(BUCKET)
-    .createSignedUrl(path, 3600)
+    .createSignedUrl(path, 3600, downloadName ? { download: downloadName } : undefined)
   return data?.signedUrl ?? null
 }
 

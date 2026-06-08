@@ -43,7 +43,9 @@ export default function EvidenceFiles({
   async function handleDownload(file: EvidenceFile) {
     if ((file.scan_status ?? 'clean') !== 'clean') return
     setDownloading(file.id)
-    const url = await getSignedUrl(file.file_path)
+    // Request the signed URL with the original filename so Supabase serves it
+    // as an attachment named correctly (not inline, not the UUID object key).
+    const url = await getSignedUrl(file.file_path, file.file_name)
     if (url) {
       const a = document.createElement('a')
       a.href = url
