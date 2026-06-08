@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
+import { localIsoDate, monthGridDays } from '@/lib/timeline/calendar-grid'
 
 export type TimelineGoal = {
   id: string
@@ -60,20 +61,11 @@ function monthKey(date: Date) {
   return `${date.getFullYear()}-${date.getMonth()}`
 }
 
-function iso(date: Date) {
-  return date.toISOString().split('T')[0]
-}
-
-function monthDays(month: Date) {
-  const first = new Date(month.getFullYear(), month.getMonth(), 1)
-  const start = new Date(first)
-  start.setDate(first.getDate() - ((first.getDay() + 6) % 7))
-  return Array.from({ length: 42 }, (_, index) => {
-    const d = new Date(start)
-    d.setDate(start.getDate() + index)
-    return d
-  })
-}
+// `iso` (local-component date string) and the month grid builder live in
+// lib/timeline/calendar-grid so they are unit-tested and shared. Using local
+// components rather than toISOString() keeps day matching timezone-stable
+// across SSR/CSR (BUG-004 placement + BUG-010 hydration #418).
+const iso = localIsoDate
 
 export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, filterBar }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; filterBar?: React.ReactNode }) {
   const supabase = createClient()
@@ -257,24 +249,13 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   }
 
   async function copyCalendarFeed() {
-    let token = calendarToken
-    if (!token) {
-      const res = await fetch('/api/calendar/feed-token', { method: 'POST' })
-      const body = await res.json()
-      if (body.requiresRotation) {
-        setHasCalendarFeed(true)
-        addToast('Existing feed URLs cannot be shown again. Use Rotate feed to create a new URL.', 'error')
-        return
-      }
-      if (!res.ok || !body.token) {
-        addToast(body.error ?? 'Failed to create calendar feed', 'error')
-        return
-      }
-      token = body.token
-      setCalendarToken(token)
-      setHasCalendarFeed(true)
-    }
-    const url = `${window.location.origin}/api/calendar/feed/${token}`
+    // Always resolve to a usable feed URL: reuse the in-memory token, generate
+    // one on first use, or — because the stored token is hash-only and shown
+    // once — rotate to a fresh link if it can no longer be re-surfaced. This
+    // mirrors the Apple/Outlook and Google handoffs so "Copy feed" never
+    // dead-ends, and copyText writes the actual URL to the clipboard (BUG-011).
+    const url = await ensureCalendarFeedUrl()
+    if (!url) return
     await copyText(url, 'Calendar feed link copied')
   }
 
@@ -332,7 +313,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     addToast('Opened Google Calendar. If it cannot subscribe automatically, use the feed URL shown below.', 'success')
   }
 
-  const days = monthDays(month)
+  const days = monthGridDays(month)
 
   return (
     <div className="p-6 lg:p-8 max-w-6xl">
