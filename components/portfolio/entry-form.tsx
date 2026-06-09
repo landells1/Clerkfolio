@@ -12,7 +12,7 @@ import EvidenceFiles from '@/components/shared/evidence-files'
 import CategoryGuide from '@/components/portfolio/category-guide'
 import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
-import { portfolioDraftKeysFor } from '@/lib/drafts/draft-keys'
+import { portfolioDraftHasContent, portfolioDraftKeysFor } from '@/lib/drafts/draft-keys'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
 import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation'
@@ -291,11 +291,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         return
       }
       // Don't restore (or show the "Draft restored" banner for) an empty draft -
-      // e.g. one autosaved from an untouched form. Clean it up instead. (BUG-005)
-      const hasContent = Object.entries(d).some(([key, value]) =>
-        key !== 'category' && key !== '_expires' && typeof value === 'string' && value.trim().length > 0
-      )
-      if (!hasContent) {
+      // e.g. one autosaved from an untouched form whose only non-empty fields are
+      // the structural defaults. Clean it up instead. (BUG-005)
+      if (!portfolioDraftHasContent(d)) {
         sessionStorage.removeItem(draftKey)
         return
       }
@@ -358,7 +356,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
     draftTimerRef.current = setTimeout(() => {
       if (suppressDraftRef.current) { suppressDraftRef.current = false; return }
-      sessionStorage.setItem(draftKey, JSON.stringify({
+      const fields = {
         category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
         auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
@@ -368,6 +366,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         prizeBody, prizeLevel,
         procName, procSetting, procSupervision, procCount,
         reflType, reflContext, reflSupervisor, reflFramework,
+      }
+      // Only persist a draft once the form holds real user input. Autosaving a
+      // pristine form (just the default selects/date) is what produced a false
+      // "Draft restored" banner, a two-click Discard, and a stale resume card on
+      // the dashboard. If the form has been emptied back to defaults, drop any
+      // stale draft too. (BUG-005)
+      if (!portfolioDraftHasContent(fields)) {
+        sessionStorage.removeItem(draftKey)
+        return
+      }
+      sessionStorage.setItem(draftKey, JSON.stringify({
+        ...fields,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
