@@ -13,8 +13,16 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
 }
 
-export default async function CaseDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CaseDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>
+  searchParams: Promise<{ uploaded?: string }>
+}) {
   const { id } = await params
+  const { uploaded } = await searchParams
+  const uploadedCount = uploaded ? Number(uploaded) : 0
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -73,6 +81,12 @@ export default async function CaseDetailPage({ params }: { params: Promise<{ id:
           <DeleteCaseButton id={c.id} />
         </div>
       </div>
+
+      {uploadedCount > 0 && (
+        <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+          {uploadedCount} evidence file{uploadedCount === 1 ? '' : 's'} uploaded successfully — listed below.
+        </div>
+      )}
 
       <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 space-y-6">
         {/* Title + date */}

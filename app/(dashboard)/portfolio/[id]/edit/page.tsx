@@ -8,7 +8,7 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, { data: trackedSpecialties }] = await Promise.all([
+  const [{ data: entry }, { data: trackedSpecialties }, { data: existingEvidence }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -20,6 +20,13 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user!.id),
+    supabase
+      .from('evidence_files')
+      .select('*')
+      .eq('entry_id', id)
+      .eq('entry_type', 'portfolio')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: true }),
   ])
 
   if (!entry) notFound()
@@ -48,6 +55,7 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
           mode="edit"
           initialData={entry}
           userInterests={specialtyKeys}
+          existingEvidence={existingEvidence ?? []}
         />
       </div>
     </div>

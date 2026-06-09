@@ -8,7 +8,7 @@ export default async function EditCasePage({ params }: { params: Promise<{ id: s
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: c }, { data: trackedSpecialties }] = await Promise.all([
+  const [{ data: c }, { data: trackedSpecialties }, { data: existingEvidence }] = await Promise.all([
     supabase
       .from('cases')
       .select('*')
@@ -20,6 +20,13 @@ export default async function EditCasePage({ params }: { params: Promise<{ id: s
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user!.id),
+    supabase
+      .from('evidence_files')
+      .select('*')
+      .eq('entry_id', id)
+      .eq('entry_type', 'case')
+      .eq('user_id', user!.id)
+      .order('created_at', { ascending: true }),
   ])
 
   if (!c) notFound()
@@ -45,6 +52,7 @@ export default async function EditCasePage({ params }: { params: Promise<{ id: s
           mode="edit"
           initialData={c}
           userInterests={specialtyKeys}
+          existingEvidence={existingEvidence ?? []}
         />
       </div>
     </div>

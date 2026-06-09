@@ -45,6 +45,7 @@ export default function EvidenceUpload({
 }) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploadErrors, setUploadErrors] = useState<string[]>([])
+  const [dragOver, setDragOver] = useState(false)
 
   function handleFiles(incoming: FileList | null) {
     if (!incoming) return
@@ -71,9 +72,10 @@ export default function EvidenceUpload({
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
-    // Stop the drop from also bubbling to the surrounding form's onDrop, which
-    // would stage the same files a second time (BUG-007).
+    // Stop the drop from also bubbling to the surrounding form, which now only
+    // swallows stray drops (it no longer stages files - QOL-011/QOL-014).
     e.stopPropagation()
+    setDragOver(false)
     if (disabled) return
     handleFiles(e.dataTransfer.files)
   }
@@ -98,13 +100,16 @@ export default function EvidenceUpload({
 
       {/* Drop zone */}
       <div
-        onDragOver={e => e.preventDefault()}
+        onDragOver={e => { e.preventDefault(); if (!disabled) setDragOver(true) }}
+        onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !disabled && inputRef.current?.click()}
         className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-6 px-4 transition-colors text-center ${
           disabled
             ? 'border-white/[0.05] cursor-not-allowed opacity-50'
-            : 'border-white/[0.1] hover:border-[#1B6FD9]/50 hover:bg-[#1B6FD9]/5 cursor-pointer'
+            : dragOver
+              ? 'border-[#1B6FD9] bg-[#1B6FD9]/10 cursor-copy'
+              : 'border-white/[0.1] hover:border-[#1B6FD9]/50 hover:bg-[#1B6FD9]/5 cursor-pointer'
         }`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

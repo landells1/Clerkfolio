@@ -8,7 +8,8 @@ import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
-import { uploadPendingFiles } from '@/lib/supabase/storage'
+import EvidenceFiles from '@/components/shared/evidence-files'
+import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
@@ -21,6 +22,7 @@ type Props = {
   initialData?: Partial<NewCase> & { id?: string }
   userInterests?: string[]
   authenticatedUserId?: string
+  existingEvidence?: EvidenceFile[]
 }
 
 const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
@@ -34,7 +36,7 @@ function draftKeyForUser(userId: string) {
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
-export default function CaseForm({ mode, initialData, userInterests = [], authenticatedUserId }: Props) {
+export default function CaseForm({ mode, initialData, userInterests = [], authenticatedUserId, existingEvidence = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
@@ -161,13 +163,6 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
     return () => clearTimeout(timer)
   }, [notes, specialtyTags, title])
 
-  function addPendingFiles(files: FileList | null) {
-    const nextFiles = Array.from(files ?? [])
-    if (nextFiles.length === 0) return
-    setPendingFiles(current => mergeUniqueFiles(current, nextFiles))
-    markDirty()
-  }
-
   const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
@@ -213,17 +208,18 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           return
         }
       }
+      const uploaded = pendingFiles.length
       if (draftKey) sessionStorage.removeItem(draftKey)
       setIsDirty(false)
       isDirtyRef.current = false
-      addToast('Case logged', 'success')
+      addToast(uploaded > 0 ? `Case logged · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case logged', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
         setSaving(false)
         window.location.assign(`/cases/new?fresh=${Date.now()}`)
         return
       }
-      router.push('/cases')
+      router.push(uploaded > 0 ? `/cases/${data.id}?uploaded=${uploaded}` : '/cases')
     } else {
       const { error } = await supabase
         .from('cases')
@@ -240,9 +236,10 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           return
         }
       }
+      const uploaded = pendingFiles.length
       setIsDirty(false)
-      addToast('Case updated', 'success')
-      router.push(`/cases/${initialData!.id}`)
+      addToast(uploaded > 0 ? `Case updated · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case updated', 'success')
+      router.push(uploaded > 0 ? `/cases/${initialData!.id}?uploaded=${uploaded}` : `/cases/${initialData!.id}`)
     }
     router.refresh()
   }
@@ -258,8 +255,11 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       }}
       onDragOver={event => event.preventDefault()}
       onDrop={event => {
+        // Swallow drops that miss the evidence dropzone so the browser doesn't
+        // navigate away (and so stray files aren't staged unvalidated). The
+        // EvidenceUpload dropzone handles real uploads and stops propagation.
+        // (QOL-011 / QOL-014)
         event.preventDefault()
-        addPendingFiles(event.dataTransfer.files)
       }}
       className="space-y-5"
     >
@@ -375,8 +375,12 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       </div>
 
       {/* Evidence uploads */}
-      <div>
+      <div className="space-y-3">
         <label className={LABEL}>Evidence</label>
+        {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
+        {mode === 'edit' && existingEvidence.length > 0 && (
+          <EvidenceFiles initialFiles={existingEvidence} canDelete />
+        )}
         <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
       </div>
 

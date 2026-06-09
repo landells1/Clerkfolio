@@ -136,7 +136,7 @@ Files: `lib/stripe.ts`, `app/api/stripe/checkout/route.ts`, `portal/route.ts`, `
 
 Canonical flow in `lib/supabase/storage.ts`, `/api/upload/authorize`, `/api/upload/verify`, `/api/cron/purge-orphan-uploads`:
 
-0. The browser rejects unsupported extension/MIME combinations before adding files to staging; this is UX protection only.
+0. The browser rejects unsupported extension/MIME combinations before adding files to staging (it does not stage rejected files); this is UX protection only. Drag-and-drop is scoped to the `EvidenceUpload` dropzone (with a drag-over highlight); the surrounding entry/case form swallows stray drops so the browser does not navigate away and unvalidated files are not staged.
 1. Browser asks `/api/upload/authorize`.
 2. Server checks auth, owner, MIME, size, quota and pre-creates `evidence_files` with `scan_status='pending'`.
 3. Server returns a one-time Supabase signed upload URL.
@@ -146,6 +146,8 @@ Canonical flow in `lib/supabase/storage.ts`, `/api/upload/authorize`, `/api/uplo
 7. Orphan cron purges stale pending rows/storage after 24h.
 
 Do not reintroduce direct user storage INSERTs. Clean signed downloads only (`scan_status='clean'`). Storage caps: Free 100 MB, Student 1 GB, Pro 5 GB, max file 50 MB.
+
+The entry/case **edit** forms list already-attached evidence (`EvidenceFiles` with `canDelete`) above the dropzone, with a per-file inline two-step remove backed by `deleteEvidenceFile` (owner-checked hard delete of the storage object + `evidence_files` row). After a save that uploads files, the user is sent to the detail page with `?uploaded=N`, which shows an explicit success banner; the success toast also states the file count.
 
 ## Sharing
 

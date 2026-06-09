@@ -8,12 +8,14 @@ import type { Template } from '@/lib/types/templates'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from './specialty-tag-select'
 import CompetencyThemePicker from './competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
+import EvidenceFiles from '@/components/shared/evidence-files'
 import CategoryGuide from '@/components/portfolio/category-guide'
-import { uploadPendingFiles } from '@/lib/supabase/storage'
+import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { portfolioDraftKeysFor } from '@/lib/drafts/draft-keys'
 import { useToast } from '@/components/ui/toast-provider'
 import { completenessScore } from '@/lib/utils/completeness'
+import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { formatInterviewReady } from '@/lib/types/portfolio-labels'
@@ -26,6 +28,7 @@ type Props = {
   defaultCategory?: Category
   templates?: Template[]
   authenticatedUserId?: string
+  existingEvidence?: EvidenceFile[]
 }
 
 const INTERVIEW_READY_OPTIONS = ['imt', 'cst', 'gp', 'accs', 'st3', 'arcp'] as const
@@ -142,7 +145,7 @@ function CheckboxField({ label, checked, onChange }: { label: string; checked: b
   )
 }
 
-export default function EntryForm({ mode, initialData, userInterests = [], defaultCategory, templates = [], authenticatedUserId }: Props) {
+export default function EntryForm({ mode, initialData, userInterests = [], defaultCategory, templates = [], authenticatedUserId, existingEvidence = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
@@ -443,13 +446,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     return () => clearTimeout(timer)
   }, [notes, specialtyTags, title])
 
-  function addPendingFiles(files: FileList | null) {
-    const nextFiles = Array.from(files ?? [])
-    if (nextFiles.length === 0) return
-    setPendingFiles(current => mergeUniqueFiles(current, nextFiles))
-    markDirty()
-  }
-
   // Compute refl_free_text from framework state
   function getReflFreeText(): string | null {
     if (reflFramework === 'none') return reflFreeText || null
@@ -509,7 +505,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
+    // The form sets noValidate so we surface our own inline messages (in the
+    // error banner) instead of the easy-to-miss native validation bubble.
     if (!title.trim()) { setError('Title is required.'); return }
+    if (!date) { setError('Date is required.'); return }
+    const numericError = validateEntryNumericFields(category, procCount, confCpdHours)
+    if (numericError) { setError(numericError); return }
     // Flush any uncommitted specialty search text. If exactly one option
     // matches we auto-commit it; otherwise the SpecialtyTagSelect surfaces an
     // inline warning of its own and we block the save with a matching banner.
@@ -570,14 +571,15 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             .eq('id', user.id)
         }
       }
-      addToast('Entry saved', 'success')
+      const uploaded = pendingFiles.length
+      addToast(uploaded > 0 ? `Entry saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Entry saved', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
         setSaving(false)
         window.location.assign(`/portfolio/new?category=${category}&fresh=${Date.now()}`)
         return
       }
-      router.push(`/portfolio/${data.id}`)
+      router.push(uploaded > 0 ? `/portfolio/${data.id}?uploaded=${uploaded}` : `/portfolio/${data.id}`)
     } else {
       const { error } = await supabase
         .from('portfolio_entries')
@@ -594,9 +596,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           return
         }
       }
+      const uploaded = pendingFiles.length
       setIsDirty(false)
-      addToast('Changes saved', 'success')
-      router.push(`/portfolio/${initialData!.id}`)
+      addToast(uploaded > 0 ? `Changes saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Changes saved', 'success')
+      router.push(uploaded > 0 ? `/portfolio/${initialData!.id}?uploaded=${uploaded}` : `/portfolio/${initialData!.id}`)
     }
   }
 
@@ -637,9 +640,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         }}
         onDragOver={event => event.preventDefault()}
         onDrop={event => {
+          // Swallow drops that miss the evidence dropzone so the browser doesn't
+          // navigate away (and so stray files aren't staged unvalidated). The
+          // EvidenceUpload dropzone handles real uploads and stops propagation.
+          // (QOL-011 / QOL-014)
           event.preventDefault()
-          addPendingFiles(event.dataTransfer.files)
         }}
+        noValidate
         className="space-y-8"
       >
         {/* Draft restored banner */}
@@ -869,7 +876,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                     {LEVEL_OPTIONS.map(o => <option key={o} value={o} className="capitalize">{o.charAt(0).toUpperCase() + o.slice(1)}</option>)}
                   </select>
                 </Field>
-                <Field label="CPD hours"><input type="number" min="0" step="0.5" value={confCpdHours} onChange={e => setConfCpdHours(e.target.value)} className={INPUT} placeholder="e.g. 6" /></Field>
+                <Field label="CPD hours"><input type="number" min="0" max="999" step="0.5" value={confCpdHours} onChange={e => setConfCpdHours(e.target.value)} className={INPUT} placeholder="e.g. 6" /></Field>
               </div>
               <CheckboxField label="Certificate received" checked={confCertificate} onChange={v => { setConfCertificate(v); markDirty() }} />
             </div>
@@ -951,7 +958,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                     <button type="button" className={TOGGLE_BTN(procSupervision === 'unsupervised')} onClick={() => { setProcSupervision('unsupervised'); markDirty() }}>Unsupervised</button>
                   </div>
                 </Field>
-                <Field label="Number performed"><input type="number" min="1" value={procCount} onChange={e => setProcCount(e.target.value)} className={INPUT} placeholder="e.g. 3" /></Field>
+                <Field label="Number performed"><input type="number" min="1" max="9999" step="1" value={procCount} onChange={e => setProcCount(e.target.value)} className={INPUT} placeholder="e.g. 3" /></Field>
               </div>
             </div>
           )}
@@ -1078,6 +1085,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
           <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">Evidence</h3>
+          {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
+          {mode === 'edit' && existingEvidence.length > 0 && (
+            <EvidenceFiles initialFiles={existingEvidence} canDelete />
+          )}
           <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
         </div>
 
