@@ -105,6 +105,7 @@ Auth notes:
 - Sidebar logout attempts global sign-out; if Supabase global revocation fails upstream, it still performs best-effort local sign-out and redirects with an explicit warning.
 - Confirmed `.ac.uk`/NHS signup addresses are claimed through `lib/institutional-auth-email.ts` from both PKCE callback and token-hash OTP confirmation paths, then tier is re-derived by `recompute_profile_tier`. Do not restore a second same-inbox verification step.
 - Password-reset confirmation warns before replacing an existing browser session; keep that explicit account-switch acknowledgement in recovery flows.
+- The onboarding screen has a "Not you? Sign out" control in its header (global sign-out with local fallback, same pattern as the sidebar) so a user who auto-logged-in after confirming the wrong account is not trapped by the onboarding redirect. It also clears the `clerkfolio-onboarding-draft` localStorage key on sign-out.
 - Avoid `user_metadata` for authorization. It is user-editable; use DB/app metadata for authz decisions.
 
 ## Tiers And Entitlements

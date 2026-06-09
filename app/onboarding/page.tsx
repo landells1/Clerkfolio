@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
+import { createClient } from '@/lib/supabase/client'
+import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
@@ -37,7 +39,9 @@ function safePostOnboardingNext(value: string | null) {
 
 export default function OnboardingPage() {
   const router = useRouter()
+  const supabase = useMemo(() => createClient(), [])
   const [step, setStep] = useState<Step>('profile')
+  const [signingOut, setSigningOut] = useState(false)
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [careerStage, setCareerStage] = useState('')
@@ -135,6 +139,35 @@ export default function OnboardingPage() {
     setStep(steps[Math.max(stepIndex - 1, 0)])
   }
 
+  // Onboarding auto-logs-in the user after email confirmation and middleware
+  // redirects /login etc. back here until onboarding completes — so without
+  // this control a user who confirmed the wrong account (or wants a different
+  // one) is trapped. Mirror the sidebar's robust global-with-local-fallback
+  // sign-out, and clear the onboarding draft so the next account doesn't
+  // inherit these answers (QOL-003).
+  async function handleSignOut() {
+    if (signingOut) return
+    setSigningOut(true)
+    try { window.localStorage.removeItem(DRAFT_KEY) } catch {}
+    clearClientStateOnAuthChange()
+    let globalOk = false
+    try {
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('global-signout-timeout')), 4000)
+      )
+      const { error } = await Promise.race([
+        supabase.auth.signOut({ scope: 'global' }),
+        timeout,
+      ])
+      if (error) throw error
+      globalOk = true
+    } catch {
+      await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
+    }
+    router.replace(globalOk ? '/login' : '/login?logout=local')
+    router.refresh()
+  }
+
   async function complete(target = firstEntryTarget) {
     if (saving) return
     setSaving(true)
@@ -182,11 +215,19 @@ export default function OnboardingPage() {
             <div className="flex h-7 w-7 items-center justify-center rounded bg-blue-500 text-sm font-bold text-surface-0">C</div>
             <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="h-1 w-28 overflow-hidden rounded-full bg-surface-3">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="hidden sm:block h-1 w-28 overflow-hidden rounded-full bg-surface-3">
               <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
             </div>
             <span className="text-xs text-fg-2">{stepIndex + 1} / {steps.length}</span>
+            <button
+              type="button"
+              onClick={handleSignOut}
+              disabled={signingOut}
+              className="text-xs font-medium text-fg-2 hover:text-fg transition-colors disabled:opacity-50"
+            >
+              {signingOut ? 'Signing out…' : 'Not you? Sign out'}
+            </button>
           </div>
         </div>
       </header>
