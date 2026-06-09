@@ -18,7 +18,7 @@ export function useQuickAdd() { return useContext(QuickAddContext) }
 const SearchContext = createContext<SearchCtx>({ openSearch: () => {} })
 export function useSearch() { return useContext(SearchContext) }
 
-export default function DashboardProviders({ children, userInterests }: { children: React.ReactNode; userInterests: string[] }) {
+export default function DashboardProviders({ children, userInterests, careerStage = null }: { children: React.ReactNode; userInterests: string[]; careerStage?: string | null }) {
   const [open, setOpen] = useState(false)
   const [initial, setInitial] = useState<QuickAddInitial | undefined>()
   const [searchOpen, setSearchOpen] = useState(false)
@@ -109,7 +109,7 @@ export default function DashboardProviders({ children, userInterests }: { childr
           <OfflineIndicator />
           {children}
           {open && <QuickAddModal onClose={() => setOpen(false)} userInterests={userInterests} initialValues={initial} />}
-          {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} />}
+          {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} careerStage={careerStage} />}
           {cheatsheetOpen && <Cheatsheet onClose={() => setCheatsheetOpen(false)} />}
         </ToastProvider>
       </QuickAddContext.Provider>

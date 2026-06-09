@@ -188,7 +188,7 @@ Imports:
 - Current config set covers 2026 IMT, Ophthalmology, ACCS EM/AM/Anaes, CST, Core Psych, GP, Paeds, Radiology, Anaesthetics, O&G, Public Health, Histopathology, Neurosurgery, Cardiothoracic, OMFS, Child & Adolescent Psych, CSRH, Psych Learning Disability, PH+GP dual, Plastic Surgery, Cardiology, T&O, Dermatology, EM ST4, General Surgery ST3.
 - Scoring supports `points` and `evidence`; domain rules include `highest`, `cumulative_capped`, checkbox, and self-assessed. Bonus points only count when `bonus_claimed`.
 - Recruitment dates are time-sensitive; verify official sources before updating 2026 deadlines.
-- ARCP capabilities are stored in `arcp_capabilities`; FY1/FY2 users see ARCP nav; links attach portfolio entries to capability keys.
+- ARCP capabilities are stored in `arcp_capabilities`; FY1/FY2 users see ARCP nav; links attach portfolio entries to capability keys. ARCP visibility is gated to `FY1`/`FY2` consistently across the sidebar (`getNavItemsForStage`), the command palette (`commandsForStage` in `global-search.tsx`), and the `/arcp` page itself (which renders "ARCP not available" for other stages). Keep these three in sync.
 
 ## Cron
 

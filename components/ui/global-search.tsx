@@ -27,10 +27,19 @@ const COMMANDS = [
   { keys: '?', label: 'Help & glossary', href: '/help' },
 ]
 
-export default function GlobalSearch({ onClose }: { onClose: () => void }) {
+// ARCP is for Foundation doctors only. Mirror the sidebar's gating
+// (getNavItemsForStage) so the command palette doesn't surface a route that
+// renders an "ARCP not available" page for non-FY users.
+function commandsForStage(careerStage: string | null) {
+  const showArcp = careerStage === 'FY1' || careerStage === 'FY2'
+  return showArcp ? COMMANDS : COMMANDS.filter(command => command.href !== '/arcp')
+}
+
+export default function GlobalSearch({ onClose, careerStage = null }: { onClose: () => void; careerStage?: string | null }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const commands = useMemo(() => commandsForStage(careerStage), [careerStage])
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Result[]>([])
   const [loading, setLoading] = useState(false)
@@ -39,12 +48,12 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
   const normalizedQuery = q.trim().toLowerCase()
   const matchingCommands = useMemo(
     () => normalizedQuery.length >= 2
-      ? COMMANDS.filter(command =>
+      ? commands.filter(command =>
         command.keys.toLowerCase() === normalizedQuery ||
         command.label.toLowerCase().includes(normalizedQuery)
       )
       : [],
-    [normalizedQuery]
+    [commands, normalizedQuery]
   )
 
   useEffect(() => {
@@ -224,7 +233,7 @@ export default function GlobalSearch({ onClose }: { onClose: () => void }) {
           <div className="px-4 py-3">
             <p className="mb-3 text-xs text-[rgba(245,245,242,0.55)]">Type to search across your portfolio and cases</p>
             <div className="grid gap-1">
-              {COMMANDS.map(command => (
+              {commands.map(command => (
                 <button
                   key={command.keys}
                   onClick={() => {
