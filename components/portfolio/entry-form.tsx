@@ -710,17 +710,20 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-1.5">Which of your tracked specialty programmes can you use this entry for?</p>
             <SpecialtyTagSelect ref={specialtyRef} value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
             {suggestedTags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {suggestedTags.map(tag => (
-                  <button
-                    key={tag}
-                    type="button"
-                    onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                    className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
-                  >
-                    + {formatSpecialtyLabel(tag)}
-                  </button>
-                ))}
+              <div className="mt-2">
+                <p className="mb-1 text-[11px] text-[rgba(245,245,242,0.45)]">Suggested from your text &mdash; tap to add</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {suggestedTags.map(tag => (
+                    <button
+                      key={tag}
+                      type="button"
+                      onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
+                      className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+                    >
+                      + {formatSpecialtyLabel(tag)}
+                    </button>
+                  ))}
+                </div>
               </div>
             )}
           </Field>

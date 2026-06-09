@@ -338,17 +338,20 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           trackedOnly
         />
         {suggestedTags.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {suggestedTags.map(tag => (
-              <button
-                key={tag}
-                type="button"
-                onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
-              >
-                + {formatSpecialtyLabel(tag)}
-              </button>
-            ))}
+          <div className="mt-2">
+            <p className="mb-1 text-[11px] text-[rgba(245,245,242,0.45)]">Suggested from your text &mdash; tap to add</p>
+            <div className="flex flex-wrap gap-1.5">
+              {suggestedTags.map(tag => (
+                <button
+                  key={tag}
+                  type="button"
+                  onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
+                  className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+                >
+                  + {formatSpecialtyLabel(tag)}
+                </button>
+              ))}
+            </div>
           </div>
         )}
         <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
