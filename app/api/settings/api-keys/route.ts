@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { apiKeyPrefix, generateApiKey, hashApiKey, normalizeApiKeyName } from '@/lib/api-keys'
-import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { checkRateLimit, isPublicApiOnline, rateLimitHeaders } from '@/lib/rate-limit'
 
 const APIKEY_CREATE_MAX = 5
 const APIKEY_CREATE_WINDOW_SECONDS = 60 * 60
@@ -29,7 +29,7 @@ export async function GET() {
     .order('created_at', { ascending: false })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data ?? [])
+  return NextResponse.json({ keys: data ?? [], apiOnline: isPublicApiOnline() })
 }
 
 export async function POST(req: NextRequest) {
@@ -39,6 +39,16 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // Don't mint keys that can't authenticate: the public API fails closed with
+  // 503 when distributed rate limiting isn't configured, so a new key would be
+  // unusable. Enforce this server-side, not just in the UI (QOL-019).
+  if (!isPublicApiOnline()) {
+    return NextResponse.json(
+      { error: 'The developer API is currently offline, so new keys cannot be created yet. Please try again later.' },
+      { status: 503 }
+    )
+  }
 
   const rateLimit = await checkRateLimit({
     key: user.id,

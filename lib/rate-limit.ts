@@ -21,6 +21,17 @@ const redisConfigured = Boolean(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
 )
 
+/**
+ * True when distributed (Upstash) rate limiting is configured. The public
+ * API key-auth path fails closed with HTTP 503 when this is false (a 60/min
+ * cluster-wide limit can't be enforced per-instance), so the developer API is
+ * effectively offline. The /settings/api UI uses this to warn users and block
+ * minting keys that wouldn't authenticate (QOL-019).
+ */
+export function isPublicApiOnline() {
+  return redisConfigured
+}
+
 const redis = redisConfigured ? Redis.fromEnv() : null
 const limiters = new Map<string, Ratelimit>()
 

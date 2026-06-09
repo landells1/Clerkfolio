@@ -210,6 +210,7 @@ Files: `lib/api-keys.ts`, `lib/public-api.ts`, `/api/v1/me/*`, `/api/settings/ap
 - SHA-256 token hash is stored for lookup; this is correct for high-entropy API keys.
 - Current scope model is read-only `read`.
 - Auth is Bearer token; API-key auth is per-IP rate-limited at 60/min through distributed Upstash limiting in production. If Upstash is absent in production, public API authentication returns HTTP 503 rather than accepting unenforceably limited traffic.
+- `isPublicApiOnline()` (`lib/rate-limit.ts`) exposes whether distributed limiting is configured. `GET /api/settings/api-keys` returns `{ keys, apiOnline }`; when offline the `/settings/api` page shows an "API unavailable" banner, disables key generation, and labels existing keys "API offline". `POST` also fails closed with 503 so unusable keys can't be minted even outside the UI (QOL-019).
 - Public API uses service role but always scopes queries to authenticated key owner.
 
 ## Privacy And Account Lifecycle

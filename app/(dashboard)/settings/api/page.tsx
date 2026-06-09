@@ -36,6 +36,7 @@ function formatDate(value: string | null) {
 export default function ApiSettingsPage() {
   const { addToast } = useToast()
   const [keys, setKeys] = useState<ApiKey[]>([])
+  const [apiOnline, setApiOnline] = useState(true)
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
@@ -48,7 +49,9 @@ export default function ApiSettingsPage() {
     setLoading(true)
     const res = await fetch('/api/settings/api-keys')
     if (res.ok) {
-      setKeys(await res.json())
+      const body = await res.json()
+      setKeys(body.keys ?? [])
+      setApiOnline(body.apiOnline !== false)
     } else {
       const body = await res.json().catch(() => ({}))
       setError(body.error ?? 'Could not load API keys.')
@@ -125,16 +128,27 @@ export default function ApiSettingsPage() {
         </div>
       </div>
 
+      {!loading && !apiOnline && (
+        <div className="mb-6 rounded-2xl border border-amber-400/20 bg-amber-400/10 p-4">
+          <p className="text-sm font-medium text-amber-200">The developer API is temporarily unavailable</p>
+          <p className="mt-1 text-xs leading-5 text-amber-100/80">
+            New keys can&apos;t be created right now, and existing keys won&apos;t authenticate (calls return HTTP 503)
+            until the API is back online. No action is needed on your side &mdash; this notice will clear automatically.
+          </p>
+        </div>
+      )}
+
       <section className="mb-6 rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
         <form onSubmit={createKey} className="flex flex-col gap-3 sm:flex-row">
           <input
             value={name}
             onChange={e => setName(e.target.value)}
-            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+            disabled={!apiOnline}
+            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9] disabled:opacity-50"
             placeholder="Key name"
           />
-          <button disabled={creating} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
-            {creating ? 'Creating...' : 'Generate key'}
+          <button disabled={creating || !apiOnline} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+            {!apiOnline ? 'API offline' : creating ? 'Creating...' : 'Generate key'}
           </button>
         </form>
 
@@ -173,8 +187,8 @@ export default function ApiSettingsPage() {
                   <div>
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="text-sm font-medium text-[#F5F5F2]">{key.name}</p>
-                      <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${revoked ? 'bg-red-500/10 text-red-300' : 'bg-emerald-500/10 text-emerald-300'}`}>
-                        {revoked ? 'Revoked' : 'Active'}
+                      <span className={`rounded px-2 py-0.5 text-[10px] font-medium ${revoked ? 'bg-red-500/10 text-red-300' : apiOnline ? 'bg-emerald-500/10 text-emerald-300' : 'bg-amber-400/10 text-amber-300'}`}>
+                        {revoked ? 'Revoked' : apiOnline ? 'Active' : 'API offline'}
                       </span>
                     </div>
                     <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.4)]">{key.prefix}... - last used {formatDate(key.last_used_at)}</p>
