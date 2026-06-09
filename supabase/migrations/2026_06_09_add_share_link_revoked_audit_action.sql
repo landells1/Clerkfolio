@@ -1,0 +1,17 @@
+-- QOL-021: capture the audit_action enum value the share-link revoke path needs.
+--
+-- Commit 6a64b0f added a service-role INSERT into public.audit_log with
+-- action = 'share_link_revoked' on share-link revocation
+-- (app/api/share/route.ts), but never shipped a migration to extend the
+-- public.audit_action enum. The INSERT therefore failed with
+--   22P02 invalid input value for enum audit_action: "share_link_revoked"
+-- and the error was swallowed by the route, so no revoke was ever audited.
+--
+-- The value was applied directly to the live database on 2026-06-09 to unblock
+-- auditing; this migration records that change in version control so the schema
+-- is reproducible from migrations alone. ADD VALUE IF NOT EXISTS is idempotent,
+-- so re-running against the live DB (where the value already exists) is a no-op.
+--
+-- Pairs with 'share_link_generated' / 'share_link_viewed' already in the enum
+-- (extended in 2026_05_20_audit_remediation_phase3.sql).
+ALTER TYPE public.audit_action ADD VALUE IF NOT EXISTS 'share_link_revoked';
