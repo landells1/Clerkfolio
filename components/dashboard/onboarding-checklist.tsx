@@ -14,7 +14,7 @@ type Props = {
 const ITEMS = [
   { key: 'portfolio_entry', label: 'Log your first portfolio entry', href: '/portfolio/new' },
   { key: 'specialty',       label: 'Add a specialty you\'re interested in', href: '/specialties' },
-  { key: 'deadline',        label: 'Add a timeline goal', href: '/timeline' },
+  { key: 'deadline',        label: 'Add a timeline goal or deadline', href: '/timeline' },
   { key: 'case',            label: 'Log your first case', href: '/cases/new' },
   { key: 'export',          label: 'Preview export options', href: '/export' },
 ]
