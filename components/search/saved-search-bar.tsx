@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { parseSearchQuery } from '@/lib/search/parser'
-import { resolveFilterPersistence } from '@/lib/search/filter-persistence'
+import { resolveFilterPersistence, stripNavParams } from '@/lib/search/filter-persistence'
 
 type Surface = 'cases' | 'portfolio' | 'timeline' | 'logs'
 
@@ -83,8 +83,32 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname)
   }
 
+  // A bare URL re-applies the last remembered filters (resolveFilterPersistence),
+  // so simply linking to `pathname` would be undone by the restore effect above.
+  // Clearing therefore drops the persisted entry first, then navigates bare, so
+  // the surface defaults to the full unfiltered view (QOL-016).
+  function clearFilters() {
+    try { localStorage.removeItem(`clerkfolio-filters:${pathname}`) } catch {}
+    router.replace(pathname)
+  }
+
+  // Only surface "Clear" when a real filter (not just navigational params) is active.
+  const hasActiveFilters = stripNavParams(searchParams.toString()).length > 0
+
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
+      {hasActiveFilters && (
+        <span className="inline-flex min-h-[36px] items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 text-xs font-medium text-amber-200">
+          Filtered
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="rounded text-amber-100 underline underline-offset-2 hover:text-white"
+          >
+            Clear
+          </button>
+        </span>
+      )}
       <button
         type="button"
         onClick={() => setSaveOpen(current => !current)}
