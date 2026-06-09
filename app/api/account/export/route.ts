@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import JSZip from 'jszip'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import { sanitizeProfileForExport } from '@/lib/export/sanitize-profile'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 import type { ARCPEntryLink } from '@/lib/types/arcp'
 
@@ -145,7 +146,7 @@ export async function POST(req: NextRequest) {
   }
 
   root.file('manifest.json', JSON.stringify(manifest, null, 2))
-  raw.file('profile.json', JSON.stringify(profile ?? {}, null, 2))
+  raw.file('profile.json', JSON.stringify(sanitizeProfileForExport(profile), null, 2))
   raw.file('portfolio-entries.json', JSON.stringify(portfolioEntries ?? [], null, 2))
   raw.file('cases.json', JSON.stringify(cases ?? [], null, 2))
   raw.file('deadlines.json', JSON.stringify(deadlines ?? [], null, 2))
