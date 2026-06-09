@@ -268,12 +268,28 @@ export async function DELETE(req: NextRequest) {
   const id = req.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'id required' }, { status: 400 })
 
-  const { error } = await supabase
+  // Scope to the owner's still-active link. The `revoked = false` guard makes a
+  // repeat revoke a no-op (0 rows) so we don't write a duplicate audit row, and
+  // `.select()` tells us whether an owned active link was actually revoked.
+  const { data: revokedRows, error } = await supabase
     .from('share_links')
     .update({ revoked_at: new Date().toISOString(), revoked: true })
     .eq('id', id)
     .eq('user_id', user.id)
+    .eq('revoked', false)
+    .select('id')
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Revoking a share link is a security-relevant action — complete the audit
+  // trail alongside share_link_generated / share_link_viewed (QOL-021).
+  if ((revokedRows?.length ?? 0) > 0 && process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    await createServiceClient().from('audit_log').insert({
+      user_id: user.id,
+      action: 'share_link_revoked',
+      metadata: { share_link_id: id },
+    })
+  }
+
   return NextResponse.json({ success: true })
 }

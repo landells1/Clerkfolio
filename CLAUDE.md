@@ -162,6 +162,7 @@ Files: `/api/share`, `/api/share/access`, `/share/[token]`, `lib/share/pin.ts`, 
 - Tokens: app uses 48 hex; access route accepts 48 or 64 hex for DB/default compatibility.
 - Optional PIN: 4-8 digits, scrypt hash with encoded params; legacy hash format still verifies.
 - Access route uses service role, hashed IP with `SHARE_IP_HASH_SALT`, share-wide wrong-PIN lockout (5 failures/15 min), per-IP attempt limit (5/min), 100 views/hour auto-revoke with optional owner email.
+- Audit trail: create emits `share_link_generated`, access emits `share_link_viewed`, and revoke (`DELETE /api/share`) emits `share_link_revoked` (service-role insert, gated on a real owner-scoped active-link revoke via `.eq('revoked', false)` so repeat/no-op revokes don't duplicate rows).
 - Webhooks must pass public-host SSRF checks at create and send time, no redirects, 3s timeout.
 - Public share output is noindex/nocache and can redact notes/reflections/tags.
 
