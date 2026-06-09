@@ -39,6 +39,7 @@ export default function ApiSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [creating, setCreating] = useState(false)
   const [revoking, setRevoking] = useState<string | null>(null)
+  const [confirmRevoke, setConfirmRevoke] = useState<string | null>(null)
   const [name, setName] = useState('Portfolio reader')
   const [newKey, setNewKey] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -85,8 +86,6 @@ export default function ApiSettingsPage() {
 
   async function revokeKey(id: string) {
     const key = keys.find(row => row.id === id)
-    const keyName = key?.name ?? 'this API key'
-    if (!confirm(`Are you sure you want to revoke ${keyName}? Callers using it will start receiving 401 responses immediately.`)) return
 
     setRevoking(id)
     const res = await fetch(`/api/settings/api-keys?id=${id}`, { method: 'DELETE' })
@@ -99,6 +98,7 @@ export default function ApiSettingsPage() {
     }
 
     setKeys(current => current.map(key => key.id === id ? { ...key, revoked_at: body.revoked_at } : key))
+    setConfirmRevoke(null)
     if (key?.prefix && newKey?.startsWith(key.prefix)) setNewKey(null)
     addToast('API key revoked', 'success')
   }
@@ -180,13 +180,32 @@ export default function ApiSettingsPage() {
                     <p className="mt-1 font-mono text-xs text-[rgba(245,245,242,0.4)]">{key.prefix}... - last used {formatDate(key.last_used_at)}</p>
                   </div>
                   {!revoked && (
-                    <button
-                      onClick={() => revokeKey(key.id)}
-                      disabled={revoking === key.id}
-                      className="min-h-[36px] rounded-lg border border-red-500/20 px-3 text-xs font-medium text-red-300 disabled:opacity-50"
-                    >
-                      {revoking === key.id ? 'Revoking...' : 'Revoke'}
-                    </button>
+                    confirmRevoke === key.id ? (
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setConfirmRevoke(null)}
+                          disabled={revoking === key.id}
+                          className="px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] disabled:opacity-50"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => revokeKey(key.id)}
+                          disabled={revoking === key.id}
+                          className="min-h-[36px] rounded-lg border border-red-500/25 bg-red-500/15 px-3 text-xs font-medium text-red-300 transition-colors hover:bg-red-500/20 disabled:opacity-50"
+                        >
+                          {revoking === key.id ? 'Revoking...' : 'Confirm revoke'}
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmRevoke(key.id)}
+                        disabled={revoking === key.id}
+                        className="min-h-[36px] rounded-lg border border-red-500/20 px-3 text-xs font-medium text-red-300 disabled:opacity-50"
+                      >
+                        Revoke
+                      </button>
+                    )
                   )}
                 </article>
               )
