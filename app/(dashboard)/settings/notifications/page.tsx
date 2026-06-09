@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { useToast } from '@/components/ui/toast-provider'
 
 const DEFAULT_PREFS = {
@@ -28,7 +27,6 @@ export default function NotificationSettingsPage() {
   const supabase = createClient()
   const { addToast } = useToast()
   const [prefs, setPrefs] = useState<typeof DEFAULT_PREFS | null>(null)
-  const [subInfo, setSubInfo] = useState<SubscriptionInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
 
@@ -40,13 +38,13 @@ export default function NotificationSettingsPage() {
         setLoading(false)
         return
       }
-      const [{ data: profile }, subInfo] = await Promise.all([
-        // .maybeSingle() returns null on no-row instead of throwing - defensive against
-        // a brand-new auth user whose profile trigger hasn't fired yet.
-        supabase.from('profiles').select('notification_preferences').eq('id', user.id).maybeSingle(),
-        fetchSubscriptionInfo(supabase, user.id),
-      ])
-      setSubInfo(subInfo)
+      // .maybeSingle() returns null on no-row instead of throwing - defensive against
+      // a brand-new auth user whose profile trigger hasn't fired yet.
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('notification_preferences')
+        .eq('id', user.id)
+        .maybeSingle()
       setPrefs({ ...DEFAULT_PREFS, ...(profile?.notification_preferences ?? {}) })
       setLoading(false)
     }
@@ -70,9 +68,7 @@ export default function NotificationSettingsPage() {
     addToast('Notification preferences saved', 'success')
   }
 
-  const isPro = subInfo?.isPro ?? false
   const resolvedPrefs = prefs ?? DEFAULT_PREFS
-  const masterOn = Object.values(resolvedPrefs).some(Boolean)
 
   return (
     <div className="p-6 lg:p-8 max-w-2xl">
@@ -91,20 +87,6 @@ export default function NotificationSettingsPage() {
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6">
         {loading ? (
           <p className="text-sm text-[rgba(245,245,242,0.45)]">Loading notification preferences...</p>
-        ) : !isPro ? (
-          <ToggleRow
-            label="Email reminders"
-            checked={masterOn}
-            disabled={saving}
-            onChange={checked => save({
-              deadlines: checked,
-              share_link_expiring: checked,
-              activity_nudge: false,
-              application_window: checked,
-              weekly_digest: checked,
-              monthly_digest: checked,
-            })}
-          />
         ) : (
           <div className="space-y-4">
             {OPTIONS.map(option => (
