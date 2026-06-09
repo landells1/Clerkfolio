@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import {
   getSpecialtyConfig,
   formatSpecialtyLabel,
@@ -19,9 +20,10 @@ import type {
 type Props = {
   applications: SpecialtyApplication[]
   links: SpecialtyEntryLink[]
+  isPro?: boolean
 }
 
-export function CompareView({ applications, links }: Props) {
+export function CompareView({ applications, links, isPro = false }: Props) {
   const [leftId, setLeftId] = useState(applications[0]?.id ?? '')
   const [rightId, setRightId] = useState(applications[1]?.id ?? '')
 
@@ -33,7 +35,22 @@ export function CompareView({ applications, links }: Props) {
             <rect x="3" y="3" width="7" height="18" /><rect x="14" y="3" width="7" height="18" />
           </svg>
         </div>
-        <p className="text-[rgba(245,245,242,0.4)] text-sm">Add at least 2 specialties to compare.</p>
+        {isPro ? (
+          <p className="text-[rgba(245,245,242,0.4)] text-sm">Track at least 2 active specialties to compare them side by side.</p>
+        ) : (
+          <>
+            <p className="max-w-sm text-[rgba(245,245,242,0.55)] text-sm">
+              Comparing specialties needs 2+ tracked specialties. Free, Student and Foundation tiers track one
+              specialty at a time — tracking more than one requires Pro.
+            </p>
+            <Link
+              href="/upgrade?source=compare"
+              className="mt-4 inline-flex min-h-[40px] items-center rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0] transition-colors"
+            >
+              Upgrade to Pro
+            </Link>
+          </>
+        )}
       </div>
     )
   }

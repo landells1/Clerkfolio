@@ -276,7 +276,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
 
       {/* Compare tab */}
       {activeTab === 'compare' && (
-        <CompareView applications={activeApplications} links={links} />
+        <CompareView applications={activeApplications} links={links} isPro={isPro} />
       )}
 
       {/* Add Specialty Modal */}
