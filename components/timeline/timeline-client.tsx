@@ -309,7 +309,11 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     const url = await ensureCalendarFeedUrl()
     if (!url) return
     setCalendarFallbackUrl(url)
-    window.open(`https://calendar.google.com/calendar/render?cid=${encodeURIComponent(url)}`, '_blank', 'noopener,noreferrer')
+    // Google's add-by-URL flow only opens the "Add this calendar?" subscription
+    // dialog when `cid` is a webcal:// feed URL; passing the https:// URL just
+    // dropped the user on their calendar with nothing added (REG-003).
+    const webcalUrl = url.replace(/^https?:/, 'webcal:')
+    window.open(`https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`, '_blank', 'noopener,noreferrer')
     addToast('Opened Google Calendar. If it cannot subscribe automatically, use the feed URL shown below.', 'success')
   }
 
