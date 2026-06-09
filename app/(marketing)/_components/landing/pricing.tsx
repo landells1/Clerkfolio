@@ -44,6 +44,11 @@ export function Pricing() {
           )
         })}
       </div>
+      <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-ink-soft">
+        Working in the NHS? Verifying an <span className="text-ink">nhs.net</span> (or other NHS) email unlocks
+        the free <span className="text-ink">Foundation</span> tier — Free-plan tools plus ARCP capability tracking
+        for foundation (FY1/FY2) doctors. Set your training stage during onboarding to apply it.
+      </p>
     </section>
   )
 }
