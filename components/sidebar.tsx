@@ -480,6 +480,11 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               <Link
                 key={href}
                 href={href}
+                // Rarely-clicked legal pages. Prefetching all six on every
+                // authenticated render fed the per-IP `?_rsc=` prefetch-burst
+                // 503s during SPA navigation (BUG-001), the same reason the
+                // logged-out legal footer disables prefetch.
+                prefetch={false}
                 onClick={() => setMobileOpen(false)}
                 className="text-[9px] text-[rgba(245,245,242,0.28)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
               >
