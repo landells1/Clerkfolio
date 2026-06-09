@@ -156,6 +156,12 @@ export default async function DashboardPage({
   const changelogEntries = CHANGELOG.filter(entry => !changelogCutoff || new Date(entry.date).getTime() > new Date(changelogCutoff).getTime())
   const realEntries = (allEntries ?? []).filter(entry => !entry.is_demo)
   const realCases = (allCases ?? []).filter(c => !c.is_demo)
+  // Keep the "these are example entries" banner up for as long as seeded demo
+  // data is still present and the user hasn't dismissed/removed it - not just on
+  // the single render that seeds it (QOL-007). `allEntries`/`allCases` are read
+  // before seeding, so OR in `seededDemos` to cover the very first load too.
+  const hasDemoData = (allEntries ?? []).some(entry => entry.is_demo) || (allCases ?? []).some(c => c.is_demo)
+  const showDemoBanner = (seededDemos || hasDemoData) && !profile?.demo_dismissed_at
   const showOnboardingChecklist = Boolean(profile && !profile.onboarding_checklist_dismissed)
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
@@ -350,7 +356,7 @@ export default async function DashboardPage({
       )}
       {!showOnboardingChecklist && <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />}
       <CareerWelcomeCard stage={profile?.career_stage} caseCount={allCases?.length ?? 0} />
-      <DemoStarterCard show={seededDemos} />
+      <DemoStarterCard show={showDemoBanner} />
 
       {showOnboardingChecklist && (
         <OnboardingChecklist
