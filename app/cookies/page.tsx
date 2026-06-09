@@ -2,7 +2,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '9 June 2026'
 
 type CookieRow = {
   name: string
@@ -143,8 +143,9 @@ export default function CookiesPage() {
         <Section title="Categories">
           <ul>
             <li>
-              <strong>Strictly necessary</strong> - Required for the service to function. Authentication
-              sessions, consent records, and the PWA offline cache. These cannot be turned off.
+              <strong>Strictly necessary</strong> - Required for the service to function or to keep it
+              secure and reliable. Authentication sessions, consent records, the PWA offline cache, and
+              error/performance diagnostics (Sentry, see below). These cannot be turned off.
             </li>
             <li>
               <strong>Analytics</strong> - Aggregate, anonymised usage data. Off by default. Loaded only
@@ -196,6 +197,23 @@ export default function CookiesPage() {
             Optional analytics remains off unless you explicitly enable it, regardless of your browser&apos;s{' '}
             <code className="rounded bg-white/[0.06] px-1 py-0.5 text-xs">DNT</code> setting. Strictly
             necessary storage is unaffected.
+          </p>
+        </Section>
+
+        <Section title="Error and performance monitoring (Sentry)">
+          <p>
+            We use <strong>Sentry</strong> to monitor errors and performance so we can detect and fix
+            faults and keep the service secure and reliable. We treat this as{' '}
+            <strong>strictly necessary</strong> diagnostics (legitimate interest in service security and
+            reliability), so it runs without a separate consent toggle and is not part of the optional
+            Analytics control.
+          </p>
+          <p>
+            Sentry does <strong>not</strong> set cookies on clerkfolio.co.uk and does not use session
+            replay. Diagnostic events are sent to Sentry&apos;s EU region and are scrubbed before sending:
+            default personal data is disabled, and cookies and authorisation headers are stripped. No
+            portfolio content is sent. Sentry is listed on our{' '}
+            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link>.
           </p>
         </Section>
 

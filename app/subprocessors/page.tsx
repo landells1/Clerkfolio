@@ -2,7 +2,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '15 May 2026'
+const lastUpdated = '9 June 2026'
 
 type Subprocessor = {
   name: string
@@ -45,6 +45,14 @@ const subprocessors: Subprocessor[] = [
     privacyUrl: 'https://vercel.com/legal/privacy-policy',
     dpaUrl: 'https://vercel.com/legal/dpa',
     transferMechanism: 'EU-US Data Privacy Framework; Standard Contractual Clauses; UK IDTA',
+  },
+  {
+    name: 'Sentry',
+    location: 'European Union (Germany, de region)',
+    purpose: 'Application error and performance monitoring used to detect, diagnose, and fix faults and keep the service secure and reliable. Diagnostic events are sent to Sentry’s EU region and are scrubbed before sending: no session replay, no default personal data, and cookies/authorisation headers are stripped. No portfolio content is sent.',
+    privacyUrl: 'https://sentry.io/privacy/',
+    dpaUrl: 'https://sentry.io/legal/dpa/',
+    transferMechanism: null,
   },
   {
     name: 'Upstash',

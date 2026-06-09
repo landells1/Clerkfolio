@@ -251,6 +251,8 @@ Dark, dense, professional medical dashboard. Primary background around `#0B0B0C`
 
 Optional Vercel Analytics is off by default and configured from the footer `Analytics preferences` control; do not restore a first-visit blocking consent modal while only essential storage loads by default.
 
+Sentry (error/performance monitoring) is classed as strictly-necessary diagnostics (legitimate interest), runs always-on (not behind the Analytics-preferences toggle), and uses no session replay, no default PII, and no cookies (`instrumentation-client.ts` scrubs events; EU `de` ingest region). It is disclosed on the Subprocessors page and in a dedicated cookie-policy section. Keep that disclosure accurate if the Sentry config or consent model changes.
+
 ## Known Gotchas
 
 - `CLAUDE.md` is tracked; `.claude/`, `HANDOVER.md`, and `/docs/` are ignored.
