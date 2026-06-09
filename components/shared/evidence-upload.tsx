@@ -4,18 +4,38 @@ import { useEffect, useRef, useState } from 'react'
 import { isAllowedEvidenceFile, MAX_FILE_BYTES } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 
+/** A 36px placeholder/fallback box showing the generic image icon, used while a
+ *  thumbnail loads or if the object-URL preview fails to paint (REG-001: an
+ *  image whose blob preview did not render left a blank gap in the list). */
+function ImageIconBox() {
+  return (
+    <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded border border-white/[0.08] bg-white/[0.03] text-[rgba(245,245,242,0.4)]">
+      <ImgIcon />
+    </span>
+  )
+}
+
 /** Renders a live image thumbnail for a local File object, cleaning up the object URL on unmount. */
 function ImagePreview({ file }: { file: File }) {
   const [src, setSrc] = useState<string | null>(null)
+  const [failed, setFailed] = useState(false)
   useEffect(() => {
     const url = URL.createObjectURL(file)
     setSrc(url)
+    setFailed(false)
     return () => URL.revokeObjectURL(url)
   }, [file])
-  if (!src) return null
+  // Never collapse to nothing: show the icon box until the thumbnail is ready,
+  // and fall back to it permanently if the preview cannot be decoded/displayed.
+  if (!src || failed) return <ImageIconBox />
   return (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={src} alt="File preview" className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]" />
+    <img
+      src={src}
+      alt="File preview"
+      onError={() => setFailed(true)}
+      className="w-9 h-9 rounded object-cover flex-shrink-0 border border-white/[0.08]"
+    />
   )
 }
 
