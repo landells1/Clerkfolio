@@ -159,7 +159,7 @@ export default function SignupPage() {
             return (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border border-pill-green bg-pill-green text-green-300">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                {isAcUk ? 'Student email - eligible for Student tier after verification' : 'NHS email - eligible for Foundation tier after verification'}
+                {isAcUk ? 'Student email - eligible for Student tier after verification' : 'NHS email - eligible for Foundation tier once you set your training stage'}
               </div>
             )
           })()}
