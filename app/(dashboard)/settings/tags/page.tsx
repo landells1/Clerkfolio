@@ -12,6 +12,7 @@ export default function TagsSettingsPage() {
   const [oldTag, setOldTag] = useState('')
   const [newTag, setNewTag] = useState('')
   const [availableTags, setAvailableTags] = useState<string[]>([])
+  const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
 
   useEffect(() => {
@@ -26,6 +27,7 @@ export default function TagsSettingsPage() {
       caseRows?.forEach(row => row.specialty_tags?.forEach((tag: string) => tags.add(tag)))
       apps?.forEach(row => row.specialty_key && tags.add(row.specialty_key))
       setAvailableTags(Array.from(tags).sort((a, b) => formatSpecialtyLabel(a).localeCompare(formatSpecialtyLabel(b))))
+      setLoaded(true)
     }
     loadTags()
   }, [supabase])
@@ -46,40 +48,49 @@ export default function TagsSettingsPage() {
     }
     setOldTag('')
     setNewTag('')
-    addToast('Tag renamed across cases and portfolio entries', 'success')
+    addToast('Tag merged across cases and portfolio entries', 'success')
   }
+
+  const canMerge = availableTags.length >= 2
 
   return (
     <div className="max-w-3xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
         <Link href="/settings" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Settings</Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Specialty tags</h1>
-        <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Rename a specialty tag everywhere it appears in your cases and portfolio.</p>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Merge specialty tags</h1>
+        <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Merge one specialty tag into another across your cases and portfolio entries. Specialty labels are fixed catalogue names, so this reassigns entries from one tag to another — it is not a free-text rename.</p>
       </div>
-      <form onSubmit={renameTag} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
-        <p className="mb-4 text-sm text-[rgba(245,245,242,0.55)]">
-          Choose the visible specialty label you want to merge or rename. Clerkfolio keeps the internal key hidden.
-        </p>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
-            Current specialty tag
-            <select required value={oldTag} onChange={event => setOldTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
-              <option value="">Select current tag</option>
-              {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
-            </select>
-          </label>
-          <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
-            Rename or merge into
-            <select required value={newTag} onChange={event => setNewTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
-              <option value="">Select destination tag</option>
-              {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
-            </select>
-          </label>
+      {loaded && !canMerge ? (
+        <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6 text-sm text-[rgba(245,245,242,0.55)]">
+          <p>You need at least two specialty tags before you can merge. You currently have {availableTags.length === 1 ? 'one specialty tag' : 'no specialty tags'} across your cases and portfolio entries, so there is nothing to merge into.</p>
+          <p className="mt-3">A second tag appears once you tag entries with another specialty or track an additional specialty. Tracking more than one specialty at a time requires Pro.</p>
         </div>
-        <button disabled={saving} className="mt-4 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
-          {saving ? 'Renaming...' : 'Rename tag'}
-        </button>
-      </form>
+      ) : (
+        <form onSubmit={renameTag} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+          <p className="mb-4 text-sm text-[rgba(245,245,242,0.55)]">
+            Choose the specialty tag you want to merge, and the tag to merge it into. Clerkfolio keeps the internal key hidden.
+          </p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Merge this tag
+              <select required value={oldTag} onChange={event => setOldTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+                <option value="">Select current tag</option>
+                {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
+              </select>
+            </label>
+            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              Into this tag
+              <select required value={newTag} onChange={event => setNewTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+                <option value="">Select destination tag</option>
+                {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
+              </select>
+            </label>
+          </div>
+          <button disabled={saving} className="mt-4 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+            {saving ? 'Merging...' : 'Merge tags'}
+          </button>
+        </form>
+      )}
     </div>
   )
 }
