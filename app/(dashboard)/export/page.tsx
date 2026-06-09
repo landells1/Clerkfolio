@@ -69,7 +69,7 @@ function entrySubtitle(e: PortfolioEntry): string | null {
 }
 
 function shareLabel(link: ShareLink) {
-  if (link.scope === 'full') return 'Full portfolio'
+  if (link.scope === 'full') return 'Full portfolio (entries only)'
   if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
   return formatSpecialtyLabel(link.specialty_key)
 }
@@ -806,8 +806,11 @@ export default function ExportPage() {
                 <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
                   <option value="specialty">Tracked specialty</option>
                   <option value="theme">Competency theme</option>
-                  <option value="full">Full portfolio</option>
+                  <option value="full">Full portfolio (entries only)</option>
                 </select>
+                {shareScope === 'full' && (
+                  <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.45)]">Shares all your portfolio entries. Cases are never shared.</p>
+                )}
               </label>
               {shareScope === 'specialty' && (
                 <label className="block">

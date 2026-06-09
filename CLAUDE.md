@@ -152,6 +152,7 @@ Do not reintroduce direct user storage INSERTs. Clean signed downloads only (`sc
 Files: `/api/share`, `/api/share/access`, `/share/[token]`, `lib/share/pin.ts`, `lib/share/ssrf.ts`.
 
 - Scopes: `specialty`, `theme`, `full`. Expiry must be future and <= 90 days.
+- All scopes share portfolio entries only; cases are never included in any share (the access route only ever queries `portfolio_entries`). The create form and public page label the full scope "Full portfolio (entries only)" and disclose "Cases are never shared." Do not add cases to share output (clinical-narrative non-negotiable).
 - Specialty-scoped creation accepts active tracked specialties only; portfolio tags are valid export filters but not valid specialty share scopes.
 - Creation uses user-bound checks first, then service-role insert because user INSERT is intentionally blocked by RLS.
 - Free users get 1 active share link; route has compensating race check and increments usage only after link survives.
