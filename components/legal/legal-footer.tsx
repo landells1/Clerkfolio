@@ -19,6 +19,10 @@ export default function LegalFooter({ className }: { className?: string }) {
           <Link
             key={href + label}
             href={href}
+            // The footer renders on most surfaces and prefetching all 7 rarely-
+            // clicked legal pages on every render contributes to the per-IP
+            // `?_rsc=` prefetch-burst 503s. Disable prefetch here. (BUG-001)
+            prefetch={false}
             className="text-xs text-[rgba(245,245,242,0.35)] transition-colors hover:text-[rgba(245,245,242,0.65)]"
           >
             {label}

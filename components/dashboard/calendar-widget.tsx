@@ -58,6 +58,12 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
             <Link
               key={key}
               href={`/portfolio?q=since:${key}`}
+              // Each rendered month renders ~35 day cells; without this, Next.js
+              // fires a fan-out burst of ~35 simultaneous `?_rsc=` prefetches on
+              // dashboard load, a large fraction of which 503 under Vercel's
+              // per-IP prefetch rate limit. These are rarely-clicked drill-down
+              // links, so prefetch-on-render is not worth the burst. (BUG-001)
+              prefetch={false}
               title={`${count?.entries ?? 0} entries, ${count?.deadlines ?? 0} deadlines`}
               className={`relative flex aspect-square min-h-[34px] items-center justify-center rounded-lg border text-xs ${
                 today ? 'border-[#1B6FD9]/60' : 'border-white/[0.04]'
