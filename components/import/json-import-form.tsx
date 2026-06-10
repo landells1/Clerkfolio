@@ -9,6 +9,7 @@ type ImportResult = {
   deadlines: number
   goals: number
   skipped: number
+  errors: { table: string; row: number; error: string }[]
 }
 
 export default function JsonImportForm() {
@@ -52,6 +53,18 @@ export default function JsonImportForm() {
       {result && (
         <section className="mt-5 rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-5 text-sm text-emerald-100">
           Imported {result.portfolio_entries} portfolio entries, {result.cases} cases, {result.deadlines} deadlines, and {result.goals} goals. Skipped {result.skipped} duplicates.
+        </section>
+      )}
+
+      {result && result.errors?.length > 0 && (
+        <section className="mt-3 rounded-2xl border border-amber-400/20 bg-amber-400/5 p-5 text-sm text-amber-100">
+          <p className="font-medium">{result.errors.length} row{result.errors.length === 1 ? ' was' : 's were'} not imported:</p>
+          <ul className="mt-2 space-y-1 text-amber-100/80">
+            {result.errors.slice(0, 10).map((err, i) => (
+              <li key={i}>{err.table.replace(/_/g, ' ')} row {err.row}: {err.error}</li>
+            ))}
+            {result.errors.length > 10 && <li>…and {result.errors.length - 10} more.</li>}
+          </ul>
         </section>
       )}
     </>

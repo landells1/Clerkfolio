@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { completenessScore } from '@/lib/utils/completeness'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -79,20 +80,31 @@ export async function POST(req: NextRequest) {
   }
 
   const allowed = target === 'portfolio' ? PORTFOLIO_ALLOWED : CASE_ALLOWED
+  // Row numbers are 1-based positions within the uploaded data rows so the
+  // user can find the offending line in their file.
   const errors: { row: number; error: string }[] = []
   const validRows = rawRows
     .filter((row, index) => {
-      if (!row.title || typeof row.title !== 'string' || !row.title.trim()) return false
+      if (!row.title || typeof row.title !== 'string' || !row.title.trim()) {
+        errors.push({ row: index + 1, error: 'Missing title' })
+        return false
+      }
       if (target === 'portfolio') {
         const category = String(row.category ?? 'custom')
-        if (!CATEGORY_VALUES.has(category as Category)) return false
+        if (!CATEGORY_VALUES.has(category as Category)) {
+          errors.push({ row: index + 1, error: `Invalid category "${category}"` })
+          return false
+        }
       }
       return true
     })
-    .map(row => copyInsertable(row, user.id, allowed))
+    .map(row => {
+      const payload = copyInsertable(row, user.id, allowed)
+      return { ...payload, completeness_score: completenessScore(payload, target === 'portfolio' ? 'portfolio' : 'case') }
+    })
 
   if (validRows.length === 0) {
-    return NextResponse.json({ imported: 0, errors }, { status: 400 })
+    return NextResponse.json({ imported: 0, skipped: errors.length, errors }, { status: 400 })
   }
 
   const table = target === 'portfolio' ? 'portfolio_entries' : 'cases'
@@ -101,5 +113,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ imported: validRows.length, errors })
+  return NextResponse.json({ imported: validRows.length, skipped: errors.length, errors })
 }

@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { completenessScore } from '@/lib/utils/completeness'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
@@ -123,17 +124,27 @@ export async function POST(req: NextRequest) {
 
   let created = 0
   let skipped = 0
+  // Row numbers are 1-based positions within the uploaded rows so the user
+  // can find the offending line in their Horus export.
   const errors: { row: number; error: string }[] = []
 
   const parsedRows = rows.map((value, index) => ({ row: parseRow(value), index }))
   const validRows = parsedRows.filter((item): item is { row: HorusRow; index: number } => {
-    if (!item.row) { skipped++; return false }
-    if (!item.row.title?.trim()) { skipped++; return false }
+    if (!item.row) {
+      errors.push({ row: item.index + 1, error: 'Unreadable row' })
+      skipped++
+      return false
+    }
+    if (!item.row.title?.trim()) {
+      errors.push({ row: item.index + 1, error: 'Missing title' })
+      skipped++
+      return false
+    }
     return true
   })
 
   if (validRows.length === 0) {
-    return NextResponse.json({ created: 0, skipped })
+    return NextResponse.json({ created: 0, skipped, errors })
   }
 
   // If skip-duplicates mode, fetch existing titles+dates for this user
@@ -162,7 +173,7 @@ export async function POST(req: NextRequest) {
       continue
     }
 
-    toInsert.push({
+    const payload = {
       user_id: user.id,
       title: row.title.trim(),
       date: parsedDate,
@@ -170,7 +181,8 @@ export async function POST(req: NextRequest) {
       notes,
       specialty_tags: row.specialty_tags ?? [],
       refl_type: row.category === 'reflection' ? mapReflectionType(row.type) : null,
-    })
+    }
+    toInsert.push({ ...payload, completeness_score: completenessScore(payload, 'portfolio') })
   }
 
   if (toInsert.length > 0) {
@@ -181,7 +193,8 @@ export async function POST(req: NextRequest) {
 
     if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     created = data?.length ?? 0
-    skipped += validRows.length - toInsert.length
+    // Duplicate rows already incremented `skipped` inside the build loop;
+    // adding validRows.length - toInsert.length here double-counted them.
   }
 
   return NextResponse.json({ created, skipped, errors })

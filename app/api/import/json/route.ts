@@ -167,13 +167,24 @@ export async function POST(req: NextRequest) {
     ...(existingCases ?? []).map(caseKey),
   ])
 
+  // `skipped` counts duplicates of already-imported rows (expected on
+  // re-import); `errors` reports rows dropped because they are invalid, so a
+  // partial import is never silently presented as complete. Row numbers are
+  // 1-based positions within each backup table.
   let skipped = 0
   const errors: { table: string; row: number; error: string }[] = []
   const portfolioRows = backup.portfolio_entries
     .filter((row, index) => {
       const category = String(row.category ?? 'custom')
-      const valid = row.title && CATEGORY_VALUES.has(category as Category)
-      if (!valid || existing.has(entryKey(row))) { skipped++; return false }
+      if (!row.title) {
+        errors.push({ table: 'portfolio_entries', row: index + 1, error: 'Missing title' })
+        return false
+      }
+      if (!CATEGORY_VALUES.has(category as Category)) {
+        errors.push({ table: 'portfolio_entries', row: index + 1, error: `Invalid category "${category}"` })
+        return false
+      }
+      if (existing.has(entryKey(row))) { skipped++; return false }
       return true
     })
     .map(row => {
@@ -183,8 +194,11 @@ export async function POST(req: NextRequest) {
 
   const caseRows = backup.cases
     .filter((row, index) => {
-      const valid = row.title
-      if (!valid || existing.has(caseKey(row))) { skipped++; return false }
+      if (!row.title) {
+        errors.push({ table: 'cases', row: index + 1, error: 'Missing title' })
+        return false
+      }
+      if (existing.has(caseKey(row))) { skipped++; return false }
       return true
     })
     .map(row => {
@@ -194,12 +208,21 @@ export async function POST(req: NextRequest) {
 
   const deadlineRows = backup.deadlines
     .filter((row, index) => {
-      if (!row.title || !row.due_date) return false
+      if (!row.title || !row.due_date) {
+        errors.push({ table: 'deadlines', row: index + 1, error: !row.title ? 'Missing title' : 'Missing due date' })
+        return false
+      }
       return true
     })
     .map(row => copyInsertable(row, user.id, DEADLINE_ALLOWED))
   const goalRows = backup.goals
-    .filter(row => row.category)
+    .filter((row, index) => {
+      if (!row.category) {
+        errors.push({ table: 'goals', row: index + 1, error: 'Missing category' })
+        return false
+      }
+      return true
+    })
     .map(row => copyInsertable(row, user.id, GOAL_ALLOWED))
 
   const [portfolioResult, caseResult, deadlineResult, goalResult] = await Promise.all([
