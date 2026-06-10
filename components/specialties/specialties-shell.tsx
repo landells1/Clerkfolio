@@ -64,8 +64,8 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
     setSelectedAppId(null)
   }
 
-  function handleLinksChange(newLinks: SpecialtyEntryLink[]) {
-    setLinks(newLinks)
+  function handleLinksChange(update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) {
+    setLinks(update)
   }
 
   function handleApplicationUpdate(updatedApp: SpecialtyApplication) {
@@ -144,7 +144,6 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               config={selectedConfig}
               application={selectedApp}
               links={links.filter(l => l.application_id === selectedApp.id)}
-              allLinks={links}
               onLinksChange={handleLinksChange}
               onApplicationUpdate={handleApplicationUpdate}
               onBack={() => setSelectedAppId(null)}

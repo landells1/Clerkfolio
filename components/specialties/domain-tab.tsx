@@ -14,7 +14,9 @@ type Props = {
   applicationId: string
   specialtyName: string
   specialtyKey: string
-  onLinksChange: (links: SpecialtyEntryLink[]) => void
+  // Updater form: every commit/rollback works on the freshest domain links, so
+  // two in-flight band mutations cannot erase each other via stale snapshots
+  onLinksChange: (update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) => void
 }
 
 type ModalType = 'link' | 'log' | null
@@ -41,12 +43,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
     if (bandLabel === '') {
       if (existingLink) {
-        const newLinks = links.filter(l => l.id !== existingLink.id)
-        onLinksChange(newLinks)
+        onLinksChange(prev => prev.filter(l => l.id !== existingLink.id))
         const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingLink.id)
         if (error) {
           alert('Could not clear this self-assessment. Check your connection and try again.')
-          onLinksChange(links)
+          onLinksChange(prev => [...prev, existingLink])
         }
       }
       return
@@ -54,14 +55,14 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
     if (existingLink) {
       const updated: SpecialtyEntryLink = { ...existingLink, band_label: bandLabel, points_claimed: points }
-      onLinksChange([updated])
+      onLinksChange(prev => prev.map(l => (l.id === existingLink.id ? updated : l)))
       const { error } = await supabase
         .from('specialty_entry_links')
         .update({ band_label: bandLabel, points_claimed: points })
         .eq('id', existingLink.id)
       if (error) {
         alert('Could not save this self-assessment. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => prev.map(l => (l.id === existingLink.id ? existingLink : l)))
       }
     } else {
       const optimisticId = `temp-${Date.now()}`
@@ -76,7 +77,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         is_checkbox: false,
         created_at: new Date().toISOString(),
       }
-      onLinksChange([optimistic])
+      onLinksChange(prev => [...prev, optimistic])
 
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
@@ -93,10 +94,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         console.error('Failed to save self-assessment:', error)
-        onLinksChange([])
+        alert('Could not save this self-assessment. Check your connection and try again.')
+        onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
-        if (inserted) onLinksChange([inserted as SpecialtyEntryLink])
+        if (inserted) onLinksChange(prev => prev.map(l => (l.id === optimisticId ? inserted as SpecialtyEntryLink : l)))
       }
     }
   }
@@ -118,7 +120,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         is_checkbox: true,
         created_at: new Date().toISOString(),
       }
-      onLinksChange([...links, optimistic])
+      onLinksChange(prev => [...prev, optimistic])
 
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
@@ -136,11 +138,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       if (error) {
         console.error('specialty_entry_links insert error:', error)
         alert('Could not save this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
         if (inserted) {
-          onLinksChange([...links.filter(l => l.id !== optimisticId), inserted as SpecialtyEntryLink])
+          onLinksChange(prev => prev.map(l => (l.id === optimisticId ? inserted as SpecialtyEntryLink : l)))
         }
       }
     } else {
@@ -149,12 +151,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
         return
       }
-      const newLinks = links.filter(l => l.id !== linkToRemove.id)
-      onLinksChange(newLinks)
+      onLinksChange(prev => prev.filter(l => l.id !== linkToRemove.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', linkToRemove.id)
       if (error) {
         alert('Could not remove this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => [...prev, linkToRemove])
       }
     }
     setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
@@ -170,12 +171,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
     )
 
     if (existingMet) {
-      const newLinks = links.filter(l => l.id !== existingMet.id)
-      onLinksChange(newLinks)
+      onLinksChange(prev => prev.filter(l => l.id !== existingMet.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingMet.id)
       if (error) {
         alert('Could not remove this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => [...prev, existingMet])
       }
     } else {
       const optimisticId = `temp-${Date.now()}`
@@ -190,7 +190,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         is_checkbox: true,
         created_at: new Date().toISOString(),
       }
-      onLinksChange([...links, optimistic])
+      onLinksChange(prev => [...prev, optimistic])
 
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
@@ -207,14 +207,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         alert('Could not save this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
         if (inserted) {
-          onLinksChange([
-            ...links.filter(l => l.id !== optimisticId),
-            inserted as SpecialtyEntryLink,
-          ])
+          onLinksChange(prev => prev.map(l => (l.id === optimisticId ? inserted as SpecialtyEntryLink : l)))
         }
       }
     }
@@ -232,12 +229,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
     )
 
     if (existingEvidenced) {
-      const newLinks = links.filter(l => l.id !== existingEvidenced.id)
-      onLinksChange(newLinks)
+      onLinksChange(prev => prev.filter(l => l.id !== existingEvidenced.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingEvidenced.id)
       if (error) {
         alert('Could not remove this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => [...prev, existingEvidenced])
       }
     } else {
       const optimisticId = `temp-${Date.now()}`
@@ -252,7 +248,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         is_checkbox: true,
         created_at: new Date().toISOString(),
       }
-      onLinksChange([...links, optimistic])
+      onLinksChange(prev => [...prev, optimistic])
 
       const { data: rows, error } = await supabase
         .from('specialty_entry_links')
@@ -269,14 +265,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         alert('Could not save this specialty evidence. Check your connection and try again.')
-        onLinksChange(links)
+        onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
         if (inserted) {
-          onLinksChange([
-            ...links.filter(l => l.id !== optimisticId),
-            inserted as SpecialtyEntryLink,
-          ])
+          onLinksChange(prev => prev.map(l => (l.id === optimisticId ? inserted as SpecialtyEntryLink : l)))
         }
       }
     }
@@ -285,11 +278,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
   }
 
   function handleLinked(newLink: SpecialtyEntryLink) {
-    onLinksChange([...links, newLink])
+    onLinksChange(prev => [...prev, newLink])
   }
 
   function handleRemoveLink(linkId: string) {
-    onLinksChange(links.filter(l => l.id !== linkId))
+    onLinksChange(prev => prev.filter(l => l.id !== linkId))
   }
 
   const existingEntryIds = links.filter(l => l.entry_id !== null).map(l => l.entry_id as string)

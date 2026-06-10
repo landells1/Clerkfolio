@@ -22,8 +22,10 @@ type Props = {
   config: SpecialtyConfig
   application: SpecialtyApplication
   links: SpecialtyEntryLink[]
-  allLinks: SpecialtyEntryLink[]
-  onLinksChange: (links: SpecialtyEntryLink[]) => void
+  // Updater form (never a plain array) so every mutation commits against the
+  // freshest list; concurrent updates from other bands/domains cannot be lost
+  // to a render-time snapshot.
+  onLinksChange: (update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) => void
   onApplicationUpdate: (app: SpecialtyApplication) => void
   onBack: () => void
   isPro?: boolean
@@ -33,7 +35,6 @@ export function SpecialtyDetail({
   config,
   application,
   links,
-  allLinks,
   onLinksChange,
   onApplicationUpdate,
   onBack,
@@ -123,7 +124,7 @@ export function SpecialtyDetail({
       if (error) {
         alert(`Failed to untick essentials: ${error.message}`)
       } else {
-        onLinksChange(allLinks.filter(link => !ids.includes(link.id)))
+        onLinksChange(prev => prev.filter(link => !ids.includes(link.id)))
       }
     } else if (unmetDomains.length > 0) {
       const { data: rows, error } = await supabase
@@ -141,20 +142,26 @@ export function SpecialtyDetail({
       if (error) {
         alert(`Failed to tick all essentials: ${error.message}`)
       } else if (rows) {
-        onLinksChange([...allLinks, ...(rows as SpecialtyEntryLink[])])
+        onLinksChange(prev => [...prev, ...(rows as SpecialtyEntryLink[])])
       }
     }
     setTickingAll(false)
   }
 
-  function handleDomainLinksChange(newDomainLinks: SpecialtyEntryLink[]) {
-    // Replace all links for this application with the updated set for this domain
+  function handleDomainLinksChange(update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) {
+    // Apply the domain's update against the freshest full list, scoped to this
+    // application + domain, leaving every other link untouched
     const activeDomain = config.domains.find(d => d.key === activeDomainKey)
     if (!activeDomain) return
-    const otherLinks = allLinks.filter(
-      l => l.application_id !== application.id || l.domain_key !== activeDomainKey
-    )
-    onLinksChange([...otherLinks, ...newDomainLinks])
+    onLinksChange(prev => {
+      const domainLinks = prev.filter(
+        l => l.application_id === application.id && l.domain_key === activeDomainKey
+      )
+      const otherLinks = prev.filter(
+        l => l.application_id !== application.id || l.domain_key !== activeDomainKey
+      )
+      return [...otherLinks, ...update(domainLinks)]
+    })
   }
 
   const activeDomain = config.domains.find(d => d.key === activeDomainKey)
