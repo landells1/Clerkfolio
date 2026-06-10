@@ -18,6 +18,13 @@ const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 const MAX_FILE_BYTES = 25 * 1024 * 1024
 const MAX_ROWS_PER_TABLE = 2000
 
+// MAX_FILE_BYTES caps the *compressed* upload; DEFLATE can inflate a 25 MB ZIP
+// to gigabytes (zip bomb). Each archive member is streamed out with this cap so
+// a hostile backup gets a clean 413 before JSON.parse, not an OOM crash.
+const MAX_DECOMPRESSED_BYTES = 50 * 1024 * 1024
+
+class BackupTooLargeError extends Error {}
+
 // Column allowlists - preferred over a BLOCKED_KEYS denylist so that newly
 // added internal-only columns can't be set by a crafted import. Mirror the
 // shape of NewCase / NewPortfolioEntry from lib/types.
@@ -57,13 +64,57 @@ function safeArray(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : []
 }
 
+// jszip implements .async() on top of this streaming helper; it is documented
+// API (StreamHelper) but missing from the bundled .d.ts, hence the cast below.
+type JSZipStream = {
+  on(event: 'data', cb: (chunk: Uint8Array) => void): JSZipStream
+  on(event: 'error', cb: (err: Error) => void): JSZipStream
+  on(event: 'end', cb: () => void): JSZipStream
+  pause(): JSZipStream
+  resume(): JSZipStream
+}
+
+function inflateCapped(item: JSZip.JSZipObject): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Uint8Array[] = []
+    let total = 0
+    let aborted = false
+    const stream = (item as unknown as { internalStream(type: 'uint8array'): JSZipStream }).internalStream('uint8array')
+    stream.on('data', chunk => {
+      if (aborted) return
+      total += chunk.length
+      if (total > MAX_DECOMPRESSED_BYTES) {
+        aborted = true
+        stream.pause()
+        reject(new BackupTooLargeError())
+        return
+      }
+      chunks.push(chunk)
+    })
+    stream.on('error', err => {
+      if (!aborted) reject(err)
+    })
+    stream.on('end', () => {
+      if (aborted) return
+      const merged = new Uint8Array(total)
+      let offset = 0
+      chunks.forEach(chunk => {
+        merged.set(chunk, offset)
+        offset += chunk.length
+      })
+      resolve(new TextDecoder().decode(merged))
+    })
+    stream.resume()
+  })
+}
+
 async function readBackup(file: File) {
   if (file.name.toLowerCase().endsWith('.zip')) {
     const zip = await JSZip.loadAsync(await file.arrayBuffer())
     async function readJson(name: string) {
       const match = Object.values(zip.files).find(item => item.name.endsWith(`/raw/${name}`) || item.name === `raw/${name}`)
       if (!match) return []
-      return safeArray(JSON.parse(await match.async('string')))
+      return safeArray(JSON.parse(await inflateCapped(match)))
     }
     return {
       portfolio_entries: await readJson('portfolio-entries.json'),
@@ -136,7 +187,10 @@ export async function POST(req: NextRequest) {
   let backup: Awaited<ReturnType<typeof readBackup>>
   try {
     backup = await readBackup(file)
-  } catch {
+  } catch (err) {
+    if (err instanceof BackupTooLargeError) {
+      return NextResponse.json({ error: 'Backup contents are too large after decompression (50 MB max per file).' }, { status: 413 })
+    }
     return NextResponse.json({ error: 'Backup file is not valid Clerkfolio JSON or ZIP.' }, { status: 400 })
   }
 
