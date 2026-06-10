@@ -24,6 +24,23 @@ function hasPaidAccess(subscription: Stripe.Subscription) {
   return ['active', 'trialing', 'past_due'].includes(subscription.status)
 }
 
+// Re-derive the tier after a downgrade from Pro. recompute_profile_tier
+// deliberately never demotes 'pro' (the webhook owns that transition), so the
+// webhook first writes a non-pro tier and then calls this to restore
+// 'student'/'foundation' for users who still qualify via institutional
+// verification - otherwise a verified student who cancels Pro lands on 'free'.
+async function recomputeTierAfterDowngrade(
+  supabase: ReturnType<typeof createServiceClient>,
+  userId: string,
+): Promise<string | null> {
+  const { data: tier, error } = await supabase.rpc('recompute_profile_tier', { p_user_id: userId })
+  if (error) {
+    console.error('Webhook: recompute_profile_tier failed:', error.message)
+    return null
+  }
+  return typeof tier === 'string' ? tier : null
+}
+
 async function recordSubscriptionChange(
   supabase: ReturnType<typeof createServiceClient>,
   userId: string,
@@ -106,15 +123,20 @@ async function handleStripeEvent(
 
     case 'customer.subscription.updated': {
       const subscription = event.data.object as Stripe.Subscription
+      const paid = hasPaidAccess(subscription)
 
       const { data: profile, error: updateError } = await supabase.from('profiles').update({
-        tier: hasPaidAccess(subscription) ? 'pro' : 'free',
+        tier: paid ? 'pro' : 'free',
         subscription_period_end: getPeriodEnd(subscription),
       }).eq('stripe_subscription_id', subscription.id).select('id').maybeSingle()
 
       if (updateError) {
         console.error('Webhook: failed to update subscription:', updateError.message)
         return NextResponse.json({ error: 'DB update failed' }, { status: 500 })
+      }
+
+      if (profile?.id && !paid) {
+        await recomputeTierAfterDowngrade(supabase, profile.id)
       }
 
       if (profile?.id && subscription.cancel_at_period_end) {
@@ -145,12 +167,16 @@ async function handleStripeEvent(
       }
 
       if (profile?.id) {
+        const recomputedTier = await recomputeTierAfterDowngrade(supabase, profile.id)
+        const planLabel = recomputedTier === 'student'
+          ? 'Student'
+          : recomputedTier === 'foundation' ? 'Foundation' : 'Free'
         await recordSubscriptionChange(
           supabase,
           profile.id,
           { event: 'cancelled', period_end: null },
           'Pro subscription ended',
-          'Your account has returned to the Free plan.',
+          `Your account has returned to the ${planLabel} plan.`,
         )
       }
 
