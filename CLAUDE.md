@@ -129,7 +129,7 @@ Files: `lib/stripe.ts`, `app/api/stripe/checkout/route.ts`, `portal/route.ts`, `
 - Checkout/portal validate origin and use `NEXT_PUBLIC_APP_URL` for redirects; never trust request origin for billing redirect URLs.
 - Checkout creates/reuses customers, subscription checkout, promotion codes allowed.
 - Webhook verifies signature and uses `stripe_webhook_events` for idempotency.
-- Paid access is `active`, `trialing`, or `past_due`; deleted subscription downgrades to free.
+- Paid access is `active`, `trialing`, or `past_due`. On downgrade (subscription deleted or updated to non-paid), the webhook writes a non-pro tier and then calls `recompute_profile_tier` to restore `student`/`foundation` for users who still qualify - the RPC deliberately never demotes `pro`, so the webhook owns that transition. Keep `recompute_profile_tier` as the only deriver of non-pro tiers; do not hardcode tier values in new write paths.
 - Activation, scheduled cancellation, and completed cancellation create `subscription_changed` audit rows and billing notifications. Payment failed creates audit log + notification; refund/dispute creates audit log rows.
 - Keep webhook/platform logs free of customer IDs and PII.
 
@@ -263,7 +263,7 @@ Sentry (error/performance monitoring) is classed as strictly-necessary diagnosti
 - Upstash missing in production means per-instance fallback for UI routes and HTTP 503 fail-closed behavior for public API-key routes.
 - Student email verification sends email before writing token/profile sent timestamp to avoid pending-with-no-email states.
 - Share link creation and notifications insert use service role by design after checks.
-- Session fingerprint maintenance is service-role in middleware; revoke route uses service role after owner check.
+- Session fingerprint maintenance is service-role in middleware; revoke route uses service role after owner check. Maintenance (lookup, revocation check, last_seen_at write) is throttled to once per 5 minutes per session via the HTTP-only `cf_fp_seen` cookie, so session revocation takes effect within 5 minutes rather than instantly - an accepted latency trade-off; do not "fix" it back to per-request.
 - Do not reintroduce segment `loading.tsx` boundaries beneath authenticated settings routes without hard-navigation testing; the prior streaming boundary stranded settings payloads behind a permanent skeleton.
 
 ## Change Playbook
