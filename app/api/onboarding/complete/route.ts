@@ -3,8 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 import { grantEligibleReferralReward } from '@/lib/referrals/rewards'
-
-const CAREER_STAGES = new Set(['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6', 'FY1', 'FY2', 'POST_FY'])
+import { CAREER_STAGE_SET, isMedicalStudentStage } from '@/lib/constants/career-stages'
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
@@ -21,7 +20,7 @@ export async function POST(req: NextRequest) {
 
   const firstName = typeof body.firstName === 'string' ? body.firstName.trim() : ''
   const lastName = typeof body.lastName === 'string' ? body.lastName.trim() : ''
-  const careerStage = typeof body.careerStage === 'string' && CAREER_STAGES.has(body.careerStage) ? body.careerStage : null
+  const careerStage = typeof body.careerStage === 'string' && CAREER_STAGE_SET.has(body.careerStage) ? body.careerStage : null
   const rawGradDate = typeof body.studentGraduationDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(body.studentGraduationDate)
     ? body.studentGraduationDate
     : null
@@ -44,7 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Profile details are incomplete.' }, { status: 400 })
   }
 
-  const isMedicalStudent = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6'].includes(careerStage)
+  const isMedicalStudent = isMedicalStudentStage(careerStage)
   if (isMedicalStudent && !studentGraduationDate) {
     return NextResponse.json({ error: 'Expected graduation date is required for student accounts.' }, { status: 400 })
   }

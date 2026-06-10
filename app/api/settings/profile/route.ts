@@ -2,14 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
-
-const VALID_CAREER_STAGES = new Set([
-  'Y1', 'Y2', 'Y3', 'Y4', 'Y5_PLUS', 'FY1', 'FY2', 'POST_FY',
-])
-
-const MEDICAL_STUDENT_STAGES = new Set([
-  'Y1', 'Y2', 'Y3', 'Y4', 'Y5_PLUS',
-])
+import { CAREER_STAGE_SET, MEDICAL_STUDENT_STAGE_SET } from '@/lib/constants/career-stages'
 
 const VALID_TIMEZONES = new Set([
   'Europe/London', 'UTC', 'Europe/Dublin', 'Europe/Paris',
@@ -56,12 +49,12 @@ export async function POST(req: NextRequest) {
     : undefined
 
   // Validate career stage if provided
-  if (careerStage !== undefined && !VALID_CAREER_STAGES.has(careerStage)) {
+  if (careerStage !== undefined && !CAREER_STAGE_SET.has(careerStage)) {
     return NextResponse.json({ error: 'Invalid career stage.' }, { status: 400 })
   }
 
   // Enforce graduation date invariant: medical students must have it set
-  if (careerStage !== undefined && MEDICAL_STUDENT_STAGES.has(careerStage) && studentGraduationDate === null) {
+  if (careerStage !== undefined && MEDICAL_STUDENT_STAGE_SET.has(careerStage) && studentGraduationDate === null) {
     return NextResponse.json(
       { error: 'Expected graduation date is required for medical student accounts.' },
       { status: 400 }

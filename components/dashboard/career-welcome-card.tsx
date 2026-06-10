@@ -27,7 +27,7 @@ const COPY = {
 
 function bucket(stage: string | null | undefined) {
   if (stage === 'Y1' || stage === 'Y2' || stage === 'Y3') return COPY.early
-  if (stage === 'Y4' || stage === 'Y5_PLUS' || stage === 'Y6') return COPY.clinical
+  if (stage === 'Y4' || stage === 'Y5_PLUS') return COPY.clinical
   if (stage === 'FY1' || stage === 'FY2') return COPY.foundation
   return COPY.specialty
 }

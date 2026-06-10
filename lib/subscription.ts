@@ -1,4 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { isMedicalStudentStage } from '@/lib/constants/career-stages'
 
 export type Tier = 'free' | 'student' | 'foundation' | 'pro'
 
@@ -26,7 +27,7 @@ export interface SubscriptionInfo {
 }
 
 export function isMedStudentStage(careerStage: string | null | undefined) {
-  return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6'].includes(careerStage ?? '')
+  return isMedicalStudentStage(careerStage)
 }
 
 type EntitlementRow = {

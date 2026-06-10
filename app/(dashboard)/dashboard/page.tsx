@@ -34,17 +34,7 @@ import { CHANGELOG } from '@/lib/changelog'
 import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
-
-const CAREER_STAGE_LABELS: Record<string, string> = {
-  Y1:       'Year 1 (Medical Student)',
-  Y2:       'Year 2 (Medical Student)',
-  Y3:       'Year 3 (Medical Student)',
-  Y4:       'Year 4 (Medical Student)',
-  Y5_PLUS:  'Year 5+ (Medical Student)',
-  FY1:      'Foundation Year 1',
-  FY2:      'Foundation Year 2',
-  POST_FY:  'Core / Specialty Training',
-}
+import { careerStageLabel } from '@/lib/constants/career-stages'
 
 export default async function DashboardPage({
   searchParams,
@@ -320,7 +310,7 @@ export default async function DashboardPage({
     <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
       <SectionHeader
         title="Dashboard"
-        sub={profile?.career_stage ? CAREER_STAGE_LABELS[profile.career_stage] ?? profile.career_stage : undefined}
+        sub={profile?.career_stage ? careerStageLabel(profile.career_stage) : undefined}
         actions={
           <div className="hidden sm:flex items-center gap-3">
             <StreakBadge activeWeeks={activeWeeks} />

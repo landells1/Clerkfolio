@@ -5,28 +5,15 @@ import { useRouter } from 'next/navigation'
 import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
 import { createClient } from '@/lib/supabase/client'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
+import { CAREER_STAGE_OPTIONS as CAREER_STAGES, isMedicalStudentStage } from '@/lib/constants/career-stages'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
 const ALL_STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
 const MEDICAL_STUDENT_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
-function isMedicalStudentStage(careerStage: string) {
-  return ['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS'].includes(careerStage)
-}
 function getSteps(careerStage: string): Step[] {
   return isMedicalStudentStage(careerStage) ? MEDICAL_STUDENT_STEPS : ALL_STEPS
 }
-
-const CAREER_STAGES = [
-  { value: 'Y1', label: 'Year 1 (Medical Student)' },
-  { value: 'Y2', label: 'Year 2 (Medical Student)' },
-  { value: 'Y3', label: 'Year 3 (Medical Student)' },
-  { value: 'Y4', label: 'Year 4 (Medical Student)' },
-  { value: 'Y5_PLUS', label: 'Year 5+ (Medical Student)' },
-  { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
-  { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
-  { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
-]
 
 const MAX_TRACKED_SPECIALTIES = 1
 const DRAFT_KEY = 'clerkfolio-onboarding-draft'

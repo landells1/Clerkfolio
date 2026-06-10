@@ -3,12 +3,14 @@ import { describe, it, expect, vi } from 'vitest'
 import { isMedStudentStage, fetchSubscriptionInfo } from '@/lib/subscription'
 
 describe('isMedStudentStage', () => {
-  it.each(['Y1', 'Y2', 'Y3', 'Y4', 'Y5', 'Y5_PLUS', 'Y6'])(
+  it.each(['Y1', 'Y2', 'Y3', 'Y4', 'Y5_PLUS'])(
     'returns true for %s',
     stage => expect(isMedStudentStage(stage)).toBe(true),
   )
 
-  it.each(['FY1', 'FY2', 'ST1', 'ST3', 'GP', 'POST_FY', ''])(
+  // Y5/Y6 are retired legacy values: removed from every allowlist in the
+  // career-stage unification (no profile rows held them).
+  it.each(['FY1', 'FY2', 'ST1', 'ST3', 'GP', 'POST_FY', 'Y5', 'Y6', ''])(
     'returns false for %s',
     stage => expect(isMedStudentStage(stage)).toBe(false),
   )

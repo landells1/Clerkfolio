@@ -10,17 +10,7 @@ import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
-
-const CAREER_STAGES = [
-  { value: 'Y1', label: 'Year 1 (Medical Student)' },
-  { value: 'Y2', label: 'Year 2 (Medical Student)' },
-  { value: 'Y3', label: 'Year 3 (Medical Student)' },
-  { value: 'Y4', label: 'Year 4 (Medical Student)' },
-  { value: 'Y5_PLUS', label: 'Year 5+ (Medical Student)' },
-  { value: 'FY1', label: 'Foundation Year 1 (FY1)' },
-  { value: 'FY2', label: 'Foundation Year 2 (FY2)' },
-  { value: 'POST_FY', label: 'Core/Specialty Training (CT/ST)' },
-]
+import { CAREER_STAGE_OPTIONS as CAREER_STAGES } from '@/lib/constants/career-stages'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
