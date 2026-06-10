@@ -1,17 +1,36 @@
 'use client'
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
-export default function PinEntryButton({ entryId, initialPinned }: { entryId: string; initialPinned: boolean }) {
+// Shared pin/unpin toggle for portfolio entries and cases. The two features
+// previously had twin components that drifted (the portfolio copy lost its
+// error handling); keep this as the single implementation.
+export default function PinButton({
+  table,
+  id,
+  initialPinned,
+  noun,
+}: {
+  table: 'portfolio_entries' | 'cases'
+  id: string
+  initialPinned: boolean
+  noun: 'entry' | 'case'
+}) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [pinned, setPinned] = useState(initialPinned)
   const [loading, setLoading] = useState(false)
 
   async function handleToggle() {
     setLoading(true)
     const newVal = !pinned
-    await supabase.from('portfolio_entries').update({ pinned: newVal }).eq('id', entryId)
-    setPinned(newVal)
+    const { error } = await supabase.from(table).update({ pinned: newVal }).eq('id', id)
+    if (error) {
+      addToast('Failed to update pin status', 'error')
+    } else {
+      setPinned(newVal)
+    }
     setLoading(false)
   }
 
@@ -19,7 +38,7 @@ export default function PinEntryButton({ entryId, initialPinned }: { entryId: st
     <button
       onClick={handleToggle}
       disabled={loading}
-      title={pinned ? 'Unpin entry' : 'Pin as highlight'}
+      title={pinned ? `Unpin ${noun}` : 'Pin as highlight'}
       className={`flex items-center gap-2 px-3.5 py-2 text-sm font-medium border rounded-lg transition-colors disabled:opacity-50 ${
         pinned
           ? 'bg-amber-400/10 border-amber-400/30 text-amber-400 hover:bg-amber-400/20'

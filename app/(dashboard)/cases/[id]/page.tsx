@@ -5,7 +5,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
 import LogSimilarButton from '@/components/cases/log-similar-button'
 import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
-import PinCaseButton from '@/components/cases/pin-case-button'
+import PinButton from '@/components/ui/pin-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
 
@@ -77,7 +77,7 @@ export default async function CaseDetailPage({
             Edit
           </Link>
           <DuplicateCaseButton caseId={c.id} />
-          <PinCaseButton caseId={c.id} initialPinned={c.pinned ?? false} />
+          <PinButton table="cases" id={c.id} initialPinned={c.pinned ?? false} noun="case" />
           <DeleteCaseButton id={c.id} />
         </div>
       </div>

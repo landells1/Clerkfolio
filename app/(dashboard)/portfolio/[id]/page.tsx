@@ -17,7 +17,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
-import PinEntryButton from '@/components/portfolio/pin-entry-button'
+import PinButton from '@/components/ui/pin-button'
 import SaveTemplateButton from '@/components/portfolio/save-template-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
@@ -104,7 +104,7 @@ export default async function EntryDetailPage({
           </Link>
           <SaveTemplateButton entry={entry} />
           <DuplicateEntryButton entryId={entry.id} />
-          <PinEntryButton entryId={entry.id} initialPinned={entry.pinned ?? false} />
+          <PinButton table="portfolio_entries" id={entry.id} initialPinned={entry.pinned ?? false} noun="entry" />
           <DeleteEntryButton id={entry.id} />
         </div>
       </div>
