@@ -67,7 +67,11 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
     const ids = Array.from(selected)
     if (error) { addToast('Failed to trash entries', 'error'); return }
     addUndoToast(`${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} moved to trash`, async () => {
-      await supabase.from('portfolio_entries').update({ deleted_at: null }).in('id', ids)
+      const { error: restoreError } = await supabase.from('portfolio_entries').update({ deleted_at: null }).in('id', ids)
+      if (restoreError) {
+        addToast('Failed to restore entries — they are still in trash', 'error')
+        return
+      }
       router.refresh()
     })
     setSelected(new Set()); setSelectMode(false)
@@ -84,7 +88,11 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       return
     }
     addUndoToast('Entry moved to trash', async () => {
-      await supabase.from('portfolio_entries').update({ deleted_at: null }).eq('id', entry.id)
+      const { error: restoreError } = await supabase.from('portfolio_entries').update({ deleted_at: null }).eq('id', entry.id)
+      if (restoreError) {
+        addToast('Failed to restore entry — it is still in trash', 'error')
+        return
+      }
       router.refresh()
     })
     router.refresh()

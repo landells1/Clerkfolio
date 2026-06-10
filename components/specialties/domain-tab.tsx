@@ -43,7 +43,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       if (existingLink) {
         const newLinks = links.filter(l => l.id !== existingLink.id)
         onLinksChange(newLinks)
-        await supabase.from('specialty_entry_links').delete().eq('id', existingLink.id)
+        const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingLink.id)
+        if (error) {
+          alert('Could not clear this self-assessment. Check your connection and try again.')
+          onLinksChange(links)
+        }
       }
       return
     }
@@ -51,10 +55,14 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
     if (existingLink) {
       const updated: SpecialtyEntryLink = { ...existingLink, band_label: bandLabel, points_claimed: points }
       onLinksChange([updated])
-      await supabase
+      const { error } = await supabase
         .from('specialty_entry_links')
         .update({ band_label: bandLabel, points_claimed: points })
         .eq('id', existingLink.id)
+      if (error) {
+        alert('Could not save this self-assessment. Check your connection and try again.')
+        onLinksChange(links)
+      }
     } else {
       const optimisticId = `temp-${Date.now()}`
       const optimistic: SpecialtyEntryLink = {
@@ -143,7 +151,11 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       }
       const newLinks = links.filter(l => l.id !== linkToRemove.id)
       onLinksChange(newLinks)
-      await supabase.from('specialty_entry_links').delete().eq('id', linkToRemove.id)
+      const { error } = await supabase.from('specialty_entry_links').delete().eq('id', linkToRemove.id)
+      if (error) {
+        alert('Could not remove this specialty evidence. Check your connection and try again.')
+        onLinksChange(links)
+      }
     }
     setCheckboxPending(prev => { const s = new Set(prev); s.delete(bandLabel); return s })
   }

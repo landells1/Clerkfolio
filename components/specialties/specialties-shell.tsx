@@ -323,10 +323,17 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
       if (insertError || !newRows?.[0]) { alert('Failed to start new cycle'); setLoading(false); return }
 
       // Archive the old row
-      await supabase
+      const { error: archiveError } = await supabase
         .from('specialty_applications')
         .update({ is_active: false, archived_at: new Date().toISOString() })
         .eq('id', oldApp.id)
+      if (archiveError) {
+        // Roll back the insert so two active cycles of the same specialty
+        // cannot coexist (the old cycle failed to archive).
+        await supabase.from('specialty_applications').delete().eq('id', newRows[0].id)
+        alert('Failed to start new cycle')
+        return
+      }
 
       onStartNewCycle(oldApp.id, newRows[0] as SpecialtyApplication)
     } finally {

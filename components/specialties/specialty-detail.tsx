@@ -59,12 +59,19 @@ export function SpecialtyDetail({
     const next = !isTarget
     setIsTarget(next)
     if (next) {
-      // Clear any other targets first (one-target-per-user invariant).
-      await supabase
+      // Clear any other targets first (one-target-per-user invariant). If this
+      // fails, stop here: the follow-up update would hit the one-target unique
+      // index and the toggle would revert confusingly.
+      const { error: clearError } = await supabase
         .from('specialty_applications')
         .update({ is_target: false })
         .eq('user_id', application.user_id)
         .neq('id', application.id)
+      if (clearError) {
+        setIsTarget(!next)
+        setTogglingTarget(false)
+        return
+      }
     }
     const { error } = await supabase
       .from('specialty_applications')

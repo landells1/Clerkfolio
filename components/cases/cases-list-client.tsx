@@ -136,12 +136,18 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     if (bulkTags.length === 0) return
     setBusy(true)
     const { data: rows } = await supabase.from('cases').select('id, specialty_tags').in('id', Array.from(selected))
+    const failures: string[] = []
     for (const row of rows ?? []) {
       const merged = Array.from(new Set([...(row.specialty_tags ?? []), ...bulkTags]))
-      await supabase.from('cases').update({ specialty_tags: merged }).eq('id', row.id)
+      const { error } = await supabase.from('cases').update({ specialty_tags: merged }).eq('id', row.id)
+      if (error) failures.push(row.id)
     }
     setBusy(false)
-    addToast(`Tags added to ${selected.size} ${selected.size === 1 ? 'case' : 'cases'}`, 'success')
+    if (failures.length > 0) {
+      addToast(`Applied tags but ${failures.length} ${failures.length === 1 ? 'case' : 'cases'} failed`, 'error')
+    } else {
+      addToast(`Tags added to ${selected.size} ${selected.size === 1 ? 'case' : 'cases'}`, 'success')
+    }
     setBulkTags([])
     setTagModalOpen(false)
     cancelSelect()

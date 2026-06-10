@@ -151,18 +151,30 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
       return
     }
 
-    await supabase.rpc('rename_user_tag', { p_old: theme.slug, p_new: nextSlug, p_field: 'interview_themes' })
+    const { error: renameError } = await supabase.rpc('rename_user_tag', { p_old: theme.slug, p_new: nextSlug, p_field: 'interview_themes' })
+    if (renameError) {
+      // Roll back the theme row so the theme list and the tags on existing
+      // entries cannot end up renamed on one side only.
+      await supabase.from('custom_competency_themes').update({ name: theme.name, slug: theme.slug }).eq('id', theme.id)
+      setError('Could not rename the theme on existing entries. Nothing was changed.')
+      return
+    }
     setCustomThemes(prev => prev.map(item => item.id === theme.id ? { ...item, name: nextName, slug: nextSlug } : item).sort((a, b) => a.name.localeCompare(b.name)))
     onChange?.(value.map(item => item === theme.slug ? nextSlug : item))
     onDirty?.()
   }
 
   async function updateThemeColour(theme: CustomTheme, colour: string) {
+    const previousColour = theme.colour
     setCustomThemes(prev => prev.map(item => item.id === theme.id ? { ...item, colour } : item))
-    await supabase
+    const { error: colourError } = await supabase
       .from('custom_competency_themes')
       .update({ colour })
       .eq('id', theme.id)
+    if (colourError) {
+      setCustomThemes(prev => prev.map(item => item.id === theme.id ? { ...item, colour: previousColour } : item))
+      setError('Could not update the theme colour.')
+    }
   }
 
   if (manageOnly) {

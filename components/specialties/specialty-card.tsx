@@ -41,7 +41,12 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
     const { error: appError } = await supabase.from('specialty_applications').delete().eq('id', application.id)
     if (appError) { alert('Failed to remove specialty. Please try again.'); return }
     // Clean up auto-deadlines created when this specialty was tracked
-    await supabase.from('deadlines').delete().eq('source_specialty_key', config.key).eq('is_auto', true)
+    const { error: deadlinesError } = await supabase.from('deadlines').delete().eq('source_specialty_key', config.key).eq('is_auto', true)
+    if (deadlinesError) {
+      // Tracker is already removed; surface the orphaned deadlines instead of
+      // leaving them silently behind.
+      alert('Specialty removed, but its auto-created deadlines could not be deleted. You can remove them from the Timeline page.')
+    }
     onRemove()
   }
 

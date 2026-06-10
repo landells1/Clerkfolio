@@ -83,7 +83,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
       const config = SPECIALTY_CONFIGS.find(c => c.key === key)
       if (config?.applicationWindow) {
         const { opensDate, closesDate } = config.applicationWindow
-        await supabase.from('deadlines').insert([
+        const { error: deadlinesError } = await supabase.from('deadlines').insert([
           {
             user_id: user.id,
             title: `${config.name} applications open`,
@@ -101,6 +101,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
             source_specialty_key: key,
           },
         ])
+        if (deadlinesError) {
+          // The tracker itself was added; don't fail the whole flow, but stop
+          // pretending the deadlines exist.
+          alert('Specialty added, but its application deadlines could not be created. You can add them manually from the Timeline page.')
+        }
       }
 
       onAdd(inserted as SpecialtyApplication)
