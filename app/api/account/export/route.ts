@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import JSZip from 'jszip'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
@@ -9,6 +10,16 @@ import type { SpecialtyEntryLink } from '@/lib/specialties'
 import type { ARCPEntryLink } from '@/lib/types/arcp'
 
 const BACKUP_SCHEMA_VERSION = 1
+
+const EXPORT_RATE_MAX = 3
+const EXPORT_RATE_WINDOW_SECONDS = 60 * 60
+
+// The whole archive is assembled in function memory, so evidence has to be
+// bounded: a Pro account can hold 5 GB, which can never fit in a lambda. Files
+// are budgeted by stored size before any download starts, and downloads run in
+// small batches instead of all at once.
+const MAX_EVIDENCE_BYTES = 500 * 1024 * 1024
+const DOWNLOAD_CONCURRENCY = 5
 
 function formatTag(tag: string) {
   return formatSpecialtyLabel(tag)
@@ -28,6 +39,22 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // This is the most expensive endpoint in the app (~25 queries plus every
+  // evidence download); meter it like the other exports.
+  const rateLimit = await checkRateLimit({
+    key: user.id,
+    max: EXPORT_RATE_MAX,
+    windowSeconds: EXPORT_RATE_WINDOW_SECONDS,
+    prefix: 'account-export',
+  })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many backup requests. Please wait before exporting again.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, EXPORT_RATE_WINDOW_SECONDS) },
+    )
+  }
+
   const body = await req.json().catch(() => ({}))
   const includeEvidence = body?.includeEvidence !== false
 
@@ -104,6 +131,22 @@ export async function POST(req: NextRequest) {
     if (file.entry_type === 'case') return activeCaseIds.has(file.entry_id)
     return false
   })
+  // Budget evidence by stored size before any download starts so the archive
+  // stays within MAX_EVIDENCE_BYTES; everything over budget is listed in the
+  // manifest instead of silently OOMing the export.
+  let evidenceBudget = MAX_EVIDENCE_BYTES
+  const evidenceToDownload: typeof filteredEvidenceFiles = []
+  const skippedEvidence: string[] = []
+  for (const ef of filteredEvidenceFiles) {
+    const size = Number(ef.file_size ?? 0)
+    if (size <= evidenceBudget) {
+      evidenceBudget -= size
+      evidenceToDownload.push(ef)
+    } else {
+      skippedEvidence.push(`${ef.entry_id}/${ef.file_name ?? ef.file_path}`)
+    }
+  }
+
   const shareLinkIds = (shareLinks ?? []).map(link => link.id)
   const [{ data: shareViews }, { data: shareAccessAttempts }] = shareLinkIds.length > 0
     ? await Promise.all([
@@ -126,7 +169,8 @@ export async function POST(req: NextRequest) {
       specialty_entry_links: filteredLinks.length,
       arcp_links: filteredArcpLinks.length,
       templates: templates?.length ?? 0,
-      evidence_files: filteredEvidenceFiles.length,
+      evidence_files: evidenceToDownload.length,
+      evidence_files_skipped_over_size_cap: skippedEvidence.length,
       personal_log: personalLog?.length ?? 0,
       audit_log: auditLog?.length ?? 0,
       share_links: shareLinks?.length ?? 0,
@@ -143,6 +187,9 @@ export async function POST(req: NextRequest) {
     import_notes: includeEvidence
       ? 'Files in raw/ preserve database-shaped records. Files in readable/ add display labels for human review. Evidence binaries are grouped by entry id in evidence/.'
       : 'Files in raw/ preserve database-shaped records. Evidence binaries were excluded from this export.',
+    ...(skippedEvidence.length > 0 && {
+      evidence_notes: `Evidence exceeds the 500 MB per-export cap; ${skippedEvidence.length} file(s) listed in evidence/SKIPPED.txt were not included. Download them individually from the app, or re-run with includeEvidence=false for a data-only backup.`,
+    }),
   }
 
   root.file('manifest.json', JSON.stringify(manifest, null, 2))
@@ -186,26 +233,37 @@ export async function POST(req: NextRequest) {
     'Evidence files are stored under evidence/<entry_id>/ when available.',
   ].join('\n'))
 
-  // Download evidence files from Supabase Storage
-  if (filteredEvidenceFiles.length > 0) {
+  // Download evidence files from Supabase Storage in small batches so peak
+  // memory is bounded by the byte budget, not the account's file count
+  if (evidenceToDownload.length > 0 || skippedEvidence.length > 0) {
     const evidenceFolder = root.folder('evidence')!
-    await Promise.allSettled(
-      filteredEvidenceFiles.map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
-        try {
-          const { data: blob } = await supabase.storage
-            .from('evidence')
-            .download(ef.file_path)
-          if (blob) {
-            const entryFolder = evidenceFolder.folder(ef.entry_id)!
-            const filename = ef.file_name ?? ef.file_path.split('/').pop() ?? 'file'
-            const arrayBuffer = await blob.arrayBuffer()
-            entryFolder.file(filename, arrayBuffer)
+    if (skippedEvidence.length > 0) {
+      evidenceFolder.file('SKIPPED.txt', [
+        `${skippedEvidence.length} file(s) were skipped because evidence exceeds the 500 MB per-export cap.`,
+        'Download these individually from the app, or re-run with includeEvidence=false.',
+        '',
+        ...skippedEvidence,
+      ].join('\n'))
+    }
+    for (let i = 0; i < evidenceToDownload.length; i += DOWNLOAD_CONCURRENCY) {
+      await Promise.allSettled(
+        evidenceToDownload.slice(i, i + DOWNLOAD_CONCURRENCY).map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
+          try {
+            const { data: blob } = await supabase.storage
+              .from('evidence')
+              .download(ef.file_path)
+            if (blob) {
+              const entryFolder = evidenceFolder.folder(ef.entry_id)!
+              const filename = ef.file_name ?? ef.file_path.split('/').pop() ?? 'file'
+              const arrayBuffer = await blob.arrayBuffer()
+              entryFolder.file(filename, arrayBuffer)
+            }
+          } catch {
+            // Skip files that fail to download - don't block the whole export
           }
-        } catch {
-          // Skip files that fail to download - don't block the whole export
-        }
-      })
-    )
+        })
+      )
+    }
   }
 
   // Generate ZIP as ArrayBuffer - directly accepted as BodyInit
