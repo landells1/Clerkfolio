@@ -1,16 +1,16 @@
 import * as Sentry from '@sentry/nextjs'
 import { NextRequest, NextResponse } from 'next/server'
-import { stripe } from '@/lib/stripe'
+import { getStripe } from '@/lib/stripe'
 import { createServiceClient } from '@/lib/supabase/server'
 import type Stripe from 'stripe'
 
-type WithPeriodEnd = { current_period_end?: number }
-
 function getPeriodEnd(subscription: Stripe.Subscription): string | null {
-  // Newer Stripe API versions (2025+) moved current_period_end to items level
-  const topLevel = (subscription as unknown as WithPeriodEnd).current_period_end
-  const itemLevel = (subscription.items?.data?.[0] as unknown as WithPeriodEnd | undefined)?.current_period_end
-  const ts = topLevel ?? itemLevel
+  // Items-level is canonical from API 2025-03-31.basil onward. The top-level
+  // fallback tolerates webhook endpoints still configured at a pre-basil
+  // version, where the payload keeps the old shape - hence the cast.
+  const itemLevel = subscription.items?.data?.[0]?.current_period_end
+  const topLevel = (subscription as unknown as { current_period_end?: number }).current_period_end
+  const ts = itemLevel ?? topLevel
   return ts ? new Date(ts * 1000).toISOString() : null
 }
 
@@ -95,7 +95,7 @@ async function handleStripeEvent(
         return NextResponse.json({ error: 'Customer mismatch' }, { status: 409 })
       }
 
-      const subscription = await stripe.subscriptions.retrieve(session.subscription as string)
+      const subscription = await getStripe().subscriptions.retrieve(session.subscription as string)
       if (!hasPaidAccess(subscription)) break
 
       const { error: activateError } = await supabase.from('profiles').update({
@@ -239,7 +239,7 @@ async function handleStripeEvent(
 
       // Look up the user via the associated charge's customer
       if (chargeId) {
-        const charge = await stripe.charges.retrieve(chargeId)
+        const charge = await getStripe().charges.retrieve(chargeId)
         const customerId = typeof charge.customer === 'string' ? charge.customer : charge.customer?.id
         if (customerId) {
           const { data: profile } = await supabase
@@ -273,7 +273,7 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event
 
   try {
-    event = stripe.webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
+    event = getStripe().webhooks.constructEvent(body, sig, process.env.STRIPE_WEBHOOK_SECRET!)
   } catch (err) {
     return NextResponse.json({ error: `Webhook error: ${String(err)}` }, { status: 400 })
   }

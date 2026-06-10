@@ -50,7 +50,8 @@ export async function POST(request: NextRequest) {
     if (profileError) throw profileError
 
     if (profile?.stripe_subscription_id && process.env.STRIPE_SECRET_KEY) {
-      const { stripe } = await import('@/lib/stripe')
+      const { getStripe } = await import('@/lib/stripe')
+      const stripe = getStripe()
       // Cancel at period end rather than immediately so we honour the paid
       // period the user already paid for. Stripe will fire
       // customer.subscription.deleted when the period actually ends; by that

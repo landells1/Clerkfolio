@@ -125,7 +125,8 @@ Tier type: `free | student | foundation | pro`.
 
 Files: `lib/stripe.ts`, `app/api/stripe/checkout/route.ts`, `portal/route.ts`, `webhook/route.ts`.
 
-- Stripe API version in code: `2026-04-22.dahlia`.
+- Stripe SDK: `stripe` v22.x; API version in code: `2026-05-27.dahlia`.
+- `lib/stripe.ts` exports `getStripe()` (lazy singleton), not a module-scope client: stripe v17+ throws on a missing secret key at construction, which breaks `next build` page-data collection where only placeholder public env vars exist. Do not revert to `export const stripe = new Stripe(...)`.
 - Checkout/portal validate origin and use `NEXT_PUBLIC_APP_URL` for redirects; never trust request origin for billing redirect URLs.
 - Checkout creates/reuses customers, subscription checkout, promotion codes allowed.
 - Webhook verifies signature and uses `stripe_webhook_events` for idempotency.
