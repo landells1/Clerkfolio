@@ -5,11 +5,14 @@ import { validateCronSecret } from '@/lib/cron'
 import { buildDigestSummary, type DigestEntry } from '@/lib/engagement/digest'
 import { previousLondonMonthWindow } from '@/lib/engagement/streaks'
 import { monthlyDigestEmail } from '@/lib/notifications/email-templates'
+import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
+
+const EMAIL_CONCURRENCY = 5
 
 type Preferences = {
   monthly_digest?: boolean
@@ -34,9 +37,17 @@ export async function GET(req: NextRequest) {
   const resend = new Resend(resendKey)
   const { start, end, label } = previousLondonMonthWindow()
 
+  // Two grouped queries for the whole window instead of two per profile.
+  // Users with no activity last month never appear here, so they are never
+  // emailed - a "0 entries, 0 green/amber/red" digest is retention noise.
+  const entriesByUser = await fetchWindowEntriesByUser(supabase, start, end)
+  const userIds = Array.from(entriesByUser.keys())
+  if (userIds.length === 0) return NextResponse.json({ ok: true, sent: 0, month: label })
+
   const { data: profiles, error: profileError } = await supabase
     .from('profiles')
     .select('id, first_name, notification_preferences, streak_cache')
+    .in('id', userIds)
 
   if (profileError) {
     logBackgroundJobError('cron.monthly-digest.profiles', profileError)
@@ -44,14 +55,15 @@ export async function GET(req: NextRequest) {
   }
 
   let sent = 0
-  for (const profile of (profiles ?? []) as ProfileRow[]) {
-    if (profile.notification_preferences?.monthly_digest === false) continue
+  const recipients = ((profiles ?? []) as ProfileRow[])
+    .filter(profile => profile.notification_preferences?.monthly_digest !== false)
 
-    const entries = await fetchDigestEntries(supabase, profile.id, start, end)
+  await processInBatches(recipients, EMAIL_CONCURRENCY, async profile => {
+    const entries = entriesByUser.get(profile.id) ?? []
     const activeWeeks = profile.streak_cache?.active_weeks ?? []
     const summary = buildDigestSummary(entries, activeWeeks)
     const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
-    if (!user?.email) continue
+    if (!user?.email) return
 
     const email = monthlyDigestEmail(profile.first_name, label, summary)
     try {
@@ -66,7 +78,7 @@ export async function GET(req: NextRequest) {
     } catch (error) {
       logBackgroundJobError('cron.monthly-digest.email', error, { userId: profile.id })
     }
-  }
+  })
 
   return NextResponse.json({ ok: true, sent, month: label })
   }, {
@@ -78,31 +90,31 @@ export async function GET(req: NextRequest) {
   })
 }
 
-async function fetchDigestEntries(
+async function fetchWindowEntriesByUser(
   supabase: ReturnType<typeof createServiceClient>,
-  userId: string,
   start: Date,
   end: Date
 ) {
   const [{ data: portfolioRows }, { data: caseRows }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('specialty_tags, completeness_score')
-      .eq('user_id', userId)
+      .select('user_id, specialty_tags, completeness_score')
       .is('deleted_at', null)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),
     supabase
       .from('cases')
-      .select('specialty_tags, completeness_score')
-      .eq('user_id', userId)
+      .select('user_id, specialty_tags, completeness_score')
       .is('deleted_at', null)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),
   ])
 
-  return [
-    ...((portfolioRows ?? []) as DigestEntry[]),
-    ...((caseRows ?? []) as DigestEntry[]),
-  ]
+  const byUser = new Map<string, DigestEntry[]>()
+  for (const row of [...(portfolioRows ?? []), ...(caseRows ?? [])] as (DigestEntry & { user_id: string })[]) {
+    const list = byUser.get(row.user_id) ?? []
+    list.push(row)
+    byUser.set(row.user_id, list)
+  }
+  return byUser
 }

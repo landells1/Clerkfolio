@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
 import { validateCronSecret } from '@/lib/cron'
+import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -137,12 +138,24 @@ export async function GET(req: NextRequest) {
     })
   })
 
-  const { data: profiles } = await supabase
+  // Two filtered profile queries instead of a full-table scan: the prefs of
+  // users who already have a draft, plus everyone who opted into the activity
+  // nudge (opt-in, so it can't be derived from the drafts).
+  type ProfileRow = { id: string; first_name: string | null; notification_preferences: Preferences | null }
+  const draftUserIds = Array.from(new Set(drafts.map(draft => draft.user_id)))
+  const draftProfiles: ProfileRow[] = draftUserIds.length > 0
+    ? ((await supabase
+        .from('profiles')
+        .select('id, first_name, notification_preferences')
+        .in('id', draftUserIds)).data ?? [])
+    : []
+  const { data: nudgeProfiles } = await supabase
     .from('profiles')
     .select('id, first_name, notification_preferences')
+    .eq('notification_preferences->activity_nudge', true)
 
   const profilePrefs = new Map<string, { first_name: string | null; prefs: Preferences }>(
-    (profiles ?? []).map(profile => [
+    [...draftProfiles, ...((nudgeProfiles ?? []) as ProfileRow[])].map(profile => [
       profile.id,
       {
         first_name: profile.first_name ?? null,
@@ -151,9 +164,7 @@ export async function GET(req: NextRequest) {
     ])
   )
 
-  const activityEnabledIds = (profiles ?? [])
-    .filter(profile => ((profile.notification_preferences ?? {}) as Preferences).activity_nudge === true)
-    .map(profile => profile.id)
+  const activityEnabledIds = ((nudgeProfiles ?? []) as ProfileRow[]).map(profile => profile.id)
 
   if (activityEnabledIds.length > 0) {
     const { data: recentEntries } = await supabase
@@ -203,13 +214,13 @@ export async function GET(req: NextRequest) {
     const resend = new Resend(resendKey)
     const userIds = Array.from(new Set(inserted.map(n => n.user_id)))
 
-    for (const userId of userIds) {
+    await processInBatches(userIds, 5, async userId => {
       const profile = profilePrefs.get(userId)
       const userItems = inserted.filter(n => n.user_id === userId && preferenceAllows(profile?.prefs ?? {}, n.type))
-      if (userItems.length === 0) continue
+      if (userItems.length === 0) return
 
       const { data: { user } } = await supabase.auth.admin.getUserById(userId)
-      if (!user?.email) continue
+      if (!user?.email) return
 
       try {
         await resend.emails.send({
@@ -222,7 +233,7 @@ export async function GET(req: NextRequest) {
       } catch (error) {
         logBackgroundJobError('cron.notifications.email', error, { userId, count: userItems.length })
       }
-    }
+    })
   }
 
   return NextResponse.json({ ok: true, generated: drafts.length, inserted: inserted.length })

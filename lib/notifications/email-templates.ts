@@ -14,7 +14,11 @@ type DigestSummary = {
   activeWeeksYtd: number
 }
 
-const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://clerkfolio.co.uk'
+// NEXT_PUBLIC_APP_URL is the canonical absolute-URL source everywhere else
+// (CSRF allowlist, Stripe redirects, signup callback). The templates used to
+// read an undocumented NEXT_PUBLIC_SITE_URL, so staging emails silently
+// deep-linked to production via the fallback.
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://clerkfolio.co.uk'
 
 function escapeHtml(value: string) {
   return value
