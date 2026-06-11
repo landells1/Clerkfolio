@@ -163,7 +163,8 @@ Files: `/api/share`, `/api/share/access`, `/share/[token]`, `lib/share/pin.ts`, 
 - Tokens: app uses 48 hex; access route accepts 48 or 64 hex for DB/default compatibility.
 - Optional PIN: 4-8 digits, scrypt hash with encoded params; legacy hash format still verifies.
 - Access route uses service role, hashed IP with `SHARE_IP_HASH_SALT`, share-wide wrong-PIN lockout (5 failures/15 min), per-IP attempt limit (5/min), 100 views/hour auto-revoke with optional owner email.
-- Audit trail: create emits `share_link_generated`, access emits `share_link_viewed`, and revoke (`DELETE /api/share`) emits `share_link_revoked` (service-role insert, gated on a real owner-scoped active-link revoke via `.eq('revoked', false)` so repeat/no-op revokes don't duplicate rows).
+- Audit trail: create emits `share_link_generated`, access emits `share_link_viewed`, revoke (`DELETE /api/share`) emits `share_link_revoked` (service-role insert, gated on a real owner-scoped active-link revoke via `.eq('revoked', false)` so repeat/no-op revokes don't duplicate rows), and expiry extension (`PATCH /api/share`) emits `share_link_extended` - extensions are unlimited by design (owner's own link), so the audit row is what keeps the trail honest about a link's true lifetime.
+- `/api/share/access` also has an endpoint-wide per-IP limiter (`share-probe`, 30/min via `checkRateLimit`) BEFORE any DB work - the DB-backed limits only count rows written on PIN failure/success, so the PIN-required probe (token, no pin) was otherwise unmetered.
 - Webhooks must pass public-host SSRF checks at create and send time, no redirects, 3s timeout.
 - Public share output is noindex/nocache and can redact notes/reflections/tags.
 
@@ -191,6 +192,8 @@ Imports:
 - Scoring supports `points` and `evidence`; domain rules include `highest`, `cumulative_capped`, checkbox, and self-assessed. Bonus points only count when `bonus_claimed`.
 - Recruitment dates are time-sensitive; verify official sources before updating 2026 deadlines.
 - ARCP capabilities are stored in `arcp_capabilities`; FY1/FY2 users see ARCP nav; links attach portfolio entries to capability keys. ARCP visibility is gated to `FY1`/`FY2` consistently across the sidebar (`getNavItemsForStage`), the command palette (`commandsForStage` in `global-search.tsx`), and the `/arcp` page itself (which renders "ARCP not available" for other stages). Keep these three in sync.
+- The ARCP links API (`/api/arcp/links`) deliberately does NOT check career stage server-side: ARCP is a visibility-only feature over the user's own data with no entitlement value, and a user transitioning stage keeps their existing links. The FY1/FY2 gate is intentionally UI-only - do not re-flag this in audits, and do not treat it as the pattern for entitlement-bearing features.
+- `SpecialtyConfig.totalMax` is the official DOMAIN maximum (e.g. IMT "maximum of 30 points across the domains"); commitment bonuses (`bonusOptions`) sit ON TOP of it. Display sites show `calculateDomainsScore()` against `totalMax` with the bonus as a separate "+N" chip - never divide `calculateTotalScore()` (domains + bonus) by `totalMax`, which reads "35/30 pts (117%)". `tests/lib/specialties/config-invariants.test.ts` pins this and other config invariants for all configs.
 
 ## Cron
 
@@ -224,6 +227,8 @@ Files: `lib/api-keys.ts`, `lib/public-api.ts`, `/api/v1/me/*`, `/api/settings/ap
 
 - Validate origin on mutating routes using `validateOrigin`.
 - Use `safeJsonBody` / `badJson` where body shape matters.
+- Client components call `/api/*` through `apiFetch` (`lib/api-fetch.ts`), never bare `fetch` - a bare fetch rejects on network failure and strands the pending flag ("Generating…") until reload. `apiFetch` never throws; `status === null` means network failure (use `NETWORK_ERROR_MESSAGE`), `parse: 'none'` keeps the body unread for blob downloads.
+- Extract caller IPs with `requestIp` (`lib/request-ip.ts`) - the single source of truth; do not hand-roll `x-forwarded-for` parsing in routes.
 - Use allowlists for import/write columns.
 - Keep service-role work behind auth/owner/origin/rate checks.
 - Keep RLS narrow and table-specific; remember UPDATE also needs SELECT visibility.

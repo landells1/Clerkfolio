@@ -1,3 +1,8 @@
+// NOT IMPORTED AT RUNTIME - kept as the editable source-of-truth for
+// lib/pdf/portfolio-pdf-runtime.cjs (the dynamically-loaded module Vercel
+// actually executes; see lib/pdf/load-runtime.ts). Edit the layout here
+// first, then port the change into the .cjs runtime and verify a deployed
+// style PDF export. Do not delete without replacing that workflow.
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
 import { formatSpecialtyLabel } from '@/lib/specialties'
