@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { getSpecialtyConfig, calculateTotalScore, isEvidenceBased, getEvidenceProgress } from '@/lib/specialties'
+import { getSpecialtyConfig, calculateDomainsScore, calculateBonusScore, isEvidenceBased, getEvidenceProgress } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
 import ActivityFeed from '@/components/dashboard/activity-feed'
@@ -47,7 +47,6 @@ export default async function DashboardPage({
 
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - 364) // 52 weeks to match heatmap window
-  const cutoffStr = cutoff.toISOString()
   const today = new Date().toISOString().split('T')[0]
   const in30 = new Date()
   in30.setDate(in30.getDate() + 30)
@@ -62,8 +61,6 @@ export default async function DashboardPage({
     { data: allCases },
     { data: deadlines },
     { data: goals },
-    { data: recentPortfolioForHeatmap },
-    { data: recentCasesForHeatmap },
     { data: rotations },
   ] = await Promise.all([
     supabase
@@ -118,18 +115,6 @@ export default async function DashboardPage({
       .order('due_date', { ascending: true })
       .limit(10),
     supabase
-      .from('portfolio_entries')
-      .select('created_at')
-      .eq('user_id', user!.id)
-      .is('deleted_at', null)
-      .gte('created_at', cutoffStr),
-    supabase
-      .from('cases')
-      .select('created_at')
-      .eq('user_id', user!.id)
-      .is('deleted_at', null)
-      .gte('created_at', cutoffStr),
-    supabase
       .from('personal_log')
       .select('id, title, date, meta')
       .eq('user_id', user!.id)
@@ -178,16 +163,17 @@ export default async function DashboardPage({
     domains.forEach(domain => { clinicalAreaCounts[domain] = (clinicalAreaCounts[domain] ?? 0) + 1 })
   })
 
-  const heatmapDates = [
-    ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
-    ...(recentCasesForHeatmap ?? []).map((e: { created_at: string }) => e.created_at.split('T')[0]),
-  ]
+  // Heatmap data is derived from allEntries/allCases (already fetched above)
+  // filtered to the 52-week window - two fewer queries per dashboard load.
+  // If allEntries is ever paginated, restore dedicated windowed queries.
+  const heatmapCreatedAts = [
+    ...(allEntries ?? []).map((e: { created_at: string }) => e.created_at),
+    ...(allCases ?? []).map((c: { created_at: string }) => c.created_at),
+  ].filter(createdAt => new Date(createdAt).getTime() >= cutoff.getTime())
+  const heatmapDates = heatmapCreatedAts.map(createdAt => createdAt.split('T')[0])
   const activeWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
   const todayLondon = londonDateKey(new Date())
-  const hasEntryToday = [
-    ...(recentPortfolioForHeatmap ?? []).map((e: { created_at: string }) => e.created_at),
-    ...(recentCasesForHeatmap ?? []).map((e: { created_at: string }) => e.created_at),
-  ].some(createdAt => londonDateKey(createdAt) === todayLondon)
+  const hasEntryToday = heatmapCreatedAts.some(createdAt => londonDateKey(createdAt) === todayLondon)
   const anniversaryYear = profile?.created_at
     ? Math.floor((Date.now() - new Date(profile.created_at).getTime()) / (365 * 24 * 60 * 60 * 1000))
     : 0
@@ -198,85 +184,68 @@ export default async function DashboardPage({
     ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`, date: g.due_date, type: 'Goal' as const })),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
-  // Specialty progress rows: for points-based specialties (e.g. IMT 11/30) we
-  // surface the actual points and totalMax via the same calculateTotalScore the
-  // tracker uses. For evidence-based specialties (no points - person spec only)
-  // we fall back to "essentials met" out of total essentials.
-  const specialtyProgressRows = (trackedSpecialtyRows ?? []).map(row => {
-    const config = getSpecialtyConfig(row.specialty_key)
+  // Specialty progress: one pass over the tracked rows computes both shapes -
+  // the right-column panel rows (percent + score label) and the activity-feed
+  // score rows. For points-based specialties (e.g. IMT 11/30) the score comes
+  // from the same calculateTotalScore the tracker uses; evidence-based
+  // specialties (person spec only) fall back to essentials/desirables counts.
+  const specialtyProgressData = (trackedSpecialtyRows ?? []).map(row => {
     const links = specialtyLinks.filter(link => link.application_id === row.id)
     const entryCount = new Set(links.map(link => link.entry_id)).size
+    const config = getSpecialtyConfig(row.specialty_key)
+    const emptyScore = { score: 0, maxScore: 0, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
     if (!config) {
       // formatSpecialtyLabel falls back to a tidy capitalised label so we never
       // render the raw slug (e.g. "acute_internal_medicine") on the dashboard.
-      return { id: row.id, label: formatSpecialtyLabel(row.specialty_key), percent: 0, entryCount, scoreLabel: '0' }
+      const label = formatSpecialtyLabel(row.specialty_key)
+      return {
+        progress: { id: row.id, label, percent: 0, entryCount, scoreLabel: '0' },
+        score: { key: row.id, label, isEvidenceBased: false, ...emptyScore },
+      }
     }
     if (isEvidenceBased(config)) {
       const progress = getEvidenceProgress(config, links)
       const denom = progress.essentialsTotal + progress.desirablesTotal
       const numer = progress.essentialsMet + progress.desirablesEvidenced
       return {
-        id: row.id,
-        label: config.name,
-        percent: denom === 0 ? 0 : Math.round((numer / denom) * 100),
-        entryCount,
-        scoreLabel: `${numer}/${denom} criteria`,
+        progress: {
+          id: row.id,
+          label: config.name,
+          percent: denom === 0 ? 0 : Math.round((numer / denom) * 100),
+          entryCount,
+          scoreLabel: `${numer}/${denom} criteria`,
+        },
+        score: {
+          key: row.id,
+          label: config.name,
+          isEvidenceBased: true,
+          ...emptyScore,
+          essentialsMet: progress.essentialsMet,
+          essentialsTotal: progress.essentialsTotal,
+          desirablesEvidenced: progress.desirablesEvidenced,
+          desirablesTotal: progress.desirablesTotal,
+        },
       }
     }
-    const score = calculateTotalScore(config, { ...row, user_id: user!.id, cycle_year: config.cycleYear, created_at: '', is_active: true, archived_at: null }, links)
+    // totalMax is the domain maximum from the official matrix; a claimed
+    // bonus sits on top, so it is shown as "+N" rather than folded into the
+    // score (which would read "35/30 pts (117%)").
+    const score = calculateDomainsScore(config, links)
+    const bonus = calculateBonusScore(config, { ...row, user_id: user!.id, cycle_year: config.cycleYear, created_at: '', is_active: true, archived_at: null })
     const max = config.totalMax
     return {
-      id: row.id,
-      label: config.name,
-      percent: max === 0 ? 0 : Math.round((score / max) * 100),
-      entryCount,
-      scoreLabel: `${score}/${max} pts`,
-    }
-  })
-
-  const specialtyScores = (trackedSpecialtyRows ?? []).map(row => {
-    const config = getSpecialtyConfig(row.specialty_key)
-    const links = specialtyLinks.filter(link => link.application_id === row.id)
-    if (!config) {
-      return {
-        key: row.id,
-        label: formatSpecialtyLabel(row.specialty_key),
-        isEvidenceBased: false,
-        score: 0,
-        maxScore: 0,
-        essentialsMet: 0,
-        essentialsTotal: 0,
-        desirablesEvidenced: 0,
-        desirablesTotal: 0,
-      }
-    }
-    if (isEvidenceBased(config)) {
-      const progress = getEvidenceProgress(config, links)
-      return {
-        key: row.id,
+      progress: {
+        id: row.id,
         label: config.name,
-        isEvidenceBased: true,
-        score: 0,
-        maxScore: 0,
-        essentialsMet: progress.essentialsMet,
-        essentialsTotal: progress.essentialsTotal,
-        desirablesEvidenced: progress.desirablesEvidenced,
-        desirablesTotal: progress.desirablesTotal,
-      }
-    }
-    const score = calculateTotalScore(config, { ...row, user_id: user!.id, cycle_year: config.cycleYear, created_at: '', is_active: true, archived_at: null }, links)
-    return {
-      key: row.id,
-      label: config.name,
-      isEvidenceBased: false,
-      score,
-      maxScore: config.totalMax,
-      essentialsMet: 0,
-      essentialsTotal: 0,
-      desirablesEvidenced: 0,
-      desirablesTotal: 0,
+        percent: max === 0 ? 0 : Math.min(Math.round((score / max) * 100), 100),
+        entryCount,
+        scoreLabel: bonus > 0 ? `${score}+${bonus}/${max} pts` : `${score}/${max} pts`,
+      },
+      score: { key: row.id, label: config.name, isEvidenceBased: false, ...emptyScore, score, maxScore: max },
     }
   })
+  const specialtyProgressRows = specialtyProgressData.map(item => item.progress)
+  const specialtyScores = specialtyProgressData.map(item => item.score)
 
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(r => r.specialty_key)
 
