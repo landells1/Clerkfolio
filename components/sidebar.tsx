@@ -7,6 +7,7 @@ import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useSearch } from '@/app/(dashboard)/providers'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
+import { apiFetch } from '@/lib/api-fetch'
 
 type Profile = {
   first_name: string | null
@@ -219,7 +220,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
     e.preventDefault()
     setFeedbackSending(true)
 
-    const res = await fetch('/api/feedback', {
+    const res = await apiFetch('/api/feedback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(feedback),

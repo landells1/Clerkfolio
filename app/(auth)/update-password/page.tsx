@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('')
@@ -42,8 +43,11 @@ export default function UpdatePasswordPage() {
 
     // Clear the short-lived recovery cookie so the route locks down again
     // immediately. Middleware checks for this cookie before rendering the
-    // page; clearing it after a successful change prevents replay.
-    await fetch('/api/auth/clear-recovery', { method: 'POST' })
+    // page; clearing it after a successful change prevents replay. apiFetch
+    // never throws, so a network blip here can't strand the user on this
+    // page after the password has already been changed - the cookie's short
+    // TTL expires it regardless.
+    await apiFetch('/api/auth/clear-recovery', { method: 'POST' })
 
     router.push('/dashboard?password=updated')
     router.refresh()

@@ -6,6 +6,7 @@ import Link from 'next/link'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 import LinkARCPEvidenceModal from './link-arcp-evidence-modal'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 type Props = {
   capability: ARCPCapability
@@ -53,7 +54,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
 
   async function handleUnlink(linkId: string) {
     setUnlinking(linkId)
-    const res = await fetch(`/api/arcp/links?id=${linkId}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/arcp/links?id=${linkId}`, { method: 'DELETE' })
     if (!res.ok) {
       addToast('Failed to unlink evidence', 'error')
     } else {

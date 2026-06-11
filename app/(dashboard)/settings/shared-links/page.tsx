@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 type ShareLink = {
   id: string
@@ -37,9 +38,9 @@ export default function SharedLinksPage() {
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('/api/share')
-      if (res.ok) {
-        setLinks(await res.json())
+      const res = await apiFetch<ShareLink[]>('/api/share')
+      if (res.ok && Array.isArray(res.data)) {
+        setLinks(res.data)
       }
       setLoading(false)
     }
@@ -48,7 +49,7 @@ export default function SharedLinksPage() {
 
   async function handleRevoke(id: string) {
     setRevoking(id)
-    const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/share?id=${id}`, { method: 'DELETE' })
     if (res.ok) {
       setLinks(prev => prev.filter(l => l.id !== id))
       setConfirmRevoke(null)

@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function DemoStarterCard({ show }: { show: boolean }) {
   const router = useRouter()
@@ -12,7 +13,7 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
 
   async function removeDemos() {
     setBusy('remove')
-    const res = await fetch('/api/onboarding/demos', { method: 'DELETE' })
+    const res = await apiFetch('/api/onboarding/demos', { method: 'DELETE' })
     setBusy(null)
     if (!res.ok) {
       addToast('Could not remove sample data', 'error')
@@ -24,7 +25,7 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
 
   async function dismiss() {
     setBusy('dismiss')
-    const res = await fetch('/api/onboarding/demos', { method: 'POST' })
+    const res = await apiFetch('/api/onboarding/demos', { method: 'POST' })
     setBusy(null)
     if (!res.ok) {
       addToast('Could not dismiss', 'error')

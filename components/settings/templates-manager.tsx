@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
 import type { Template } from '@/lib/types/templates'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function TemplatesManager({ initialTemplates }: { initialTemplates: Template[] }) {
   const { addToast } = useToast()
@@ -16,7 +17,7 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
   async function handleRename(id: string) {
     if (!editName.trim()) return
     setSaving(true)
-    const res = await fetch('/api/templates', {
+    const res = await apiFetch('/api/templates', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, name: editName.trim() }),
@@ -33,7 +34,7 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
 
   async function handleDelete(id: string) {
     if (!confirm('Delete this template? This cannot be undone.')) return
-    const res = await fetch(`/api/templates?id=${id}`, { method: 'DELETE' })
+    const res = await apiFetch(`/api/templates?id=${id}`, { method: 'DELETE' })
     if (res.ok) {
       setTemplates(ts => ts.filter(t => t.id !== id))
       addToast('Template deleted', 'success')

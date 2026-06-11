@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { apiFetch } from '@/lib/api-fetch'
 
 export default function TagsSettingsPage() {
   const supabase = createClient()
@@ -36,7 +37,7 @@ export default function TagsSettingsPage() {
     e.preventDefault()
     if (!oldTag.trim() || !newTag.trim()) return
     setSaving(true)
-    const res = await fetch('/api/settings/rename-tag', {
+    const res = await apiFetch('/api/settings/rename-tag', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ p_old: oldTag.trim(), p_new: newTag.trim(), p_field: 'specialty_tags' }),

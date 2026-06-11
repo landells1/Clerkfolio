@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import Link from 'next/link'
 import Papa from 'papaparse'
 import { CATEGORIES } from '@/lib/types/portfolio'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 // Known Horus and foundation e-portfolio column names (case-insensitive matching)
 const COL_DATE         = ['date', 'event date', 'created date', 'completion date', 'signed date']
@@ -163,7 +164,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
     setImporting(true)
     const toImport = rows.filter(r => r.selected && r.title)
 
-    const res = await fetch('/api/import/horus', {
+    const res = await apiFetch<{ created: number; skipped: number; errors: { row: number; error: string }[]; error?: string }>('/api/import/horus', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -181,15 +182,13 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
       }),
     })
 
-    if (!res.ok) {
-      const json = await res.json()
-      setError(json.error ?? 'Import failed')
+    if (!res.ok || !res.data) {
+      setError(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Import failed')
       setImporting(false)
       return
     }
 
-    const json = await res.json()
-    setResult(json)
+    setResult(res.data)
     setStep(4)
     setImporting(false)
   }

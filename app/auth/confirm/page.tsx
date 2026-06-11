@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
+import { apiFetch } from '@/lib/api-fetch'
 
 const ALLOWED_NEXT_PATHS = new Set([
   '/dashboard',
@@ -100,7 +101,10 @@ function ConfirmContent() {
       setLoading(false)
       return
     }
-    const claimResponse = await fetch('/api/auth/claim-institutional-email', { method: 'POST' })
+    // Best-effort claim: a network failure here must not strand the user on
+    // the confirm page after the OTP has already been consumed - the claim
+    // re-runs from settings, so fall through to the redirect.
+    const claimResponse = await apiFetch('/api/auth/claim-institutional-email', { method: 'POST' })
     if (claimResponse.status === 409) {
       const separator = next.includes('?') ? '&' : '?'
       window.location.href = `${next}${separator}student_email=conflict`

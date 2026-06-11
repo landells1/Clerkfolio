@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export default function CvDownloadButton({ template, isPro, canExportPdf }: { template: string; isPro: boolean; canExportPdf: boolean }) {
   const [loading, setLoading] = useState(false)
@@ -10,18 +11,19 @@ export default function CvDownloadButton({ template, isPro, canExportPdf }: { te
   async function download() {
     setLoading(true)
     setError(null)
-    const res = await fetch(`/api/export/cv?template=${encodeURIComponent(template)}`, { method: 'POST' })
+    const { ok, status, response } = await apiFetch(`/api/export/cv?template=${encodeURIComponent(template)}`, { method: 'POST', parse: 'none' })
     setLoading(false)
 
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const body = await response?.json().catch(() => ({})) ?? {}
       setError(body.error === 'limit_reached'
         ? 'Your included PDF has been used. CV, Application PDF and Year in review downloads share this allowance.'
         : body.error ?? 'Could not generate your CV PDF.')
       return
     }
 
-    const blob = await res.blob()
+    const blob = await response.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url

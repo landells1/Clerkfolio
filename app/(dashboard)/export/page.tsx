@@ -7,6 +7,7 @@ import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from
 import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SectionHeader from '@/components/ui/section-header'
 import { useToast } from '@/components/ui/toast-provider'
@@ -263,52 +264,57 @@ export default function ExportPage() {
     const exportEntryIds = (categoryFilter !== 'all' || themeFilter)
       ? Array.from(selectedEntryIds).filter(id => visible.some(entry => entry.id === id))
       : Array.from(selectedEntryIds)
-    const res = await fetch('/api/export', {
+    const { ok, status, response } = await apiFetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty: exportScopeLabel(specialty), format, template: pdfTemplate, theme: themeFilter || null, fields: selectedFields }),
+      parse: 'none',
     })
     setGenerating(false)
-    if (!res.ok) {
-      const json = await res.json()
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const json = await response?.json().catch(() => ({})) ?? {}
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Upgrade to Pro for unlimited PDF downloads.` : json.error ?? 'Export failed. Please try again.')
       if (format === 'pdf' && json.error === 'limit_reached') await refreshSubscriptionInfo()
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
-    await downloadBlob(res, `clerkfolio-${specialty || 'portfolio'}-${dateStr}.${format}`)
+    await downloadBlob(response, `clerkfolio-${specialty || 'portfolio'}-${dateStr}.${format}`)
     if (format === 'pdf') await refreshSubscriptionInfo()
   }
 
   async function handleBackup() {
     setBackupLoading(true)
     setError(null)
-    const res = await fetch('/api/account/export', {
+    const { ok, status, response } = await apiFetch('/api/account/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ includeEvidence: includeEvidenceBackup }),
+      parse: 'none',
     })
     setBackupLoading(false)
-    if (!res.ok) {
-      const json = await res.json()
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const json = await response?.json().catch(() => ({})) ?? {}
       setError(json.error ?? 'Backup failed. Please try again.')
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
-    await downloadBlob(res, `clerkfolio-export-${dateStr}.zip`)
+    await downloadBlob(response, `clerkfolio-export-${dateStr}.zip`)
   }
 
   async function handleYearReview() {
     setYearReviewLoading(true)
     setError(null)
-    const res = await fetch('/api/export/year-review', { method: 'POST' })
+    const { ok, status, response } = await apiFetch('/api/export/year-review', { method: 'POST', parse: 'none' })
     setYearReviewLoading(false)
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const json = await response?.json().catch(() => ({})) ?? {}
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
       return
     }
-    await downloadBlob(res, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
+    await downloadBlob(response, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
     await refreshSubscriptionInfo()
   }
 
@@ -319,14 +325,15 @@ export default function ExportPage() {
     const form = new FormData()
     form.set('pdf', appendPdfFile)
     form.set('entryIds', JSON.stringify(Array.from(selectedEntryIds)))
-    const res = await fetch('/api/export/pdf-append', { method: 'POST', body: form })
+    const { ok, status, response } = await apiFetch('/api/export/pdf-append', { method: 'POST', body: form, parse: 'none' })
     setAppendingPdf(false)
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const json = await response?.json().catch(() => ({})) ?? {}
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Appended PDFs, Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
       return
     }
-    await downloadBlob(res, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
+    await downloadBlob(response, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
     await refreshSubscriptionInfo()
   }
 
@@ -349,13 +356,14 @@ export default function ExportPage() {
   }
 
   async function downloadEvidenceZip(entryId: string, title: string) {
-    const res = await fetch(`/api/export/evidence?entry_id=${entryId}`)
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
+    const { ok, status, response } = await apiFetch(`/api/export/evidence?entry_id=${entryId}`, { parse: 'none' })
+    if (!ok || !response) {
+      if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
+      const json = await response?.json().catch(() => ({})) ?? {}
       setError(json.error ?? 'No evidence files available for that entry.')
       return
     }
-    await downloadBlob(res, `evidence-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || entryId}.zip`)
+    await downloadBlob(response, `evidence-${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || entryId}.zip`)
   }
 
   async function createShareLink() {
@@ -417,8 +425,8 @@ export default function ExportPage() {
 
   async function revokeShareLink(id: string) {
     setRevokingLink(id)
-    const res = await fetch(`/api/share?id=${id}`, { method: 'DELETE' })
-    if (res.ok) {
+    const { ok } = await apiFetch(`/api/share?id=${id}`, { method: 'DELETE' })
+    if (ok) {
       setShareLinks(prev => prev.filter(link => link.id !== id))
       setConfirmRevoke(null)
       addToast('Share link revoked', 'success')
@@ -429,17 +437,17 @@ export default function ExportPage() {
   }
 
   async function renewShareLink(id: string) {
-    const res = await fetch('/api/share', {
+    const { ok, data } = await apiFetch<{ expires_at: string; error?: string }>('/api/share', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, days: 30 }),
     })
-    const json = await res.json().catch(() => ({}))
-    if (res.ok) {
-      setShareLinks(prev => prev.map(link => link.id === id ? { ...link, expires_at: json.expires_at } : link))
-      addToast(`Share link renewed - expires ${formatDate(json.expires_at)}`, 'success')
+    if (ok && data) {
+      const expiresAt = data.expires_at
+      setShareLinks(prev => prev.map(link => link.id === id ? { ...link, expires_at: expiresAt } : link))
+      addToast(`Share link renewed - expires ${formatDate(expiresAt)}`, 'success')
     } else {
-      setError(json.error ?? 'Could not renew share link. Please try again.')
+      setError(data?.error ?? 'Could not renew share link. Please try again.')
     }
   }
 

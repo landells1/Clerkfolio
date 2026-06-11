@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 type ImportResult = {
   portfolio_entries: number
@@ -25,14 +26,13 @@ export default function JsonImportForm() {
     setResult(null)
     const form = new FormData()
     form.set('file', file)
-    const res = await fetch('/api/import/json', { method: 'POST', body: form })
-    const body = await res.json()
+    const res = await apiFetch<ImportResult & { error?: string }>('/api/import/json', { method: 'POST', body: form })
     setLoading(false)
-    if (!res.ok) {
-      addToast(body.error ?? 'Import failed', 'error')
+    if (!res.ok || !res.data) {
+      addToast(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Import failed', 'error')
       return
     }
-    setResult(body)
+    setResult(res.data)
     addToast('Backup import complete', 'success')
   }
 

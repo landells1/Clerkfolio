@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 type Props = { entry: PortfolioEntry }
 
@@ -51,7 +52,7 @@ export default function SaveTemplateButton({ entry }: Props) {
   async function handleSave() {
     if (!name.trim()) return
     setSaving(true)
-    const res = await fetch('/api/templates', {
+    const res = await apiFetch<{ error?: string }>('/api/templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -66,8 +67,7 @@ export default function SaveTemplateButton({ entry }: Props) {
       setOpen(false)
       addToast('Template saved', 'success')
     } else {
-      const j = await res.json()
-      addToast(j.error ?? 'Failed to save template', 'error')
+      addToast(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Failed to save template', 'error')
     }
   }
 

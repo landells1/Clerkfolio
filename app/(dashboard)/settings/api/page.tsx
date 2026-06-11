@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 type ApiKey = {
   id: string
@@ -47,14 +48,12 @@ export default function ApiSettingsPage() {
 
   async function loadKeys() {
     setLoading(true)
-    const res = await fetch('/api/settings/api-keys')
-    if (res.ok) {
-      const body = await res.json()
-      setKeys(body.keys ?? [])
-      setApiOnline(body.apiOnline !== false)
+    const res = await apiFetch<{ keys?: ApiKey[]; apiOnline?: boolean; error?: string }>('/api/settings/api-keys')
+    if (res.ok && res.data) {
+      setKeys(res.data.keys ?? [])
+      setApiOnline(res.data.apiOnline !== false)
     } else {
-      const body = await res.json().catch(() => ({}))
-      setError(body.error ?? 'Could not load API keys.')
+      setError(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Could not load API keys.')
     }
     setLoading(false)
   }
@@ -69,21 +68,21 @@ export default function ApiSettingsPage() {
     setError(null)
     setNewKey(null)
 
-    const res = await fetch('/api/settings/api-keys', {
+    const res = await apiFetch<{ key?: string; record?: ApiKey; error?: string }>('/api/settings/api-keys', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name }),
     })
-    const body = await res.json()
     setCreating(false)
 
-    if (!res.ok) {
-      setError(body.error ?? 'Could not create API key.')
+    if (!res.ok || !res.data?.key || !res.data.record) {
+      setError(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Could not create API key.')
       return
     }
 
-    setNewKey(body.key)
-    setKeys(current => [body.record as ApiKey, ...current])
+    const { key: createdKey, record } = res.data
+    setNewKey(createdKey)
+    setKeys(current => [record, ...current])
     addToast('API key created', 'success')
   }
 
@@ -91,16 +90,16 @@ export default function ApiSettingsPage() {
     const key = keys.find(row => row.id === id)
 
     setRevoking(id)
-    const res = await fetch(`/api/settings/api-keys?id=${id}`, { method: 'DELETE' })
-    const body = await res.json().catch(() => ({}))
+    const res = await apiFetch<{ revoked_at?: string; error?: string }>(`/api/settings/api-keys?id=${id}`, { method: 'DELETE' })
     setRevoking(null)
 
     if (!res.ok) {
-      addToast(body.error ?? 'Could not revoke API key', 'error')
+      addToast(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Could not revoke API key', 'error')
       return
     }
 
-    setKeys(current => current.map(key => key.id === id ? { ...key, revoked_at: body.revoked_at } : key))
+    const revokedAt = res.data?.revoked_at ?? new Date().toISOString()
+    setKeys(current => current.map(key => key.id === id ? { ...key, revoked_at: revokedAt } : key))
     setConfirmRevoke(null)
     if (key?.prefix && newKey?.startsWith(key.prefix)) setNewKey(null)
     addToast('API key revoked', 'success')
