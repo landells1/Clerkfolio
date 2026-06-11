@@ -6,7 +6,8 @@ import {
   getSpecialtyConfig,
   formatSpecialtyLabel,
   calculateDomainScore,
-  calculateTotalScore,
+  calculateDomainsScore,
+  calculateBonusScore,
   isEvidenceBased,
   getEvidenceProgress,
 } from '@/lib/specialties'
@@ -264,10 +265,14 @@ function TotalCell({
       </div>
     )
   }
-  const total = calculateTotalScore(config, app, links)
+  // totalMax excludes bonus points (they sit on top of the official domain
+  // maximum), so show the claimed bonus as "+N" rather than inside the score.
+  const domainsScore = calculateDomainsScore(config, links)
+  const bonusScore = calculateBonusScore(config, app)
   return (
     <span className="text-base font-bold text-[#F5F5F2]">
-      {total}
+      {domainsScore}
+      {bonusScore > 0 && <span className="text-xs font-semibold text-[#1B6FD9] ml-0.5">+{bonusScore}</span>}
       <span className="text-xs font-normal text-[rgba(245,245,242,0.55)] ml-1">/ {config.totalMax}</span>
     </span>
   )

@@ -1,9 +1,11 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import {
   calculateDomainScore,
-  calculateTotalScore,
+  calculateDomainsScore,
+  calculateBonusScore,
   isEvidenceBased,
   getEvidenceProgress,
 } from '@/lib/specialties'
@@ -31,21 +33,22 @@ function truncateLabel(label: string, words = 3): string {
 
 export function SpecialtyCard({ config, application, links, isSelected: _, onSelect, onRemove }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const evidenceBased = isEvidenceBased(config)
 
   async function handleRemove(e: React.MouseEvent) {
     e.stopPropagation()
     if (!window.confirm(`Remove ${config.name} tracker? This will delete all linked evidence for this specialty.`)) return
     const { error: linksError } = await supabase.from('specialty_entry_links').delete().eq('application_id', application.id)
-    if (linksError) { alert('Failed to remove specialty. Please try again.'); return }
+    if (linksError) { addToast('Failed to remove specialty. Please try again.', 'error'); return }
     const { error: appError } = await supabase.from('specialty_applications').delete().eq('id', application.id)
-    if (appError) { alert('Failed to remove specialty. Please try again.'); return }
+    if (appError) { addToast('Failed to remove specialty. Please try again.', 'error'); return }
     // Clean up auto-deadlines created when this specialty was tracked
     const { error: deadlinesError } = await supabase.from('deadlines').delete().eq('source_specialty_key', config.key).eq('is_auto', true)
     if (deadlinesError) {
       // Tracker is already removed; surface the orphaned deadlines instead of
       // leaving them silently behind.
-      alert('Specialty removed, but its auto-created deadlines could not be deleted. You can remove them from the Timeline page.')
+      addToast('Specialty removed, but its auto-created deadlines could not be deleted. You can remove them from the Timeline page.', 'error')
     }
     onRemove()
   }
@@ -124,19 +127,22 @@ function PointsProgress({
   application: SpecialtyApplication
   links: SpecialtyEntryLink[]
 }) {
-  const total = calculateTotalScore(config, application, links)
-  const pct = config.totalMax > 0 ? Math.min((total / config.totalMax) * 100, 100) : 0
-  const bonusPoints = config.bonusOptions?.reduce((s, b) => s + b.points, 0) ?? 0
+  // totalMax is the domain maximum from the official matrix; any claimed
+  // bonus sits on top and is shown as the separate "+N bonus" chip, so the
+  // headline never reads "35/30 pts".
+  const domainsScore = calculateDomainsScore(config, links)
+  const bonusScore = calculateBonusScore(config, application)
+  const pct = config.totalMax > 0 ? Math.min((domainsScore / config.totalMax) * 100, 100) : 0
 
   return (
     <>
       {/* Total score */}
       <div className="flex items-baseline gap-1.5 mb-2">
-        <span className="text-3xl font-bold text-[#F5F5F2]">{total}</span>
+        <span className="text-3xl font-bold text-[#F5F5F2]">{domainsScore}</span>
         <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
-        {application.bonus_claimed && bonusPoints > 0 && (
+        {bonusScore > 0 && (
           <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
-            +{bonusPoints} bonus
+            +{bonusScore} bonus
           </span>
         )}
       </div>

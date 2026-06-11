@@ -95,17 +95,30 @@ export function calculateDomainScore(domain: SpecialtyDomain, links: SpecialtyEn
   return Math.min(total, domain.maxPoints)
 }
 
+// The official matrices state a domain maximum (e.g. IMT: "maximum of 30
+// points across the domains") with any commitment bonus awarded ON TOP
+// (IMT potential total 35), so `totalMax` deliberately excludes bonus points.
+// Display sites must show the domains score against totalMax and surface the
+// bonus separately - dividing calculateTotalScore by totalMax reads
+// "35/30 pts (117%)" once a bonus is claimed.
+export function calculateDomainsScore(config: SpecialtyConfig, links: SpecialtyEntryLink[]): number {
+  if (isEvidenceBased(config)) return 0
+  return config.domains.reduce((s, d) => s + calculateDomainScore(d, links), 0)
+}
+
+export function calculateBonusScore(config: SpecialtyConfig, application: SpecialtyApplication): number {
+  if (isEvidenceBased(config)) return 0
+  return application.bonus_claimed
+    ? (config.bonusOptions?.reduce((s, b) => s + b.points, 0) ?? 0)
+    : 0
+}
+
 export function calculateTotalScore(
   config: SpecialtyConfig,
   application: SpecialtyApplication,
   links: SpecialtyEntryLink[]
 ): number {
-  if (isEvidenceBased(config)) return 0
-  const domainTotal = config.domains.reduce((s, d) => s + calculateDomainScore(d, links), 0)
-  const bonusTotal = application.bonus_claimed
-    ? (config.bonusOptions?.reduce((s, b) => s + b.points, 0) ?? 0)
-    : 0
-  return domainTotal + bonusTotal
+  return calculateDomainsScore(config, links) + calculateBonusScore(config, application)
 }
 
 // ---------- Evidence-based specialty helpers ----------

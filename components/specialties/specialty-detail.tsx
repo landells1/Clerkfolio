@@ -2,9 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import {
   calculateDomainScore,
-  calculateTotalScore,
+  calculateDomainsScore,
+  calculateBonusScore,
   isEvidenceBased,
   getEssentialDomains,
   getDesirableDomains,
@@ -41,6 +43,7 @@ export function SpecialtyDetail({
   isPro = false,
 }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const evidenceBased = isEvidenceBased(config)
   const [activeDomainKey, setActiveDomainKey] = useState(config.domains[0]?.key ?? '')
   const [bonusClaimed, setBonusClaimed] = useState(application.bonus_claimed)
@@ -122,7 +125,7 @@ export function SpecialtyDetail({
       const ids = metLinks.map(link => link.id).filter(Boolean)
       const { error } = await supabase.from('specialty_entry_links').delete().in('id', ids)
       if (error) {
-        alert(`Failed to untick essentials: ${error.message}`)
+        addToast('Failed to untick essentials. Check your connection and try again.', 'error')
       } else {
         onLinksChange(prev => prev.filter(link => !ids.includes(link.id)))
       }
@@ -140,7 +143,7 @@ export function SpecialtyDetail({
         })))
         .select()
       if (error) {
-        alert(`Failed to tick all essentials: ${error.message}`)
+        addToast('Failed to tick all essentials. Check your connection and try again.', 'error')
       } else if (rows) {
         onLinksChange(prev => [...prev, ...(rows as SpecialtyEntryLink[])])
       }
@@ -465,8 +468,11 @@ function PointsHeader({
   application: SpecialtyApplication
   links: SpecialtyEntryLink[]
 }) {
-  const total = calculateTotalScore(config, application, links)
-  const pct = config.totalMax > 0 ? Math.min((total / config.totalMax) * 100, 100) : 0
+  // totalMax is the domain maximum from the official matrix; a claimed bonus
+  // sits on top and gets its own chip so the header never reads "35/30 pts".
+  const domainsScore = calculateDomainsScore(config, links)
+  const bonusScore = calculateBonusScore(config, application)
+  const pct = config.totalMax > 0 ? Math.min((domainsScore / config.totalMax) * 100, 100) : 0
   const essentials = getEssentialDomains(config)
   const essentialsMet = essentials.filter(d =>
     links.some(l => l.domain_key === d.key && l.is_checkbox && l.band_label === 'Met')
@@ -477,8 +483,13 @@ function PointsHeader({
     return (
       <>
         <div className="flex items-baseline gap-1.5 mb-3">
-          <span className="text-4xl font-bold text-[#F5F5F2]">{total}</span>
+          <span className="text-4xl font-bold text-[#F5F5F2]">{domainsScore}</span>
           <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+          {bonusScore > 0 && (
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
+              +{bonusScore} bonus
+            </span>
+          )}
         </div>
         <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
           <div
@@ -497,8 +508,13 @@ function PointsHeader({
           Score
         </p>
         <div className="flex items-baseline gap-1.5 mb-2">
-          <span className="text-3xl font-bold text-[#F5F5F2]">{total}</span>
+          <span className="text-3xl font-bold text-[#F5F5F2]">{domainsScore}</span>
           <span className="text-xs text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+          {bonusScore > 0 && (
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-[10px] font-semibold border border-[#1B6FD9]/20">
+              +{bonusScore} bonus
+            </span>
+          )}
         </div>
         <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
           <div
