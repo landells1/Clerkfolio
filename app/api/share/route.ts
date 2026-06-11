@@ -254,6 +254,18 @@ export async function PATCH(req: NextRequest) {
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  // Extensions are unlimited by design (it is the owner's own link), so the
+  // audit trail must record them - otherwise a link "created for 7 days" can
+  // be kept alive indefinitely with no trace alongside generated/viewed/revoked.
+  if (process.env.SUPABASE_SERVICE_ROLE_KEY) {
+    await createServiceClient().from('audit_log').insert({
+      user_id: user.id,
+      action: 'share_link_extended',
+      metadata: { share_link_id: data.id, expires_at: data.expires_at, days },
+    })
+  }
+
   return NextResponse.json(data)
 }
 

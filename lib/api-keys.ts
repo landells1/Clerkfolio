@@ -88,10 +88,16 @@ export async function authenticateApiKey(req: NextRequest): Promise<
     return { response: NextResponse.json({ error: 'API key is not scoped for reads' }, { status: 403 }) }
   }
 
-  await supabase
+  // last_used_at is display metadata for the settings page; don't make every
+  // public-API request wait on the write. Swallow failures - a missed
+  // timestamp update must never fail the actual request.
+  void supabase
     .from('api_keys')
     .update({ last_used_at: new Date().toISOString() })
     .eq('id', data.id)
+    .then(({ error: touchError }) => {
+      if (touchError) console.error('api_keys.last_used_at update failed:', touchError.message)
+    })
 
   return { supabase, key: data as ApiKeyRow }
 }

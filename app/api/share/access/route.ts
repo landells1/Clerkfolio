@@ -8,8 +8,15 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import { validateOrigin } from '@/lib/csrf'
 import { isPublicWebhookHost } from '@/lib/share/ssrf'
 import { requestIp } from '@/lib/request-ip'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
 const ACCESS_RATE_LIMIT = 5
+// Endpoint-wide per-IP ceiling, enforced BEFORE any DB work. The DB-backed
+// limits below only count rows written on PIN failures/successful views, so
+// the PIN-required "probe" response (token, no pin) never inserts a row and
+// was otherwise unmetered - each probe costs 3-4 service-role queries.
+const PROBE_RATE_LIMIT = 30
+const PROBE_WINDOW_SECONDS = 60
 // Share-wide PIN lockout: cumulative wrong-PIN guesses against a share link
 // across ALL IPs in the trailing 15 minutes. Tied to the share link, not the
 // IP, so an attacker rotating proxies cannot keep guessing after 5 misses.
@@ -98,6 +105,19 @@ const TOKEN_FORMAT = /^[0-9a-f]{48}$|^[0-9a-f]{64}$/
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
   if (originError) return originError
+
+  const probeLimit = await checkRateLimit({
+    key: requestIp(req),
+    max: PROBE_RATE_LIMIT,
+    windowSeconds: PROBE_WINDOW_SECONDS,
+    prefix: 'share-probe',
+  })
+  if (!probeLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many share link requests. Try again shortly.' },
+      { status: 429, headers: rateLimitHeaders(probeLimit, PROBE_WINDOW_SECONDS) }
+    )
+  }
 
   const supabase = createServiceClient()
   const body = await req.json().catch(() => null)

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { requestIp } from '@/lib/request-ip'
 
 // Pre-flight rate-limit for unauthenticated auth flows that the Supabase
 // client invokes directly from the browser (signup, password reset).
@@ -22,12 +23,6 @@ const LIMITS: Record<Action, { max: number; windowSeconds: number; prefix: strin
   signup: { max: 5, windowSeconds: 60 * 60, prefix: 'auth-signup' },
   reset: { max: 3, windowSeconds: 60 * 60, prefix: 'auth-reset' },
   login: { max: 20, windowSeconds: 60 * 60, prefix: 'auth-login' },
-}
-
-function clientIp(req: NextRequest) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || req.headers.get('x-real-ip')
-    || 'unknown'
 }
 
 export async function POST(req: NextRequest) {
@@ -51,7 +46,7 @@ export async function POST(req: NextRequest) {
     ? createHash('sha256').update(email).digest('hex')
     : ''
   const rl = await checkRateLimit({
-    key: action === 'login' ? `${clientIp(req)}:${loginAccount}` : clientIp(req),
+    key: action === 'login' ? `${requestIp(req)}:${loginAccount}` : requestIp(req),
     max: limit.max,
     windowSeconds: limit.windowSeconds,
     prefix: limit.prefix,

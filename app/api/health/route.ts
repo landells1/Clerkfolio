@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { requestIp } from '@/lib/request-ip'
 
 export const dynamic = 'force-dynamic'
 
 export async function GET(req: NextRequest) {
-  const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? '0.0.0.0'
-  const rl = await checkRateLimit({ key: ip, max: 60, windowSeconds: 60, prefix: 'health' })
+  const rl = await checkRateLimit({ key: requestIp(req), max: 60, windowSeconds: 60, prefix: 'health' })
 
   if (!rl.success) {
     return NextResponse.json({ error: 'Too many requests' }, {

@@ -9,37 +9,65 @@ type PublicQuery = (
   userId: string
 ) => Promise<{ data: unknown; error: { message: string } | null }>
 
+// Explicit column allowlists per resource. The data is the key owner's own,
+// but selecting '*' here would ship any future internal column (moderation
+// flags, soft-link ids, ...) to API consumers by default. Keep user_id out of
+// these lists; add new columns deliberately, never by widening to '*'.
+const CASE_COLUMNS =
+  'id, title, date, clinical_domain, clinical_domains, specialty_tags, interview_themes, interview_ready_for, notes, pinned, completeness_score, is_demo, deleted_at, created_at, updated_at'
+
+const PORTFOLIO_COLUMNS =
+  'id, category, title, date, specialty_tags, interview_themes, interview_ready_for, notes, pinned, completeness_score, is_demo, '
+  + 'audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, '
+  + 'teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, '
+  + 'conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, '
+  + 'pub_type, pub_journal, pub_authors, pub_status, pub_doi, '
+  + 'leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, '
+  + 'prize_body, prize_level, prize_description, '
+  + 'proc_name, proc_setting, proc_supervision, proc_count, '
+  + 'refl_type, refl_clinical_context, refl_supervisor, refl_free_text, refl_framework, '
+  + 'custom_free_text, deleted_at, created_at, updated_at'
+
+const SPECIALTY_COLUMNS =
+  'id, specialty_key, cycle_year, is_active, is_target, bonus_claimed, archived_at, created_at, updated_at'
+
+const DEADLINE_COLUMNS =
+  'id, title, due_date, completed, notes, details, location, source_specialty_key, is_auto, created_at'
+
+const GOAL_COLUMNS =
+  'id, category, target_count, start_date, due_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, completed_at, created_at'
+
 const QUERIES: Record<PublicApiResource, PublicQuery> = {
   cases: async (supabase, userId) =>
     await supabase
       .from('cases')
-      .select('*')
+      .select(CASE_COLUMNS)
       .eq('user_id', userId)
       .is('deleted_at', null)
       .order('date', { ascending: false }),
   portfolio: async (supabase, userId) =>
     await supabase
       .from('portfolio_entries')
-      .select('*')
+      .select(PORTFOLIO_COLUMNS)
       .eq('user_id', userId)
       .is('deleted_at', null)
       .order('date', { ascending: false }),
   specialties: async (supabase, userId) =>
     await supabase
       .from('specialty_applications')
-      .select('*')
+      .select(SPECIALTY_COLUMNS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
   deadlines: async (supabase, userId) =>
     await supabase
       .from('deadlines')
-      .select('*')
+      .select(DEADLINE_COLUMNS)
       .eq('user_id', userId)
       .order('due_date', { ascending: true }),
   goals: async (supabase, userId) =>
     await supabase
       .from('goals')
-      .select('*')
+      .select(GOAL_COLUMNS)
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
 }

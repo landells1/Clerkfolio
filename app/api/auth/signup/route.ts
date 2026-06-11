@@ -2,14 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { createClient } from '@/lib/supabase/server'
+import { requestIp } from '@/lib/request-ip'
 
 const SIGNUP_LIMIT = { max: 5, windowSeconds: 60 * 60, prefix: 'auth-signup' }
-
-function clientIp(req: NextRequest) {
-  return req.headers.get('x-forwarded-for')?.split(',')[0]?.trim()
-    || req.headers.get('x-real-ip')
-    || 'unknown'
-}
 
 function statusRedirect(req: NextRequest, state: string, headers?: Record<string, string>) {
   const target = new URL('/signup/status', req.nextUrl.origin)
@@ -39,7 +34,7 @@ export async function POST(req: NextRequest) {
   }
 
   const rateLimit = await checkRateLimit({
-    key: clientIp(req),
+    key: requestIp(req),
     ...SIGNUP_LIMIT,
   })
   if (!rateLimit.success) {
