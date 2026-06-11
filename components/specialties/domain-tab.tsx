@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import { calculateDomainScore } from '@/lib/specialties'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
 import { DomainEvidenceList } from './domain-evidence-list'
@@ -23,6 +24,7 @@ type ModalType = 'link' | 'log' | null
 
 export function DomainTab({ domain, links, applicationId, specialtyName, specialtyKey, onLinksChange }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [openModal, setOpenModal] = useState<ModalType>(null)
   const [checkboxPending, setCheckboxPending] = useState<Set<string>>(new Set())
   const [essentialPending, setEssentialPending] = useState(false)
@@ -46,7 +48,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         onLinksChange(prev => prev.filter(l => l.id !== existingLink.id))
         const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingLink.id)
         if (error) {
-          alert('Could not clear this self-assessment. Check your connection and try again.')
+          addToast('Could not clear this self-assessment. Check your connection and try again.', 'error')
           onLinksChange(prev => [...prev, existingLink])
         }
       }
@@ -61,7 +63,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         .update({ band_label: bandLabel, points_claimed: points })
         .eq('id', existingLink.id)
       if (error) {
-        alert('Could not save this self-assessment. Check your connection and try again.')
+        addToast('Could not save this self-assessment. Check your connection and try again.', 'error')
         onLinksChange(prev => prev.map(l => (l.id === existingLink.id ? existingLink : l)))
       }
     } else {
@@ -94,7 +96,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         console.error('Failed to save self-assessment:', error)
-        alert('Could not save this self-assessment. Check your connection and try again.')
+        addToast('Could not save this self-assessment. Check your connection and try again.', 'error')
         onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
@@ -137,7 +139,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
       if (error) {
         console.error('specialty_entry_links insert error:', error)
-        alert('Could not save this specialty evidence. Check your connection and try again.')
+        addToast('Could not save this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
@@ -154,7 +156,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       onLinksChange(prev => prev.filter(l => l.id !== linkToRemove.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', linkToRemove.id)
       if (error) {
-        alert('Could not remove this specialty evidence. Check your connection and try again.')
+        addToast('Could not remove this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => [...prev, linkToRemove])
       }
     }
@@ -174,7 +176,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       onLinksChange(prev => prev.filter(l => l.id !== existingMet.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingMet.id)
       if (error) {
-        alert('Could not remove this specialty evidence. Check your connection and try again.')
+        addToast('Could not remove this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => [...prev, existingMet])
       }
     } else {
@@ -206,7 +208,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         .select()
 
       if (error) {
-        alert('Could not save this specialty evidence. Check your connection and try again.')
+        addToast('Could not save this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]
@@ -232,7 +234,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       onLinksChange(prev => prev.filter(l => l.id !== existingEvidenced.id))
       const { error } = await supabase.from('specialty_entry_links').delete().eq('id', existingEvidenced.id)
       if (error) {
-        alert('Could not remove this specialty evidence. Check your connection and try again.')
+        addToast('Could not remove this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => [...prev, existingEvidenced])
       }
     } else {
@@ -264,7 +266,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         .select()
 
       if (error) {
-        alert('Could not save this specialty evidence. Check your connection and try again.')
+        addToast('Could not save this specialty evidence. Check your connection and try again.', 'error')
         onLinksChange(prev => prev.filter(l => l.id !== optimisticId))
       } else {
         const inserted = rows?.[0]

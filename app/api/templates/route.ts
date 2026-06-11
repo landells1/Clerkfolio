@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
-import type { Category } from '@/lib/types/portfolio'
+import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+
+const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)
@@ -20,7 +22,12 @@ export async function POST(req: NextRequest) {
   const guidance_prompts = body.guidance_prompts
 
   if (!name.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
-  if (!category) return NextResponse.json({ error: 'Category is required' }, { status: 400 })
+  // Every other write path validates category against CATEGORIES; a junk
+  // value stored here would later make applyTemplate set a category the
+  // entry form's buildPayload switch can't handle.
+  if (typeof category !== 'string' || !CATEGORY_VALUES.has(category as Category)) {
+    return NextResponse.json({ error: 'Category is invalid' }, { status: 400 })
+  }
 
   const { data, error } = await supabase
     .from('templates')

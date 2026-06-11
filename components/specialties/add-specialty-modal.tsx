@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import {
   SPECIALTY_CONFIGS,
   isEvidenceBased,
@@ -24,6 +25,7 @@ type Props = {
 
 export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, canTrackAnotherSpecialty = false }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -104,7 +106,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
         if (deadlinesError) {
           // The tracker itself was added; don't fail the whole flow, but stop
           // pretending the deadlines exist.
-          alert('Specialty added, but its application deadlines could not be created. You can add them manually from the Timeline page.')
+          addToast('Specialty added, but its application deadlines could not be created. You can add them manually from the Timeline page.', 'error')
         }
       }
 

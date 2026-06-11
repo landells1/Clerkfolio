@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/lib/specialties'
 import { SpecialtyCard } from './specialty-card'
@@ -303,6 +304,7 @@ type NewCycleBannerProps = {
 
 function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCycleBannerProps) {
   const supabase = createClient()
+  const { addToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [dismissed, setDismissed] = useState(false)
 
@@ -319,7 +321,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
         .from('specialty_applications')
         .insert({ user_id: user.id, specialty_key: newConfig.key, cycle_year: newConfig.cycleYear, bonus_claimed: false })
         .select()
-      if (insertError || !newRows?.[0]) { alert('Failed to start new cycle'); setLoading(false); return }
+      if (insertError || !newRows?.[0]) { addToast('Failed to start new cycle', 'error'); setLoading(false); return }
 
       // Archive the old row
       const { error: archiveError } = await supabase
@@ -330,7 +332,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
         // Roll back the insert so two active cycles of the same specialty
         // cannot coexist (the old cycle failed to archive).
         await supabase.from('specialty_applications').delete().eq('id', newRows[0].id)
-        alert('Failed to start new cycle')
+        addToast('Failed to start new cycle', 'error')
         return
       }
 

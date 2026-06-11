@@ -91,7 +91,11 @@ function parseFrameworkText(framework: string, text: string): Record<string, str
   return result
 }
 
-function detectFramework(text: string): 'gibbs' | 'rolfe' | 'driscoll' | 'none' {
+// Fallback for legacy rows saved before refl_framework was persisted. Rolfe
+// and Driscoll serialize identical field labels (What? / So What? / Now
+// What?), so they are indistinguishable from text alone - 'rolfe' is the
+// deliberate fallback for both; the parsed fields are the same either way.
+function detectFramework(text: string): 'gibbs' | 'rolfe' | 'none' {
   if (text.includes('**Description:**') && text.includes('**Action Plan:**')) return 'gibbs'
   if (text.includes('**What?:**') && text.includes('**Now What?:**')) return 'rolfe'
   return 'none'
@@ -662,7 +666,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {/* Draft restored banner */}
         {draftRestored && (
           <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
-            <span>Draft restored</span>
+            {/* Free text (notes, reflection content) is deliberately excluded
+                from the autosaved draft for privacy - say so, or a user who
+                drafted a Gibbs reflection finds the section open and every
+                box empty with no explanation. */}
+            <span>Draft restored — notes and reflection text aren&apos;t auto-saved</span>
             <button type="button" onClick={resetForm} className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]">
               Discard
             </button>

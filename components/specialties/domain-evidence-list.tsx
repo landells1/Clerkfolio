@@ -1,6 +1,7 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
 
 type Props = {
@@ -11,11 +12,12 @@ type Props = {
 
 export function DomainEvidenceList({ domain, links, onRemove }: Props) {
   const supabase = createClient()
+  const { addToast } = useToast()
 
   async function handleRemove(linkId: string) {
     const { error } = await supabase.from('specialty_entry_links').delete().eq('id', linkId)
     if (error) {
-      alert('Failed to remove evidence. Please try again.')
+      addToast('Failed to remove evidence. Please try again.', 'error')
       return
     }
     onRemove(linkId) // update UI only after confirmed DB delete
