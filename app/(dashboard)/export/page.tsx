@@ -145,7 +145,7 @@ export default function ExportPage() {
         fetchSubscriptionInfo(supabase, user.id),
         supabase.from('portfolio_entries').select('specialty_tags, interview_ready_for').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
-        fetch('/api/share').then(r => r.ok ? r.json() : []),
+        apiFetch<ShareLink[]>('/api/share').then(r => (r.ok && r.data) ? r.data : []),
       ])
 
       setSubInfo(subInfo)

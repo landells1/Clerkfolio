@@ -6,6 +6,7 @@ import Papa from 'papaparse'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 type ImportTarget = 'portfolio' | 'cases'
 type Step = 1 | 2 | 3 | 4
@@ -239,16 +240,15 @@ export default function CsvImportFlow() {
 
     // Route through the server so the entitlement gate and rate limit apply
     // identically to CSV and JSON imports.
-    const res = await fetch('/api/import/csv', {
+    const { ok, status, data: result } = await apiFetch<{ error?: string; imported?: number; skipped?: number }>('/api/import/csv', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ target, rows: payloadRows }),
     })
     setImporting(false)
-    const result = await res.json().catch(() => ({}))
 
-    if (!res.ok) {
-      addToast(result?.error ?? 'Import failed. Check the column mapping and try again.', 'error')
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (result?.error ?? 'Import failed. Check the column mapping and try again.'), 'error')
       return
     }
     const imported = Number(result?.imported ?? 0)

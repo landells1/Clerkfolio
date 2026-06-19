@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 export type SessionRow = {
   id: string
@@ -53,12 +54,12 @@ export default function SessionsList({ initialRows, timezone }: { initialRows: S
     // Direct UPDATE of session_fingerprints was removed from the
     // authenticated RLS policy in 2026-05-18; the revoked session could
     // otherwise un-revoke itself. Server route uses service-role write.
-    const res = await fetch('/api/account/sessions/revoke', {
+    const { ok } = await apiFetch('/api/account/sessions/revoke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
-    if (!res.ok) {
+    if (!ok) {
       addToast('Could not revoke session', 'error')
       return
     }

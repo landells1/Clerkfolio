@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 import {
   calculateDomainScore,
   calculateDomainsScore,
@@ -904,10 +905,9 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
 
   useEffect(() => {
     async function load() {
-      const res = await fetch('/api/share')
-      if (res.ok) {
-        const links: (ShareLinkData & { specialty_key: string })[] = await res.json()
-        const match = links.find(l => l.specialty_key === specialtyKey)
+      const { ok, data } = await apiFetch<(ShareLinkData & { specialty_key: string })[]>('/api/share')
+      if (ok && data) {
+        const match = data.find(l => l.specialty_key === specialtyKey)
         setLink(match ?? null)
       }
       setLoading(false)
@@ -917,13 +917,12 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
 
   async function handleGenerate() {
     setGenerating(true)
-    const res = await fetch('/api/share', {
+    const { ok, data } = await apiFetch<ShareLinkData>('/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ specialty_key: specialtyKey }),
     })
-    if (res.ok) {
-      const data = await res.json()
+    if (ok && data) {
       setLink(data)
     }
     setGenerating(false)
@@ -933,8 +932,8 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
     if (!link) return
     if (!confirm('Revoke this link? Anyone using it will lose access immediately.')) return
     setRevoking(true)
-    const res = await fetch(`/api/share?id=${link.id}`, { method: 'DELETE' })
-    if (res.ok) setLink(null)
+    const { ok } = await apiFetch(`/api/share?id=${link.id}`, { method: 'DELETE' })
+    if (ok) setLink(null)
     setRevoking(false)
   }
 

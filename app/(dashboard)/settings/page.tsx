@@ -11,6 +11,7 @@ import CompetencyThemePicker from '@/components/portfolio/competency-theme-picke
 import BillingActionButton from '@/components/upgrade/billing-action-button'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES } from '@/lib/constants/career-stages'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
@@ -103,10 +104,9 @@ export default function SettingsPage() {
         const suggestedInstitutionEmail = !data.student_email && isInstitutionEmail(primaryEmail) ? primaryEmail : ''
         let referralCode = data.referral_code ?? ''
         if (!/^[A-Z]{5}$/.test(referralCode)) {
-          const res = await fetch('/api/referrals/ensure-code', { method: 'POST' })
-          if (res.ok) {
-            const body = await res.json()
-            referralCode = body.code ?? referralCode
+          const { ok, data } = await apiFetch<{ code?: string }>('/api/referrals/ensure-code', { method: 'POST' })
+          if (ok && data) {
+            referralCode = data.code ?? referralCode
           }
         }
         setProfile({
@@ -161,7 +161,7 @@ export default function SettingsPage() {
     //   1. Tier is recomputed after every career-stage change (#9).
     //   2. Server enforces the graduation-date invariant for student stages (#10).
     //   3. The foundation gift is returned in the same response (#2 mitigation).
-    const res = await fetch('/api/settings/profile', {
+    const { ok, status, data } = await apiFetch<{ error?: string; profile?: { foundation_gift_granted_at?: string | null } }>('/api/settings/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -177,14 +177,12 @@ export default function SettingsPage() {
     })
 
     setSavingProfile(false)
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      addToast(body?.error ?? 'Failed to save settings', 'error')
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to save settings'), 'error')
       return
     }
 
-    const body = await res.json().catch(() => ({}))
-    const serverProfile = body?.profile ?? null
+    const serverProfile = data?.profile ?? null
 
     const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
     const updatedProfile = {
@@ -227,7 +225,7 @@ export default function SettingsPage() {
     // enforced server-side. supabase.auth.updateUser({ password }) would skip
     // reauth and let anyone with a briefly-unattended logged-in browser
     // change the password.
-    const res = await fetch('/api/account/password', {
+    const { ok, status, data } = await apiFetch<{ error?: string; signInRequired?: boolean; sessionsRevoked?: boolean }>('/api/account/password', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -236,23 +234,21 @@ export default function SettingsPage() {
       }),
     })
     setPasswordLoading(false)
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      if (body?.signInRequired) {
+    if (!ok) {
+      if (data?.signInRequired) {
         router.replace('/login?session=revoked')
         router.refresh()
         return
       }
-      addToast(body?.error ?? 'Could not update password. Check the password and try again.', 'error')
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Could not update password. Check the password and try again.'), 'error')
       return
     }
-    const body = await res.json().catch(() => ({}))
     setPasswordForm({ current: '', next: '', confirm: '' })
     addToast(
-      body?.sessionsRevoked === false
+      data?.sessionsRevoked === false
         ? 'Password updated, but other sessions could not be signed out.'
         : 'Password updated',
-      body?.sessionsRevoked === false ? 'error' : 'success'
+      data?.sessionsRevoked === false ? 'error' : 'success'
     )
   }
 
@@ -310,10 +306,9 @@ export default function SettingsPage() {
   async function restartTutorial() {
     // These columns are protected by guard_profile_writes for user-role
     // writes, so the reset must go through the service-role API route.
-    const res = await fetch('/api/settings/restart-tutorial', { method: 'POST' })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      addToast(body?.error ?? 'Failed to restart tutorial', 'error')
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/settings/restart-tutorial', { method: 'POST' })
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to restart tutorial'), 'error')
       return
     }
     router.push('/dashboard')
@@ -330,14 +325,13 @@ export default function SettingsPage() {
       addToast('Enter your current password to confirm deletion.', 'error')
       return
     }
-    const res = await fetch('/api/account/delete', {
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confirm: 'DELETE', currentPassword: deleteConfirmPassword }),
     })
-    if (!res.ok) {
-      const body = await res.json().catch(() => ({}))
-      addToast(body?.error ?? 'Failed to delete account', 'error')
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to delete account'), 'error')
       return
     }
     // Drop the offline dashboard cache (written by offline-cache-primer.tsx).

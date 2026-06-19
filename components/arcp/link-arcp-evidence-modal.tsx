@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 import { useToast } from '@/components/ui/toast-provider'
+import { apiFetch } from '@/lib/api-fetch'
 
 type SearchResult = {
   id: string
@@ -57,7 +58,7 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
 
   async function handleLink(result: SearchResult) {
     setLinking(true)
-    const res = await fetch('/api/arcp/links', {
+    const { ok, data } = await apiFetch<ARCPEntryLink>('/api/arcp/links', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -68,11 +69,11 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
     })
 
     setLinking(false)
-    if (!res.ok) {
+    if (!ok || !data) {
       addToast('Failed to link evidence', 'error')
       return
     }
-    onLinked(await res.json() as ARCPEntryLink)
+    onLinked(data)
     addToast(`Linked to ${capability.name}`, 'success')
     onClose()
   }

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { localIsoDate, monthGridDays } from '@/lib/timeline/calendar-grid'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export type TimelineGoal = {
   id: string
@@ -260,19 +261,18 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   }
 
   async function rotateCalendarFeed(copy = true) {
-    const res = await fetch('/api/calendar/feed-token', {
+    const { ok, status, data } = await apiFetch<{ token?: string; error?: string }>('/api/calendar/feed-token', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ rotate: true }),
     })
-    const body = await res.json()
-    if (!res.ok || !body.token) {
-      addToast(body.error ?? 'Failed to rotate calendar feed', 'error')
+    if (!ok || !data?.token) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to rotate calendar feed'), 'error')
       return null
     }
-    setCalendarToken(body.token)
+    setCalendarToken(data.token)
     setHasCalendarFeed(true)
-    const url = `${window.location.origin}/api/calendar/feed/${body.token}`
+    const url = `${window.location.origin}/api/calendar/feed/${data.token}`
     if (copy) {
       await copyText(url, 'New calendar feed link copied')
     }
@@ -282,17 +282,16 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   async function ensureCalendarFeedUrl() {
     let token = calendarToken
     if (!token) {
-      const res = await fetch('/api/calendar/feed-token', { method: 'POST' })
-      const body = await res.json()
-      if (body.requiresRotation) {
+      const { ok, status, data } = await apiFetch<{ token?: string; error?: string; requiresRotation?: boolean }>('/api/calendar/feed-token', { method: 'POST' })
+      if (data?.requiresRotation) {
         const rotated = await rotateCalendarFeed(false)
         return rotated
       }
-      if (!res.ok || !body.token) {
-        addToast(body.error ?? 'Failed to create calendar feed', 'error')
+      if (!ok || !data?.token) {
+        addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to create calendar feed'), 'error')
         return null
       }
-      token = body.token
+      token = data.token
       setCalendarToken(token)
       setHasCalendarFeed(true)
     }
