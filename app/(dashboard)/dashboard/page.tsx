@@ -31,7 +31,6 @@ import ApplicationModeBanner from '@/components/dashboard/application-mode-banne
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
-import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 import { careerStageLabel } from '@/lib/constants/career-stages'
@@ -123,52 +122,63 @@ export default async function DashboardPage({
       .order('date', { ascending: false })
       .limit(8),
   ])
-  const seededDemos = await ensureDemoStarterPack(supabase, user!.id, profile?.demo_dismissed_at)
+  // Demo starter pack is now seeded once at /api/onboarding/complete (F-014/F-031),
+  // so by the time any dashboard renders the demo rows already exist - no seed on
+  // this hot path.
   // Do not interrupt newly onboarded users with release notes that predate
   // their account. Existing users see announcements newer than their last
   // dismissal, while dismissal remains persisted on the profile.
   const changelogCutoff = profile?.changelog_seen_at ?? profile?.created_at
   const changelogEntries = CHANGELOG.filter(entry => !changelogCutoff || new Date(entry.date).getTime() > new Date(changelogCutoff).getTime())
+  // Headline progress (stat tiles, heatmap, coverage, clinical-area radar,
+  // time-since, trends, calendar) excludes is_demo rows so clearly-labelled
+  // example entries never inflate the user's own numbers (F-022). The demo
+  // banner and the recent-activity feed still surface the demos so the user can
+  // find and edit them.
   const realEntries = (allEntries ?? []).filter(entry => !entry.is_demo)
   const realCases = (allCases ?? []).filter(c => !c.is_demo)
   // Keep the "these are example entries" banner up for as long as seeded demo
-  // data is still present and the user hasn't dismissed/removed it - not just on
-  // the single render that seeds it (QOL-007). `allEntries`/`allCases` are read
-  // before seeding, so OR in `seededDemos` to cover the very first load too.
+  // data is still present and the user hasn't dismissed/removed it (QOL-007).
   const hasDemoData = (allEntries ?? []).some(entry => entry.is_demo) || (allCases ?? []).some(c => c.is_demo)
-  const showDemoBanner = (seededDemos || hasDemoData) && !profile?.demo_dismissed_at
+  const showDemoBanner = hasDemoData && !profile?.demo_dismissed_at
   const showOnboardingChecklist = Boolean(profile && !profile.onboarding_checklist_dismissed)
 
   const applicationIds = (trackedSpecialtyRows ?? []).map(r => r.id)
   const { data: specialtyLinksRaw } = applicationIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
     : { data: [] as SpecialtyEntryLink[] }
+  // We already fetched every active (non-deleted) portfolio entry above, so pass
+  // their ids to avoid a second round-trip just to re-check which are active
+  // (F-031 hot-path query elimination).
+  const activeEntryIds = new Set((allEntries ?? []).map(entry => entry.id))
   const specialtyLinks = await filterLinksToActivePortfolioEntries(
     supabase,
-    (specialtyLinksRaw ?? []) as SpecialtyEntryLink[]
+    (specialtyLinksRaw ?? []) as SpecialtyEntryLink[],
+    activeEntryIds
   )
 
   const coverageCounts = Object.entries(
-    (allEntries ?? []).reduce((acc: Record<string, number>, entry) => {
+    realEntries.reduce((acc: Record<string, number>, entry) => {
       acc[entry.category] = (acc[entry.category] ?? 0) + 1
       return acc
     }, {})
   ).map(([category, count]) => ({ category, count }))
 
   const clinicalAreaCounts: Record<string, number> = {}
-  allCases?.forEach(c => {
+  realCases.forEach(c => {
     const domains: string[] = (c as { clinical_domains?: string[] }).clinical_domains?.length
       ? (c as { clinical_domains: string[] }).clinical_domains
       : c.clinical_domain ? [c.clinical_domain] : []
     domains.forEach(domain => { clinicalAreaCounts[domain] = (clinicalAreaCounts[domain] ?? 0) + 1 })
   })
 
-  // Heatmap data is derived from allEntries/allCases (already fetched above)
-  // filtered to the 52-week window - two fewer queries per dashboard load.
+  // Heatmap data is derived from the demo-excluded realEntries/realCases
+  // (already fetched above) filtered to the 52-week window - two fewer queries
+  // per dashboard load, and demo rows never colour the activity grid (F-022).
   // If allEntries is ever paginated, restore dedicated windowed queries.
   const heatmapCreatedAts = [
-    ...(allEntries ?? []).map((e: { created_at: string }) => e.created_at),
-    ...(allCases ?? []).map((c: { created_at: string }) => c.created_at),
+    ...realEntries.map((e: { created_at: string }) => e.created_at),
+    ...realCases.map((c: { created_at: string }) => c.created_at),
   ].filter(createdAt => new Date(createdAt).getTime() >= cutoff.getTime())
   const heatmapDates = heatmapCreatedAts.map(createdAt => createdAt.split('T')[0])
   const activeWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
@@ -267,11 +277,11 @@ export default async function DashboardPage({
       .limit(1)
     targetDeadline = targetDeadlines?.[0]?.due_date ?? null
   }
-  const entriesOverTime = buildEntriesOverTime(allEntries ?? [], allCases ?? [])
-  const timeSinceRows = buildTimeSinceRows((allEntries ?? []) as { category: Category; created_at: string }[], (allCases ?? []) as { created_at: string }[])
+  const entriesOverTime = buildEntriesOverTime(realEntries, realCases)
+  const timeSinceRows = buildTimeSinceRows(realEntries as { category: Category; created_at: string }[], realCases as { created_at: string }[])
   const calendarItems: CalendarWidgetItem[] = [
-    ...(allEntries ?? []).map(entry => ({ date: entry.date, type: 'entry' as const })),
-    ...(allCases ?? []).map(c => ({ date: c.date, type: 'case' as const })),
+    ...realEntries.map(entry => ({ date: entry.date, type: 'entry' as const })),
+    ...realCases.map(c => ({ date: c.date, type: 'case' as const })),
     ...(deadlines ?? []).map(deadline => ({ date: deadline.due_date, type: 'deadline' as const, title: deadline.title })),
   ]
 
@@ -314,7 +324,7 @@ export default async function DashboardPage({
         </div>
       )}
       {!showOnboardingChecklist && <GuidedTour userId={user!.id} initialStep={profile?.guided_tour_step ?? 0} />}
-      <CareerWelcomeCard stage={profile?.career_stage} caseCount={allCases?.length ?? 0} />
+      <CareerWelcomeCard stage={profile?.career_stage} caseCount={realCases.length} />
       <DemoStarterCard show={showDemoBanner} />
 
       {showOnboardingChecklist && (
@@ -358,13 +368,13 @@ export default async function DashboardPage({
           <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
             <StatTile
               label="Portfolio entries"
-              value={allEntries?.length ?? 0}
+              value={realEntries.length}
               sub="across all categories"
               barColour="violet"
             />
             <StatTile
               label="Cases logged"
-              value={allCases?.length ?? 0}
+              value={realCases.length}
               sub="anonymised diary entries"
               barColour="blue"
             />
@@ -376,8 +386,9 @@ export default async function DashboardPage({
             />
           </div>
 
-          {/* Charts only render once the user has logged something - empty months are noise. */}
-          {((allEntries?.length ?? 0) > 0 || (allCases?.length ?? 0) > 0) && (
+          {/* Charts only render once the user has logged something real - empty months
+              (and demo-only accounts) are noise. */}
+          {(realEntries.length > 0 || realCases.length > 0) && (
             <DashboardSection title="Trends" subtitle="entries logged per month" defaultOpen>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <EntriesOverTime data={entriesOverTime} />
@@ -386,7 +397,7 @@ export default async function DashboardPage({
             </DashboardSection>
           )}
 
-          {(allEntries?.length ?? 0) > 0 && (
+          {realEntries.length > 0 && (
             <DashboardSection title="Portfolio" subtitle="evidence by category" defaultOpen>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <CoverageWidget counts={coverageCounts} />
@@ -399,8 +410,8 @@ export default async function DashboardPage({
             <DashboardSection title="Rotations" defaultOpen>
               <RotationSummaryCards
                 rotations={(rotations ?? []) as { id: string; title: string; date: string; meta: { detail?: string } | null }[]}
-                entries={(allEntries ?? []) as { date: string }[]}
-                cases={(allCases ?? []) as { date: string }[]}
+                entries={realEntries as { date: string }[]}
+                cases={realCases as { date: string }[]}
               />
             </DashboardSection>
           )}

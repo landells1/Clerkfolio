@@ -3,6 +3,7 @@ import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 import { markReferralActivationIfEligible } from '@/lib/referrals/rewards'
+import { ensureDemoStarterPack } from '@/lib/onboarding/demo-seed'
 import { CAREER_STAGE_SET, isMedicalStudentStage } from '@/lib/constants/career-stages'
 
 export async function POST(req: NextRequest) {
@@ -158,6 +159,17 @@ export async function POST(req: NextRequest) {
     if (notifInsertError) {
       console.error('onboarding/complete: notifications insert failed:', notifInsertError.message)
     }
+  }
+
+  // Seed the demo starter pack here, exactly once, now that onboarding is
+  // genuinely completing (guarded by the onboarding_complete flip above). Moved
+  // off the dashboard render hot-path (F-031) and made idempotent against the
+  // partial unique demo indexes (F-014). Best-effort: a seed failure must never
+  // block onboarding completion.
+  try {
+    await ensureDemoStarterPack(supabase, user.id)
+  } catch (err) {
+    console.error('onboarding/complete: demo seed failed:', err instanceof Error ? err.message : String(err))
   }
 
   if (validSpecialties.length > 0) {
