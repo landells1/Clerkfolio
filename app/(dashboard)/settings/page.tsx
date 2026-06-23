@@ -4,8 +4,8 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { fetchSubscriptionInfo, isMedStudentStage, planProvenance, formatStorageQuota, type SubscriptionInfo } from '@/lib/subscription'
-import { isFoundationStage } from '@/lib/billing/foundation-gift'
+import { fetchSubscriptionInfo, planProvenance, formatStorageQuota, type SubscriptionInfo } from '@/lib/subscription'
+import { VERIFIED_BONUS_MB, REFERRAL_STORAGE_BONUS_MB, REFERRAL_STORAGE_BONUS_AT } from '@/lib/entitlements/limits'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
@@ -24,7 +24,6 @@ type ProfileState = {
   career_stage: string
   student_graduation_date: string
   referral_code: string
-  foundation_gift_granted_at: string
   timezone: string
   public_slug: string
   public_showcase_enabled: boolean
@@ -46,7 +45,6 @@ export default function SettingsPage() {
     career_stage: '',
     student_graduation_date: '',
     referral_code: '',
-    foundation_gift_granted_at: '',
     timezone: 'Europe/London',
     public_slug: '',
     public_showcase_enabled: false,
@@ -94,7 +92,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, foundation_gift_granted_at, timezone, public_slug, public_showcase_enabled, display_prefs, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, timezone, public_slug, public_showcase_enabled, display_prefs, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -116,7 +114,6 @@ export default function SettingsPage() {
           career_stage: data.career_stage ?? '',
           student_graduation_date: data.student_graduation_date ?? '',
           referral_code: referralCode,
-          foundation_gift_granted_at: data.foundation_gift_granted_at ?? '',
           timezone: data.timezone ?? 'Europe/London',
           public_slug: data.public_slug ?? '',
           public_showcase_enabled: data.public_showcase_enabled ?? false,
@@ -162,7 +159,7 @@ export default function SettingsPage() {
     //   1. Tier is recomputed after every career-stage change (#9).
     //   2. Server enforces the graduation-date invariant for student stages (#10).
     //   3. The foundation gift is returned in the same response (#2 mitigation).
-    const { ok, status, data } = await apiFetch<{ error?: string; profile?: { foundation_gift_granted_at?: string | null } }>('/api/settings/profile', {
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/settings/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -183,14 +180,7 @@ export default function SettingsPage() {
       return
     }
 
-    const serverProfile = data?.profile ?? null
-
-    const movedIntoFoundation = isMedStudentStage(previousProfile.career_stage) && isFoundationStage(next.career_stage)
-    const updatedProfile = {
-      ...next,
-      public_slug: publicSlug,
-      foundation_gift_granted_at: serverProfile?.foundation_gift_granted_at ?? next.foundation_gift_granted_at,
-    }
+    const updatedProfile = { ...next, public_slug: publicSlug }
 
     setProfile(updatedProfile)
     if (pendingStage === updatedProfile.career_stage) {
@@ -198,11 +188,7 @@ export default function SettingsPage() {
     }
     const refreshed = await fetchSubscriptionInfo(supabase, userId)
     setSubInfo(refreshed)
-    if (movedIntoFoundation && !previousProfile.foundation_gift_granted_at && updatedProfile.foundation_gift_granted_at) {
-      addToast('Welcome to foundation - 3 months of Pro added on us', 'success')
-    } else {
-      addToast('Settings saved', 'success')
-    }
+    addToast('Settings saved', 'success')
     router.refresh()
   }
 
@@ -564,18 +550,15 @@ export default function SettingsPage() {
                 <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
                   <p>
                     <span className="text-[#F5F5F2] font-medium">{provenance.label}</span>
-                    {provenance.state === 'referral' && provenance.expiry && (
-                      <span> — expires {new Date(provenance.expiry).toLocaleDateString('en-GB')}</span>
-                    )}
                     <span> · {formatStorageQuota(subInfo.storageQuotaMB)} storage</span>
                   </p>
                   {subInfo.isVerified && (
-                    <p className="text-xs text-[#6AA8FF]">Institution verified · +500 MB storage</p>
+                    <p className="text-xs text-[#6AA8FF]">Institution verified · +{VERIFIED_BONUS_MB} MB storage</p>
                   )}
                   {subInfo.referralCount > 0 && !subInfo.isPro && (
                     <p className="text-xs text-[#6AA8FF]">
                       {subInfo.referralCount} referral{subInfo.referralCount === 1 ? '' : 's'} · +{subInfo.referralCount} PDF export{subInfo.referralCount === 1 ? '' : 's'}, +{subInfo.referralCount} share link{subInfo.referralCount === 1 ? '' : 's'}
-                      {subInfo.referralCount >= 5 ? ', +250 MB' : ''}
+                      {subInfo.referralCount >= REFERRAL_STORAGE_BONUS_AT ? `, +${REFERRAL_STORAGE_BONUS_MB} MB` : ''}
                     </p>
                   )}
                   <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {pdfAllowance}</p>

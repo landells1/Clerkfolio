@@ -43,19 +43,11 @@ describe('planProvenance', () => {
     ...over,
   })
 
-  it('marks a Stripe subscriber as billing-managed', () => {
+  it('marks a Stripe subscriber as billing-managed (Pro is buy-only)', () => {
     const p = planProvenance(base({ tier: 'pro', isPro: true }))
     expect(p.state).toBe('stripe')
     expect(p.hasStripeBilling).toBe(true)
     expect(p.billingLabel).toBe('Manage billing')
-  })
-
-  it('marks referral-Pro as non-billing with provenance and Make-permanent', () => {
-    const p = planProvenance(base({ tier: 'free', isPro: true, usage: { ...base({}).usage, referralProUntil: '2026-07-19T00:00:00Z' } }))
-    expect(p.state).toBe('referral')
-    expect(p.hasStripeBilling).toBe(false)
-    expect(p.billingLabel).toBe('Make permanent')
-    expect(p.expiry).toBe('2026-07-19T00:00:00Z')
   })
 
   it('marks a free user as upgrade', () => {

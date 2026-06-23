@@ -1,3 +1,17 @@
+import {
+  BASE_STORAGE_MB,
+  VERIFIED_STORAGE_MB,
+  VERIFIED_BONUS_MB,
+  PRO_STORAGE_MB,
+  formatStorageQuota,
+} from '@/lib/entitlements/limits'
+
+// Storage strings are computed from the entitlement constants so the marketing
+// copy can never drift from what the RPC actually grants.
+const FREE_STORAGE = formatStorageQuota(BASE_STORAGE_MB)
+const VERIFIED_STORAGE = formatStorageQuota(VERIFIED_STORAGE_MB)
+const PRO_STORAGE = formatStorageQuota(PRO_STORAGE_MB)
+
 export const PRICING_TIERS = [
   {
     name: 'Free',
@@ -5,7 +19,7 @@ export const PRICING_TIERS = [
     marketingPrice: 'Free forever',
     description: 'Core portfolio tools for getting started.',
     marketingDescription: 'Everything you need to log a portfolio.',
-    storage: '100 MB',
+    storage: FREE_STORAGE,
     highlight: false,
   },
   {
@@ -14,7 +28,7 @@ export const PRICING_TIERS = [
     marketingPrice: 'Free with a verified .ac.uk or NHS email',
     description: 'Extra storage for verified students and NHS doctors.',
     marketingDescription: 'More room once you verify your institution.',
-    storage: '600 MB',
+    storage: VERIFIED_STORAGE,
     highlight: false,
   },
   {
@@ -23,7 +37,7 @@ export const PRICING_TIERS = [
     marketingPrice: '£9.99 per year',
     description: 'More room and fewer limits for application season.',
     marketingDescription: 'For application season and beyond.',
-    storage: '5 GB',
+    storage: PRO_STORAGE,
     highlight: true,
   },
 ] as const
@@ -31,7 +45,7 @@ export const PRICING_TIERS = [
 export const PRICING_FEATURES = [
   { label: 'Portfolio entries, cases, timeline, and ARCP organisation', free: true, verified: true, pro: true },
   { label: 'Personal data backup', free: true, verified: true, pro: true },
-  { label: 'Storage allowance', free: '100 MB', verified: '600 MB', pro: '5 GB' },
+  { label: 'Storage allowance', free: FREE_STORAGE, verified: VERIFIED_STORAGE, pro: PRO_STORAGE },
   { label: 'PDF exports', free: '1', verified: '1', pro: 'Unlimited' },
   { label: 'Portfolio share links', free: '1', verified: '1', pro: 'Unlimited' },
   { label: 'Tracked specialties', free: '1 active', verified: '1 active', pro: 'Unlimited' },
@@ -41,10 +55,10 @@ export const PRICING_FEATURES = [
 ] as const
 
 export const MARKETING_PRICING_FEATURES = {
-  Free: ['100 MB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
-  Verified: ['600 MB storage (100 MB + 500 MB verified)', '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
+  Free: [`${FREE_STORAGE} storage`, '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
+  Verified: [`${VERIFIED_STORAGE} storage (${formatStorageQuota(BASE_STORAGE_MB)} + ${VERIFIED_BONUS_MB} MB verified)`, '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
   Pro: [
-    '5 GB storage',
+    `${PRO_STORAGE} storage`,
     'Unlimited PDF exports',
     'Unlimited share links',
     'Unlimited tracked specialties',

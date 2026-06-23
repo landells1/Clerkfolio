@@ -6,10 +6,15 @@
 //     vested referrals - not stored counters - so they are idempotent.
 //   * Recognition badges (free): the ladder below + the time-limited
 //     "Founding Sharer" launch badge.
-//   * Bounded / costly: +250 MB storage one-time at 5 referrals (hard-capped,
-//     non-stacking; derived in the RPC) and time-boxed Pro at milestone rungs.
+//   * Bounded / costly: permanent +REFERRAL_STORAGE_BONUS_MB storage at
+//     REFERRAL_STORAGE_BONUS_AT referrals (hard-capped, derived in the RPC).
 //
-// No leaderboard, no cash/swag (owner decision).
+// Referrals do NOT grant Pro - Pro is buy-only (Stripe). No leaderboard, no
+// cash/swag (owner decision).
+
+// Storage numbers live in one place (lib/entitlements/limits.ts); re-export
+// here so existing referral-UI imports keep resolving from this module.
+export { REFERRAL_STORAGE_BONUS_MB, REFERRAL_STORAGE_BONUS_AT } from '@/lib/entitlements/limits'
 
 export type ReferralBadgeKey =
   | 'connector'
@@ -32,22 +37,9 @@ export interface ReferralBadge {
 export const REFERRAL_LADDER: ReferralBadge[] = [
   { key: 'connector', label: 'Connector', threshold: 1, emoji: '🤝', description: 'Referred your first colleague to Clerkfolio.' },
   { key: 'advocate', label: 'Advocate', threshold: 3, emoji: '📣', description: 'Three colleagues joined on your recommendation.' },
-  { key: 'champion', label: 'Champion', threshold: 5, emoji: '🏅', description: 'Five referrals — unlocked +250 MB storage and a month of Pro.' },
-  { key: 'ambassador', label: 'Ambassador', threshold: 10, emoji: '🏆', description: 'Ten colleagues onboarded — another month of Pro.' },
+  { key: 'champion', label: 'Champion', threshold: 5, emoji: '🏅', description: 'Five referrals — unlocked a permanent storage bonus.' },
+  { key: 'ambassador', label: 'Ambassador', threshold: 10, emoji: '🏆', description: 'Ten colleagues onboarded on your recommendation.' },
 ]
-
-// Days a reward Pro grant adds at a milestone rung. (Owner: 1 month Pro at 5
-// and again at 10.) Map of rewarded-referral count -> days of Pro to add.
-export const MILESTONE_PRO_DAYS: Record<number, number> = {
-  5: 30,
-  10: 30,
-}
-
-// One-time storage bonus at 5 rewarded referrals (hard-capped, non-stacking).
-// Derived in get_profile_entitlements (ref_count >= 5 ? +250 : 0); the value
-// here documents the policy and is reused in UI copy.
-export const REFERRAL_STORAGE_BONUS_MB = 250
-export const REFERRAL_STORAGE_BONUS_AT = 5
 
 // A rewarded referral grants +1 PDF and +1 active share link (unbounded),
 // derived in get_profile_entitlements.

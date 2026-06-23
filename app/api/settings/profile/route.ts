@@ -118,11 +118,10 @@ export async function POST(req: NextRequest) {
     console.error('settings/profile: recompute_profile_tier failed:', recomputeError.message)
   }
 
-  // Read back fields that the trigger may have modified (foundation gift grant,
-  // tier change) so the client can refresh UI state.
+  // Read back the tier the recompute may have changed so the client can refresh.
   const { data: refreshed } = await service
     .from('profiles')
-    .select('tier, foundation_gift_granted_at, pro_features_used')
+    .select('tier')
     .eq('id', user.id)
     .single()
 

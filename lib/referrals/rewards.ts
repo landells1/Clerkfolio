@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import {
   REFERRAL_VEST_DAYS,
-  MILESTONE_PRO_DAYS,
+  REFERRAL_STORAGE_BONUS_MB,
+  REFERRAL_STORAGE_BONUS_AT,
   REFERRAL_LADDER,
   laddersEarnedAt,
   isFoundingSharerWindowOpen,
@@ -16,17 +17,17 @@ import { transactionalEmail } from '@/lib/notifications/email-templates'
 //   activated -> the referred user did the meaningful action (onboarding +
 //                >=1 real case/entry) AND the referrer is institution-verified.
 //   completed -> the reward vested REFERRAL_VEST_DAYS after activation; the
-//                REFERRER's recognition (badges / +1 PDF / +1 share / milestone
-//                Pro / +250 MB) now counts. Storage / PDF / share bonuses are
-//                derived in get_profile_entitlements from the completed count.
+//                REFERRER's recognition (badges / +1 PDF / +1 share / the
+//                +REFERRAL_STORAGE_BONUS_MB storage at REFERRAL_STORAGE_BONUS_AT)
+//                now counts. Storage / PDF / share bonuses are derived in
+//                get_profile_entitlements from the completed count; referrals
+//                grant NO Pro (Pro is buy-only).
 //
 // Rewards accrue to the REFERRER (the sharer). The referred user's incentive is
 // the product itself; the new model grants them no separate entitlement.
 // Measurement is decoupled from reward: every signup is counted for attribution
 // (the referral_funnel view), rewards pay only on the vested meaningful action.
 // ---------------------------------------------------------------------------
-
-type ProFeatures = Record<string, unknown> | null
 
 type ReferredProfile = {
   id: string
@@ -141,18 +142,13 @@ export async function processReferralsForReferrer(service: SupabaseClient, refer
   return results
 }
 
-function extendProUntil(existing: string | null, days: number) {
-  const base = existing && new Date(existing).getTime() > Date.now() ? new Date(existing) : new Date()
-  base.setDate(base.getDate() + days)
-  return base.toISOString()
-}
-
 // ---------------------------------------------------------------------------
 // Vesting cron entrypoint. Two phases:
 //   1. Activation scan: catch referred users who did the meaningful action
 //      after their onboarding-complete event (no specific call site fires then).
 //   2. Vest activated referrals older than REFERRAL_VEST_DAYS: flip to
-//      'completed', then apply the referrer's milestone Pro + badges and notify.
+//      'completed', then award the referrer's badges and notify (storage/PDF/
+//      share bonuses are derived in the RPC; no Pro is granted).
 // Returns a summary for the cron response/logs.
 // ---------------------------------------------------------------------------
 export async function vestDueReferrals(service: SupabaseClient, now: Date = new Date()) {
@@ -207,52 +203,33 @@ async function vestForReferrer(service: SupabaseClient, referrerId: string, cuto
 
   const { data: referrer } = await service
     .from('profiles')
-    .select('first_name, referral_badges, pro_features_used')
+    .select('first_name, referral_badges')
     .eq('id', referrerId)
-    .maybeSingle<{ first_name: string | null; referral_badges: string[] | null; pro_features_used: ProFeatures }>()
+    .maybeSingle<{ first_name: string | null; referral_badges: string[] | null }>()
   if (!referrer) return vestedNow
 
   const prevBadges = new Set(referrer.referral_badges ?? [])
-  const usage = (referrer.pro_features_used ?? {}) as Record<string, unknown>
-  const grantedMilestones = new Set<string>(Array.isArray(usage.referral_milestones) ? (usage.referral_milestones as string[]) : [])
-
-  // Milestone Pro: add days for any newly-crossed threshold not yet granted.
-  let addedDays = 0
-  for (const [thresholdStr, days] of Object.entries(MILESTONE_PRO_DAYS)) {
-    const threshold = Number(thresholdStr)
-    const key = `pro_${threshold}`
-    if (newCount >= threshold && !grantedMilestones.has(key)) {
-      addedDays += days
-      grantedMilestones.add(key)
-    }
-  }
 
   // Badges: ladder rungs earned at the new count + the time-limited Founding
   // Sharer badge if its window is open (they just landed a rewarded referral).
+  // Referrals grant NO Pro - the storage bonus (+REFERRAL_STORAGE_BONUS_MB at
+  // REFERRAL_STORAGE_BONUS_AT) and the +1 PDF/+1 share are derived in the RPC,
+  // so vesting only persists badges; pro_features_used is left untouched.
   const earned: ReferralBadgeKey[] = laddersEarnedAt(newCount)
   if (isFoundingSharerWindowOpen(now)) earned.push('founding_sharer')
   const newBadges = earned.filter(b => !prevBadges.has(b))
   const allBadges = Array.from(new Set([...prevBadges, ...earned]))
 
-  const existingUntil = (usage.referral_pro_until as string | null) ?? null
-  const nextUntil = addedDays > 0 ? extendProUntil(existingUntil, addedDays) : existingUntil
+  await service.from('profiles').update({ referral_badges: allBadges }).eq('id', referrerId)
 
-  await service.from('profiles').update({
-    referral_badges: allBadges,
-    pro_features_used: {
-      ...usage,
-      referral_pro_until: nextUntil,
-      referral_milestones: Array.from(grantedMilestones),
-    },
-  }).eq('id', referrerId)
-
-  // Notify the referrer: one headline (with email) + per-event in-app rows.
+  // Notify the referrer: one headline (with email) + per-badge in-app rows.
   const email = await getUserEmail(service, referrerId)
   const perkLines: string[] = [
     `You now have ${newCount} rewarded referral${newCount === 1 ? '' : 's'}, each adding +1 PDF export and +1 share link.`,
   ]
-  if (newCount >= 5) perkLines.push('You have unlocked +250 MB of bonus storage.')
-  if (addedDays > 0) perkLines.push(`You earned ${addedDays} days of Pro.`)
+  if (newCount >= REFERRAL_STORAGE_BONUS_AT) {
+    perkLines.push(`You have unlocked +${REFERRAL_STORAGE_BONUS_MB} MB of permanent bonus storage.`)
+  }
   for (const key of newBadges) {
     const meta = REFERRAL_LADDER.find(b => b.key === key)
     perkLines.push(meta ? `New badge: ${meta.label} ${meta.emoji}.` : 'You earned the Founding Sharer badge. 🚀')
@@ -279,16 +256,6 @@ async function vestForReferrer(service: SupabaseClient, referrerId: string, cuto
     body: perkLines[0],
     link: '/settings/referrals',
   }, headlineEmail)
-
-  if (addedDays > 0) {
-    await createNotification(service, {
-      userId: referrerId,
-      type: 'referral_reward',
-      title: `You earned ${addedDays} days of Pro`,
-      body: 'Thanks for sharing Clerkfolio. Your Pro access has been extended.',
-      link: '/settings/referrals',
-    })
-  }
 
   for (const key of newBadges) {
     const meta = REFERRAL_LADDER.find(b => b.key === key)

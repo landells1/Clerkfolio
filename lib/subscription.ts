@@ -38,48 +38,29 @@ export function isMedStudentStage(careerStage: string | null | undefined) {
   return isMedicalStudentStage(careerStage)
 }
 
-// Base-ten storage formatting (1 GB = 1000 MB) to match the entitlement model.
-// Quotas can now be fractional GB (e.g. 600, 850, 5500, 5750 MB), so trim a
-// trailing ".0" but keep ".5"/".75".
-export function formatStorageQuota(mb: number): string {
-  if (mb >= 1000) {
-    const gb = mb / 1000
-    return `${Number.isInteger(gb) ? gb : Number(gb.toFixed(2))} GB`
-  }
-  return `${Math.round(mb)} MB`
-}
+// Storage formatting lives with the storage numbers (single source); re-export
+// so existing `import { formatStorageQuota } from '@/lib/subscription'` keeps working.
+export { formatStorageQuota } from '@/lib/entitlements/limits'
 
 export type PlanProvenance = {
-  /** 'stripe' = paid subscription; 'referral' = earned/temporary Pro; 'free'. */
-  state: 'stripe' | 'referral' | 'free'
+  /** 'stripe' = paid subscription; 'free' = everyone else. Pro is buy-only. */
+  state: 'stripe' | 'free'
   label: string
   billingLabel: string
   /** True only for a real Stripe subscription (drives portal vs checkout). */
   hasStripeBilling: boolean
-  /** ISO expiry for referral/gift Pro, else null. */
-  expiry: string | null
 }
 
-// Single source of truth for how a user's Pro state is presented (F-029/F-003):
-// a real Stripe subscriber manages billing; a referral/gift Pro holder sees
-// provenance + "Make permanent" (never "Manage billing", which dead-ends with
-// no Stripe customer); a free user upgrades.
+// Single source of truth for how a user's Pro state is presented (F-029/F-003).
+// Pro is buy-only now, so effective Pro == a Stripe subscription: Pro users
+// manage billing, everyone else upgrades. (No referral/gift Pro state exists.)
 export function planProvenance(
-  subInfo: Pick<SubscriptionInfo, 'tier' | 'isPro' | 'usage'>,
+  subInfo: Pick<SubscriptionInfo, 'tier' | 'isPro'>,
 ): PlanProvenance {
-  if (subInfo.tier === 'pro') {
-    return { state: 'stripe', label: 'Pro', billingLabel: 'Manage billing', hasStripeBilling: true, expiry: null }
-  }
   if (subInfo.isPro) {
-    return {
-      state: 'referral',
-      label: 'Pro — earned via referrals',
-      billingLabel: 'Make permanent',
-      hasStripeBilling: false,
-      expiry: subInfo.usage.referralProUntil,
-    }
+    return { state: 'stripe', label: 'Pro', billingLabel: 'Manage billing', hasStripeBilling: true }
   }
-  return { state: 'free', label: 'Free', billingLabel: 'Upgrade to Pro', hasStripeBilling: false, expiry: null }
+  return { state: 'free', label: 'Free', billingLabel: 'Upgrade to Pro', hasStripeBilling: false }
 }
 
 type EntitlementRow = {

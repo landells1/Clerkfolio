@@ -16,7 +16,7 @@ export default async function ReferralsPage() {
 
   const [{ data: profile }, { data: referrals }] = await Promise.all([
     supabase.from('profiles')
-      .select('referral_code, pro_features_used, referral_badges, student_email_verified, student_email_verification_due_at')
+      .select('referral_code, referral_badges, student_email_verified, student_email_verification_due_at')
       .eq('id', user!.id).single(),
     supabase.from('referrals')
       .select('id, status, created_at, activated_at, reward_granted_at')
@@ -34,8 +34,6 @@ export default async function ReferralsPage() {
   const rewarded = rows.filter(r => r.status === 'completed').length
   const pending = rows.filter(r => r.status === 'pending').length
 
-  const proUntil = (profile?.pro_features_used as { referral_pro_until?: string | null } | null)?.referral_pro_until ?? null
-  const proActive = proUntil != null && new Date(proUntil).getTime() > Date.now()
   const earnedBadges = new Set<string>(profile?.referral_badges ?? [])
   const foundingEarned = earnedBadges.has('founding_sharer')
 
@@ -59,9 +57,10 @@ export default async function ReferralsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight mb-2">Referrals</h1>
           <p className="text-sm leading-6 text-[rgba(245,245,242,0.55)]">
-            Share Clerkfolio with colleagues. When someone joins on your link, verifies and logs their first case, you earn
-            recognition badges plus <span className="text-[#F5F5F2]">+1 PDF export and +1 share link</span> per referral —
-            and milestone rewards along the way. Rewards have no cash value and may be revoked for abuse.
+            Share Clerkfolio with colleagues. When someone joins on your link and logs their first case, you earn
+            recognition badges plus <span className="text-[#F5F5F2]">+1 PDF export and +1 share link</span> per referral,
+            and <span className="text-[#F5F5F2]">+{REFERRAL_STORAGE_BONUS_MB} MB of permanent storage at {REFERRAL_STORAGE_BONUS_AT} referrals</span>.
+            Rewards have no cash value and may be revoked for abuse.
           </p>
         </div>
       </div>
@@ -143,13 +142,8 @@ export default async function ReferralsPage() {
         <ul className="space-y-2 text-sm text-[rgba(245,245,242,0.6)]">
           <li>+{rewarded} PDF export{rewarded === 1 ? '' : 's'} and +{rewarded} share link{rewarded === 1 ? '' : 's'} added to your free allowance.</li>
           <li className={rewarded >= REFERRAL_STORAGE_BONUS_AT ? 'text-[#6AA8FF]' : ''}>
-            +{REFERRAL_STORAGE_BONUS_MB} MB storage at {REFERRAL_STORAGE_BONUS_AT} referrals —{' '}
+            +{REFERRAL_STORAGE_BONUS_MB} MB permanent storage at {REFERRAL_STORAGE_BONUS_AT} referrals —{' '}
             {rewarded >= REFERRAL_STORAGE_BONUS_AT ? 'unlocked.' : `${REFERRAL_STORAGE_BONUS_AT - rewarded} to go.`}
-          </li>
-          <li className={proActive ? 'text-[#6AA8FF]' : ''}>
-            {proActive
-              ? `Pro active until ${new Date(proUntil!).toLocaleDateString('en-GB')} (earned via referrals).`
-              : 'A month of Pro at 5 referrals, and again at 10.'}
           </li>
         </ul>
       </section>

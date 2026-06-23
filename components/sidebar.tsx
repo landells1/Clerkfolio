@@ -14,11 +14,6 @@ type Profile = {
   last_name: string | null
   career_stage: string | null
   tier?: string | null
-  // Effective Pro access (Stripe OR an active referral/gift grant) and whether
-  // it is a permanent (Stripe) subscription. Drives the Upgrade-link provenance
-  // (F-029/F-003): hide for permanent Pro, "Make permanent" for referral-Pro.
-  proAccess?: boolean
-  proIsPermanent?: boolean
 }
 
 const NAV_ITEMS = [
@@ -407,10 +402,8 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             Send feedback
           </button>
 
-          {/* Upgrade link gated on EFFECTIVE Pro access (F-029/F-003): hidden
-              for permanent (Stripe) Pro; referral/gift Pro sees "Make permanent"
-              rather than "Upgrade"; free users see "Upgrade". */}
-          {!(profile.proIsPermanent ?? profile.tier === 'pro') && (
+          {/* Upgrade link - hidden for Pro (Stripe is the only way to be Pro). */}
+          {profile.tier !== 'pro' && (
             <Link
               href="/upgrade"
               prefetch={false}
@@ -426,7 +419,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 <path d="M12 2v20" />
                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7H14a3.5 3.5 0 0 1 0 7H6" />
               </svg>
-              {(profile.proAccess ?? profile.tier === 'pro') ? 'Make permanent' : 'Upgrade'}
+              Upgrade
             </Link>
           )}
 

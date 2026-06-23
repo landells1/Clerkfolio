@@ -29,9 +29,6 @@ export default async function BillingSettingsPage() {
         <div className="mt-6 flex flex-col gap-3">
           <p className="text-sm text-[rgba(245,245,242,0.6)]">
             Current plan: <span className="font-medium text-[#F5F5F2]">{provenance?.label ?? 'Free'}</span>
-            {provenance?.state === 'referral' && provenance.expiry && (
-              <span> — expires {new Date(provenance.expiry).toLocaleDateString('en-GB')}</span>
-            )}
           </p>
           <BillingActionButton hasStripeBilling={provenance?.hasStripeBilling ?? false} label={provenance?.billingLabel} />
         </div>
