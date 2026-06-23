@@ -3,6 +3,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { isAllowedEvidenceFile, MAX_FILE_BYTES } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
+import { apiFetch } from '@/lib/api-fetch'
+import StorageMeter from '@/components/upgrade/storage-meter'
 
 /** A 36px placeholder/fallback box showing the generic image icon, used while a
  *  thumbnail loads or if the object-URL preview fails to paint (REG-001: an
@@ -66,6 +68,19 @@ export default function EvidenceUpload({
   const inputRef = useRef<HTMLInputElement>(null)
   const [uploadErrors, setUploadErrors] = useState<string[]>([])
   const [dragOver, setDragOver] = useState(false)
+  // F-040: show the storage used/quota meter near the dropzone so the cap is
+  // never a surprise. Best-effort: fetched once on mount; silently hidden if
+  // unavailable. apiFetch never throws (status === null on network failure).
+  const [storage, setStorage] = useState<{ usedMB: number; quotaMB: number } | null>(null)
+  useEffect(() => {
+    let active = true
+    apiFetch<{ usedMB: number; quotaMB: number }>('/api/account/storage').then(res => {
+      if (active && res.status === 200 && res.data && typeof res.data.quotaMB === 'number') {
+        setStorage({ usedMB: res.data.usedMB ?? 0, quotaMB: res.data.quotaMB })
+      }
+    })
+    return () => { active = false }
+  }, [])
 
   function handleFiles(incoming: FileList | null) {
     if (!incoming) return
@@ -102,6 +117,8 @@ export default function EvidenceUpload({
 
   return (
     <div className="space-y-3">
+      {storage && <StorageMeter usedMB={storage.usedMB} quotaMB={storage.quotaMB} />}
+
       {/* Inline upload errors */}
       {uploadErrors.length > 0 && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 space-y-1">

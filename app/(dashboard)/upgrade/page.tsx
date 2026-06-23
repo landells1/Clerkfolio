@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
-import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, planProvenance } from '@/lib/subscription'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
 import MemberDiscountCard from '@/components/upgrade/member-discount-card'
 import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
@@ -9,6 +9,11 @@ export default async function UpgradePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const subInfo = await fetchSubscriptionInfo(supabase, user!.id)
+  const provenance = planProvenance(subInfo)
+
+  // "Current" badge: Pro card for any effective Pro; the verified card when
+  // institution-verified-but-not-Pro; otherwise the Free card.
+  const currentTierName = subInfo.isPro ? 'Pro' : subInfo.isVerified ? 'Verified' : 'Free'
 
   return (
     <div className="p-6 lg:p-8">
@@ -16,7 +21,7 @@ export default async function UpgradePage() {
         <p className="mb-2 text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Upgrade</p>
         <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">Plans and limits</h1>
         <p className="mt-2 text-sm leading-6 text-[rgba(245,245,242,0.55)]">
-          Compare what each tier includes. Your current plan is <span className="font-medium text-[#F5F5F2]">{planLabel(subInfo.tier)}</span>.
+          Compare what each tier includes. Your current plan is <span className="font-medium text-[#F5F5F2]">{provenance.label}</span>.
         </p>
       </div>
 
@@ -47,7 +52,7 @@ export default async function UpgradePage() {
                 <h2 className="text-lg font-semibold text-[#F5F5F2]">{tier.name}</h2>
                 <p className="mt-1 text-sm text-[rgba(245,245,242,0.5)]">{tier.description}</p>
               </div>
-              {subInfo.tier === tier.name.toLowerCase() && (
+              {currentTierName === tier.name && (
                 <span className="rounded-full bg-white/[0.08] px-2.5 py-1 text-xs font-medium text-[#F5F5F2]">Current</span>
               )}
             </div>
@@ -55,7 +60,7 @@ export default async function UpgradePage() {
             <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">{tier.storage} storage</p>
             {tier.name === 'Pro' && (
               <div className="mt-5">
-                <BillingActionButton isPro={subInfo.isPro} />
+                <BillingActionButton hasStripeBilling={provenance.hasStripeBilling} label={provenance.billingLabel} />
               </div>
             )}
           </div>
@@ -82,7 +87,7 @@ export default async function UpgradePage() {
               <tr>
                 <th className="px-5 py-4 font-medium">Feature</th>
                 <th className="px-5 py-4 font-medium">Free</th>
-                <th className="px-5 py-4 font-medium">Student</th>
+                <th className="px-5 py-4 font-medium">Verified</th>
                 <th className="px-5 py-4 font-medium">Pro</th>
               </tr>
             </thead>
@@ -91,7 +96,7 @@ export default async function UpgradePage() {
                 <tr key={feature.label} className="align-top">
                   <td className="px-5 py-4 font-medium text-[#F5F5F2]">{feature.label}</td>
                   <FeatureCell value={feature.free} />
-                  <FeatureCell value={feature.student} />
+                  <FeatureCell value={feature.verified} />
                   <FeatureCell value={feature.pro} />
                 </tr>
               ))}
@@ -129,9 +134,3 @@ function ChecklistItem({ done, label }: { done: boolean; label: string }) {
   )
 }
 
-function planLabel(tier: string) {
-  if (tier === 'pro') return 'Pro'
-  if (tier === 'student') return 'Student'
-  if (tier === 'foundation') return 'Foundation'
-  return 'Free'
-}

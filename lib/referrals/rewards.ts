@@ -1,52 +1,67 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import {
+  REFERRAL_VEST_DAYS,
+  MILESTONE_PRO_DAYS,
+  REFERRAL_LADDER,
+  laddersEarnedAt,
+  isFoundingSharerWindowOpen,
+  type ReferralBadgeKey,
+} from '@/lib/referrals/constants'
+import { createNotification, getUserEmail } from '@/lib/notifications/create'
+import { transactionalEmail } from '@/lib/notifications/email-templates'
 
-const REFERRAL_REWARD_DAYS = 30
-// Cap referrals at 5 per rolling 365 days per referrer. Matches the public
-// spec in HANDOVER.md and bounds the abuse surface (5 rewards * 30 days =
-// 150 days free Pro per referrer per year).
-const MAX_REFERRAL_REWARDS_PER_YEAR = 5
-const REFERRAL_WINDOW_DAYS = 365
+// ---------------------------------------------------------------------------
+// Referral lifecycle (Batch 1, F-002 overhaul):
+//   pending  -> a referred user signed up with a referrer code (attribution).
+//   activated -> the referred user did the meaningful action (onboarding +
+//                >=1 real case/entry) AND the referrer is institution-verified.
+//   completed -> the reward vested REFERRAL_VEST_DAYS after activation; the
+//                REFERRER's recognition (badges / +1 PDF / +1 share / milestone
+//                Pro / +250 MB) now counts. Storage / PDF / share bonuses are
+//                derived in get_profile_entitlements from the completed count.
+//
+// Rewards accrue to the REFERRER (the sharer). The referred user's incentive is
+// the product itself; the new model grants them no separate entitlement.
+// Measurement is decoupled from reward: every signup is counted for attribution
+// (the referral_funnel view), rewards pay only on the vested meaningful action.
+// ---------------------------------------------------------------------------
 
-type ProfileForReward = {
+type ProFeatures = Record<string, unknown> | null
+
+type ReferredProfile = {
   id: string
   referred_by: string | null
   onboarding_complete: boolean | null
+}
+
+type VerificationFields = {
   student_email_verified: boolean | null
   student_email_verification_due_at: string | null
-  pro_features_used: Record<string, unknown> | null
 }
 
-function referralUntil(existing?: string | null) {
-  const base = existing && new Date(existing).getTime() > Date.now()
-    ? new Date(existing)
-    : new Date()
-  base.setDate(base.getDate() + REFERRAL_REWARD_DAYS)
-  return base.toISOString()
-}
-
-function mergeUsage(usage: Record<string, unknown> | null, referralProUntil: string) {
-  return {
-    pdf_exports_used: Number(usage?.pdf_exports_used ?? 0),
-    share_links_used: Number(usage?.share_links_used ?? 0),
-    referral_pro_until: referralProUntil,
-  }
-}
-
-function hasCurrentInstitutionVerification(profile: Pick<ProfileForReward, 'student_email_verified' | 'student_email_verification_due_at'> | null) {
+function hasCurrentInstitutionVerification(profile: VerificationFields | null) {
   if (!profile?.student_email_verified) return false
   // Null due_at treated as expired, matching recompute_profile_tier in the DB.
-  // The verified path always writes due_at = now + 1 year; null means the row
-  // is in an inconsistent state and should not be treated as valid.
   if (!profile.student_email_verification_due_at) return false
-
   return new Date(`${profile.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
+}
+
+// Meaningful action: onboarding complete AND at least one real (non-demo,
+// non-deleted) case OR portfolio entry. Demo starter-pack rows do not count.
+async function hasMeaningfulAction(service: SupabaseClient, referred: ReferredProfile) {
+  if (!referred.onboarding_complete) return false
+  const [{ count: caseCount }, { count: entryCount }] = await Promise.all([
+    service.from('cases').select('id', { count: 'exact', head: true })
+      .eq('user_id', referred.id).eq('is_demo', false).is('deleted_at', null),
+    service.from('portfolio_entries').select('id', { count: 'exact', head: true })
+      .eq('user_id', referred.id).eq('is_demo', false).is('deleted_at', null),
+  ])
+  return (caseCount ?? 0) > 0 || (entryCount ?? 0) > 0
 }
 
 async function ensurePendingReferral(service: SupabaseClient, referrerId: string, referredId: string) {
   // ignoreDuplicates so a concurrent caller cannot downgrade an already-
-  // completed referral row back to 'pending' (overwriting reward_granted_at).
-  // The early-return check at status === 'completed' in the caller is not
-  // atomic with the upsert; this flag is the safety net.
+  // activated/completed referral row back to 'pending'.
   await service.from('referrals').upsert({
     referrer_id: referrerId,
     referred_id: referredId,
@@ -54,105 +69,237 @@ async function ensurePendingReferral(service: SupabaseClient, referrerId: string
   }, { onConflict: 'referred_id', ignoreDuplicates: true })
 }
 
-export async function grantEligibleReferralReward(service: SupabaseClient, referredUserId: string) {
+export type ActivationResult = { activated: boolean; reason: string }
+
+// Records attribution and, if the referred user has done the meaningful action
+// and the referrer is institution-verified, marks the referral 'activated' so
+// it begins its vesting window. Idempotent: a row already activated/completed
+// is left untouched. Does NOT grant rewards (those vest via the cron).
+export async function markReferralActivationIfEligible(
+  service: SupabaseClient,
+  referredUserId: string,
+): Promise<ActivationResult> {
   const { data: referred } = await service
     .from('profiles')
-    .select('id, referred_by, onboarding_complete, student_email_verified, student_email_verification_due_at, pro_features_used')
+    .select('id, referred_by, onboarding_complete')
     .eq('id', referredUserId)
-    .maybeSingle<ProfileForReward>()
+    .maybeSingle<ReferredProfile>()
 
   if (!referred?.referred_by || referred.referred_by === referredUserId) {
-    return { granted: false, reason: 'no_referrer' }
-  }
-
-  const { data: existingReferral } = await service
-    .from('referrals')
-    .select('status')
-    .eq('referred_id', referredUserId)
-    .maybeSingle()
-
-  if (existingReferral?.status === 'completed') {
-    return { granted: false, reason: 'already_completed' }
+    return { activated: false, reason: 'no_referrer' }
   }
 
   await ensurePendingReferral(service, referred.referred_by, referredUserId)
 
-  if (!referred.onboarding_complete || !hasCurrentInstitutionVerification(referred)) {
-    return { granted: false, reason: 'referred_not_eligible' }
+  const { data: existing } = await service
+    .from('referrals')
+    .select('status')
+    .eq('referred_id', referredUserId)
+    .maybeSingle<{ status: string }>()
+
+  if (existing?.status === 'activated' || existing?.status === 'completed') {
+    return { activated: false, reason: 'already_activated' }
+  }
+
+  if (!(await hasMeaningfulAction(service, referred))) {
+    return { activated: false, reason: 'referred_not_eligible' }
   }
 
   const { data: referrer } = await service
     .from('profiles')
-    .select('id, student_email_verified, student_email_verification_due_at, pro_features_used')
+    .select('student_email_verified, student_email_verification_due_at')
     .eq('id', referred.referred_by)
-    .maybeSingle<Pick<ProfileForReward, 'id' | 'student_email_verified' | 'student_email_verification_due_at' | 'pro_features_used'>>()
+    .maybeSingle<VerificationFields>()
 
-  if (!referrer || !hasCurrentInstitutionVerification(referrer)) {
-    return { granted: false, reason: 'referrer_not_eligible' }
+  if (!hasCurrentInstitutionVerification(referrer)) {
+    return { activated: false, reason: 'referrer_not_verified' }
   }
 
-  const windowStart = new Date(Date.now() - REFERRAL_WINDOW_DAYS * 86_400_000).toISOString()
-  const { count } = await service
-    .from('referrals')
-    .select('id', { count: 'exact', head: true })
-    .eq('referrer_id', referrer.id)
-    .eq('status', 'completed')
-    .gte('reward_granted_at', windowStart)
+  // Only flip rows still pending (guards against a race with another caller).
+  await service.from('referrals')
+    .update({ status: 'activated', activated_at: new Date().toISOString() })
+    .eq('referred_id', referredUserId)
+    .eq('status', 'pending')
 
-  if ((count ?? 0) >= MAX_REFERRAL_REWARDS_PER_YEAR) {
-    return { granted: false, reason: 'referrer_cap_reached' }
-  }
-
-  const now = new Date().toISOString()
-  const referredUntil = referralUntil((referred.pro_features_used?.referral_pro_until as string | null) ?? null)
-  const referrerUntil = referralUntil((referrer.pro_features_used?.referral_pro_until as string | null) ?? null)
-
-  await service.from('referrals').upsert({
-    referrer_id: referrer.id,
-    referred_id: referredUserId,
-    status: 'completed',
-    reward_granted_at: now,
-  }, { onConflict: 'referred_id' })
-
-  // Compensating check: re-count after insert to catch concurrent grants
-  const { count: postCount } = await service
-    .from('referrals')
-    .select('id', { count: 'exact', head: true })
-    .eq('referrer_id', referrer.id)
-    .eq('status', 'completed')
-    .gte('reward_granted_at', windowStart)
-
-  if ((postCount ?? 0) > MAX_REFERRAL_REWARDS_PER_YEAR) {
-    await service.from('referrals')
-      .update({ status: 'pending', reward_granted_at: null })
-      .eq('referred_id', referredUserId)
-      .eq('referrer_id', referrer.id)
-    return { granted: false, reason: 'referrer_cap_reached' }
-  }
-
-  await Promise.all([
-    service.from('profiles').update({
-      pro_features_used: mergeUsage(referred.pro_features_used, referredUntil),
-    }).eq('id', referredUserId),
-    service.from('profiles').update({
-      pro_features_used: mergeUsage(referrer.pro_features_used, referrerUntil),
-    }).eq('id', referrer.id),
-  ])
-
-  return { granted: true, reason: 'granted' }
+  return { activated: true, reason: 'activated' }
 }
 
-export async function grantPendingReferralRewardsForReferrer(service: SupabaseClient, referrerUserId: string) {
-  const { data: pendingReferrals } = await service
+// When a user becomes institution-verified (or re-verifies), re-check every
+// person they referred: any whose meaningful action is already done can now
+// activate (the referrer-verified gate just opened).
+export async function processReferralsForReferrer(service: SupabaseClient, referrerUserId: string) {
+  const { data: pending } = await service
     .from('referrals')
     .select('referred_id')
     .eq('referrer_id', referrerUserId)
     .eq('status', 'pending')
 
-  const results = []
-  for (const referral of pendingReferrals ?? []) {
-    results.push(await grantEligibleReferralReward(service, referral.referred_id))
+  const results: ActivationResult[] = []
+  for (const row of pending ?? []) {
+    results.push(await markReferralActivationIfEligible(service, row.referred_id as string))
+  }
+  return results
+}
+
+function extendProUntil(existing: string | null, days: number) {
+  const base = existing && new Date(existing).getTime() > Date.now() ? new Date(existing) : new Date()
+  base.setDate(base.getDate() + days)
+  return base.toISOString()
+}
+
+// ---------------------------------------------------------------------------
+// Vesting cron entrypoint. Two phases:
+//   1. Activation scan: catch referred users who did the meaningful action
+//      after their onboarding-complete event (no specific call site fires then).
+//   2. Vest activated referrals older than REFERRAL_VEST_DAYS: flip to
+//      'completed', then apply the referrer's milestone Pro + badges and notify.
+// Returns a summary for the cron response/logs.
+// ---------------------------------------------------------------------------
+export async function vestDueReferrals(service: SupabaseClient, now: Date = new Date()) {
+  // Phase 1 - activation scan over still-pending referrals.
+  const { data: stillPending } = await service
+    .from('referrals')
+    .select('referred_id')
+    .eq('status', 'pending')
+  let activatedCount = 0
+  for (const row of stillPending ?? []) {
+    const r = await markReferralActivationIfEligible(service, row.referred_id as string)
+    if (r.activated) activatedCount += 1
   }
 
-  return results
+  // Phase 2 - vest activated referrals past the vesting window.
+  const cutoff = new Date(now.getTime() - REFERRAL_VEST_DAYS * 86_400_000).toISOString()
+  const { data: due } = await service
+    .from('referrals')
+    .select('referrer_id')
+    .eq('status', 'activated')
+    .lte('activated_at', cutoff)
+
+  const referrerIds = Array.from(new Set((due ?? []).map(r => r.referrer_id as string)))
+  let vestedCount = 0
+  for (const referrerId of referrerIds) {
+    vestedCount += await vestForReferrer(service, referrerId, cutoff, now)
+  }
+
+  return { activated: activatedCount, vestedReferrers: referrerIds.length, vested: vestedCount }
+}
+
+async function vestForReferrer(service: SupabaseClient, referrerId: string, cutoff: string, now: Date) {
+  const nowIso = now.toISOString()
+
+  // Mark this referrer's due referrals completed.
+  const { data: vested } = await service
+    .from('referrals')
+    .update({ status: 'completed', reward_granted_at: nowIso })
+    .eq('referrer_id', referrerId)
+    .eq('status', 'activated')
+    .lte('activated_at', cutoff)
+    .select('id')
+  const vestedNow = vested?.length ?? 0
+  if (vestedNow === 0) return 0
+
+  const { count } = await service
+    .from('referrals')
+    .select('id', { count: 'exact', head: true })
+    .eq('referrer_id', referrerId)
+    .eq('status', 'completed')
+  const newCount = count ?? 0
+
+  const { data: referrer } = await service
+    .from('profiles')
+    .select('first_name, referral_badges, pro_features_used')
+    .eq('id', referrerId)
+    .maybeSingle<{ first_name: string | null; referral_badges: string[] | null; pro_features_used: ProFeatures }>()
+  if (!referrer) return vestedNow
+
+  const prevBadges = new Set(referrer.referral_badges ?? [])
+  const usage = (referrer.pro_features_used ?? {}) as Record<string, unknown>
+  const grantedMilestones = new Set<string>(Array.isArray(usage.referral_milestones) ? (usage.referral_milestones as string[]) : [])
+
+  // Milestone Pro: add days for any newly-crossed threshold not yet granted.
+  let addedDays = 0
+  for (const [thresholdStr, days] of Object.entries(MILESTONE_PRO_DAYS)) {
+    const threshold = Number(thresholdStr)
+    const key = `pro_${threshold}`
+    if (newCount >= threshold && !grantedMilestones.has(key)) {
+      addedDays += days
+      grantedMilestones.add(key)
+    }
+  }
+
+  // Badges: ladder rungs earned at the new count + the time-limited Founding
+  // Sharer badge if its window is open (they just landed a rewarded referral).
+  const earned: ReferralBadgeKey[] = laddersEarnedAt(newCount)
+  if (isFoundingSharerWindowOpen(now)) earned.push('founding_sharer')
+  const newBadges = earned.filter(b => !prevBadges.has(b))
+  const allBadges = Array.from(new Set([...prevBadges, ...earned]))
+
+  const existingUntil = (usage.referral_pro_until as string | null) ?? null
+  const nextUntil = addedDays > 0 ? extendProUntil(existingUntil, addedDays) : existingUntil
+
+  await service.from('profiles').update({
+    referral_badges: allBadges,
+    pro_features_used: {
+      ...usage,
+      referral_pro_until: nextUntil,
+      referral_milestones: Array.from(grantedMilestones),
+    },
+  }).eq('id', referrerId)
+
+  // Notify the referrer: one headline (with email) + per-event in-app rows.
+  const email = await getUserEmail(service, referrerId)
+  const perkLines: string[] = [
+    `You now have ${newCount} rewarded referral${newCount === 1 ? '' : 's'}, each adding +1 PDF export and +1 share link.`,
+  ]
+  if (newCount >= 5) perkLines.push('You have unlocked +250 MB of bonus storage.')
+  if (addedDays > 0) perkLines.push(`You earned ${addedDays} days of Pro.`)
+  for (const key of newBadges) {
+    const meta = REFERRAL_LADDER.find(b => b.key === key)
+    perkLines.push(meta ? `New badge: ${meta.label} ${meta.emoji}.` : 'You earned the Founding Sharer badge. 🚀')
+  }
+
+  const headlineEmail = email
+    ? {
+        to: email,
+        subject: 'Your Clerkfolio referral reward',
+        ...transactionalEmail({
+          firstName: referrer.first_name,
+          heading: 'A referral was rewarded 🎉',
+          lines: perkLines,
+          ctaLabel: 'View your referrals',
+          ctaPath: '/settings/referrals',
+        }),
+      }
+    : null
+
+  await createNotification(service, {
+    userId: referrerId,
+    type: 'referral_reward',
+    title: 'A referral was rewarded 🎉',
+    body: perkLines[0],
+    link: '/settings/referrals',
+  }, headlineEmail)
+
+  if (addedDays > 0) {
+    await createNotification(service, {
+      userId: referrerId,
+      type: 'referral_reward',
+      title: `You earned ${addedDays} days of Pro`,
+      body: 'Thanks for sharing Clerkfolio. Your Pro access has been extended.',
+      link: '/settings/referrals',
+    })
+  }
+
+  for (const key of newBadges) {
+    const meta = REFERRAL_LADDER.find(b => b.key === key)
+    await createNotification(service, {
+      userId: referrerId,
+      type: 'referral_badge',
+      title: meta ? `Badge earned: ${meta.label} ${meta.emoji}` : 'Badge earned: Founding Sharer 🚀',
+      body: meta ? meta.description : 'You shared Clerkfolio during launch — thank you for being an early supporter.',
+      link: '/settings/referrals',
+    })
+  }
+
+  return vestedNow
 }

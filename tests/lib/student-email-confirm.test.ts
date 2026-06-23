@@ -58,8 +58,8 @@ vi.mock('@/lib/supabase/server', () => ({
 }))
 
 vi.mock('@/lib/referrals/rewards', () => ({
-  grantEligibleReferralReward: vi.fn(async () => ({ ok: true })),
-  grantPendingReferralRewardsForReferrer: vi.fn(async () => ({ ok: true })),
+  markReferralActivationIfEligible: vi.fn(async () => ({ activated: false, reason: 'no_referrer' })),
+  processReferralsForReferrer: vi.fn(async () => []),
 }))
 
 import { POST as confirm } from '@/app/api/student-email/confirm/route'

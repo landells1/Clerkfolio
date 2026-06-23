@@ -1,6 +1,6 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
-import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
+import { markReferralActivationIfEligible, processReferralsForReferrer } from '@/lib/referrals/rewards'
 
 export type InstitutionalAuthEmailClaimStatus =
   | 'not_eligible'
@@ -57,7 +57,10 @@ export async function claimVerifiedInstitutionalAuthEmail(
   const { error: tierError } = await service.rpc('recompute_profile_tier', { p_user_id: user.id })
   if (tierError) throw tierError
 
-  await grantEligibleReferralReward(service, user.id)
-  await grantPendingReferralRewardsForReferrer(service, user.id)
+  // The user just became institution-verified: activate any referrals they
+  // received that are already eligible, and (if they are themselves a referred
+  // user who has done the meaningful action) activate their own referral.
+  await markReferralActivationIfEligible(service, user.id)
+  await processReferralsForReferrer(service, user.id)
   return 'verified'
 }

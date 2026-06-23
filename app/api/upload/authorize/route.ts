@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
-import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, formatStorageQuota } from '@/lib/subscription'
 import { validateOrigin } from '@/lib/csrf'
 import { MAX_FILE_BYTES, ALLOWED_MIME_TYPES } from '@/lib/supabase/storage'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
@@ -99,13 +99,15 @@ export async function POST(req: NextRequest) {
 
   const subInfo = await fetchSubscriptionInfo(supabase, user.id)
   const quotaMB = subInfo.storageQuotaMB
-  const quotaBytes = quotaMB * 1024 * 1024
-  const usedBytes = subInfo.usage.storageUsedMB * 1024 * 1024
-  const limitLabel = quotaMB >= 5120 ? '5 GB' : quotaMB >= 1024 ? '1 GB' : '100 MB'
+  // Base-ten units throughout (1 MB = 1,000,000 bytes) to match the entitlement
+  // model and storage_used_mb (which the RPC now computes base-ten).
+  const quotaBytes = quotaMB * 1_000_000
+  const usedBytes = subInfo.usage.storageUsedMB * 1_000_000
 
   if (usedBytes + fileSize > quotaBytes) {
+    // Over-quota policy (F-040): never delete user data; only block NEW uploads.
     return NextResponse.json(
-      { error: `Storage limit reached (${limitLabel}). Delete some files to free up space.` },
+      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe — delete some or upgrade to free up space.` },
       { status: 400 }
     )
   }

@@ -1,11 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { claimVerifiedInstitutionalAuthEmail } from '@/lib/institutional-auth-email'
-import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
+import { markReferralActivationIfEligible, processReferralsForReferrer } from '@/lib/referrals/rewards'
 
 vi.mock('@/lib/referrals/rewards', () => ({
-  grantEligibleReferralReward: vi.fn(async () => ({ granted: false })),
-  grantPendingReferralRewardsForReferrer: vi.fn(async () => []),
+  markReferralActivationIfEligible: vi.fn(async () => ({ activated: false, reason: 'no_referrer' })),
+  processReferralsForReferrer: vi.fn(async () => []),
 }))
 
 function makeService({
@@ -59,7 +59,7 @@ describe('claimVerifiedInstitutionalAuthEmail', () => {
     expect(status).toBe('verified')
     expect(update).toHaveBeenCalledTimes(1)
     expect(rpc).toHaveBeenCalledWith('recompute_profile_tier', { p_user_id: 'user-id' })
-    expect(grantEligibleReferralReward).toHaveBeenCalledWith(service, 'user-id')
-    expect(grantPendingReferralRewardsForReferrer).toHaveBeenCalledWith(service, 'user-id')
+    expect(markReferralActivationIfEligible).toHaveBeenCalledWith(service, 'user-id')
+    expect(processReferralsForReferrer).toHaveBeenCalledWith(service, 'user-id')
   })
 })

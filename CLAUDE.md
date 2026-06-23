@@ -1,13 +1,30 @@
 # Clerkfolio Agent Memory
 
-Last reviewed: 2026-05-26 by Codex after settings and QOL remediation work.
+Last reviewed: 2026-06-22 by Claude during the staged pre-release review (build/infra, public/legal, full product, non-functional, email/upload/download flows). Prior: 2026-05-26 by Codex after settings and QOL remediation work.
 Use this as a compact map, not as the source of truth. Verify details with `rg`, local files, tests, and connectors before changing behavior.
+
+Pre-release review (2026-06-22) confirmed: build green (287/287 tests, clean typecheck/lint), production = reviewed commit `3b48934`, RLS on all 25 public tables, no schema drift, no new advisors, GDPR export leaks nothing, entitlement gating enforced server-side everywhere. Two HIGH issues found: legal-page company/ICO disclosure gap, and a calendar-feed bug (see Known Gotchas). Full findings: `C:\Users\SRL20\Documents\Clerkfolio_Review_Findings.md`.
+
+**Now in the pre-launch IMPLEMENTATION phase (started 2026-06-23).** All 47 review findings have agreed dispositions (the "Stage-13 owner decision log" in the findings file is the authoritative spec). Fixes are being built in batches per `C:\Users\SRL20\Documents\Clerkfolio_Build_Prompt.md`. **Several architecture facts described below are scheduled to change — verify against the findings file's decision log before relying on the current description of: tiers/entitlements, the public API, completeness scoring, the specialty tagger, the demo seed, and the calendar feed.** See "Pre-Launch Implementation Phase" below for the incoming changes and their owning batch.
 
 ## What This File Is
 
 - Repo memory for agent sessions working in `C:\Users\SRL20\Documents\Clerkfolio`.
 - Claude Code may read `CLAUDE.md`. Codex does not automatically treat this as persistent memory unless it is explicitly opened in the session; Codex typically relies on its session context and repo instruction files such as `AGENTS.md` when present.
 - Current git state at review: `main` tracking `origin/main`; `CLAUDE.md` is tracked and should be kept current when agent-visible architecture or operational facts change.
+
+## Pre-Launch Implementation Phase
+
+Building the decided fixes in batches (`Clerkfolio_Build_Prompt.md`); spec = the findings-file decision log. Pushing `main` deploys production, so default to a **branch per batch + Vercel preview verification + owner-gated merge** (override only if told). Pre-merge gate = **all four**: `npm run typecheck`, `npm run lint`, `npm run build`, `npm run test` (lint AND build both required — Next 16's build no longer runs ESLint). One shared Supabase (no preview DB): schema changes are migrations, additive/backward-compatible, coordinated with the deploy. Codex also commits here — `git status --short` + `git log` at session start.
+
+**Incoming architecture changes (update the relevant sections as each lands; until then the descriptions below are the *current* state):**
+- **Tiers/entitlements (Batch 1): ✅ SHIPPED 2026-06-23** — see the rewritten "Tiers And Entitlements" section below. (base + additive grants, base-ten units, +500 institutional, +250@5, free/pro + verification flag, FY1/2 = career stage only, referral overhaul + vesting cron + notifications + `referral_funnel` view + storage meter.)
+- **Public API (Batch 5): being REMOVED entirely** — `/settings/api`, `/api/v1/me/*`, the `api_keys` UI, and `requireDistributed`/`isPublicApiOnline()` go away. After F-047, Upstash will be provisioned (cluster-wide rate limiting); update the "Public API" + Upstash notes accordingly.
+- **Completeness scoring (Batch 3): being REMOVED everywhere** (list dots, filters, sliders, saved-search `completeness:`, public-API field, import compute, digests) and replaced with a user-set **importance Low/Med/High** on entries AND cases.
+- **Specialty tagger (Batch 3/4): `interview_ready_for` ("Marked ready for") being RETIRED app-wide**; standardising `specialty_tags` → **"Linked specialties"**. Scoring engine (`specialty_applications`/`specialty_entry_links`) stays separate and unchanged.
+- **Demo seed (Batch 2):** moving off the dashboard render path into the onboarding-complete transaction + made idempotent; demo rows stop counting toward headline stats.
+- **Calendar feed (Batch 6):** the F-020 bug (below) gets fixed + made fail-loud.
+- **Import/export + sharing (Batch 4/6):** "Export & share" page becomes "Import & export"; share management consolidates to one surface (`/settings/shared-links` retired).
 
 ## Project Snapshot
 
@@ -76,7 +93,7 @@ Verified read-only with connector on 2026-05-24 for `entry_revisions`; broader t
 Advisor notes verified 2026-05-20:
 
 - Security warnings: leaked password protection disabled; SECURITY DEFINER functions executable from exposed schema.
-- Anon can execute `audit_auth_email_change()` and `enforce_specialty_track_cap()` per advisor/function privilege query. Validate body/grants before changing.
+- (Update 2026-06-22: the security advisor no longer surfaces `audit_auth_email_change()` / `enforce_specialty_track_cap()` as anon-executable — a positive delta from the 2026-05-20 baseline. The 5 `authenticated_security_definer_function_executable` advisors (`claim_free_pdf_export`, `ensure_profile_for_current_user`, `get_profile_entitlements`, `increment_pro_feature_usage`, `rename_user_tag`) and leaked-password-protection-disabled remain — all previously accepted. Still validate body/grants before changing any SECURITY DEFINER function.)
 - Authenticated can execute `claim_free_pdf_export(uuid)`, `ensure_profile_for_current_user()`, `get_profile_entitlements(uuid)`, `increment_pro_feature_usage(uuid,text)`, `rename_user_tag(text,text,text)`, plus the anon-executable functions above. Some are intentional app RPCs; do not blanket-revoke without checking call sites and auth checks.
 - Performance advisor reports unused indexes on low-traffic tables. Treat as informational, not automatic cleanup.
 
@@ -89,6 +106,7 @@ Important local migrations:
 - `2026_05_18_audit_remediation.sql`: profile write guard, signup/profile self-healing, share link RLS, specialty cap, institutional email confirmation.
 - `2026_05_18_audit_remediation_phase2.sql`: removes direct storage upload policy, orphan upload cleanup, audit auth email trigger.
 - Later local migrations include phase 3/4 audit hardening, active share-link entitlement tracking, and the intentional `entry_revisions` removal. Treat migrations as change history, not as a complete database schema source.
+- `2026_06_23_referrals_entitlements_overhaul.sql` (Batch 1): adds `referrals.activated_at` + `profiles.referral_badges`, extends `guard_profile_writes` to protect `referral_badges`, rewrites `get_profile_entitlements` (base+additive, base-ten, 16 cols incl. `referral_count`; DROP+CREATE then `revoke from public/anon` + `grant to authenticated` to restore the authenticated-only posture), and adds the `referral_funnel` view (SECURITY INVOKER).
 
 High-value functions: `claim_free_pdf_export`, `get_profile_entitlements`, `increment_pro_feature_usage`, `guard_profile_writes`, `handle_new_user`, `ensure_profile_for_current_user`, `confirm_student_email_token`, `enforce_specialty_track_cap`, `audit_auth_email_change`, `rename_user_tag`.
 
@@ -110,16 +128,18 @@ Auth notes:
 
 ## Tiers And Entitlements
 
-Tier type: `free | student | foundation | pro`.
+**Reworked in Batch 1 (2026-06-23, migration `2026_06_23_referrals_entitlements_overhaul.sql`).** Entitlements are now **base + additive grants** in `get_profile_entitlements`, **base-ten units (1 GB = 1000 MB)**. Entitlement tiers collapse to **free vs pro**; the `SubscriptionInfo.tier` returned by `lib/subscription.ts` is `'free' | 'pro'` and means the **billing tier only** (`'pro'` ⇔ a real Stripe subscription, never a referral/gift grant).
 
-- Pricing source: `lib/marketing/pricing.ts`.
-- Pro is GBP 9.99/year.
-- Free: 100 MB storage, 1 lifetime PDF export, 1 share link, 1 tracked specialty.
-- Student: verified `.ac.uk`, 1 GB storage, otherwise mostly free limits.
-- Pro: 5 GB storage, unlimited PDF/share/specialty tracking, bulk import.
-- `lib/subscription.ts` calls `get_profile_entitlements` and fail-closes gated booleans on RPC/null drift.
+- Pricing source: `lib/marketing/pricing.ts` (Free / **Verified** / Pro). Pro is GBP 9.99/year.
+- **Storage quota = base + additive:** base `pro_access ? 5000 : 100` **+500** if institutionally verified **+250** one-time at ≥5 rewarded referrals. Examples: free 100; verified free 600; verified + 5 referrals 850; Pro 5000; verified Pro 5500; verified Pro + 5 referrals 5750. `storage_used_mb` is base-ten (`bytes / 1e6`); `/api/upload/authorize` compares base-ten.
+- **`pro_access` (effective Pro)** = `profiles.tier='pro'` (Stripe) **OR** `pro_features_used.referral_pro_until > now` (referral/gift). The RPC's `is_pro` = effective; `tier` = `'pro'` only for Stripe. UI distinguishes via `planProvenance()` in `lib/subscription.ts` (stripe → "Manage billing"; referral → "Pro — earned via referrals, expires X / Make permanent", never the Stripe portal; free → "Upgrade").
+- **`is_student`** (RPC) / **`isVerified`** (SubscriptionInfo) = institutionally verified via **either** route (`.ac.uk` student OR NHS doctor), keyed off the verified-email flag — NOT the old `student`/`foundation` tier label. One verified email slot per account ⇒ one +500.
+- **PDF / share allowance** for free users = `1 + rewardedReferralCount` each (derived in the RPC; +1 per rewarded referral, unbounded). Pro = unlimited.
+- `profiles.tier` still physically stores `student`/`foundation`/`free`/`pro` (written by `recompute_profile_tier`/`confirm_student_email_token`, unchanged) but those labels **no longer drive entitlements** — the entitlement layer ignores them. **FY1/FY2 is a career stage** (drives ARCP/onboarding), not an entitlement tier.
+- `lib/subscription.ts` calls `get_profile_entitlements` (16 cols now, incl. `referral_count`) and fail-closes gated booleans on RPC/null drift.
 - Institutional email domains include `.ac.uk`, `nhs.net`, `hscni.net`, `.nhs.uk`, `.nhs.scot`, `.wales.nhs.uk`.
-- Referral rewards require current institutional verification for both parties, grant 30 days Pro-equivalent, and cap at 5 rewards per rolling 365 days. Medical-student to FY transition can grant a one-shot 90-day foundation gift.
+- **Referral overhaul (F-002):** rewards accrue to the **referrer** (the sharer), not both parties. Lifecycle `pending → activated → completed` in `referrals` (+ `activated_at`): attribution at signup; **activation** when the referred completes onboarding + ≥1 real (non-demo) case/entry AND the **referrer is institution-verified** (referred need NOT be); reward **vests 7 days** after activation via the `referral-vesting` cron, which then grants the referrer milestone Pro (1 month at 5 and again at 10), recognition badges (`profiles.referral_badges`: connector/advocate/champion/ambassador + time-limited founding_sharer), and fires notifications + email. +250 MB at 5 and the +1 PDF/+1 share per referral are **derived in the RPC** (not stored counters). Single source: `lib/referrals/constants.ts` (ladder, `FOUNDING_SHARER_WINDOW_END` placeholder — owner sets at launch). `referral_funnel` VIEW = owner growth-attribution (signups→activation→reward→14d retention). Over-quota policy: **never delete data; a full/lapsed quota blocks new uploads only, existing files stay readable** (storage meter `components/upgrade/storage-meter.tsx`, F-040). Medical-student→FY transition still grants a one-shot 90-day foundation gift via `guard_profile_writes`.
+- Generic reward/account notification plumbing: `lib/notifications/create.ts` (`createNotification` = in-app row + optional Resend email via `noreply@`; `transactionalEmail` template). Batch 6's F-038 password-change email reuses this.
 
 ## Stripe
 
@@ -199,12 +219,12 @@ Imports:
 
 Configured in `vercel.json`, region `lhr1`:
 
-- Daily: notifications 09:00, streak-cache 02:00, purge-deleted 02:00, expire-share-links 01:00, purge-orphan-uploads 03:15.
+- Daily: notifications 09:00, streak-cache 02:00, purge-deleted 02:00, expire-share-links 01:00, purge-orphan-uploads 03:15, referral-vesting 08:00.
 - Weekly: weekly-digest Saturday 09:00, purge-audit-log Sunday 03:00, purge-stale-tokens Sunday 04:00.
 - Monthly/yearly: monthly-digest day 1 09:00, year-in-review Jan 2 09:00.
 
 All cron routes should call `validateCronSecret` before service-role work.
-Missed `expire-share-links` invocations observed on 2026-05-25 remain a Vercel runtime/dashboard investigation; do not alter schedules without evidence from platform logs.
+Missed `expire-share-links` invocations observed on 2026-05-25 prompted a Vercel runtime/dashboard investigation. Update 2026-06-22: a successful run is confirmed in the api logs (PATCH `share_links … revoked_at is null` → 204 at ~2026-06-20 01:54 UTC, i.e. ~54 min after its 01:00 slot — Vercel scheduler drift, not a miss). Not currently reproducing; keep monitoring, and do not alter schedules without evidence from platform logs.
 
 ## Public API
 
@@ -249,7 +269,7 @@ Use focused tests by blast radius:
 - PDF/export: local build plus deployed/Vercel-like file tracing when possible.
 - Upload/share: test bypass, lockout, expiry, revocation, redaction, SSRF, cleanup.
 
-Known test gotcha: check `e2e/fixtures/global-setup.ts` before relying on cleanup; old references to `share_access_logs` would be stale if present because live schema uses `share_access_attempts`.
+Known test gotcha: check `e2e/fixtures/global-setup.ts` before relying on cleanup; old references to `share_access_logs` would be stale because live schema uses `share_access_attempts`. (Verified 2026-06-22: the live file already uses `share_access_attempts` with an explanatory comment — this gotcha is resolved, kept as a guard against regressions.)
 
 ## UI Conventions
 
@@ -271,6 +291,8 @@ Sentry (error/performance monitoring) is classed as strictly-necessary diagnosti
 - Share link creation and notifications insert use service role by design after checks.
 - Session fingerprint maintenance is service-role in middleware; revoke route uses service role after owner check. Maintenance (lookup, revocation check, last_seen_at write) is throttled to once per 5 minutes per session via the HTTP-only `cf_fp_seen` cookie, so session revocation takes effect within 5 minutes rather than instantly - an accepted latency trade-off; do not "fix" it back to per-request.
 - Do not reintroduce segment `loading.tsx` boundaries beneath authenticated settings routes without hard-navigation testing; the prior streaming boundary stranded settings payloads behind a permanent skeleton.
+- (Found 2026-06-22, OPEN bug — review F-020; **scheduled fix: Build Batch 6**) `GET /api/calendar/feed/[token]/route.ts` selects `updated_at` from `deadlines`, but that column does not exist, so the query errors and the route silently returns 200 with only the hardcoded NHS config deadlines + goals — **every user-created Timeline deadline is dropped from the subscribed ICS feed.** `updated_at`/`created_at` are selected but never used by the `VEVENT` builder; removing them from the select fixes it (decision also adds fail-loud-on-error). The working selects in `timeline/page.tsx` and `dashboard/page.tsx` do not reference `updated_at`. Verify a manual deadline appears in the ICS after the fix.
+- (Operational state 2026-06-22 — review F-026/F-047; **decision: REMOVE the public API entirely [Batch 5] + provision EU Upstash [F-047, owner action]**) Production has **no Upstash configured**, so the public developer API is currently fail-closed: `GET /api/v1/me/*` returns 503 for all callers and `/settings/api` shows the "API offline" banner with key generation disabled. The agreed fix is **not** to enable the API but to **remove it** (Batch 5: retire `/settings/api`, `/api/v1/me/*`, the `api_keys` UI, `requireDistributed`/`isPublicApiOnline()`). Separately, Upstash will be provisioned (EU region) so the general UI rate-limiters move off the weaker per-instance in-memory fallback to cluster-wide limiting. Reword this note to "public API removed; Upstash provisioned" once both land.
 
 ## Change Playbook
 

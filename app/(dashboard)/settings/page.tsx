@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { fetchSubscriptionInfo, isMedStudentStage, type SubscriptionInfo } from '@/lib/subscription'
+import { fetchSubscriptionInfo, isMedStudentStage, planProvenance, formatStorageQuota, type SubscriptionInfo } from '@/lib/subscription'
 import { isFoundationStage } from '@/lib/billing/foundation-gift'
 import { useToast } from '@/components/ui/toast-provider'
 import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
+import StorageMeter from '@/components/upgrade/storage-meter'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES } from '@/lib/constants/career-stages'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
@@ -411,7 +412,7 @@ export default function SettingsPage() {
             {CAREER_STAGES.map(stage => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
           </select>
         </div>
-        {subInfo?.tier === 'student' && (
+        {subInfo?.isMedStudent && (
           <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
             Expected graduation date
             <input
@@ -553,21 +554,44 @@ export default function SettingsPage() {
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
-        {subInfo && (
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-            <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
-              <p><span className="text-[#F5F5F2] font-medium">{planLabel(subInfo)}</span> - {formatQuota(subInfo.storageQuotaMB)} storage quota</p>
-              <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
-              <p>Share links used: {subInfo.usage.shareLinksUsed} / {subInfo.isPro ? 'unlimited' : '1'}</p>
+        {subInfo && (() => {
+          const provenance = planProvenance(subInfo)
+          const pdfAllowance = subInfo.isPro ? 'unlimited' : String(1 + subInfo.referralCount)
+          const shareAllowance = subInfo.isPro ? 'unlimited' : String(1 + subInfo.referralCount)
+          return (
+            <div className="space-y-5">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
+                <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
+                  <p>
+                    <span className="text-[#F5F5F2] font-medium">{provenance.label}</span>
+                    {provenance.state === 'referral' && provenance.expiry && (
+                      <span> — expires {new Date(provenance.expiry).toLocaleDateString('en-GB')}</span>
+                    )}
+                    <span> · {formatStorageQuota(subInfo.storageQuotaMB)} storage</span>
+                  </p>
+                  {subInfo.isVerified && (
+                    <p className="text-xs text-[#6AA8FF]">Institution verified · +500 MB storage</p>
+                  )}
+                  {subInfo.referralCount > 0 && !subInfo.isPro && (
+                    <p className="text-xs text-[#6AA8FF]">
+                      {subInfo.referralCount} referral{subInfo.referralCount === 1 ? '' : 's'} · +{subInfo.referralCount} PDF export{subInfo.referralCount === 1 ? '' : 's'}, +{subInfo.referralCount} share link{subInfo.referralCount === 1 ? '' : 's'}
+                      {subInfo.referralCount >= 5 ? ', +250 MB' : ''}
+                    </p>
+                  )}
+                  <p>PDF exports used: {subInfo.usage.pdfExportsUsed} / {pdfAllowance}</p>
+                  <p>Share links used: {subInfo.usage.shareLinksUsed} / {shareAllowance}</p>
+                </div>
+                <div className="flex flex-col gap-2 sm:items-end">
+                  <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-center text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
+                    View plans
+                  </Link>
+                  <BillingActionButton hasStripeBilling={provenance.hasStripeBilling} label={provenance.billingLabel} />
+                </div>
+              </div>
+              <StorageMeter usedMB={subInfo.usage.storageUsedMB} quotaMB={subInfo.storageQuotaMB} />
             </div>
-            <div className="flex flex-col gap-2 sm:items-end">
-              <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-center text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
-                View plans
-              </Link>
-              <BillingActionButton isPro={subInfo.isPro} />
-            </div>
-          </div>
-        )}
+          )
+        })()}
       </section>
 
       <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
@@ -723,18 +747,6 @@ function SettingsLink({ href, label, description }: { href: string; label: strin
       {description && <span className="mt-0.5 text-[11px] text-[rgba(245,245,242,0.45)]">{description}</span>}
     </Link>
   )
-}
-
-function planLabel(subInfo: SubscriptionInfo) {
-  if (subInfo.isPro) return 'Pro access'
-  if (subInfo.tier === 'student') return 'Student tier'
-  if (subInfo.tier === 'foundation') return 'Foundation tier'
-  return 'Free tier'
-}
-
-function formatQuota(mb: number) {
-  if (mb >= 1024) return `${mb / 1024} GB`
-  return `${mb} MB`
 }
 
 function profileDisplayName(profile: Pick<ProfileState, 'first_name' | 'last_name'>) {

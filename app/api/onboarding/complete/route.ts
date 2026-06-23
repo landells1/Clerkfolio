@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
-import { grantEligibleReferralReward } from '@/lib/referrals/rewards'
+import { markReferralActivationIfEligible } from '@/lib/referrals/rewards'
 import { CAREER_STAGE_SET, isMedicalStudentStage } from '@/lib/constants/career-stages'
 
 export async function POST(req: NextRequest) {
@@ -210,7 +210,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    await grantEligibleReferralReward(service, user.id)
+    // Record/advance the referral. Onboarding alone may not yet meet the
+    // meaningful-action bar (>=1 real case/entry); the vesting cron re-scans
+    // pending referrals daily, so this is best-effort, not the only trigger.
+    await markReferralActivationIfEligible(service, user.id)
   }
 
   // Recompute tier now that career_stage is final. Closes the

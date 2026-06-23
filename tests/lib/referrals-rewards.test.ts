@@ -1,89 +1,69 @@
 // @vitest-environment node
 //
-// Pure-logic tests for lib/referrals/rewards.ts. The reward grant is a
-// multi-step Supabase dance; we mock the SupabaseClient surface area to
-// exercise the eligibility decision tree without needing a live DB.
+// Pure-logic tests for lib/referrals/rewards.ts (new model). The activation
+// decision is a multi-step Supabase dance; we mock the SupabaseClient surface
+// to exercise the eligibility tree without a live DB.
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { grantEligibleReferralReward } from '@/lib/referrals/rewards'
+import { markReferralActivationIfEligible } from '@/lib/referrals/rewards'
 
 type Row = Record<string, unknown>
 
-function makeFromBuilder(rows: Row[]) {
-  // Each .select(...) returns an object whose chained .eq() / .gte() / .maybeSingle()
-  // return a promise. We don't enforce filter correctness in unit tests; the
-  // outermost caller is responsible for the predicates. Returns a builder
-  // that supports the calls referrals/rewards.ts makes.
-  const builder = {
-    select: vi.fn(() => builder),
-    eq: vi.fn(() => builder),
-    gte: vi.fn(() => builder),
-    maybeSingle: vi.fn(async () => ({ data: rows[0] ?? null, error: null })),
-    insert: vi.fn(async () => ({ data: null, error: null })),
-    update: vi.fn(() => builder),
-    upsert: vi.fn(async () => ({ data: null, error: null })),
-    delete: vi.fn(() => builder),
-  }
-  return builder
-}
-
 type Fixture = {
   referred?: Row | null
-  existingReferral?: Row | null
+  existingReferral?: { status: string } | null
   referrer?: Row | null
-  count?: number
-  postCount?: number
+  caseCount?: number
+  entryCount?: number
+}
+
+// select('id', { count, head }).eq().eq().is() -> { count }
+function countQuery(count: number) {
+  return {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          is: vi.fn(async () => ({ count, error: null })),
+        })),
+      })),
+    })),
+  }
 }
 
 function makeService(fixture: Fixture) {
-  const tableCalls: Record<string, ReturnType<typeof makeFromBuilder>> = {}
+  let profileCall = 0
+  const profilesBuilder = {
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn(async () => {
+          profileCall += 1
+          // 1st profile read = referred user; 2nd = referrer.
+          return { data: profileCall === 1 ? fixture.referred ?? null : fixture.referrer ?? null, error: null }
+        }),
+      })),
+    })),
+    update: vi.fn(() => ({ eq: vi.fn(() => ({ eq: vi.fn(async () => ({ data: null, error: null })) })) })),
+  }
+
+  const referralsBuilder = {
+    upsert: vi.fn(async () => ({ data: null, error: null })),
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        maybeSingle: vi.fn(async () => ({ data: fixture.existingReferral ?? null, error: null })),
+      })),
+    })),
+    update: vi.fn(() => ({ eq: vi.fn(() => ({ eq: vi.fn(async () => ({ data: null, error: null })) })) })),
+  }
+
   const service = {
     from: vi.fn((table: string) => {
-      if (table === 'profiles') {
-        // Two calls in sequence: first reads referred user, second reads referrer
-        const profileBuilder = makeFromBuilder([])
-        let callIndex = 0
-        profileBuilder.maybeSingle = vi.fn(async () => {
-          callIndex++
-          if (callIndex === 1) return { data: fixture.referred ?? null, error: null }
-          return { data: fixture.referrer ?? null, error: null }
-        }) as never
-        // Profile updates - just return success
-        profileBuilder.update = vi.fn(() => ({ eq: vi.fn(async () => ({ data: null, error: null })) })) as never
-        tableCalls[table] = profileBuilder
-        return profileBuilder
-      }
-      if (table === 'referrals') {
-        const referralBuilder = makeFromBuilder([])
-        let selectCount = 0
-        referralBuilder.maybeSingle = vi.fn(async () => ({ data: fixture.existingReferral ?? null, error: null })) as never
-        // .select('id', { count: 'exact', head: true }) returns { count, error }
-        referralBuilder.select = vi.fn((_cols, opts) => {
-          if (opts?.head) {
-            selectCount++
-            return {
-              eq: vi.fn(() => ({
-                eq: vi.fn(() => ({
-                  gte: vi.fn(async () => ({
-                    count: selectCount === 1 ? fixture.count ?? 0 : fixture.postCount ?? fixture.count ?? 0,
-                    error: null,
-                  })),
-                })),
-              })),
-            }
-          }
-          return referralBuilder
-        }) as never
-        referralBuilder.upsert = vi.fn(async () => ({ data: null, error: null })) as never
-        referralBuilder.update = vi.fn(() => ({ eq: vi.fn(() => ({ eq: vi.fn(async () => ({ data: null, error: null })) })) })) as never
-        tableCalls[table] = referralBuilder
-        return referralBuilder
-      }
-      const generic = makeFromBuilder([])
-      tableCalls[table] = generic
-      return generic
+      if (table === 'profiles') return profilesBuilder
+      if (table === 'referrals') return referralsBuilder
+      if (table === 'cases') return countQuery(fixture.caseCount ?? 0)
+      if (table === 'portfolio_entries') return countQuery(fixture.entryCount ?? 0)
+      return countQuery(0)
     }),
   }
-  return service as unknown as Parameters<typeof grantEligibleReferralReward>[0]
+  return service as unknown as Parameters<typeof markReferralActivationIfEligible>[0]
 }
 
 const futureDueDate = new Date(Date.now() + 30 * 86_400_000).toISOString().split('T')[0]
@@ -91,134 +71,70 @@ const pastDueDate = new Date(Date.now() - 86_400_000).toISOString().split('T')[0
 
 beforeEach(() => vi.restoreAllMocks())
 
-describe('grantEligibleReferralReward', () => {
+describe('markReferralActivationIfEligible', () => {
   it('returns no_referrer when the user was not referred', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: null,
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
+      referred: { id: 'referred-id', referred_by: null, onboarding_complete: true },
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('no_referrer')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'no_referrer' })
   })
 
-  it('returns already_completed when status is completed', async () => {
+  it('is idempotent: already activated/completed is left alone', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: true },
       existingReferral: { status: 'completed' },
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('already_completed')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'already_activated' })
   })
 
-  it('returns referred_not_eligible when onboarding is incomplete', async () => {
+  it('not eligible when onboarding is incomplete', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: false,
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: false },
+      caseCount: 1,
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('referred_not_eligible')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'referred_not_eligible' })
   })
 
-  it('returns referred_not_eligible when institutional verification expired', async () => {
+  it('not eligible with onboarding done but no real case/entry', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: pastDueDate,
-        pro_features_used: {},
-      },
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: true },
+      caseCount: 0,
+      entryCount: 0,
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('referred_not_eligible')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'referred_not_eligible' })
   })
 
-  it('#3 regression: null due_at treated as expired (not valid-forever)', async () => {
-    // hasCurrentInstitutionVerification must return false when due_at is null,
-    // aligning with recompute_profile_tier which also treats null as expired.
+  it('requires the referrer to be institution-verified (and not expired)', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: null,
-        pro_features_used: {},
-      },
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: true },
+      caseCount: 1,
+      referrer: { student_email_verified: true, student_email_verification_due_at: pastDueDate },
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('referred_not_eligible')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'referrer_not_verified' })
   })
 
-  it('returns referrer_cap_reached at 5/year', async () => {
+  it('treats a null verification due date as expired (referrer not verified)', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
-      referrer: {
-        id: 'referrer-id',
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
-      count: 5,
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: true },
+      entryCount: 1,
+      referrer: { student_email_verified: true, student_email_verification_due_at: null },
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(false)
-    expect(result.reason).toBe('referrer_cap_reached')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: false, reason: 'referrer_not_verified' })
   })
 
-  it('grants when everything aligns', async () => {
+  it('activates when the referred did the meaningful action and the referrer is verified', async () => {
     const service = makeService({
-      referred: {
-        id: 'referred-id',
-        referred_by: 'referrer-id',
-        onboarding_complete: true,
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
-      referrer: {
-        id: 'referrer-id',
-        student_email_verified: true,
-        student_email_verification_due_at: futureDueDate,
-        pro_features_used: {},
-      },
-      count: 2,
-      postCount: 3,
+      referred: { id: 'referred-id', referred_by: 'referrer-id', onboarding_complete: true },
+      caseCount: 1,
+      referrer: { student_email_verified: true, student_email_verification_due_at: futureDueDate },
     })
-    const result = await grantEligibleReferralReward(service, 'referred-id')
-    expect(result.granted).toBe(true)
-    expect(result.reason).toBe('granted')
+    const result = await markReferralActivationIfEligible(service, 'referred-id')
+    expect(result).toEqual({ activated: true, reason: 'activated' })
   })
 })

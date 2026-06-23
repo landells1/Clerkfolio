@@ -2,7 +2,7 @@ import { createHash } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
-import { grantEligibleReferralReward, grantPendingReferralRewardsForReferrer } from '@/lib/referrals/rewards'
+import { markReferralActivationIfEligible, processReferralsForReferrer } from '@/lib/referrals/rewards'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
 
 function hashToken(token: string) {
@@ -72,8 +72,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (data.status === 'verified' && data.user_id) {
-    await grantEligibleReferralReward(service, data.user_id)
-    await grantPendingReferralRewardsForReferrer(service, data.user_id)
+    // This user may be a referred user who has already done the meaningful
+    // action, and/or a referrer who just became eligible to activate the
+    // people they referred. Re-check both directions.
+    await markReferralActivationIfEligible(service, data.user_id)
+    await processReferralsForReferrer(service, data.user_id)
     // Re-derive tier centrally so the auth.callback-then-onboarding sequence
     // also lands on the right tier when the confirm path is involved.
     await service.rpc('recompute_profile_tier', { p_user_id: data.user_id })

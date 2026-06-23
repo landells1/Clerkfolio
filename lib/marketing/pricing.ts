@@ -9,12 +9,12 @@ export const PRICING_TIERS = [
     highlight: false,
   },
   {
-    name: 'Student',
+    name: 'Verified',
     price: 'Free',
-    marketingPrice: 'Free with verified .ac.uk',
-    description: 'Extra storage for verified .ac.uk users.',
-    marketingDescription: "More room while you're still studying.",
-    storage: '1 GB',
+    marketingPrice: 'Free with a verified .ac.uk or NHS email',
+    description: 'Extra storage for verified students and NHS doctors.',
+    marketingDescription: 'More room once you verify your institution.',
+    storage: '600 MB',
     highlight: false,
   },
   {
@@ -29,20 +29,20 @@ export const PRICING_TIERS = [
 ] as const
 
 export const PRICING_FEATURES = [
-  { label: 'Portfolio entries, cases, timeline, and ARCP organisation', free: true, student: true, pro: true },
-  { label: 'Personal data backup', free: true, student: true, pro: true },
-  { label: 'Storage allowance', free: '100 MB', student: '1 GB', pro: '5 GB' },
-  { label: 'PDF exports', free: '1', student: '1', pro: 'Unlimited' },
-  { label: 'Portfolio share links', free: '1', student: '1', pro: 'Unlimited' },
-  { label: 'Tracked specialties', free: '1 active', student: '1 active', pro: 'Unlimited' },
-  { label: 'Create and organise entries', free: true, student: true, pro: true },
-  { label: 'Bulk import (Horus CSV)', free: false, student: false, pro: true },
-  { label: 'Institution-verified referral rewards', free: true, student: true, pro: true },
+  { label: 'Portfolio entries, cases, timeline, and ARCP organisation', free: true, verified: true, pro: true },
+  { label: 'Personal data backup', free: true, verified: true, pro: true },
+  { label: 'Storage allowance', free: '100 MB', verified: '600 MB', pro: '5 GB' },
+  { label: 'PDF exports', free: '1', verified: '1', pro: 'Unlimited' },
+  { label: 'Portfolio share links', free: '1', verified: '1', pro: 'Unlimited' },
+  { label: 'Tracked specialties', free: '1 active', verified: '1 active', pro: 'Unlimited' },
+  { label: 'Create and organise entries', free: true, verified: true, pro: true },
+  { label: 'Bulk import (Horus CSV)', free: false, verified: false, pro: true },
+  { label: 'Referral rewards (+1 PDF & +1 share per referral)', free: true, verified: true, pro: true },
 ] as const
 
 export const MARKETING_PRICING_FEATURES = {
   Free: ['100 MB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
-  Student: ['1 GB storage', '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
+  Verified: ['600 MB storage (100 MB + 500 MB verified)', '1 PDF export', '1 share link', '1 tracked specialty', 'Create and organise entries', 'Full data backup'],
   Pro: [
     '5 GB storage',
     'Unlimited PDF exports',

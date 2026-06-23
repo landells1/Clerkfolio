@@ -1,14 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
-import { fetchSubscriptionInfo } from '@/lib/subscription'
-
-const TIER_LABEL: Record<string, string> = {
-  free: 'Free',
-  student: 'Student',
-  foundation: 'Foundation',
-  pro: 'Pro',
-}
+import { fetchSubscriptionInfo, planProvenance } from '@/lib/subscription'
 
 export default async function BillingSettingsPage() {
   const supabase = await createClient()
@@ -17,6 +10,7 @@ export default async function BillingSettingsPage() {
   } = await supabase.auth.getUser()
 
   const subInfo = user ? await fetchSubscriptionInfo(supabase, user.id) : null
+  const provenance = subInfo ? planProvenance(subInfo) : null
 
   return (
     <div className="mx-auto max-w-2xl p-6 lg:p-8">
@@ -34,9 +28,12 @@ export default async function BillingSettingsPage() {
 
         <div className="mt-6 flex flex-col gap-3">
           <p className="text-sm text-[rgba(245,245,242,0.6)]">
-            Current plan: <span className="font-medium text-[#F5F5F2]">{TIER_LABEL[subInfo?.tier ?? 'free'] ?? 'Free'}</span>
+            Current plan: <span className="font-medium text-[#F5F5F2]">{provenance?.label ?? 'Free'}</span>
+            {provenance?.state === 'referral' && provenance.expiry && (
+              <span> — expires {new Date(provenance.expiry).toLocaleDateString('en-GB')}</span>
+            )}
           </p>
-          <BillingActionButton isPro={Boolean(subInfo?.isPro)} />
+          <BillingActionButton hasStripeBilling={provenance?.hasStripeBilling ?? false} label={provenance?.billingLabel} />
         </div>
       </section>
     </div>

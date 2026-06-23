@@ -45,6 +45,10 @@
     {
       "path": "/api/cron/purge-orphan-uploads",
       "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/cron/referral-vesting",
+      "schedule": "0 8 * * *"
     }
   ]
 }
