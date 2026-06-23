@@ -1,9 +1,14 @@
 import type { Case } from '@/lib/types/cases'
 import type { Category, PortfolioEntry } from '@/lib/types/portfolio'
 
+// The auto green/amber/red "completeness" signal was removed pre-launch (Batch 3
+// / F-016): it judged the wrong field on free-form categories and was replaced
+// by a user-set importance rating. What remains here is only the "missing
+// fields" helper, which still powers the optional "Missing <field>" list filter
+// on /portfolio and /cases (a neutral checklist, not a quality score).
+
 type AnyEntry = Partial<PortfolioEntry> & Record<string, unknown>
 type AnyCase = Partial<Case> & Record<string, unknown>
-type Completeness = 'green' | 'amber' | 'red'
 
 const PORTFOLIO_REQUIRED: Record<Category, string[]> = {
   audit_qip: ['title', 'date', 'audit_type', 'audit_role', 'audit_cycle_stage', 'audit_outcome', 'specialty_tags'],
@@ -71,16 +76,4 @@ export function missingCompletenessFields(entry: AnyEntry | AnyCase, type: 'port
     ? CASE_REQUIRED
     : PORTFOLIO_REQUIRED[(entry.category as Category | undefined) ?? 'custom']
   return required.filter(rule => !populated(entry, rule)).map(fieldLabel)
-}
-
-export function calculateCompleteness(entry: AnyEntry | AnyCase, type: 'portfolio' | 'case'): Completeness {
-  const missing = missingCompletenessFields(entry, type).length
-  if (missing === 0) return 'green'
-  if (missing === 1) return 'amber'
-  return 'red'
-}
-
-export function completenessScore(entry: AnyEntry | AnyCase, type: 'portfolio' | 'case') {
-  const level = calculateCompleteness(entry, type)
-  return level === 'green' ? 2 : level === 'amber' ? 1 : 0
 }

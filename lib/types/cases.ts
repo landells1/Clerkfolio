@@ -1,3 +1,5 @@
+import type { Importance } from '@/lib/types/importance'
+
 export type Case = {
   id: string
   user_id: string
@@ -8,6 +10,7 @@ export type Case = {
   specialty_tags: string[]
   notes: string | null
   pinned: boolean
+  importance?: Importance | null
   completeness_score?: number | null
   is_demo?: boolean | null
   deleted_at: string | null

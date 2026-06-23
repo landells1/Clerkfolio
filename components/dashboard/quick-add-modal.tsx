@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
-import { completenessScore } from '@/lib/utils/completeness'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { useToast } from '@/components/ui/toast-provider'
 import { TEACHING_TYPE_LABELS, TEACHING_AUDIENCE_LABELS, REFL_TYPE_SHORT_LABELS } from '@/lib/types/portfolio-labels'
@@ -220,7 +219,6 @@ export default function QuickAddModal({
       const { error: err } = await supabase.from('cases').insert({
         user_id: user.id,
         ...casePayload,
-        completeness_score: completenessScore(casePayload, 'case'),
       })
       if (err) { setError(err.message); setSaving(false); return }
     } else {
@@ -251,7 +249,6 @@ export default function QuickAddModal({
       const { error: err } = await supabase.from('portfolio_entries').insert({
         user_id: user.id,
         ...merged,
-        completeness_score: completenessScore(merged, 'portfolio'),
       })
       if (err) { setError(err.message); setSaving(false); return }
     }
@@ -342,7 +339,7 @@ export default function QuickAddModal({
                     : type === 'teaching'
                     ? 'e.g. Cardiology teaching session'
                     : type === 'reflection'
-                    ? 'e.g. Difficult conversation with patient'
+                    ? 'e.g. Learning from a difficult conversation'
                     : type === 'procedure'
                     ? 'e.g. Central line insertion'
                     : type === 'audit_qip'
@@ -354,7 +351,7 @@ export default function QuickAddModal({
                     : 'e.g. Foundation rep, audit lead'
                 }
               />
-              {type === 'case' && (
+              {(type === 'case' || type === 'reflection' || type === 'procedure') && (
                 <p className="mt-1.5 text-xs text-fg-2">Anonymised entries only - no patient identifiers</p>
               )}
 
@@ -494,9 +491,9 @@ export default function QuickAddModal({
               </div>
             )}
 
-            {/* Application tags */}
+            {/* Linked specialties */}
             <div>
-              <label className={LABEL}>Application tags</label>
+              <label className={LABEL}>Linked specialties</label>
               <SpecialtyTagSelect ref={specialtyRef} value={tags} onChange={setTags} userInterests={userInterests} trackedOnly />
             </div>
 

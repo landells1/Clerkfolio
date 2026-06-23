@@ -6,9 +6,6 @@ type NotificationItem = {
 
 type DigestSummary = {
   entryCount: number
-  green: number
-  amber: number
-  red: number
   specialtyTags: string[]
   currentStreak: number
   activeWeeksYtd: number
@@ -182,7 +179,6 @@ function digestEmail({
     intro,
     '',
     `Entries logged: ${summary.entryCount}`,
-    `Completeness mix: ${summary.green} green, ${summary.amber} amber, ${summary.red} red`,
     `Specialty tags: ${tags}`,
     `Your streak: ${summary.currentStreak} week${summary.currentStreak === 1 ? '' : 's'} current, ${summary.activeWeeksYtd} active week${summary.activeWeeksYtd === 1 ? '' : 's'} this year`,
     '',
@@ -207,7 +203,6 @@ function digestEmail({
               <tr>
                 <td style="padding:18px 24px;">
                   <p style="margin:0 0 10px;font-size:14px;color:#555;">Entries logged: <strong style="color:#111113;">${summary.entryCount}</strong></p>
-                  <p style="margin:0 0 10px;font-size:14px;color:#555;">Completeness: ${summary.green} green, ${summary.amber} amber, ${summary.red} red</p>
                   <p style="margin:0 0 10px;font-size:14px;color:#555;">Specialty tags: ${escapeHtml(tags)}</p>
                   <p style="margin:0;font-size:14px;color:#555;">Your streak: ${summary.currentStreak} current week${summary.currentStreak === 1 ? '' : 's'}; ${summary.activeWeeksYtd} active week${summary.activeWeeksYtd === 1 ? '' : 's'} this year.</p>
                 </td>

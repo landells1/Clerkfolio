@@ -14,10 +14,12 @@ type PublicQuery = (
 // flags, soft-link ids, ...) to API consumers by default. Keep user_id out of
 // these lists; add new columns deliberately, never by widening to '*'.
 const CASE_COLUMNS =
-  'id, title, date, clinical_domain, clinical_domains, specialty_tags, interview_themes, interview_ready_for, notes, pinned, completeness_score, is_demo, deleted_at, created_at, updated_at'
+  'id, title, date, clinical_domain, clinical_domains, specialty_tags, interview_themes, interview_ready_for, notes, pinned, importance, is_demo, deleted_at, created_at, updated_at'
 
 const PORTFOLIO_COLUMNS =
-  'id, category, title, date, specialty_tags, interview_themes, interview_ready_for, notes, pinned, completeness_score, is_demo, '
+  'id, category, title, date, specialty_tags, interview_themes, interview_ready_for, notes, pinned, importance, is_demo, '
+  // (Batch 3 / F-016: the auto `completeness_score` field was removed from the
+  //  public API; `importance` replaces it as the user-set rating.)
   + 'audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, '
   + 'teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, '
   + 'conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, '

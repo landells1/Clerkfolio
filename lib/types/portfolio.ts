@@ -1,3 +1,5 @@
+import type { Importance } from '@/lib/types/importance'
+
 export type Category =
   | 'audit_qip'
   | 'teaching'
@@ -44,6 +46,7 @@ export type PortfolioEntry = {
   specialty_tags: string[]
   notes: string | null
   pinned: boolean
+  importance?: Importance | null
   completeness_score?: number | null
   is_demo?: boolean | null
   deleted_at: string | null

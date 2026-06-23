@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { IMPORTANCE_LABELS, isImportance } from '@/lib/types/importance'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
 import LogSimilarButton from '@/components/cases/log-similar-button'
 import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
@@ -44,6 +45,8 @@ export default async function CaseDetailPage({
   ])
 
   if (!c) notFound()
+
+  const importance = c.importance
 
   return (
     <div className="p-8 max-w-2xl">
@@ -95,10 +98,10 @@ export default async function CaseDetailPage({
           <p className="text-sm text-[rgba(245,245,242,0.4)] font-mono">{formatDate(c.date)}</p>
         </div>
 
-        {/* Specialty tags */}
+        {/* Linked specialties */}
         {c.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Application tags</p>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
@@ -106,6 +109,16 @@ export default async function CaseDetailPage({
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Importance */}
+        {isImportance(importance) && (
+          <div>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Importance</p>
+            <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[rgba(245,245,242,0.06)] text-[rgba(245,245,242,0.8)] border border-white/[0.08]">
+              {IMPORTANCE_LABELS[importance]}
+            </span>
           </div>
         )}
 

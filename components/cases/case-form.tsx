@@ -5,14 +5,15 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
-import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
+import ImportanceSelect from '@/components/portfolio/importance-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import EvidenceFiles from '@/components/shared/evidence-files'
+import { AnonymisationBanner, AnonymisationHint } from '@/components/shared/anonymisation-notice'
 import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { useToast } from '@/components/ui/toast-provider'
-import { completenessScore } from '@/lib/utils/completeness'
+import type { Importance } from '@/lib/types/importance'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
@@ -59,7 +60,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
   )
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
-  const [interviewThemes, setInterviewThemes] = useState<string[]>((initialData as { interview_themes?: string[] })?.interview_themes ?? [])
+  const [importance, setImportance] = useState<Importance | null>(initialData?.importance ?? null)
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const draftKey = mode === 'create' && authenticatedUserId ? draftKeyForUser(authenticatedUserId) : null
@@ -93,6 +94,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       if (d.clinicalDomains !== undefined) setClinicalDomains(d.clinicalDomains)
       else if (d.clinicalDomain !== undefined) setClinicalDomains(d.clinicalDomain ? [d.clinicalDomain] : [])
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
+      if (d.importance !== undefined) setImportance(d.importance)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -108,7 +110,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) - only structural metadata.
       sessionStorage.setItem(draftKey, JSON.stringify({
-        title, date, clinicalDomains, specialtyTags,
+        title, date, clinicalDomains, specialtyTags, importance,
         _expires: Date.now() + 24 * 60 * 60 * 1000,
       }))
     }, 1000)
@@ -119,13 +121,13 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       if (isDirtyRef.current) {
         try {
           sessionStorage.setItem(draftKey, JSON.stringify({
-            title, date, clinicalDomains, specialtyTags,
+            title, date, clinicalDomains, specialtyTags, importance,
             _expires: Date.now() + 24 * 60 * 60 * 1000,
           }))
         } catch {}
       }
     }
-  }, [mode, draftKey, title, date, clinicalDomains, specialtyTags])
+  }, [mode, draftKey, title, date, clinicalDomains, specialtyTags, importance])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
 
@@ -187,15 +189,14 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       clinical_domain: clinicalDomains[0] ?? null,
       clinical_domains: clinicalDomains,
       specialty_tags: specialtyTags,
-      interview_themes: interviewThemes,
+      importance,
       notes: notes.trim() || null,
     }
-    const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'case') }
 
     if (mode === 'create') {
       const { data, error } = await supabase
         .from('cases')
-        .insert({ ...scoredPayload, user_id: user.id })
+        .insert({ ...payload, user_id: user.id })
         .select('id')
         .single()
       if (error) { setError('We could not save this case. Check the details and try again.'); setSaving(false); return }
@@ -219,11 +220,11 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
         window.location.assign(`/cases/new?fresh=${Date.now()}`)
         return
       }
-      router.push(uploaded > 0 ? `/cases/${data.id}?uploaded=${uploaded}` : '/cases')
+      router.push(uploaded > 0 ? `/cases/${data.id}?uploaded=${uploaded}` : `/cases/${data.id}`)
     } else {
       const { error } = await supabase
         .from('cases')
-        .update(scoredPayload)
+        .update(payload)
         .eq('id', initialData!.id!)
         .eq('user_id', user.id)
       if (error) { setError('We could not update this case. Check the details and try again.'); setSaving(false); return }
@@ -276,6 +277,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
               setDate(new Date().toISOString().split('T')[0])
               setClinicalDomains([])
               setSpecialtyTags([])
+              setImportance(null)
               setNotes('')
             }}
             className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]"
@@ -284,6 +286,8 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           </button>
         </div>
       )}
+
+      <AnonymisationBanner />
 
       {/* Title */}
       <div>
@@ -359,7 +363,14 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
         </p>
       </div>
 
-      <CompetencyThemePicker value={interviewThemes} onChange={setInterviewThemes} onDirty={markDirty} />
+      {/* Importance */}
+      <div>
+        <label className={LABEL}>Importance</label>
+        <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
+        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
+          Optional — flag how important this case is to you. Tap the active level again to clear it.
+        </p>
+      </div>
 
       {/* Notes */}
       <div>
@@ -375,6 +386,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           placeholder="Clinical context, learning points, what happened - anonymised…"
         />
         {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
+        <AnonymisationHint />
       </div>
 
       {/* Evidence uploads */}

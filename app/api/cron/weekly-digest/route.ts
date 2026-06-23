@@ -98,13 +98,13 @@ async function fetchWindowEntriesByUser(
   const [{ data: portfolioRows }, { data: caseRows }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('user_id, specialty_tags, completeness_score')
+      .select('user_id, specialty_tags')
       .is('deleted_at', null)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),
     supabase
       .from('cases')
-      .select('user_id, specialty_tags, completeness_score')
+      .select('user_id, specialty_tags')
       .is('deleted_at', null)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),

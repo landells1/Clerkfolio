@@ -8,28 +8,25 @@ import PullToRefresh from '@/components/ui/pull-to-refresh'
 import SectionHeader from '@/components/ui/section-header'
 import StatTile from '@/components/ui/stat-tile'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
-import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
+import { missingCompletenessFields } from '@/lib/utils/completeness'
+import { isImportance } from '@/lib/types/importance'
 
 export default async function CasesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string }>
+  searchParams: Promise<{ q?: string; importance?: string; missing?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   const q = resolvedSearchParams.q ?? ''
-  const completeOnly = resolvedSearchParams.complete === '1'
-  const minScore = resolvedSearchParams.min_score ? Number(resolvedSearchParams.min_score) : undefined
-  const maxScore = resolvedSearchParams.max_score ? Number(resolvedSearchParams.max_score) : undefined
-  const hasMinScore = minScore !== undefined && Number.isFinite(minScore)
-  const hasMaxScore = maxScore !== undefined && Number.isFinite(maxScore)
+  const importanceFilter = isImportance(resolvedSearchParams.importance) ? resolvedSearchParams.importance : ''
   const missing = resolvedSearchParams.missing ?? ''
 
   const [{ data: cases }, { data: allCasesMeta }, { data: trackedSpecialtyRows }, { data: evidenceFiles }] = await Promise.all([
     supabase
       .from('cases')
-      .select('id, user_id, title, date, clinical_domain, clinical_domains, specialty_tags, notes, pinned, completeness_score, deleted_at, created_at, updated_at, interview_themes')
+      .select('id, user_id, title, date, clinical_domain, clinical_domains, specialty_tags, notes, pinned, importance, deleted_at, created_at, updated_at, interview_themes')
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .order('pinned', { ascending: false })
@@ -54,19 +51,13 @@ export default async function CasesPage({
     fileNamesByCase.set(file.entry_id, [...(fileNamesByCase.get(file.entry_id) ?? []), file.file_name])
   })
   const parsedQuery = parseSearchQuery(q)
-  parsedQuery.completeness = {
-    ...(parsedQuery.completeness ?? {}),
-    ...(completeOnly ? { exact: 2 } : {}),
-    ...(hasMinScore ? { min: minScore } : {}),
-    ...(hasMaxScore ? { max: maxScore } : {}),
-  }
   if (missing) parsedQuery.missing = missing.toLowerCase()
   const filteredCases = ((cases ?? []) as Case[]).filter(c => {
-    const scoredCase = (c as Case & { completeness_score?: number | null }).completeness_score ?? completenessScore(c, 'case')
+    if (importanceFilter && c.importance !== importanceFilter) return false
     return matchesParsedQuery(
       { ...c, file_names: fileNamesByCase.get(c.id) ?? [] },
       parsedQuery,
-      { completenessScore: scoredCase, missingFields: missingCompletenessFields(c, 'case') },
+      { missingFields: missingCompletenessFields(c, 'case') },
     )
   })
 
@@ -88,10 +79,15 @@ export default async function CasesPage({
     const d = (c as { created_at?: string }).created_at
     return d && d.startsWith(thisMonthKey)
   }).length
-  // Average per week over the past year (or shorter window if newer)
-  const oneYearMs = 365 * 24 * 60 * 60 * 1000
-  const weeksWindow = Math.max(1, Math.min(52, Math.round(((allCasesMeta ?? []).length > 0 ? oneYearMs : 7 * 24 * 60 * 60 * 1000) / (7 * 24 * 60 * 60 * 1000))))
-  const avgPerWeek = total === 0 ? 0 : Math.round((total / weeksWindow) * 10) / 10
+  // Average per week, measured over the account's real lifetime (weeks since
+  // signup) rather than a forced 52-week window — so a days-old account with a
+  // few cases shows a sensible figure, not "0" (F-019). The tile is hidden until
+  // the account is ~2 weeks old so the first number shown is meaningful.
+  const weekMs = 7 * 24 * 60 * 60 * 1000
+  const accountAgeMs = user?.created_at ? now.getTime() - new Date(user.created_at).getTime() : 0
+  const weeksSinceSignup = Math.max(1, accountAgeMs / weekMs)
+  const showAvgPerWeek = accountAgeMs >= 14 * 24 * 60 * 60 * 1000
+  const avgPerWeek = total === 0 ? 0 : Math.round((total / weeksSinceSignup) * 10) / 10
 
   return (
     <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
@@ -109,37 +105,30 @@ export default async function CasesPage({
         }
       />
 
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className={`grid ${showAvgPerWeek ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-6`}>
         <StatTile label="Total cases" value={total} sub="all time" barColour="blue" />
         <StatTile label="This month" value={thisMonthCount} sub={now.toLocaleDateString('en-GB', { month: 'long' })} barColour="violet" />
-        <StatTile label="Avg per week" value={avgPerWeek} sub="rolling year" barColour="amber" />
+        {showAvgPerWeek && (
+          <StatTile label="Avg per week" value={avgPerWeek} sub="since you joined" barColour="amber" />
+        )}
       </div>
 
       <form className="mb-3 flex flex-wrap gap-2">
         <input name="q" defaultValue={q} placeholder="Search cases" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
-          Green only
-        </label>
+        <select name="importance" defaultValue={importanceFilter} aria-label="Importance" className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
+          <option value="">Any importance</option>
+          <option value="high">Importance: High</option>
+          <option value="medium">Importance: Medium</option>
+          <option value="low">Importance: Low</option>
+        </select>
         <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any fields</option>
           <option value="notes">Missing notes</option>
           <option value="clinical domain">Missing domain</option>
           <option value="date">Missing date</option>
         </select>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          Min
-          <input type="range" name="min_score" min="0" max="2" defaultValue={hasMinScore ? minScore : 0} className="w-16" />
-        </label>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          Max
-          <input type="range" name="max_score" min="0" max="2" defaultValue={hasMaxScore ? maxScore : 2} className="w-16" />
-        </label>
         <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
-      <p className="mb-3 text-xs text-fg-2">
-        Completeness: green = strong case note, amber = needs detail, red = sparse. &ldquo;Green only&rdquo; shows cases already in the strongest band.
-      </p>
       <SavedSearchBar surface="cases" q={q} />
 
       {Object.keys(domainCountMap).length > 0 && (

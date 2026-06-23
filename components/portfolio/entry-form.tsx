@@ -7,14 +7,16 @@ import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/p
 import type { Template } from '@/lib/types/templates'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from './specialty-tag-select'
 import CompetencyThemePicker from './competency-theme-picker'
+import ImportanceSelect from './importance-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import CategoryGuide from '@/components/portfolio/category-guide'
+import { AnonymisationBanner, AnonymisationHint } from '@/components/shared/anonymisation-notice'
 import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { portfolioDraftHasContent, portfolioDraftKeysFor } from '@/lib/drafts/draft-keys'
 import { useToast } from '@/components/ui/toast-provider'
-import { completenessScore } from '@/lib/utils/completeness'
+import type { Importance } from '@/lib/types/importance'
 import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -172,6 +174,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
   const [interviewReadyFor, setInterviewReadyFor] = useState<string[]>(initialData?.interview_ready_for ?? [])
+  const [importance, setImportance] = useState<Importance | null>(initialData?.importance ?? null)
 
   // Template guidance placeholders - overridden when a template is applied
   const [guidancePlaceholders, setGuidancePlaceholders] = useState<Record<string, string>>({})
@@ -307,6 +310,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.interviewThemes !== undefined) setInterviewThemes(d.interviewThemes)
       if (d.interviewReadyFor !== undefined) setInterviewReadyFor(d.interviewReadyFor)
+      if (d.importance !== undefined) setImportance(d.importance)
       if (d.auditType !== undefined) setAuditType(d.auditType)
       if (d.auditRole !== undefined) setAuditRole(d.auditRole)
       if (d.auditCycleStage !== undefined) setAuditCycleStage(d.auditCycleStage)
@@ -361,7 +365,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     draftTimerRef.current = setTimeout(() => {
       if (suppressDraftRef.current) { suppressDraftRef.current = false; return }
       const fields = {
-        category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
+        category, title, date, specialtyTags, interviewThemes, interviewReadyFor, importance,
         auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
         teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
         confType, confEventName, confAttendance, confLevel, confCpdHours,
@@ -387,7 +391,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     }, 1000)
     return () => { if (draftTimerRef.current) clearTimeout(draftTimerRef.current) }
   }, [
-    mode, category, title, date, specialtyTags, interviewThemes, interviewReadyFor,
+    mode, category, title, date, specialtyTags, interviewThemes, interviewReadyFor, importance,
     auditType, auditRole, auditCycleStage, auditTrust, auditPresented,
     teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
     confType, confEventName, confAttendance, confLevel, confCpdHours,
@@ -476,6 +480,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       notes: notes || null,
       interview_themes: interviewThemes,
       interview_ready_for: interviewReadyFor,
+      importance,
     }
     switch (category) {
       case 'audit_qip': return { ...base, audit_type: auditType, audit_role: auditRole || null, audit_cycle_stage: auditCycleStage || null, audit_trust: auditTrust || null, audit_outcome: auditOutcome || null, audit_presented: auditPresented }
@@ -502,6 +507,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setSpecialtyTags([])
     setInterviewThemes([])
     setInterviewReadyFor([])
+    setImportance(null)
     setGuidancePlaceholders({})
     setAuditType('audit'); setAuditRole(''); setAuditCycleStage(''); setAuditTrust(''); setAuditOutcome(''); setAuditPresented(false)
     setTeachingType(''); setTeachingAudience(''); setTeachingSetting(''); setTeachingEvent(''); setTeachingInvited(false)
@@ -541,7 +547,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     }
 
     const payload = buildPayload()
-    const scoredPayload = { ...payload, completeness_score: completenessScore(payload, 'portfolio') }
 
     if (mode === 'create') {
       const { count: existingInCategory } = await supabase
@@ -552,7 +557,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         .is('deleted_at', null)
       const { data, error } = await supabase
         .from('portfolio_entries')
-        .insert({ ...scoredPayload, user_id: user.id })
+        .insert({ ...payload, user_id: user.id })
         .select('id')
         .single()
       if (error) { setError('We could not save this portfolio entry. Check the details and try again.'); setSaving(false); return }
@@ -597,7 +602,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     } else {
       const { error } = await supabase
         .from('portfolio_entries')
-        .update(scoredPayload)
+        .update(payload)
         .eq('id', initialData!.id!)
         .eq('user_id', user.id)
       if (error) { setError('We could not update this portfolio entry. Check the details and try again.'); setSaving(false); return }
@@ -678,6 +683,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         )}
 
         <CategoryGuide category={category} />
+
+        {(category === 'reflection' || category === 'procedure') && <AnonymisationBanner />}
 
         {/* Category selector */}
         {mode === 'create' && (
@@ -779,6 +786,14 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <Field label="Notes / comments">
             <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, notes, setNotes)} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
             {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
+            <AnonymisationHint />
+          </Field>
+
+          <Field label="Importance">
+            <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
+            <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+              Optional — flag how important this entry is to you. Tap the active level again to clear it.
+            </p>
           </Field>
 
           <CompetencyThemePicker value={interviewThemes} onChange={setInterviewThemes} onDirty={markDirty} />
@@ -1036,6 +1051,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <Field label="Free text reflection">
                   <textarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setReflFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, reflFreeText, setReflFreeText)} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
                   {reflFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(reflFreeText)} words</p>}
+                  <AnonymisationHint />
                 </Field>
               )}
 
@@ -1098,6 +1114,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               <Field label="Description">
                 <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, customFreeText, setCustomFreeText)} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
                 {customFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(customFreeText)} words</p>}
+                <AnonymisationHint />
               </Field>
             </div>
           )}

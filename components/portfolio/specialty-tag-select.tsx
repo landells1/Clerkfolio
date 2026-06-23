@@ -16,7 +16,7 @@ type Props = {
   onChange: (tags: string[]) => void
   userInterests?: string[]
   /** When true, only show userInterests as options (no PREDEFINED fallback).
-   *  Use for Application tags where options = the user's tracked programmes. */
+   *  Use for Linked specialties where options = the user's tracked programmes. */
   trackedOnly?: boolean
 }
 

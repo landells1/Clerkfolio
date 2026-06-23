@@ -9,11 +9,6 @@ export type ParsedSearchQuery = {
   hasNotes?: boolean
   category?: string
   missing?: string
-  completeness?: {
-    min?: number
-    max?: number
-    exact?: number
-  }
 }
 
 type SearchableRecord = Record<string, unknown>
@@ -29,11 +24,6 @@ function normalise(value: unknown) {
 function normaliseDate(value: string) {
   if (/^\d{4}-\d{2}$/.test(value)) return `${value}-01`
   return value
-}
-
-function numberValue(value: string) {
-  const n = Number(value)
-  return Number.isFinite(n) ? n : undefined
 }
 
 export function parseSearchQuery(input: string): ParsedSearchQuery {
@@ -98,9 +88,10 @@ export function parseSearchQuery(input: string): ParsedSearchQuery {
       else if (field === 'category') parsed.category = value.toLowerCase()
       else if (field === 'missing') parsed.missing = value.toLowerCase()
       else if (field === 'has' && value.toLowerCase() === 'notes') parsed.hasNotes = true
-      else if (field === 'complete') parsed.completeness = { exact: value.toLowerCase() === 'green' ? 2 : numberValue(value) }
-      else if (field === 'min') parsed.completeness = { ...(parsed.completeness ?? {}), min: numberValue(value) }
-      else if (field === 'max') parsed.completeness = { ...(parsed.completeness ?? {}), max: numberValue(value) }
+      // `complete:`/`min:`/`max:` were the removed completeness filter (Batch 3 /
+      // F-016). Recognise and ignore them so any saved search that still carries
+      // the grammar degrades to a no-op rather than matching them as plain text.
+      else if (field === 'complete' || field === 'min' || field === 'max') { /* no-op */ }
       else pushPlainTerm(part)
       if (field === 'specialty' || field === 'tag' || field === 'theme' || field === 'since' || field === 'category' || field === 'missing' || (field === 'has' && value.toLowerCase() === 'notes') || field === 'complete' || field === 'min' || field === 'max') {
         negateNext = false
@@ -138,7 +129,6 @@ export function matchesParsedQuery(
   parsed: ParsedSearchQuery,
   options: {
     missingFields?: string[]
-    completenessScore?: number | null
     extraFields?: string[]
   } = {},
 ) {
@@ -153,11 +143,6 @@ export function matchesParsedQuery(
   if (parsed.since && normalise(record.date) < parsed.since) return false
   if (parsed.hasNotes && !normalise(record.notes).trim()) return false
   if (parsed.missing && !(options.missingFields ?? []).some(field => field.toLowerCase().includes(parsed.missing!))) return false
-
-  const score = options.completenessScore
-  if (parsed.completeness?.exact != null && score !== parsed.completeness.exact) return false
-  if (parsed.completeness?.min != null && (score == null || score < parsed.completeness.min)) return false
-  if (parsed.completeness?.max != null && (score == null || score > parsed.completeness.max)) return false
 
   return true
 }

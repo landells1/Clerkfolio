@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { completenessScore } from '@/lib/utils/completeness'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
 import type { Category } from '@/lib/types/portfolio'
 
@@ -69,9 +68,6 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) throw new Error('Not authenticated')
 
-      // Score the entry like every other write path (entry form, quick-add,
-      // imports) so "log & link" entries don't read as score-less in search
-      // filters and digests.
       const payload = {
         user_id: user.id,
         category,
@@ -82,7 +78,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
       }
       const { data: entry, error: entryError } = await supabase
         .from('portfolio_entries')
-        .insert({ ...payload, completeness_score: completenessScore(payload, 'portfolio') })
+        .insert(payload)
         .select('id')
         .single()
 

@@ -4,7 +4,6 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { completenessScore } from '@/lib/utils/completeness'
 
 const IMPORT_RATE_MAX = 5
 const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
@@ -98,10 +97,7 @@ export async function POST(req: NextRequest) {
       }
       return true
     })
-    .map(row => {
-      const payload = copyInsertable(row, user.id, allowed)
-      return { ...payload, completeness_score: completenessScore(payload, target === 'portfolio' ? 'portfolio' : 'case') }
-    })
+    .map(row => copyInsertable(row, user.id, allowed))
 
   if (validRows.length === 0) {
     return NextResponse.json({ imported: 0, skipped: errors.length, errors }, { status: 400 })

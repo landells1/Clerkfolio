@@ -4,7 +4,6 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { completenessScore } from '@/lib/utils/completeness'
 
 // 5 imports per hour — each batch can be up to 500 rows so this caps at
 // 2,500 rows/hour per Pro user, well above realistic usage.
@@ -182,7 +181,7 @@ export async function POST(req: NextRequest) {
       specialty_tags: row.specialty_tags ?? [],
       refl_type: row.category === 'reflection' ? mapReflectionType(row.type) : null,
     }
-    toInsert.push({ ...payload, completeness_score: completenessScore(payload, 'portfolio') })
+    toInsert.push(payload)
   }
 
   if (toInsert.length > 0) {

@@ -9,7 +9,8 @@ import PullToRefresh from '@/components/ui/pull-to-refresh'
 import SectionHeader from '@/components/ui/section-header'
 import CategoryTileGrid from '@/components/portfolio/category-tile-grid'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
-import { completenessScore, missingCompletenessFields } from '@/lib/utils/completeness'
+import { missingCompletenessFields } from '@/lib/utils/completeness'
+import { isImportance } from '@/lib/types/importance'
 
 type ViewMode = 'categories' | 'themes' | 'all'
 
@@ -20,7 +21,7 @@ function normaliseTheme(value: string) {
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; complete?: string; min_score?: string; max_score?: string; missing?: string; ready?: string }>
+  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; importance?: string; missing?: string; ready?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
@@ -29,18 +30,14 @@ export default async function PortfolioPage({
   const view = resolvedSearchParams.view ?? 'categories'
   const activeCategory = (resolvedSearchParams.category as Category | undefined) ?? undefined
   const q = resolvedSearchParams.q ?? ''
-  const completeOnly = resolvedSearchParams.complete === '1'
-  const minScore = resolvedSearchParams.min_score ? Number(resolvedSearchParams.min_score) : undefined
-  const maxScore = resolvedSearchParams.max_score ? Number(resolvedSearchParams.max_score) : undefined
-  const hasMinScore = minScore !== undefined && Number.isFinite(minScore)
-  const hasMaxScore = maxScore !== undefined && Number.isFinite(maxScore)
+  const importanceFilter = isImportance(resolvedSearchParams.importance) ? resolvedSearchParams.importance : ''
   const missing = resolvedSearchParams.missing ?? ''
   const readyFilter = resolvedSearchParams.ready ?? ''
 
   const [{ data: entries }, { data: customThemes }, { data: trackedSpecialtyRows }, { data: evidenceFiles }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, completeness_score, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes, interview_ready_for')
+      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, importance, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes, interview_ready_for')
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .order('pinned', { ascending: false })
@@ -68,22 +65,16 @@ export default async function PortfolioPage({
     fileNamesByEntry.set(file.entry_id, [...(fileNamesByEntry.get(file.entry_id) ?? []), file.file_name])
   })
   const parsedQuery = parseSearchQuery(q)
-  parsedQuery.completeness = {
-    ...(parsedQuery.completeness ?? {}),
-    ...(completeOnly ? { exact: 2 } : {}),
-    ...(hasMinScore ? { min: minScore } : {}),
-    ...(hasMaxScore ? { max: maxScore } : {}),
-  }
   if (missing) parsedQuery.missing = missing.toLowerCase()
 
   const allEntries = ((entries ?? []) as PortfolioEntry[]).filter(entry => {
     if (view === 'categories' && activeCategory && entry.category !== activeCategory) return false
     if (readyFilter && !(entry.interview_ready_for ?? []).includes(readyFilter)) return false
-    const scoredEntry = entry.completeness_score ?? completenessScore(entry, 'portfolio')
+    if (importanceFilter && entry.importance !== importanceFilter) return false
     if (!matchesParsedQuery(
       { ...entry, file_names: fileNamesByEntry.get(entry.id) ?? [] },
       parsedQuery,
-      { completenessScore: scoredEntry, missingFields: missingCompletenessFields(entry, 'portfolio') },
+      { missingFields: missingCompletenessFields(entry, 'portfolio') },
     )) return false
     return true
   })
@@ -119,10 +110,12 @@ export default async function PortfolioPage({
         <input type="hidden" name="view" value={view} />
         {activeCategory && <input type="hidden" name="category" value={activeCategory} />}
         <input name="q" defaultValue={q} placeholder="Search portfolio" className="min-h-[44px] flex-1 rounded-lg border border-subtle bg-surface-1 px-4 text-sm text-fg placeholder-fg-2 outline-none focus:border-strong" />
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          <input type="checkbox" name="complete" value="1" defaultChecked={completeOnly} />
-          Green only
-        </label>
+        <select name="importance" defaultValue={importanceFilter} aria-label="Importance" className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
+          <option value="">Any importance</option>
+          <option value="high">Importance: High</option>
+          <option value="medium">Importance: Medium</option>
+          <option value="low">Importance: Low</option>
+        </select>
         <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any fields</option>
           <option value="notes">Missing notes</option>
@@ -135,19 +128,8 @@ export default async function PortfolioPage({
           <option value="imt">Interview-ready: IMT</option>
           <option value="st_application">Interview-ready: ST application</option>
         </select>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          Min
-          <input type="range" name="min_score" min="0" max="2" defaultValue={hasMinScore ? minScore : 0} className="w-16" />
-        </label>
-        <label className="flex min-h-[44px] items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-3 text-xs text-fg-1">
-          Max
-          <input type="range" name="max_score" min="0" max="2" defaultValue={hasMaxScore ? maxScore : 2} className="w-16" />
-        </label>
         <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
-      <p className="mb-3 text-xs text-fg-2">
-        Completeness: green = strong evidence, amber = needs detail, red = sparse. &ldquo;Green only&rdquo; shows entries already in the strongest band.
-      </p>
       <SavedSearchBar surface="portfolio" q={q} />
 
       <div className="mb-6 flex flex-wrap gap-2 border-b border-subtle pb-4">

@@ -14,6 +14,7 @@ import {
   titleCase,
 } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { IMPORTANCE_LABELS, isImportance } from '@/lib/types/importance'
 import DeleteEntryButton from '@/components/portfolio/delete-entry-button'
 import LogSimilarButton from '@/components/portfolio/log-similar-button'
 import DuplicateEntryButton from '@/components/portfolio/duplicate-entry-button'
@@ -73,6 +74,7 @@ export default async function EntryDetailPage({
 
   if (!entry) notFound()
 
+  const importance = entry.importance
   const catMeta = CATEGORIES.find(c => c.value === entry.category)
   const colours = CATEGORY_COLOURS[entry.category as keyof typeof CATEGORY_COLOURS]
 
@@ -140,6 +142,15 @@ export default async function EntryDetailPage({
                 </span>
               ))}
             </div>
+          </div>
+        )}
+
+        {isImportance(importance) && (
+          <div>
+            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Importance</p>
+            <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[rgba(245,245,242,0.06)] text-[rgba(245,245,242,0.8)] border border-white/[0.08]">
+              {IMPORTANCE_LABELS[importance]}
+            </span>
           </div>
         )}
 

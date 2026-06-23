@@ -3,7 +3,7 @@ import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/p
 import { entrySubtitle, formatInterviewReady } from '@/lib/types/portfolio-labels'
 import { relativeDate } from '@/lib/utils/dates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { calculateCompleteness, missingCompletenessFields } from '@/lib/utils/completeness'
+import { IMPORTANCE_LABELS } from '@/lib/types/importance'
 
 function formatTag(tag: string): string {
   return formatSpecialtyLabel(tag)
@@ -13,8 +13,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
   const catMeta = CATEGORIES.find(c => c.value === entry.category)
   const colours = CATEGORY_COLOURS[entry.category]
   const subtitle = entrySubtitle(entry) || null
-  const completeness = calculateCompleteness(entry, 'portfolio')
-  const missing = missingCompletenessFields(entry, 'portfolio')
+  const importance = entry.importance ?? null
 
   return (
     <Link
@@ -45,6 +44,15 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
                 {formatInterviewReady(target)}
               </span>
             ))}
+            {importance && (
+              <span className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-medium border ${
+                importance === 'high'
+                  ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+                  : 'bg-[rgba(245,245,242,0.06)] text-[rgba(245,245,242,0.6)] border-white/[0.08]'
+              }`}>
+                {IMPORTANCE_LABELS[importance]}
+              </span>
+            )}
           </div>
           <h3 className="text-sm font-medium text-[#F5F5F2] truncate group-hover:text-white transition-colors">{entry.title}</h3>
           {subtitle && <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5 truncate">{subtitle}</p>}
@@ -52,10 +60,6 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
         <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
           <p className="text-xs text-[rgba(245,245,242,0.55)] font-mono" title={entry.date}>{relativeDate(entry.date)}</p>
           <div className="flex items-center gap-1.5">
-            <span
-              title={missing.length === 0 ? 'Complete' : `Missing: ${missing.join(', ')}`}
-              className={`w-1.5 h-1.5 rounded-full shrink-0 ${completeness === 'green' ? 'bg-emerald-400' : completeness === 'amber' ? 'bg-amber-400' : 'bg-red-400'}`}
-            />
             <svg className="w-4 h-4 text-[rgba(245,245,242,0.55)] group-hover:text-[rgba(245,245,242,0.5)] transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="9 18 15 12 9 6" />
             </svg>
