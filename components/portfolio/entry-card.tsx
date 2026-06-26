@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { type PortfolioEntry, CATEGORIES, CATEGORY_COLOURS } from '@/lib/types/portfolio'
-import { entrySubtitle, formatInterviewReady } from '@/lib/types/portfolio-labels'
+import { entrySubtitle } from '@/lib/types/portfolio-labels'
 import { relativeDate } from '@/lib/utils/dates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { IMPORTANCE_LABELS } from '@/lib/types/importance'
@@ -39,11 +39,6 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
             {entry.specialty_tags.length > 2 && (
               <span className="text-[10px] text-[rgba(245,245,242,0.55)]">+{entry.specialty_tags.length - 2}</span>
             )}
-            {(entry.interview_ready_for ?? []).slice(0, 2).map(target => (
-              <span key={target} className="inline-flex items-center rounded border border-emerald-400/20 bg-emerald-400/10 px-2 py-0.5 text-[10px] font-medium text-emerald-300">
-                {formatInterviewReady(target)}
-              </span>
-            ))}
             {importance && (
               <span className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-medium border ${
                 importance === 'high'

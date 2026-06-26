@@ -83,8 +83,11 @@ const PRESETS: Record<PresetKey, {
       category: ['category', 'type'],
       date: ['date'],
       notes: ['notes', 'description'],
+      // Mirror the Horus preset so a typical spreadsheet export auto-maps its
+      // Reflection / Specialty columns instead of leaving them "Not mapped". (F-041)
+      refl_free_text: ['reflection', 'reflective notes'],
       clinical_domain: ['clinical_domain', 'clinical domain', 'domain'],
-      specialty_tags: ['specialty_tags', 'tags'],
+      specialty_tags: ['specialty_tags', 'specialty', 'specialties', 'specialty tags', 'tags'],
     },
   },
 }

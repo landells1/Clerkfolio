@@ -12,7 +12,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import SectionHeader from '@/components/ui/section-header'
 import { useToast } from '@/components/ui/toast-provider'
 
-type Tab = 'pdf' | 'backup' | 'share'
+type Tab = 'import' | 'pdf' | 'backup' | 'share'
 type ExportFormat = 'pdf' | 'csv' | 'json'
 type PdfTemplate = 'default' | 'foundation' | 'mrcp' | 'st_application'
 type ShareScope = 'specialty' | 'theme' | 'full'
@@ -53,7 +53,7 @@ type ShareLink = {
 }
 type TrackedApp = { id: string; specialty_key: string }
 type TagCount = { tag: string; count: number }
-type EntrySpecialtyFields = { specialty_tags: string[] | null; interview_ready_for: string[] | null }
+type EntrySpecialtyFields = { specialty_tags: string[] | null }
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
@@ -79,6 +79,25 @@ function exportScopeLabel(value: string) {
   if (value === ALL_RECORDS) return 'all records'
   if (value === UNTAGGED_RECORDS) return 'untagged records'
   return formatSpecialtyLabel(value)
+}
+
+function filenameFromContentDisposition(header: string | null): string | null {
+  if (!header) return null
+  // RFC 5987 filename* (percent-encoded) takes precedence when present.
+  const star = header.match(/filename\*=(?:UTF-8'')?([^;]+)/i)
+  if (star?.[1]) {
+    try { return decodeURIComponent(star[1].trim().replace(/^["']|["']$/g, '')) } catch { /* fall through */ }
+  }
+  const plain = header.match(/filename="?([^";]+)"?/i)
+  return plain?.[1]?.trim() || null
+}
+
+function specialtyChipClass(active: boolean) {
+  return `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+    active
+      ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]'
+      : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+  }`
 }
 
 export default function ExportPage() {
@@ -143,7 +162,7 @@ export default function ExportPage() {
 
       const [subInfo, { data: tagRows }, { data: apps }, links] = await Promise.all([
         fetchSubscriptionInfo(supabase, user.id),
-        supabase.from('portfolio_entries').select('specialty_tags, interview_ready_for').eq('user_id', user.id).is('deleted_at', null),
+        supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
         apiFetch<ShareLink[]>('/api/share').then(r => (r.ok && r.data) ? r.data : []),
       ])
@@ -152,7 +171,7 @@ export default function ExportPage() {
 
       const counts: Record<string, number> = {}
       ;((tagRows ?? []) as EntrySpecialtyFields[]).forEach(row => {
-        const tags = new Set([...(row.specialty_tags ?? []), ...(row.interview_ready_for ?? [])])
+        const tags = new Set(row.specialty_tags ?? [])
         tags.forEach(tag => { counts[tag] = (counts[tag] ?? 0) + 1 })
       })
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }))
@@ -204,7 +223,7 @@ export default function ExportPage() {
       if (cancelled) return
       const rows = ((data ?? []) as PortfolioEntry[]).filter(entry => {
         if (specialty === ALL_RECORDS) return true
-        const tags = [...(entry.specialty_tags ?? []), ...(entry.interview_ready_for ?? [])]
+        const tags = entry.specialty_tags ?? []
         if (specialty === UNTAGGED_RECORDS) return tags.length === 0
         return tags.includes(specialty)
       })
@@ -235,15 +254,33 @@ export default function ExportPage() {
     entries.forEach(e => e.interview_themes?.forEach(t => set.add(t)))
     return Array.from(set).sort()
   }, [entries])
+  // Target-specialty selector inputs (F-046): two clean groups, both with
+  // counts. Tracked specialties come first (even when 0 entries are linked
+  // yet); "Tagged in your entries" lists linked specialties that aren't tracked.
+  const tagCountMap = useMemo(() => new Map(portfolioTags.map(t => [t.tag, t.count])), [portfolioTags])
+  const trackedSpecialtyOptions = useMemo(
+    () => trackedApps.map(app => ({ key: app.specialty_key, count: tagCountMap.get(app.specialty_key) ?? 0 })),
+    [trackedApps, tagCountMap],
+  )
+  const linkedOnlyOptions = useMemo(
+    () => portfolioTags.filter(t => !trackedApps.some(a => a.specialty_key === t.tag)),
+    [portfolioTags, trackedApps],
+  )
+  const selectedIsRealSpecialty = specialty !== '' && specialty !== ALL_RECORDS && specialty !== UNTAGGED_RECORDS
   const hasActiveShareLinks = shareLinks.length > 0
   const canCreateShareLink = subInfo ? (subInfo.isPro || shareLinks.length < 1) : false
 
+  // Prefer the clean filename the server already sets in Content-Disposition
+  // (e.g. "clerkfolio-all-records-2026-06-21.csv"). `a.download` overrides
+  // Content-Disposition for blob URLs, so without this the raw client `specialty`
+  // state leaked sentinels/slugs into the saved file name (F-043).
   async function downloadBlob(res: Response, fallbackName: string) {
+    const serverName = filenameFromContentDisposition(res.headers.get('content-disposition'))
     const blob = await res.blob()
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = fallbackName
+    a.download = serverName ?? fallbackName
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -279,7 +316,10 @@ export default function ExportPage() {
       return
     }
     const dateStr = new Date().toISOString().split('T')[0]
-    await downloadBlob(response, `clerkfolio-${specialty || 'portfolio'}-${dateStr}.${format}`)
+    // Clean fallback name (matches the server's safeSpecialty) for the rare case
+    // the Content-Disposition header is unreadable — never the raw sentinel/slug.
+    const safeScope = exportScopeLabel(specialty).replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase() || 'portfolio'
+    await downloadBlob(response, `clerkfolio-${safeScope}-${dateStr}.${format}`)
     if (format === 'pdf') await refreshSubscriptionInfo()
   }
 
@@ -471,8 +511,8 @@ export default function ExportPage() {
       </div>
 
       <SectionHeader
-        title="Export & share"
-        sub="Generate application packs, back up your data, and create protected portfolio links."
+        title="Import & export"
+        sub="Import an existing portfolio, generate application packs, back up your data, and create protected portfolio links."
         actions={
           <>
             {subInfo && !subInfo.isPro && (
@@ -491,13 +531,13 @@ export default function ExportPage() {
       />
 
       <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-subtle bg-surface-1 p-1">
-        {(['pdf', 'backup', 'share'] as Tab[]).map(item => (
+        {(['import', 'pdf', 'backup', 'share'] as Tab[]).map(item => (
           <button
             key={item}
             onClick={() => setTab(item)}
             className={`rounded px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-blue-500 text-surface-0' : 'text-fg-2 hover:bg-surface-3 hover:text-fg'}`}
           >
-            {item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : 'Share links'}
+            {item === 'import' ? 'Import' : item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : 'Share links'}
           </button>
         ))}
       </div>
@@ -508,7 +548,7 @@ export default function ExportPage() {
         </div>
       )}
 
-      {tab !== 'backup' && (
+      {tab !== 'backup' && tab !== 'import' && (
         <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
@@ -516,21 +556,35 @@ export default function ExportPage() {
               { value: ALL_RECORDS, label: 'All records' },
               { value: UNTAGGED_RECORDS, label: 'Untagged' },
             ].map(option => (
-              <button key={option.value} onClick={() => setSpecialty(option.value)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === option.value ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
+              <button key={option.value} onClick={() => setSpecialty(option.value)} className={specialtyChipClass(specialty === option.value)}>
                 {option.label}
               </button>
             ))}
-            {portfolioTags.map(({ tag, count }) => (
-              <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === tag ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
-                {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
-              </button>
-            ))}
-            {trackedApps.filter(app => !portfolioTags.some(t => t.tag === app.specialty_key)).map(app => (
-              <button key={app.id} onClick={() => setSpecialty(current => current === app.specialty_key ? '' : app.specialty_key)} className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${specialty === app.specialty_key ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'}`}>
-                {formatSpecialtyLabel(app.specialty_key)}
-              </button>
-            ))}
           </div>
+          {trackedSpecialtyOptions.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Tracked specialties</p>
+              <div className="flex flex-wrap gap-2">
+                {trackedSpecialtyOptions.map(({ key, count }) => (
+                  <button key={key} onClick={() => setSpecialty(current => current === key ? '' : key)} className={specialtyChipClass(specialty === key)}>
+                    {formatSpecialtyLabel(key)} <span className="ml-1 text-xs opacity-60">{count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {linkedOnlyOptions.length > 0 && (
+            <div className="mb-3">
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Tagged in your entries</p>
+              <div className="flex flex-wrap gap-2">
+                {linkedOnlyOptions.map(({ tag, count }) => (
+                  <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={specialtyChipClass(specialty === tag)}>
+                    {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           {/* Show the formatted label when a tracked-specialty chip is active
               so the field doesn't leak raw slugs like 'acute_internal_medicine'.
               When the user types into the field we treat their input as a
@@ -548,6 +602,37 @@ export default function ExportPage() {
             className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none transition-colors focus:border-[#1B6FD9]"
           />
         </div>
+      )}
+
+      {tab === 'import' && (
+        <section className="space-y-4">
+          {subInfo && !subInfo.isPro && (
+            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
+              <p className="font-semibold text-amber-300">Bulk import is a Pro feature</p>
+              <p className="mt-1 text-[rgba(245,245,242,0.6)]">
+                Importing from Horus, a spreadsheet, or a backup is available on Pro. You can still add entries manually on Free.
+                {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £9.99/yr</Link>.
+              </p>
+            </div>
+          )}
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Link href="/import" className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-5 transition-colors hover:border-[#1B6FD9]/50 sm:col-span-2">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-base font-semibold text-[#F5F5F2]">Import from Horus</h2>
+                <span className="rounded-full border border-[#1B6FD9]/30 bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[#6AA8FF]">Recommended</span>
+              </div>
+              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
+            </Link>
+            <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
+              <h2 className="text-base font-semibold text-[#F5F5F2]">CSV / spreadsheet</h2>
+              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Map columns from any CSV (MicroGuide, NHS Learn, or your own) to portfolio entries or cases.</p>
+            </Link>
+            <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
+              <h2 className="text-base font-semibold text-[#F5F5F2]">Clerkfolio backup</h2>
+              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Restore from a Clerkfolio JSON backup — the file you download from the Data backup tab.</p>
+            </Link>
+          </div>
+        </section>
       )}
 
       {tab === 'pdf' && (
@@ -680,7 +765,13 @@ export default function ExportPage() {
             ) : loading ? (
               <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Loading entries for {exportScopeLabel(specialty)}...</div>
             ) : visible.length === 0 && visibleCases.length === 0 ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
+              selectedIsRealSpecialty && categoryFilter === 'all' ? (
+                <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">
+                  No entries linked to {exportScopeLabel(specialty)} yet — tag entries with {exportScopeLabel(specialty)} in the entry&apos;s &ldquo;Linked specialties&rdquo; field to include them here.
+                </div>
+              ) : (
+                <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
+              )
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {visible.map(entry => {

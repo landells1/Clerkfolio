@@ -10,7 +10,6 @@ import {
   PROC_SUPERVISION_LABELS,
   REFL_TYPE_LABELS, REFL_FRAMEWORK_LABELS,
   formatCompetencyTheme,
-  formatInterviewReady,
   titleCase,
 } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
@@ -161,20 +160,6 @@ export default async function EntryDetailPage({
               {(entry.interview_themes as string[]).map(theme => (
                 <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 border border-violet-400/20">
                   {formatCompetencyTheme(theme)}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Interview-ready badges */}
-        {(entry.interview_ready_for ?? []).length > 0 && (
-          <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Marked ready for</p>
-            <div className="flex flex-wrap gap-1.5">
-              {(entry.interview_ready_for as string[]).map(target => (
-                <span key={target} className="px-2.5 py-1 rounded-lg text-xs bg-emerald-500/10 text-emerald-300 border border-emerald-400/20">
-                  {formatInterviewReady(target)}
                 </span>
               ))}
             </div>

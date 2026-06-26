@@ -9,6 +9,7 @@ type LinkedInEntry = {
   category: Category
   date: string
   notes: string | null
+  refl_free_text: string | null
 }
 
 function dedupeEntries(entries: LinkedInEntry[]) {
@@ -27,7 +28,7 @@ export default async function LinkedInExportPage() {
   const { data: entries } = user
     ? await supabase
         .from('portfolio_entries')
-        .select('id, title, category, date, notes')
+        .select('id, title, category, date, notes, refl_free_text')
         .eq('user_id', user.id)
         .is('deleted_at', null)
         .order('date', { ascending: false })

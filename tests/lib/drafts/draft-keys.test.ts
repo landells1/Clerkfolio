@@ -49,7 +49,6 @@ describe('portfolioDraftHasContent (BUG-005)', () => {
     date: '2026-06-09',
     specialtyTags: [],
     interviewThemes: [],
-    interviewReadyFor: [],
     auditType: 'audit',
     auditRole: '',
     confType: 'conference',

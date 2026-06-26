@@ -90,27 +90,6 @@ export const REFL_FRAMEWORK_LABELS: Record<string, string> = {
   driscoll: 'Driscoll',
 }
 
-// `interview_ready_for` is open-ended; today only 'imt' is wired, but the
-// renderer needs a sensible fallback for any value seeded in future.
-export const INTERVIEW_READY_LABELS: Record<string, string> = {
-  imt: 'IMT-ready',
-  cst: 'CST-ready',
-  gp: 'GP-ready',
-  accs: 'ACCS-ready',
-  st3: 'ST3-ready',
-  arcp: 'ARCP-ready',
-}
-
-export function formatInterviewReady(value: string): string {
-  if (INTERVIEW_READY_LABELS[value]) return INTERVIEW_READY_LABELS[value]
-  // Fallback: take the slug and title-case it ("st3_arcp" → "ST3 ARCP")
-  const upperFragments = new Set(['st1', 'st2', 'st3', 'st4', 'ct1', 'ct2', 'imt', 'cst', 'gp', 'accs', 'arcp', 'fy1', 'fy2', 'mrcp', 'cesr'])
-  return value
-    .split(/[_-]+/)
-    .map(part => upperFragments.has(part.toLowerCase()) ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ')
-}
-
 // Competency themes: stored values can be either preset display names
 // (e.g. "Leadership") or custom slugs (e.g. "gbr_safe_working"). Use this
 // helper everywhere a stored value is rendered to the user.

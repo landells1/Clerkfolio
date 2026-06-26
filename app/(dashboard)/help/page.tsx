@@ -96,7 +96,8 @@ export default function HelpPage() {
           <Shortcut keys="g s" label="Specialties" />
           <Shortcut keys="g t" label="Timeline" />
           <Shortcut keys="g a" label="ARCP (FY1/FY2)" />
-          <Shortcut keys="g e" label="Share & Export" />
+          <Shortcut keys="g e" label="Import & export" />
+          <Shortcut keys="g i" label="Import portfolio" />
           <Shortcut keys="g r" label="Rotations & training" />
           <Shortcut keys="n" label="New portfolio entry" />
           <Shortcut keys="c" label="New case" />

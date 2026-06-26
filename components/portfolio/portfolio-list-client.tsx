@@ -28,7 +28,6 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   const [applyingTag, setApplyingTag] = useState(false)
   const [recategorising, setRecategorising] = useState(false)
   const [trashing, setTrashing] = useState(false)
-  const [markingReady, setMarkingReady] = useState(false)
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -133,33 +132,6 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
     if (error) { addToast('Failed to recategorise entries', 'error'); return }
     addToast(`${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} recategorised`, 'success')
     setCategoryModalOpen(false)
-    setSelected(new Set()); setSelectMode(false)
-    router.refresh()
-  }
-
-  async function handleMarkInterviewReady(target = 'imt') {
-    setMarkingReady(true)
-    const { data: rows } = await supabase
-      .from('portfolio_entries')
-      .select('id, interview_ready_for, specialty_tags')
-      .in('id', Array.from(selected))
-
-    const errors: string[] = []
-    for (const row of (rows ?? []) as { id: string; interview_ready_for: string[] | null; specialty_tags: string[] | null }[]) {
-      const readyFor = Array.from(new Set([...(row.interview_ready_for ?? []), target]))
-      const specialtyTags = Array.from(new Set([...(row.specialty_tags ?? []), target]))
-      const { error } = await supabase
-        .from('portfolio_entries')
-        .update({ interview_ready_for: readyFor, specialty_tags: specialtyTags })
-        .eq('id', row.id)
-      if (error) errors.push(row.id)
-    }
-    setMarkingReady(false)
-    if (errors.length > 0) {
-      addToast(`Marked some entries but ${errors.length} failed`, 'error')
-    } else {
-      addToast(`${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} marked interview-ready`, 'success')
-    }
     setSelected(new Set()); setSelectMode(false)
     router.refresh()
   }
@@ -272,13 +244,6 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
             </svg>
             Add to export
-          </button>
-          <button
-            onClick={() => handleMarkInterviewReady('imt')}
-            disabled={markingReady}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/15 rounded-lg transition-colors border border-emerald-500/20 disabled:opacity-50"
-          >
-            {markingReady ? 'Marking...' : 'Mark IMT-ready'}
           </button>
           <button
             onClick={handleBulkTrash}

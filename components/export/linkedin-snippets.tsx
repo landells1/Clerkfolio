@@ -10,23 +10,44 @@ type Entry = {
   category: Category
   date: string
   notes: string | null
+  refl_free_text: string | null
+}
+
+// Generic per-category line, used only as a fallback when an entry has no
+// notes / reflection text of its own to draw from.
+const CATEGORY_FALLBACK: Record<Category, string> = {
+  audit_qip: 'Delivered quality improvement evidence with measurable clinical governance value.',
+  teaching: 'Created and delivered teaching with a clear learning impact.',
+  conference: 'Expanded specialty knowledge and professional engagement through formal learning.',
+  publication: 'Contributed scholarly work with a documented research output.',
+  leadership: 'Demonstrated leadership and service contribution in a defined role.',
+  prize: 'Received formal recognition for achievement and professional contribution.',
+  procedure: 'Logged supervised clinical skill development with reflective learning.',
+  reflection: 'Captured reflective practice linked to clinical growth and patient care.',
+  custom: 'Added verified portfolio evidence with clear professional relevance.',
+}
+
+// Pull the first sentence from the entry's own reflection or notes so two
+// same-category entries don't stack identical boilerplate. Capped so the
+// snippet stays postable. (F-045)
+function highlightFrom(...sources: (string | null | undefined)[]): string | null {
+  for (const source of sources) {
+    const cleaned = (source ?? '').replace(/\s+/g, ' ').trim()
+    if (!cleaned) continue
+    const breakAt = cleaned.search(/[.!?](\s|$)/)
+    let highlight = breakAt >= 0 ? cleaned.slice(0, breakAt + 1) : cleaned
+    if (highlight.length > 200) highlight = `${highlight.slice(0, 197).trimEnd()}…`
+    if (!/[.!?…]$/.test(highlight)) highlight += '.'
+    return highlight
+  }
+  return null
 }
 
 function sentence(entry: Entry) {
   const label = CATEGORIES.find(category => category.value === entry.category)?.short ?? 'Portfolio'
   const date = new Date(entry.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
-  const tail = {
-    audit_qip: 'Delivered quality improvement evidence with measurable clinical governance value.',
-    teaching: 'Created and delivered teaching with a clear learning impact.',
-    conference: 'Expanded specialty knowledge and professional engagement through formal learning.',
-    publication: 'Contributed scholarly work with a documented research output.',
-    leadership: 'Demonstrated leadership and service contribution in a defined role.',
-    prize: 'Received formal recognition for achievement and professional contribution.',
-    procedure: 'Logged supervised clinical skill development with reflective learning.',
-    reflection: 'Captured reflective practice linked to clinical growth and patient care.',
-    custom: 'Added verified portfolio evidence with clear professional relevance.',
-  }[entry.category]
-  return `Achievement: ${entry.title}. ${tail} ${label}. ${date}.`
+  const body = highlightFrom(entry.refl_free_text, entry.notes) ?? CATEGORY_FALLBACK[entry.category]
+  return `Achievement: ${entry.title}. ${body} ${label}. ${date}.`
 }
 
 export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {

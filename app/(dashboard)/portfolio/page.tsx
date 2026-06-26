@@ -21,7 +21,7 @@ function normaliseTheme(value: string) {
 export default async function PortfolioPage({
   searchParams,
 }: {
-  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; importance?: string; missing?: string; ready?: string }>
+  searchParams: Promise<{ view?: ViewMode; category?: string; q?: string; importance?: string; missing?: string }>
 }) {
   const resolvedSearchParams = await searchParams
   const supabase = await createClient()
@@ -32,12 +32,11 @@ export default async function PortfolioPage({
   const q = resolvedSearchParams.q ?? ''
   const importanceFilter = isImportance(resolvedSearchParams.importance) ? resolvedSearchParams.importance : ''
   const missing = resolvedSearchParams.missing ?? ''
-  const readyFilter = resolvedSearchParams.ready ?? ''
 
   const [{ data: entries }, { data: customThemes }, { data: trackedSpecialtyRows }, { data: evidenceFiles }] = await Promise.all([
     supabase
       .from('portfolio_entries')
-      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, importance, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes, interview_ready_for')
+      .select('id, user_id, category, title, date, specialty_tags, notes, pinned, importance, deleted_at, created_at, updated_at, audit_type, audit_role, audit_cycle_stage, audit_trust, audit_outcome, audit_presented, teaching_type, teaching_audience, teaching_setting, teaching_event, teaching_invited, conf_type, conf_event_name, conf_attendance, conf_level, conf_cpd_hours, conf_certificate, pub_type, pub_journal, pub_authors, pub_status, pub_doi, leader_role, leader_organisation, leader_start_date, leader_end_date, leader_ongoing, prize_body, prize_level, prize_description, proc_name, proc_setting, proc_supervision, proc_count, refl_type, refl_framework, refl_clinical_context, refl_supervisor, refl_free_text, custom_free_text, interview_themes')
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .order('pinned', { ascending: false })
@@ -69,7 +68,6 @@ export default async function PortfolioPage({
 
   const allEntries = ((entries ?? []) as PortfolioEntry[]).filter(entry => {
     if (view === 'categories' && activeCategory && entry.category !== activeCategory) return false
-    if (readyFilter && !(entry.interview_ready_for ?? []).includes(readyFilter)) return false
     if (importanceFilter && entry.importance !== importanceFilter) return false
     if (!matchesParsedQuery(
       { ...entry, file_names: fileNamesByEntry.get(entry.id) ?? [] },
@@ -122,11 +120,6 @@ export default async function PortfolioPage({
           <option value="specialty tags">Missing tags</option>
           <option value="audit cycle stage">Missing audit stage</option>
           <option value="date">Missing date</option>
-        </select>
-        <select name="ready" defaultValue={readyFilter} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
-          <option value="">Any portfolio</option>
-          <option value="imt">Interview-ready: IMT</option>
-          <option value="st_application">Interview-ready: ST application</option>
         </select>
         <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
@@ -208,12 +201,20 @@ function EmptyPortfolio() {
       <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-fg-2">
         Log audits, teaching, courses, publications, prizes, procedures and reflections. Filter by category once you have a few entries.
       </p>
-      <Link
-        href="/portfolio/new"
-        className="mt-5 inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 hover:bg-blue-600 transition-colors"
-      >
-        Add your first entry
-      </Link>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+        <Link
+          href="/portfolio/new"
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-surface-0 hover:bg-blue-600 transition-colors"
+        >
+          Add your first entry
+        </Link>
+        <Link
+          href="/import"
+          className="inline-flex items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors"
+        >
+          Import existing portfolio
+        </Link>
+      </div>
     </div>
   )
 }

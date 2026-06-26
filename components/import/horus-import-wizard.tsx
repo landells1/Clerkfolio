@@ -193,7 +193,10 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
     setImporting(false)
   }
 
-  const selectedCount  = rows.filter(r => r.selected).length
+  // Count only rows that will actually import — selected AND with a title.
+  // `handleImport` filters on `r.selected && r.title`, so a selected no-title
+  // row must not inflate the "Configure import / Import N entries" labels. (F-042)
+  const selectedCount  = rows.filter(r => r.selected && r.title).length
   const skippableCount = rows.filter(r => !r.title).length
   const warningCount   = rows.filter(r => r.issues.length > 0 && r.title).length
 

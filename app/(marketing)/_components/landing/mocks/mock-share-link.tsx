@@ -5,10 +5,11 @@ export function MockShareLink({ className = '' }: { className?: string }) {
     <WindowChrome url="clerkfolio.co.uk/export" className={className} contentClassName="p-4 sm:p-5">
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold tracking-[-0.02em]">Export & share</h3>
-          <p className="text-xs text-ink-dim">Build application-ready packs or protected links.</p>
+          <h3 className="text-lg font-semibold tracking-[-0.02em]">Import &amp; export</h3>
+          <p className="text-xs text-ink-dim">Import a portfolio, build application-ready packs, or protected links.</p>
         </div>
         <div className="flex rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-1 font-mono text-[10px] text-ink-dim">
+          <span className="px-2 py-1">Import</span>
           <span className="px-2 py-1">Application PDF</span>
           <span className="px-2 py-1">Data backup</span>
           <span className="rounded bg-blue-500 px-2 py-1 text-white">Share links</span>

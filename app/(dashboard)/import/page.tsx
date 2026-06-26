@@ -32,13 +32,13 @@ export default async function ImportPage() {
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Import from Horus</h1>
+          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Import your portfolio</h1>
           <p className="text-sm text-[rgba(245,245,242,0.45)] mt-0.5">
-            Move your NHS foundation portfolio evidence into Clerkfolio quickly.
+            Bring an existing portfolio into Clerkfolio. The Horus importer is below — you can also map a CSV/spreadsheet or restore a Clerkfolio backup.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link href="/import/csv" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">CSV wizard</Link>
-            <Link href="/import/json" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">Backup import</Link>
+            <Link href="/import/csv" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">CSV / spreadsheet</Link>
+            <Link href="/import/json" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">Clerkfolio backup</Link>
           </div>
         </div>
       </div>

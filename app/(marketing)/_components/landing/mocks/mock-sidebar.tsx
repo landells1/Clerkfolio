@@ -7,7 +7,7 @@ const items = [
   ['Specialties', '◇'],
   ['ARCP', '✓'],
   ['Timeline', '⌗'],
-  ['Export & share', '↗'],
+  ['Import & export', '↗'],
 ] as const
 
 export function MockSidebar({ active }: { active: string }) {
