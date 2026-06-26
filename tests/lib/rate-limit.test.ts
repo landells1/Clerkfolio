@@ -83,19 +83,6 @@ describe('checkRateLimit — in-memory fallback (no Upstash)', () => {
       vi.useRealTimers()
     }
   })
-
-  it('fails closed for public API limits in production without Redis', async () => {
-    vi.stubEnv('NODE_ENV', 'production')
-    const result = await checkRateLimit({
-      key: 'public-ip',
-      max: 60,
-      windowSeconds: 60,
-      prefix: 'apikey',
-      requireDistributed: true,
-    })
-    expect(result.success).toBe(false)
-    expect(result.unavailable).toBe(true)
-  })
 })
 
 describe('rateLimitHeaders', () => {

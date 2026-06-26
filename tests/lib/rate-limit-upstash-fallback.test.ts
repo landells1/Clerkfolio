@@ -1,10 +1,10 @@
 // @vitest-environment node
 //
 // When Upstash IS configured but the REST call throws (network blip, quota,
-// outage), checkRateLimit must fail soft for ordinary routes (fall back to the
-// in-memory bucket) and fail closed for routes that require cluster-wide
-// enforcement (the public API). These tests mock the Upstash SDK so the
-// limiter is constructed but its .limit() rejects.
+// outage), checkRateLimit must fail soft (fall back to the in-memory bucket) for
+// every caller. These tests mock the Upstash SDK so the limiter is constructed
+// but its .limit() rejects. (The fail-closed-for-cluster-wide path was the
+// public API's only; it was removed pre-launch — F-026.)
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 
 vi.mock('@upstash/redis', () => ({
@@ -43,21 +43,5 @@ describe('checkRateLimit — Upstash throws', () => {
     expect(result.success).toBe(true)
     expect(result.unavailable).toBeUndefined()
     expect(warn).toHaveBeenCalled()
-  })
-
-  it('fails closed for routes that require distributed limiting', async () => {
-    vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { checkRateLimit } = await import('@/lib/rate-limit')
-
-    const result = await checkRateLimit({
-      key: 'closed-ip',
-      max: 60,
-      windowSeconds: 60,
-      prefix: 'apikey',
-      requireDistributed: true,
-    })
-
-    expect(result.success).toBe(false)
-    expect(result.unavailable).toBe(true)
   })
 })

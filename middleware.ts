@@ -119,7 +119,6 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/showcase/') ||
     pathname.startsWith('/api/share/access') ||
     pathname.startsWith('/api/calendar/feed/') ||
-    pathname.startsWith('/api/v1/me/') ||
     pathname.startsWith('/api/stripe/webhook') ||
     pathname.startsWith('/api/student-email/confirm') ||
     pathname.startsWith('/api/feedback') ||
@@ -205,11 +204,18 @@ export async function middleware(request: NextRequest) {
         if (sessionId) patch.session_id = sessionId
         await admin.from('session_fingerprints').update(patch).eq('id', existing.id)
       } else {
-        await admin.from('session_fingerprints').insert({
-          user_id: user.id,
-          ip_hash: ipHash,
-          user_agent: userAgent,
-          session_id: sessionId,
+        // Idempotent insert. Two concurrent first-requests for a fresh session
+        // both reach here (both passed the SELECT above) and would otherwise
+        // race on the partial unique index session_fingerprints_active_uq,
+        // logging a `duplicate key` ERROR in Postgres. The RPC does a real
+        // INSERT ... ON CONFLICT ... DO NOTHING so the loser is a silent no-op
+        // (F-021). service_role-only; supabase-js .upsert() can't target the
+        // partial-expression index, hence the helper.
+        await admin.rpc('record_active_session_fingerprint', {
+          p_user_id: user.id,
+          p_ip_hash: ipHash,
+          p_user_agent: userAgent,
+          p_session_id: sessionId,
         })
       }
 

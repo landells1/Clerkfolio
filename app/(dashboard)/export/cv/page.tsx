@@ -64,13 +64,16 @@ export default async function CvGeneratorPage({
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
-        <Link href="/export" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Export</Link>
+        <Link href="/export" prefetch={false} className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Export</Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">CV generator</h1>
         <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Generate a clinical, academic, or ST-application CV summary from your portfolio entries.</p>
       </div>
       <div className="mb-5 flex flex-wrap gap-2">
         {TEMPLATES.map(item => (
-          <Link key={item.key} href={`/export/cv?template=${item.key}`} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[#1B6FD9] text-[#0B0B0C]' : 'border border-white/[0.08] bg-[#141416] text-[#F5F5F2]'}`}>
+          // prefetch={false}: the three template switchers are query-param variants
+          // of this one PDF-heavy route; default prefetch fans out the RSC renders
+          // on mount (the BUG-001 / F-032 / F-044 prefetch storm). Fetch on click.
+          <Link key={item.key} href={`/export/cv?template=${item.key}`} prefetch={false} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[#1B6FD9] text-[#0B0B0C]' : 'border border-white/[0.08] bg-[#141416] text-[#F5F5F2]'}`}>
             {item.label}
           </Link>
         ))}

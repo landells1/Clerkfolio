@@ -352,7 +352,6 @@ export default function SettingsPage() {
     ['/settings/themes', 'Competency themes', 'Custom interview themes (Leadership, Teaching, etc.)'],
     ['/settings/tags', 'Specialty tags', 'Rename or merge linked-specialty tags'],
     ['/settings/shared-links', 'Shared links', 'Manage read-only public share links'],
-    ['/settings/api', 'API access', 'Bearer keys for developer integrations'],
     ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],
     ['/settings/sessions', 'Sessions', 'Active devices and sign-ins'],
     ['/trash', 'Trash', 'Restore items or permanently delete them after 30 days'],

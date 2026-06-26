@@ -58,6 +58,10 @@ export default function CategoryTileGrid({ entries }: Props) {
           <Link
             key={category.value}
             href={`/portfolio?category=${category.value}`}
+            // prefetch={false}: one tile per category, all query-param variants of
+            // the same expensive /portfolio route — default prefetch renders all 9
+            // on mount (the BUG-001 / F-032 prefetch storm). Fetch on click instead.
+            prefetch={false}
             className="group relative overflow-hidden rounded-lg border border-subtle bg-surface-1 p-4 hover:border-default hover:bg-surface-2 transition-colors"
           >
             <div className="flex items-center gap-2 mb-2">

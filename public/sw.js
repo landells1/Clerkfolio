@@ -66,8 +66,18 @@ self.addEventListener('fetch', (event) => {
   const url = new URL(event.request.url)
   if (url.origin !== self.location.origin) return
 
-  if (event.request.mode === 'navigate' && SHELL_PATHS.has(url.pathname)) {
-    event.respondWith(networkFirstWithOfflineFallback(event.request, SHELL_CACHE))
+  if (event.request.mode === 'navigate') {
+    // Shell paths are network-first and cached, so they can be re-served whole
+    // when offline. Every *other* same-origin HTML navigation (/specialties,
+    // /timeline, /arcp, /logs, /settings, /export, ...) falls back to the
+    // pre-cached /offline card on network failure instead of the browser's
+    // default "This site can't be reached" error (F-035) — without caching the
+    // (often authenticated) page response.
+    if (SHELL_PATHS.has(url.pathname)) {
+      event.respondWith(networkFirstWithOfflineFallback(event.request, SHELL_CACHE))
+    } else {
+      event.respondWith(networkThenOfflineFallback(event.request))
+    }
     return
   }
 
@@ -107,6 +117,18 @@ function networkFirstWithOfflineFallback(request, cacheName) {
   }).catch(async () => {
     const cached = await caches.match(request)
     if (cached) return cached
+    const offline = await caches.match(OFFLINE_FALLBACK_PATH)
+    if (offline) return offline
+    return Response.error()
+  })
+}
+
+function networkThenOfflineFallback(request) {
+  // Try the network; on failure serve the pre-cached /offline card. We
+  // deliberately do NOT cache the response - these navigations are often
+  // authenticated pages and must never be re-served to the next user on a
+  // shared device (same rule as the API handler above).
+  return fetch(request).catch(async () => {
     const offline = await caches.match(OFFLINE_FALLBACK_PATH)
     if (offline) return offline
     return Response.error()

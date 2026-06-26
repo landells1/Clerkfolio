@@ -6,7 +6,6 @@ type RateLimitOptions = {
   max: number
   windowSeconds: number
   prefix: string
-  requireDistributed?: boolean
 }
 
 type RateLimitCheck = {
@@ -14,23 +13,16 @@ type RateLimitCheck = {
   limit: number
   remaining: number
   reset: number
+  // Set only by limiters that demanded cluster-wide enforcement and couldn't get
+  // it (fail-closed → caller should 503). The sole such caller was the public API
+  // key-auth path, removed pre-launch (F-026), so nothing sets this today; the
+  // export/feedback/calendar routes still read it (always falsy now → 429).
   unavailable?: boolean
 }
 
 const redisConfigured = Boolean(
   process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN,
 )
-
-/**
- * True when distributed (Upstash) rate limiting is configured. The public
- * API key-auth path fails closed with HTTP 503 when this is false (a 60/min
- * cluster-wide limit can't be enforced per-instance), so the developer API is
- * effectively offline. The /settings/api UI uses this to warn users and block
- * minting keys that wouldn't authenticate (QOL-019).
- */
-export function isPublicApiOnline() {
-  return redisConfigured
-}
 
 const redis = redisConfigured ? Redis.fromEnv() : null
 const limiters = new Map<string, Ratelimit>()
@@ -125,28 +117,10 @@ export async function checkRateLimit(options: RateLimitOptions): Promise<RateLim
         warnedUpstashError = true
         console.warn('[rate-limit] Upstash limiter threw; falling back to in-memory bucket.', err instanceof Error ? err.message : err)
       }
-      // Routes that demand cluster-wide enforcement (public API) must not be
-      // silently downgraded to per-instance limiting - fail closed instead.
-      if (options.requireDistributed) {
-        return {
-          success: false,
-          limit: options.max,
-          remaining: 0,
-          reset: Date.now() + options.windowSeconds * 1000,
-          unavailable: true,
-        }
-      }
+      // A limiter outage fails soft to the per-instance bucket for every caller.
+      // (The public API was the only route that demanded cluster-wide
+      // enforcement / fail-closed; it was removed pre-launch — F-026.)
       return localSlidingWindow(options)
-    }
-  }
-
-  if (process.env.NODE_ENV === 'production' && options.requireDistributed) {
-    return {
-      success: false,
-      limit: options.max,
-      remaining: 0,
-      reset: Date.now() + options.windowSeconds * 1000,
-      unavailable: true,
     }
   }
 
