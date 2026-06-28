@@ -1017,8 +1017,8 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
             {/* Manage all links */}
             <p className="text-xs text-[rgba(245,245,242,0.55)] text-center">
               Manage all shared links in{' '}
-              <a href="/settings/shared-links" className="text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] underline transition-colors">
-                Settings → Shared links
+              <a href="/export?tab=share" className="text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] underline transition-colors">
+                Import &amp; export → Share
               </a>
             </p>
           </div>

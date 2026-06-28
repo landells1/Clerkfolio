@@ -1,5 +1,6 @@
 import type { SupabaseClient, User } from '@supabase/supabase-js'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
+import { bindInstitutionalEmail, institutionalEmailBoundElsewhere } from '@/lib/institutional-email-ledger'
 import { markReferralActivationIfEligible, processReferralsForReferrer } from '@/lib/referrals/rewards'
 
 export type InstitutionalAuthEmailClaimStatus =
@@ -38,6 +39,11 @@ export async function claimVerifiedInstitutionalAuthEmail(
 
   if (existingVerifiedProfile) return 'conflict'
 
+  // Recycled-email guard (F-037): this address may have been verified by another
+  // account in the past and released (e.g. a graduated student's reissued
+  // .ac.uk). The ledger binds it permanently, so it cannot be re-claimed here.
+  if (await institutionalEmailBoundElsewhere(service, signupEmail, user.id)) return 'conflict'
+
   const now = new Date()
   const dueAt = new Date(now)
   dueAt.setFullYear(dueAt.getFullYear() + 1)
@@ -56,6 +62,10 @@ export async function claimVerifiedInstitutionalAuthEmail(
 
   const { error: tierError } = await service.rpc('recompute_profile_tier', { p_user_id: user.id })
   if (tierError) throw tierError
+
+  // Bind the address in the recycled-email ledger so it can't be re-verified by
+  // a different account after this user later releases it (F-037).
+  await bindInstitutionalEmail(service, signupEmail, user.id)
 
   // The user just became institution-verified: activate any referrals they
   // received that are already eligible, and (if they are themselves a referred

@@ -5,27 +5,14 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
-
-const ALLOWED_NEXT_PATHS = new Set([
-  '/dashboard',
-  '/portfolio',
-  '/cases',
-  '/specialties',
-  '/timeline',
-  '/export',
-  '/settings',
-  '/trash',
-  '/upgrade',
-  '/import',
-])
+import { isProtectedPagePath } from '@/lib/auth/protected-paths'
 
 function safeNextPath(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
   const parsed = new URL(value, 'https://clerkfolio.local')
-  const allowed = [...ALLOWED_NEXT_PATHS].some(path =>
-    parsed.pathname === path || parsed.pathname.startsWith(`${path}/`)
-  )
-  return allowed ? `${parsed.pathname}${parsed.search}` : '/dashboard'
+  // Allowlist mirrors middleware's protected-page list exactly (shared constant)
+  // so a deep-link middleware bounced to login (e.g. ?next=/arcp) survives login.
+  return isProtectedPagePath(parsed.pathname) ? `${parsed.pathname}${parsed.search}` : '/dashboard'
 }
 
 function LoginForm() {

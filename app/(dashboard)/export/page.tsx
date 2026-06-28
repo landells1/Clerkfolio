@@ -155,6 +155,17 @@ export default function ExportPage() {
     errorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }, [error])
 
+  // Allow deep-linking to a specific tab, e.g. ?tab=share - the now-retired
+  // /settings/shared-links redirects here so share management lives on one
+  // surface (F-027). Read from the URL directly (no Suspense needed for a
+  // client-only effect).
+  useEffect(() => {
+    const requested = new URLSearchParams(window.location.search).get('tab')
+    if (requested === 'import' || requested === 'pdf' || requested === 'backup' || requested === 'share') {
+      setTab(requested)
+    }
+  }, [])
+
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -1009,6 +1020,7 @@ export default function ExportPage() {
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
+                        <a href={`/share/${link.token}`} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">Preview</a>
                         <button onClick={() => renewShareLink(link.id)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">Renew</button>
                         {confirmRevoke === link.id ? (
                           <>

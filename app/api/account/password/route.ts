@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
+import { notifyPasswordChanged } from '@/lib/notifications/password-changed'
 
 // Server-side password change with current-password reauth.
 //
@@ -67,6 +68,11 @@ export async function POST(req: NextRequest) {
     action: 'password_changed',
     metadata: { at: new Date().toISOString() },
   })
+
+  // Out-of-band "your password was changed" alert + in-app notification (F-038),
+  // identical to the reset path. Best-effort: notification/email failures are
+  // swallowed inside the helper so they can't fail the password change.
+  await notifyPasswordChanged(service, { userId: user.id, email: user.email, mode: 'in_app' })
 
   // Updating the password invalidates the session used above. Establish a
   // fresh current session through the SSR client so its cookie callbacks

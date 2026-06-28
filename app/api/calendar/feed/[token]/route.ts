@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/types/portfolio'
-import { getSpecialtyConfig } from '@/lib/specialties'
 import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
@@ -92,22 +91,35 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   }
 
   const supabase = createServiceClient()
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id')
     .eq('calendar_feed_token_hash', hashToken(token))
-    .single()
+    .maybeSingle()
 
+  // Fail loud on a genuine query error (vs a clean "no such token"). A silent
+  // 200 here would mask an outage and look identical to an unsubscribed feed.
+  if (profileError) {
+    console.error('calendar feed: profile lookup failed:', profileError.message)
+    return NextResponse.json({ error: 'Calendar feed temporarily unavailable' }, { status: 500 })
+  }
   if (!profile) return NextResponse.json({ error: 'Calendar feed not found' }, { status: 404 })
 
-  const { data: deadlines } = await supabase
+  // F-020: the prior select listed `updated_at` (and unused `created_at`), but
+  // `deadlines` has no `updated_at` column, so the query errored and the route
+  // silently dropped EVERY user-created Timeline deadline from the ICS while
+  // still returning 200 with config deadlines only. The VEVENT builder only
+  // reads id/title/due_date/details/location, and source_specialty_key feeds
+  // the auto-dedupe set - so select exactly those. Any query error now fails
+  // loud (500) instead of partial-200, so a future schema drift is caught.
+  const { data: deadlines, error: deadlinesError } = await supabase
     .from('deadlines')
-    .select('id, title, due_date, details, location, source_specialty_key, updated_at, created_at')
+    .select('id, title, due_date, details, location, source_specialty_key')
     .eq('user_id', profile.id)
     .eq('completed', false)
     .order('due_date', { ascending: true })
 
-  const { data: goals } = await supabase
+  const { data: goals, error: goalsError } = await supabase
     .from('goals')
     .select('id, category, target_count, due_date, specific, measurable, achievable, relevant, time_bound, created_at')
     .eq('user_id', profile.id)
@@ -115,11 +127,19 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     .not('due_date', 'is', null)
     .order('due_date', { ascending: true })
 
-  const { data: specialties } = await supabase
+  const { data: specialties, error: specialtiesError } = await supabase
     .from('specialty_applications')
     .select('id, specialty_key')
     .eq('user_id', profile.id)
     .eq('is_active', true)
+
+  if (deadlinesError || goalsError || specialtiesError) {
+    console.error(
+      'calendar feed: event query failed:',
+      deadlinesError?.message ?? goalsError?.message ?? specialtiesError?.message
+    )
+    return NextResponse.json({ error: 'Calendar feed temporarily unavailable' }, { status: 500 })
+  }
 
   const host = req.nextUrl.host
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
@@ -135,12 +155,9 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
       due_date: deadline.date,
       details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
       location: deadline.sourceUrl,
-      updated_at: null,
-      created_at: null,
     })),
-    ...(specialties ?? []).flatMap(specialty => {
-      const config = getSpecialtyConfig(specialty.specialty_key)
-      return getDeadlinesForSpecialty(specialty.specialty_key)
+    ...(specialties ?? []).flatMap(specialty =>
+      getDeadlinesForSpecialty(specialty.specialty_key)
         .filter(deadline => !persistedAutoKeys.has(`${specialty.specialty_key}|${deadline.label}|${deadline.date}`))
         .map(deadline => ({
           id: `${specialty.id}-${deadline.kind}`,
@@ -148,10 +165,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
           due_date: deadline.date,
           details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
           location: deadline.sourceUrl,
-          updated_at: null,
-          created_at: config?.key ?? null,
         }))
-    }),
+    ),
   ]
 
   const goalEvents = (goals ?? []).map(goal => ({
@@ -160,8 +175,6 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     due_date: goal.due_date!,
     details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n'),
     location: null,
-    updated_at: null,
-    created_at: goal.created_at,
   }))
 
   const events = [...configuredDeadlines, ...(deadlines ?? []), ...goalEvents].flatMap(deadline => {

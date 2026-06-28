@@ -14,6 +14,9 @@ const ACTION_LABELS: Record<string, string> = {
   share_link_revoked: 'Share link revoked',
   profile_updated: 'Profile updated',
   password_updated: 'Password updated',
+  password_changed: 'Password changed',
+  password_reset: 'Password reset',
+  auth_email_changed: 'Login email changed',
 }
 
 function formatAction(action: string) {

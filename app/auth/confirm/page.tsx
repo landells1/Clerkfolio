@@ -39,13 +39,11 @@ function safeRedirectPath(next: string | null): string {
   return '/onboarding'
 }
 
-// email_change is intentionally excluded. The settings page disables the email
-// field so users cannot initiate an email change through the UI. Keeping
-// email_change here would allow a dev-console caller to bypass the reauth
-// requirement in /api/account/email-change (not yet implemented). A full
-// email-change flow with current-password reauth should be added before
-// re-enabling this type.
-const ALLOWED_OTP_TYPES = new Set(['signup', 'email', 'invite', 'recovery'])
+// email_change is enabled now that /api/account/email gates the change behind a
+// current-password reauth (F-037). Confirming this OTP only completes a change
+// the account owner already authorised; the auth.users.email swap then fires the
+// audit + institutional-re-derivation triggers server-side.
+const ALLOWED_OTP_TYPES = new Set(['signup', 'email', 'invite', 'recovery', 'email_change'])
 
 function ConfirmContent() {
   const searchParams = useSearchParams()
@@ -101,6 +99,15 @@ function ConfirmContent() {
       setLoading(false)
       return
     }
+    // An email change is fully re-derived server-side the moment auth.users.email
+    // swaps (the audit + institutional triggers), so there's nothing to claim
+    // here - just land back on settings. (With secure email change the user may
+    // need to confirm from both inboxes; the toast says so.)
+    if (type === 'email_change') {
+      window.location.href = '/settings?email=changed'
+      return
+    }
+
     // Best-effort claim: a network failure here must not strand the user on
     // the confirm page after the OTP has already been consumed - the claim
     // re-runs from settings, so fall through to the redirect.

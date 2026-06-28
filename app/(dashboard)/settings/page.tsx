@@ -67,6 +67,9 @@ export default function SettingsPage() {
   const [pendingStage, setPendingStage] = useState<string | null>(null)
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
+  const [emailForm, setEmailForm] = useState({ open: false, newEmail: '', password: '' })
+  const [emailChangeLoading, setEmailChangeLoading] = useState(false)
+  const [emailChangeSentTo, setEmailChangeSentTo] = useState<string | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleteConfirmText, setDeleteConfirmText] = useState('')
   const [deleteConfirmPassword, setDeleteConfirmPassword] = useState('')
@@ -142,6 +145,10 @@ export default function SettingsPage() {
     if (status === 'conflict') addToast(
       'Your signup email is already verified on another Clerkfolio account. If that wasn\'t you, please contact support.',
       'error'
+    )
+    if (searchParams.get('email') === 'changed') addToast(
+      'Email change confirmed. If your old inbox also received a link, open it too to finish.',
+      'success'
     )
     if (settingsErrorMessage) addToast(settingsErrorMessage, 'error')
   }, [addToast, searchParams, settingsErrorMessage])
@@ -237,6 +244,35 @@ export default function SettingsPage() {
         : 'Password updated',
       data?.sessionsRevoked === false ? 'error' : 'success'
     )
+  }
+
+  async function handleEmailChange(e: React.SyntheticEvent) {
+    e.preventDefault()
+    const newEmail = emailForm.newEmail.trim()
+    if (!newEmail) {
+      addToast('Enter the new email address.', 'error')
+      return
+    }
+    if (!emailForm.password) {
+      addToast('Enter your current password to confirm.', 'error')
+      return
+    }
+
+    setEmailChangeLoading(true)
+    // Server enforces current-password reauth, then triggers Supabase's
+    // confirmation email. The login email only changes once the link is opened.
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/account/email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ newEmail, currentPassword: emailForm.password }),
+    })
+    setEmailChangeLoading(false)
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Could not start the email change.'), 'error')
+      return
+    }
+    setEmailChangeSentTo(newEmail)
+    setEmailForm({ open: false, newEmail: '', password: '' })
   }
 
   async function handleDataExport() {
@@ -351,7 +387,7 @@ export default function SettingsPage() {
     ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
     ['/settings/themes', 'Competency themes', 'Custom interview themes (Leadership, Teaching, etc.)'],
     ['/settings/tags', 'Specialty tags', 'Rename or merge linked-specialty tags'],
-    ['/settings/shared-links', 'Shared links', 'Manage read-only public share links'],
+    ['/export?tab=share', 'Shared links', 'Manage read-only public share links'],
     ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],
     ['/settings/sessions', 'Sessions', 'Active devices and sign-ins'],
     ['/trash', 'Trash', 'Restore items or permanently delete them after 30 days'],
@@ -449,10 +485,67 @@ export default function SettingsPage() {
               />
             </label>
           </div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+          <div className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
             Email
-            <input value={email} disabled className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.45)] normal-case tracking-normal" />
-          </label>
+            <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
+              <input value={email} disabled className="w-full min-h-[44px] flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.45)] normal-case tracking-normal" />
+              {!emailForm.open && (
+                <button
+                  type="button"
+                  onClick={() => { setEmailChangeSentTo(null); setEmailForm({ open: true, newEmail: '', password: '' }) }}
+                  className="min-h-[44px] shrink-0 rounded-lg border border-white/[0.12] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[#F5F5F2] hover:bg-white/[0.06]"
+                >
+                  Change email
+                </button>
+              )}
+            </div>
+            {emailChangeSentTo && !emailForm.open && (
+              <p role="status" className="mt-2 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-xs font-normal normal-case tracking-normal text-blue-100">
+                We sent a confirmation link to {emailChangeSentTo}. Open it to finish changing your login email. Your current email stays active until you do.
+              </p>
+            )}
+            {emailForm.open && (
+              <div className="mt-2 rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3">
+                <p className="text-xs font-normal normal-case tracking-normal text-[rgba(245,245,242,0.55)]">
+                  We&apos;ll email a confirmation link to the new address. Your login email changes only after you open it. A verified institutional email is re-checked when your login email changes.
+                </p>
+                <input
+                  type="email"
+                  autoComplete="email"
+                  value={emailForm.newEmail}
+                  onChange={e => setEmailForm(f => ({ ...f, newEmail: e.target.value }))}
+                  placeholder="new@email.com"
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#141416] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+                />
+                <input
+                  type="password"
+                  autoComplete="current-password"
+                  value={emailForm.password}
+                  onChange={e => setEmailForm(f => ({ ...f, password: e.target.value }))}
+                  placeholder="Current password"
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#141416] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+                />
+                <div className="mt-2 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={handleEmailChange}
+                    disabled={emailChangeLoading}
+                    className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold normal-case tracking-normal text-[#0B0B0C] hover:bg-[#155BB0] disabled:opacity-50"
+                  >
+                    {emailChangeLoading ? 'Sending...' : 'Send confirmation'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEmailForm({ open: false, newEmail: '', password: '' })}
+                    disabled={emailChangeLoading}
+                    className="min-h-[44px] rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[rgba(245,245,242,0.7)] disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
             Timezone
             <select value={profile.timezone} onChange={e => setProfile(p => ({ ...p, timezone: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal">

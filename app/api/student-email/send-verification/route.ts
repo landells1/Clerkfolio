@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { institutionalEmailHelpText, isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
+import { institutionalEmailBoundElsewhere } from '@/lib/institutional-email-ledger'
 
 const TOKEN_TTL_HOURS = 24
 const SEND_COOLDOWN_SECONDS = 60
@@ -51,6 +52,13 @@ export async function POST(req: NextRequest) {
 
   if (existingVerifiedProfile) {
     return NextResponse.json({ error: 'This institutional email is already verified on another Clerkfolio account.' }, { status: 409 })
+  }
+
+  // Recycled-email guard (F-037): an address bound to another account in the
+  // ledger (even one since released) can never be re-verified, so don't burn a
+  // token / cooldown slot sending a link that confirm would reject.
+  if (await institutionalEmailBoundElsewhere(service, email, user.id)) {
+    return NextResponse.json({ error: 'This institutional email is already linked to another Clerkfolio account and cannot be reused.' }, { status: 409 })
   }
 
   // #7: per-user daily hard cap to prevent inbox-spam / billing abuse.

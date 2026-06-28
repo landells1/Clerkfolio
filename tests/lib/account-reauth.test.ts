@@ -20,6 +20,7 @@ const state: {
   signInCallCount: number
   signOutScopes: string[]
   auditInsertCount: number
+  notificationInsertCount: number
 } = {
   user: { id: USER_ID, email: USER_EMAIL },
   reauthOk: true,
@@ -29,6 +30,7 @@ const state: {
   signInCallCount: 0,
   signOutScopes: [],
   auditInsertCount: 0,
+  notificationInsertCount: 0,
 }
 
 vi.mock('@/lib/csrf', () => ({ validateOrigin: vi.fn(() => null) }))
@@ -80,6 +82,16 @@ vi.mock('@/lib/supabase/server', () => ({
           },
         }
       }
+      if (table === 'notifications') {
+        // F-038: the password change now also fires the "your password was
+        // changed" notification + email via createNotification.
+        return {
+          insert: async () => {
+            state.notificationInsertCount++
+            return { error: null }
+          },
+        }
+      }
       return { select: () => ({ eq: async () => ({ data: [], error: null }) }) }
     },
     storage: {
@@ -110,6 +122,7 @@ beforeEach(() => {
   state.signInCallCount = 0
   state.signOutScopes = []
   state.auditInsertCount = 0
+  state.notificationInsertCount = 0
 })
 
 describe('/api/account/password — Codex 2026-05-20 #8 (password change reauth)', () => {
@@ -122,6 +135,7 @@ describe('/api/account/password — Codex 2026-05-20 #8 (password change reauth)
     expect(state.signInCallCount).toBe(2)
     expect(state.signOutScopes).toEqual(['others'])
     expect(state.auditInsertCount).toBe(1)
+    expect(state.notificationInsertCount).toBe(1)
   })
 
   it('requires a new sign-in when the replacement session cannot be created', async () => {

@@ -248,7 +248,7 @@ export function buildAutoRevokeEmail({
               </tr>
               <tr>
                 <td style="padding:18px 24px;background:#fafafa;">
-                  <a href="${baseUrl}/settings/shared-links" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Review shared links</a>
+                  <a href="${baseUrl}/export?tab=share" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Review shared links</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">This protects read-only portfolio links from unusual traffic.</p>
                 </td>
               </tr>

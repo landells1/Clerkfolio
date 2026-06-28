@@ -28,8 +28,9 @@ test.describe('Share link with PIN', () => {
   test.beforeEach(async ({ page }) => {
     await loginAs(page)
 
-    // Create a new PIN-protected share link via the UI
-    await page.goto('/settings/shared-links')
+    // Create a new PIN-protected share link via the UI (the canonical share
+    // surface is now Import & export -> Share; F-027 retired /settings/shared-links).
+    await page.goto('/export?tab=share')
     await page.getByRole('button', { name: /create|new link|add link/i }).click()
 
     // Enable PIN protection

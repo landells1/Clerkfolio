@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requestIp } from '@/lib/request-ip'
+import { isProtectedPagePath } from '@/lib/auth/protected-paths'
 
 function contentSecurityPolicy(nonce: string): string {
   return [
@@ -249,22 +250,11 @@ export async function middleware(request: NextRequest) {
 
   // Known authenticated page prefixes — only redirect these to /login when
   // there is no session. Unknown routes fall through so Next.js can render its
-  // custom 404 page instead of silently bouncing the user to /login.
-  const isKnownProtectedPage = [
-    '/dashboard',
-    '/portfolio',
-    '/cases',
-    '/logs',
-    '/specialties',
-    '/arcp',
-    '/timeline',
-    '/export',
-    '/settings',
-    '/trash',
-    '/upgrade',
-    '/import',
-    '/onboarding',
-  ].some(prefix => pathname === prefix || pathname.startsWith(prefix + '/'))
+  // custom 404 page instead of silently bouncing the user to /login. The list
+  // lives in one place (`PROTECTED_PAGE_PREFIXES`) shared with the login page's
+  // post-login `next` allowlist so the redirect target and the allowlist can't
+  // drift apart (F-009).
+  const isKnownProtectedPage = isProtectedPagePath(pathname)
 
   if (!user && isKnownProtectedPage) {
     const url = request.nextUrl.clone()

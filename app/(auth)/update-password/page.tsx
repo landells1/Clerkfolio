@@ -41,6 +41,12 @@ export default function UpdatePasswordPage() {
       return
     }
 
+    // Record the reset in the audit log and send the "your password was
+    // changed" alert email (F-038). Best-effort: apiFetch never throws, and a
+    // failure here must not strand the user on this page after the password has
+    // already changed - the redirect below still runs.
+    await apiFetch('/api/account/password-reset-complete', { method: 'POST' })
+
     // Clear the short-lived recovery cookie so the route locks down again
     // immediately. Middleware checks for this cookie before rendering the
     // page; clearing it after a successful change prevents replay. apiFetch
