@@ -324,7 +324,7 @@ function ThemeManager({
           placeholder="Theme name"
           className="min-h-[40px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
         />
-        <button type="button" onClick={addTheme} className="rounded-lg bg-[#1B6FD9] px-3 text-sm font-semibold text-[#0B0B0C]">
+        <button type="button" onClick={addTheme} className="rounded-lg bg-[#1B6FD9] px-3 text-sm font-semibold text-white">
           Add
         </button>
       </div>

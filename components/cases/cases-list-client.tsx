@@ -295,7 +295,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             <SpecialtyTagSelect value={bulkTags} onChange={setBulkTags} userInterests={userInterests} trackedOnly />
             <div className="mt-4 flex gap-2">
               <button onClick={() => setTagModalOpen(false)} className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm text-[rgba(245,245,242,0.55)]">Cancel</button>
-              <button onClick={bulkAddTags} disabled={bulkTags.length === 0 || busy} className="flex-[2] rounded-xl bg-[#1B6FD9] py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">Apply</button>
+              <button onClick={bulkAddTags} disabled={bulkTags.length === 0 || busy} className="flex-[2] rounded-xl bg-[#1B6FD9] py-2.5 text-sm font-semibold text-white disabled:opacity-50">Apply</button>
             </div>
           </div>
         </div>

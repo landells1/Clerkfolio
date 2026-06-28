@@ -33,7 +33,7 @@ export default async function LandingPage({ searchParams }: { searchParams?: Pro
   return (
     <div className="min-h-screen overflow-x-hidden bg-[#0B0B0C] text-ink">
       {wasDeleted ? (
-        <div className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-accent md:px-14">
+        <div className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-emerald-300 md:px-14">
           Your account has been permanently deleted. Sorry to see you go.
         </div>
       ) : null}

@@ -24,7 +24,7 @@ export default function ChangelogModal({ userId, entries }: { userId: string; en
             </article>
           ))}
         </div>
-        <button onClick={dismiss} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">Got it</button>
+        <button onClick={dismiss} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">Got it</button>
       </div>
     </div>
   )

@@ -9,14 +9,14 @@ export function CtaFooter() {
         <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">◉ Begin</p>
         <h2 className="text-[clamp(56px,7vw,96px)] font-medium leading-none tracking-[-0.055em]">
           Start the<br />
-          <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_195),oklch(0.7_0.13_260))] bg-clip-text font-normal italic text-transparent">
+          <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_250),oklch(0.7_0.13_260))] bg-clip-text font-normal italic text-transparent">
             record you&apos;ll keep.
           </span>
         </h2>
         <p className="mx-auto mt-8 max-w-xl text-lg leading-[1.55] text-ink-soft">
           Free forever - no credit card needed for the free tier.
         </p>
-        <Link href="/signup" className="mt-10 inline-flex rounded-lg bg-accent px-8 py-4 text-sm font-semibold text-surface">
+        <Link href="/signup" className="mt-10 inline-flex rounded-lg bg-accent px-8 py-4 text-sm font-semibold text-white">
           Create your portfolio · free
         </Link>
       </div>

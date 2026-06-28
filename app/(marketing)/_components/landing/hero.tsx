@@ -16,7 +16,7 @@ export function Hero() {
             Every case,<br />
             Every audit,<br />
             Every reflection -<br />
-            <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_195)_0%,oklch(0.7_0.13_250)_100%)] bg-clip-text font-normal italic text-transparent">
+            <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_250)_0%,oklch(0.7_0.13_250)_100%)] bg-clip-text font-normal italic text-transparent">
               In one place.
             </span>
           </h1>
@@ -24,7 +24,7 @@ export function Hero() {
             Anonymised case logging. Portfolio entries that map cleanly onto every specialty&apos;s self-assessment. ARCP-ready exports the moment you need them.
           </p>
           <div className="mt-10 flex flex-wrap gap-3">
-            <Link href="/signup" className="rounded-lg bg-accent px-6 py-3.5 text-sm font-semibold text-surface">Create your portfolio</Link>
+            <Link href="/signup" className="rounded-lg bg-accent px-6 py-3.5 text-sm font-semibold text-white">Create your portfolio</Link>
             <a href="#how" className="rounded-lg border border-white/[0.15] px-6 py-3.5 text-sm font-medium text-ink">See how it works</a>
           </div>
           <div className="mt-8 flex flex-wrap gap-[18px] font-mono text-[11px] uppercase tracking-[0.05em] text-ink-dim">

@@ -156,7 +156,7 @@ export default function LogList({ rows, kind }: { rows: PersonalLogListRow[]; ki
                 </div>
                 <textarea value={editDraft.notes} onChange={event => updateDraft('notes', event.target.value)} placeholder="Notes" className="min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3 text-sm text-[#F5F5F2]" />
                 <div className="flex gap-2">
-                  <button type="button" disabled={saving} onClick={() => void saveLog(row.id)} className="min-h-[40px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+                  <button type="button" disabled={saving} onClick={() => void saveLog(row.id)} className="min-h-[40px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white disabled:opacity-50">
                     {saving ? 'Saving...' : 'Save changes'}
                   </button>
                   <button type="button" disabled={saving} onClick={() => { setEditingId(null); setEditDraft(null) }} className="min-h-[40px] rounded-lg border border-white/[0.08] px-4 text-sm text-[#F5F5F2] disabled:opacity-50">

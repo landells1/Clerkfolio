@@ -16,15 +16,14 @@ export function Nav() {
         <Link href="/" className="flex items-center gap-2.5 rounded-sm">
           <Logo />
           <span className="text-base font-medium tracking-[-0.02em] text-ink">Clerkfolio</span>
-          <span className="ml-1 rounded border border-white/[0.08] px-1.5 py-0.5 font-mono text-[11px] text-ink-dim">v0.1</span>
         </Link>
-        <div className="hidden items-center gap-7 text-[13px] text-ink-soft md:flex">
+        <div className="hidden items-center gap-6 text-[13px] text-ink-soft lg:flex">
           {links.map(([label, href]) => <a key={href} href={href} className="rounded-sm transition hover:text-ink">{label}</a>)}
         </div>
       </div>
       <div className="flex items-center gap-4">
         <Link href="/login" className="hidden rounded-sm text-[13px] text-ink-soft hover:text-ink sm:inline">Log in</Link>
-        <Link href="/signup" className="rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-surface transition hover:brightness-110">
+        <Link href="/signup" className="rounded-lg bg-accent px-4 py-2 text-[13px] font-semibold text-white transition hover:brightness-110">
           Create your portfolio →
         </Link>
       </div>

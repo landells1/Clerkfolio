@@ -43,9 +43,9 @@ export default function JsonImportForm() {
           type="file"
           accept=".json,.zip,application/json,application/zip"
           onChange={e => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#0B0B0C]"
+          className="block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
         />
-        <button disabled={!file || loading} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+        <button disabled={!file || loading} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white disabled:opacity-50">
           {loading ? 'Importing...' : 'Import backup'}
         </button>
       </form>

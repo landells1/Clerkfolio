@@ -24,7 +24,7 @@ export default async function JsonImportPage() {
         <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-6">
           <h2 className="text-lg font-semibold text-[#F5F5F2]">Bulk import is a Pro feature</h2>
           <p className="mt-2 text-sm text-[rgba(245,245,242,0.52)]">Free accounts can still add cases and portfolio entries manually.</p>
-          <Link href="/upgrade" className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">
+          <Link href="/upgrade" className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">
             Upgrade to Pro
           </Link>
         </section>

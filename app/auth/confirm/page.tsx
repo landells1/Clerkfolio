@@ -150,7 +150,7 @@ function ConfirmContent() {
             type="button"
             onClick={handleConfirm}
             disabled={loading}
-            className="min-h-[44px] w-full rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50"
+            className="min-h-[44px] w-full rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {type === 'recovery' ? 'Continue password reset' : 'Confirm email'}
           </button>
@@ -161,7 +161,7 @@ function ConfirmContent() {
       {error && (
         <>
           <p className="mb-5 text-sm text-red-400">{error} If you already confirmed your email, log in to continue.</p>
-          <Link href="/login" className="inline-flex min-h-[44px] items-center rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-[#0B0B0C]">
+          <Link href="/login" className="inline-flex min-h-[44px] items-center rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white">
             Log in
           </Link>
         </>

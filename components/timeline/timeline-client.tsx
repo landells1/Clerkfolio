@@ -338,7 +338,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <button onClick={openGoogleCalendar} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Google</button>
           {hasCalendarFeed && <button onClick={() => rotateCalendarFeed()} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[rgba(245,245,242,0.7)] font-medium rounded-xl px-4 py-2.5 text-sm">Rotate feed</button>}
           <button onClick={() => setShowEventForm(true)} className="min-h-[44px] border border-white/[0.08] bg-[#141416] text-[#F5F5F2] font-medium rounded-xl px-4 py-2.5 text-sm">Add event</button>
-          <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
+          <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] text-white font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>
       </div>
 
@@ -444,7 +444,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
             </div>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowGoalForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>
-              <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-[#0B0B0C] rounded-lg px-4 py-2.5 text-sm font-semibold">Add goal</button>
+              <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-white rounded-lg px-4 py-2.5 text-sm font-semibold">Add goal</button>
             </div>
           </form>
         </div>
@@ -479,7 +479,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
             </label>
             <div className="flex gap-2">
               <button type="button" onClick={() => setShowEventForm(false)} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">Cancel</button>
-              <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-[#0B0B0C] rounded-lg px-4 py-2.5 text-sm font-semibold">Add event</button>
+              <button className="min-h-[44px] flex-1 bg-[#1B6FD9] text-white rounded-lg px-4 py-2.5 text-sm font-semibold">Add event</button>
             </div>
           </form>
         </div>
@@ -516,7 +516,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
                 href={selectedItem.sourceUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]"
+                className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white hover:bg-[#155BB0]"
               >
                 Open {selectedItem.sourceLabel ?? 'source'}
               </a>

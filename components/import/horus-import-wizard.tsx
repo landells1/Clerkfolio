@@ -207,7 +207,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
         {([1, 2, 3, 4] as Step[]).map((s, idx) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-              step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]'
+              step === s ? 'bg-[#1B6FD9] text-white'
               : step > s ? 'bg-emerald-500 text-[#0B0B0C]'
               : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'
             }`}>
@@ -354,7 +354,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             <button
               onClick={() => setStep(3)}
               disabled={selectedCount === 0}
-              className="px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+              className="px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               Configure import ({selectedCount} rows)
             </button>
@@ -432,7 +432,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             <button
               onClick={handleImport}
               disabled={importing}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {importing ? (
                 <>
@@ -471,7 +471,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
           <div className="flex justify-center gap-3">
             <Link
               href="/portfolio"
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] text-white font-semibold text-sm rounded-xl transition-colors"
             >
               View portfolio
             </Link>

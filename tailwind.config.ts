@@ -49,9 +49,12 @@ const config: Config = {
           3: 'rgba(245,245,242,0.35)',
           4: 'rgba(245,245,242,0.20)',
         },
+        // Accent === brand blue. Teal was retired pre-launch (F-010) so the
+        // marketing site and the product read as one brand. Anything that
+        // previously used `text-accent` / `bg-accent` now renders brand blue.
         accent: {
-          DEFAULT: 'oklch(0.82 0.13 195)',
-          soft: 'oklch(0.82 0.13 195 / 0.15)',
+          DEFAULT: '#1B6FD9',
+          soft: 'rgba(27,111,217,0.15)',
         },
         // Pill backgrounds (10% opacity over dark surfaces)
         'pill-blue':   'rgba(27, 111, 217, 0.14)',

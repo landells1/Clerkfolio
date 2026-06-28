@@ -83,7 +83,7 @@ export default function SnippetsPage() {
           <input value={shortcut} onChange={e => setShortcut(e.target.value)} placeholder="/reflection" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
           <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Key learning: " rows={4} className="min-h-[96px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
         </div>
-        <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+        <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white disabled:opacity-50">
           {saving ? 'Saving...' : 'Save snippet'}
         </button>
       </form>

@@ -36,7 +36,7 @@ export function Pricing() {
               </ul>
               <Link
                 href={tier.name === 'Pro' ? '/signup?next=%2Fupgrade%3Fsource%3Dpricing' : '/signup'}
-                className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-surface' : 'border border-white/[0.12] text-ink'}`}
+                className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-white' : 'border border-white/[0.12] text-ink'}`}
               >
                 {tier.name === 'Pro' ? 'Get Pro' : 'Start free'}
               </Link>

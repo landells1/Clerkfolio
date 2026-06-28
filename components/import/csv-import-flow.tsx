@@ -269,7 +269,7 @@ export default function CsvImportFlow() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
         {([1, 2, 3, 4] as Step[]).map(s => (
-          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-[#0B0B0C]' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'}`}>
+          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-white' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'}`}>
             {s === 1 ? 'Upload' : s === 2 ? 'Map' : s === 3 ? 'Preview' : 'Done'}
           </span>
         ))}
@@ -283,7 +283,7 @@ export default function CsvImportFlow() {
               type="file"
               accept=".csv,text/csv"
               onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
-              className="mt-3 block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-[#0B0B0C]"
+              className="mt-3 block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
             />
           </label>
         </section>
@@ -322,7 +322,7 @@ export default function CsvImportFlow() {
               </label>
             ))}
           </div>
-          <button onClick={() => setStep(3)} className="mt-6 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">Preview rows</button>
+          <button onClick={() => setStep(3)} className="mt-6 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">Preview rows</button>
         </section>
       )}
 
@@ -351,7 +351,7 @@ export default function CsvImportFlow() {
           </div>
           <div className="flex flex-wrap gap-2 p-5">
             <button onClick={() => setStep(2)} className="min-h-[44px] rounded-xl border border-white/[0.08] px-5 text-sm font-medium text-[#F5F5F2]">Back</button>
-            <button onClick={importRows} disabled={importing} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] disabled:opacity-50">
+            <button onClick={importRows} disabled={importing} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white disabled:opacity-50">
               {importing ? 'Importing...' : 'Commit import'}
             </button>
           </div>
@@ -361,7 +361,7 @@ export default function CsvImportFlow() {
       {step === 4 && (
         <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6">
           <p className="text-sm font-semibold text-emerald-200">Import complete</p>
-          <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C]">
+          <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">
             Open imported records
           </button>
         </section>

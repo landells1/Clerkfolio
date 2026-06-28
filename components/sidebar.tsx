@@ -3,11 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { useState, useEffect, type Dispatch, type SetStateAction } from 'react'
+import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { useSearch } from '@/app/(dashboard)/providers'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { apiFetch } from '@/lib/api-fetch'
+import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 
 type Profile = {
   first_name: string | null
@@ -170,6 +171,8 @@ export default function Sidebar({ profile, userEmail = '' }: { profile: Profile;
   const router = useRouter()
   const supabase = createClient()
   const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const feedbackRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(feedbackOpen, feedbackRef, () => setFeedbackOpen(false))
   const prefillName = [profile.first_name, profile.last_name].filter(Boolean).join(' ')
   const [feedback, setFeedback] = useState({ name: prefillName, email: userEmail, comment: '' })
   const [feedbackSending, setFeedbackSending] = useState(false)
@@ -487,7 +490,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 // logged-out legal footer disables prefetch.
                 prefetch={false}
                 onClick={() => setMobileOpen(false)}
-                className="text-[9px] text-[rgba(245,245,242,0.28)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
+                className="text-[11px] text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] transition-colors"
               >
                 {label}
               </Link>
@@ -499,10 +502,18 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
       {/* Feedback modal */}
       {feedbackOpen && (
 
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setFeedbackOpen(false)}>
+          <div
+            ref={feedbackRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feedback-title"
+            tabIndex={-1}
+            onClick={e => e.stopPropagation()}
+            className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md"
+          >
             <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Send feedback</h2>
+              <h2 id="feedback-title" className="text-base font-semibold text-[#F5F5F2]">Send feedback</h2>
               <button
                 onClick={() => setFeedbackOpen(false)}
                 className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
@@ -601,6 +612,8 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
   const [notifications, setNotifications] = useState<Notification[]>([])
   const [loading, setLoading] = useState(false)
   const [unread, setUnread] = useUnreadCount()
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(open, dropdownRef, () => setOpen(false))
 
   async function handleOpen() {
     setOpen(v => !v)
@@ -644,7 +657,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
             <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
           </svg>
           {unread > 0 && (
-            <span className="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] bg-red-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
+            <span className="absolute -top-1.5 -right-1.5 min-w-[15px] h-[15px] bg-red-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center px-0.5 leading-none">
               {unread > 9 ? '9+' : unread}
             </span>
           )}
@@ -655,7 +668,14 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}>
+          <div
+            ref={dropdownRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Notifications"
+            tabIndex={-1}
+            className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}
+          >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <span className="text-sm font-semibold text-[#F5F5F2]">Notifications</span>
               {notifications.length > 0 && (

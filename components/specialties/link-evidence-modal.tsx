@@ -256,7 +256,7 @@ export function LinkEvidenceModal({
             <button
               onClick={handleLink}
               disabled={!canLink || linking}
-              className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-[#0B0B0C] font-semibold text-sm rounded-xl transition-colors"
+              className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {linking ? 'Linking…' : 'Link evidence'}
             </button>

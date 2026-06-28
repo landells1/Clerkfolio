@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 
 type Result = {
   id: string
@@ -40,6 +41,11 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const inputRef = useRef<HTMLInputElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
+  // Trap Tab within the palette and restore focus to the opener on close.
+  // Escape is already handled by the keyboard effect below (it also drives the
+  // arrow/enter list navigation), so we don't pass onEscape here.
+  useFocusTrap(true, dialogRef)
   const commands = useMemo(() => commandsForStage(careerStage), [careerStage])
   const [q, setQ] = useState('')
   const [results, setResults] = useState<Result[]>([])
@@ -176,9 +182,25 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
     return () => window.removeEventListener('keydown', onKey)
   }, [matchingCommands, navigate, onClose, results, runCommand, selected])
 
+  const totalResults = matchingCommands.length + results.length
+  const listboxOpen = normalizedQuery.length >= 2 && totalResults > 0
+  const activeDescendantId = listboxOpen
+    ? selected < matchingCommands.length
+      ? `gs-cmd-${selected}`
+      : `gs-result-${selected - matchingCommands.length}`
+    : undefined
+
   return (
     <div className="fixed inset-0 z-[9999] flex items-start justify-center pt-[15vh] px-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="w-full max-w-lg bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+      <div
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Search and commands"
+        tabIndex={-1}
+        className="w-full max-w-lg bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+        onClick={e => e.stopPropagation()}
+      >
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08]">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -190,6 +212,12 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
             value={q}
             onChange={e => setQ(e.target.value)}
             placeholder="Search entries or run a command..."
+            aria-label="Search entries or run a command"
+            role="combobox"
+            aria-expanded={listboxOpen}
+            aria-controls="global-search-listbox"
+            aria-activedescendant={activeDescendantId}
+            aria-autocomplete="list"
             className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
           />
           <kbd className="text-[10px] text-[rgba(245,245,242,0.55)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
@@ -197,13 +225,16 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
 
         {/* Results */}
         {q.trim().length >= 2 && (
-          <div className="py-2 max-h-80 overflow-y-auto">
+          <div id="global-search-listbox" role="listbox" aria-label="Search results" className="py-2 max-h-80 overflow-y-auto">
             {loading && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">Searching...</p>}
             {!loading && searchError && <p className="text-xs text-red-400 px-4 py-3">Search failed. Please try again.</p>}
             {!loading && !searchError && matchingCommands.length === 0 && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No active results for &ldquo;{q}&rdquo; - deleted items won&apos;t appear here</p>}
             {matchingCommands.map((command, i) => (
               <button
                 key={command.keys}
+                id={`gs-cmd-${i}`}
+                role="option"
+                aria-selected={i === selected}
                 onClick={() => runCommand(command.href)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${i === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
               >
@@ -214,6 +245,9 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
             {results.map((r, i) => (
               <button
                 key={r.id}
+                id={`gs-result-${i}`}
+                role="option"
+                aria-selected={i + matchingCommands.length === selected}
                 onClick={() => navigate(r)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors ${i + matchingCommands.length === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
               >

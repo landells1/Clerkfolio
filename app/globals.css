@@ -115,6 +115,20 @@ body.theme-high-contrast [class*="border-white/"] {
   border-color: rgba(255, 255, 255, 0.45) !important;
 }
 
+/* High-contrast mode must actually raise the weak text, not just panels/borders
+   (F-033). Lift every muted text/icon tier — the `ink`/`fg` tokens and the
+   pervasive `text-[rgba(245,245,242,…)]` greys — to >= rgba(255,255,255,0.8).
+   Icons that inherit `currentColor` follow their text colour up with them. */
+body.theme-high-contrast .text-ink-soft,
+body.theme-high-contrast .text-ink-dim,
+body.theme-high-contrast .text-fg-1,
+body.theme-high-contrast .text-fg-2,
+body.theme-high-contrast .text-fg-3,
+body.theme-high-contrast .text-fg-4,
+body.theme-high-contrast [class*="text-[rgba(245,245,242"] {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
 .skip-link {
   position: fixed;
   left: 16px;

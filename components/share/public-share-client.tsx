@@ -117,7 +117,7 @@ export default function PublicShareClient({ token }: { token: string }) {
       <header className="border-b border-white/[0.06] px-5 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1B6FD9] text-sm font-bold text-[#0B0B0C]">C</div>
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#1B6FD9] text-sm font-bold text-white">C</div>
             <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
           {payload && (
@@ -156,7 +156,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               placeholder="0000"
             />
             {error && <p className="mt-3 text-sm text-red-100">{error}</p>}
-            <button className="mt-5 w-full rounded-xl bg-[#1B6FD9] px-4 py-3 text-sm font-semibold text-[#0B0B0C] transition-colors hover:bg-[#155BB0]">
+            <button className="mt-5 w-full rounded-xl bg-[#1B6FD9] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#155BB0]">
               Unlock
             </button>
           </form>
@@ -169,7 +169,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               <button type="button" onClick={() => history.back()} className="min-h-[40px] rounded-lg border border-red-200/20 px-4 text-sm font-medium text-white hover:bg-white/5">
                 Back
               </button>
-              <Link href="/login" className="inline-flex min-h-[40px] items-center rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]">
+              <Link href="/login" className="inline-flex min-h-[40px] items-center rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white hover:bg-[#155BB0]">
                 Log in to Clerkfolio
               </Link>
             </div>

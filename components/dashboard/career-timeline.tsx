@@ -25,7 +25,7 @@ export default function CareerTimeline({ stage }: { stage: string | null | undef
             <div key={item.key} className="flex flex-col items-center gap-2">
               <span className={`h-7 w-7 rounded-full border text-[10px] font-semibold leading-7 text-center ${
                 index === activeIndex
-                  ? 'border-[#1B6FD9] bg-[#1B6FD9] text-[#0B0B0C]'
+                  ? 'border-[#1B6FD9] bg-[#1B6FD9] text-white'
                   : index < activeIndex
                     ? 'border-[#1B6FD9]/45 bg-[#1B6FD9]/15 text-[#F5F5F2]'
                     : 'border-white/[0.12] bg-[#0B0B0C] text-[rgba(245,245,242,0.4)]'

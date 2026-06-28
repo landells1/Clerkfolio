@@ -53,7 +53,7 @@ export default async function ImportPage() {
           </p>
           <Link
             href="/upgrade"
-            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-[#0B0B0C] hover:bg-[#155BB0]"
+            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white hover:bg-[#155BB0]"
           >
             Upgrade to Pro
           </Link>
