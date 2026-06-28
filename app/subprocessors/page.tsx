@@ -2,7 +2,7 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 
-const lastUpdated = '9 June 2026'
+const lastUpdated = '28 June 2026'
 
 type Subprocessor = {
   name: string
@@ -57,7 +57,7 @@ const subprocessors: Subprocessor[] = [
   {
     name: 'Upstash',
     location: 'European Union (eu-west-1 region)',
-    purpose: 'Serverless Redis used for rate limiting on public API endpoints. Stores only transient rate-limit counters keyed by hashed identifiers; no personal portfolio data is stored.',
+    purpose: 'Serverless Redis used for rate limiting on API and authentication endpoints to protect the service from abuse. Stores only transient rate-limit counters keyed by hashed identifiers; no personal portfolio data is stored.',
     privacyUrl: 'https://upstash.com/trust/privacy.pdf',
     dpaUrl: 'https://upstash.com/trust/dpa.pdf',
     transferMechanism: null,
@@ -89,8 +89,8 @@ export default function SubprocessorsPage() {
           <p className="text-xs leading-6">
             To be notified of changes to this subprocessor list (at least 30 days in advance of any
             addition or replacement), email{' '}
-            <a href="mailto:subprocessor-changes@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
-              subprocessor-changes@clerkfolio.co.uk
+            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
+              admin@clerkfolio.co.uk
             </a>{' '}
             with the subject line &ldquo;Subscribe to subprocessor changes&rdquo;. See our{' '}
             <Link href="/dpa" className="underline hover:text-[#F5F5F2]">DPA</Link> for your rights

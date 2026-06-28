@@ -1,11 +1,9 @@
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
+import { LEGAL_ENTITY } from '@/lib/legal/entity'
 
-const lastUpdated = '26 May 2026'
-
-{/* REVIEW: lawyer - replace ICO_REG_PLACEHOLDER with actual ICO registration number once registered, or confirm exemption applies */}
-const ICO_REG = 'REVIEW: ICO registration number not yet confirmed - see note in this file'
+const lastUpdated = '28 June 2026'
 
 const dataRows = [
   {
@@ -22,7 +20,7 @@ const dataRows = [
   },
   {
     category: 'Anonymised case diary',
-    examples: 'Case title, date, clinical area, specialty tags, competency themes, notes, pinned status, and completeness score.',
+    examples: 'Case title, date, clinical area, specialty tags, competency themes, notes, pinned status, and importance rating.',
     purpose: 'To help you maintain a personal anonymised clinical diary. Clerkfolio is not designed for patient-identifiable data. To the extent that case notes incidentally contain health information about third parties, processing of that special category data is based on your explicit consent (Art 9(2)(a)).',
     lawfulBasis: 'Contract (Art 6(1)(b)); explicit consent (Art 9(2)(a)) for any special category health data incidentally contained in notes; legitimate interests (Art 6(1)(f)) for security and integrity.',
   },
@@ -46,7 +44,7 @@ const dataRows = [
   },
   {
     category: 'Payments and subscriptions',
-    examples: 'Stripe customer ID, Stripe subscription ID, subscription period end, plan status, referral Pro status, and feature usage counters. Card details are handled by Stripe, not Clerkfolio.',
+    examples: 'Stripe customer ID, Stripe subscription ID, subscription period end, plan status, referral reward status, and feature usage counters. Card details are handled by Stripe, not Clerkfolio.',
     purpose: 'To provide paid plans, manage billing status, apply limits, cancel subscriptions on account deletion, and keep accounting records.',
     lawfulBasis: 'Contract (Art 6(1)(b)); legal obligation (Art 6(1)(c)) for tax, accounting, and dispute records.',
   },
@@ -83,11 +81,15 @@ const processors = [
   },
   {
     name: 'Upstash',
-    description: 'Serverless Redis used for rate limiting on public API endpoints. Data stored in the EU (eu-west-1). No personal portfolio data is stored; only transient rate-limit counters.',
+    description: 'Serverless Redis used for rate limiting on API and authentication endpoints. Data stored in the EU (eu-west-1). No personal portfolio data is stored; only transient rate-limit counters.',
   },
 ]
 
 const changelog = [
+  {
+    date: '28 June 2026',
+    changes: 'Corrected the operator disclosure: Clerkfolio is operated by an individual (a sole trader) in the UK, not a limited company. Added placeholders for the proprietor name, address for service, and ICO registration reference. Consolidated the published contact address to admin@clerkfolio.co.uk.',
+  },
   {
     date: '26 May 2026',
     changes: 'Clarified that evidence upload controls verify permitted file types and formats; Clerkfolio does not currently claim antivirus scanning of uploaded evidence.',
@@ -128,10 +130,21 @@ export default function PrivacyPage() {
 
         <Section title="Who we are and how to contact us">
           <p>
-            Clerkfolio is operated by Clerkfolio Ltd, registered in England and Wales. For privacy requests, data subject
-            rights, or questions about this policy, contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
+            Clerkfolio is an independent service operated by an individual (a sole trader) based in the United
+            Kingdom; it is not a limited company.
+            {LEGAL_ENTITY.proprietorName ? ` The service is provided by ${LEGAL_ENTITY.proprietorName}.` : ''} For
+            privacy requests, data subject rights, or questions about this policy, contact{' '}
+            <a href={`mailto:${LEGAL_ENTITY.contactEmail}`}>{LEGAL_ENTITY.contactEmail}</a>.
           </p>
-          {/* REVIEW: lawyer - add registered address and company number once confirmed */}
+          {LEGAL_ENTITY.addressForService ? (
+            <p>Address for service of documents: {LEGAL_ENTITY.addressForService}.</p>
+          ) : null}
+          {LEGAL_ENTITY.icoReference ? (
+            <p>
+              Clerkfolio is registered with the Information Commissioner&apos;s Office (ICO) under data protection
+              registration reference {LEGAL_ENTITY.icoReference}.
+            </p>
+          ) : null}
           <p>
             If you are in the United Kingdom, you also have the right to complain to the Information Commissioner&apos;s
             Office (ICO) at <a href="https://ico.org.uk" target="_blank" rel="noopener noreferrer" className="underline">ico.org.uk</a> or
@@ -324,7 +337,7 @@ export default function PrivacyPage() {
           <p>
             Data is encrypted at rest by Supabase (eu-west-2). See{' '}
             <Link href="/security" className="underline hover:text-[#F5F5F2]">our security policy</Link> and{' '}
-            <a href="mailto:security@clerkfolio.co.uk">security@clerkfolio.co.uk</a> to report vulnerabilities.
+            <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a> to report vulnerabilities.
           </p>
         </Section>
 

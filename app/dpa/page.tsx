@@ -3,8 +3,9 @@
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
+import { LEGAL_ENTITY } from '@/lib/legal/entity'
 
-const lastUpdated = '26 May 2026'
+const lastUpdated = '28 June 2026'
 
 export default function DpaPage() {
   return (
@@ -58,15 +59,18 @@ export default function DpaPage() {
               account or service agreement (&ldquo;Controller&rdquo; or &ldquo;Customer&rdquo;); and
             </li>
             <li>
-              <strong>Data Processor:</strong> Clerkfolio Ltd, a company registered in England and Wales
-              (&ldquo;Processor&rdquo; or &ldquo;Clerkfolio&rdquo;).
+              <strong>Data Processor:</strong> Clerkfolio, an independent service operated by an individual
+              (a sole trader) based in the United Kingdom; it is not a limited company
+              {LEGAL_ENTITY.proprietorName ? ` (provided by ${LEGAL_ENTITY.proprietorName})` : ''}
+              {' '}(&ldquo;Processor&rdquo; or &ldquo;Clerkfolio&rdquo;). Data protection queries and an address for
+              service can be obtained from{' '}
+              <a href={`mailto:${LEGAL_ENTITY.contactEmail}`} className="underline">{LEGAL_ENTITY.contactEmail}</a>.
             </li>
           </ul>
           <p>
             This DPA forms part of the Terms of Service between the parties. Where there is a conflict
             between this DPA and the Terms of Service on data protection matters, this DPA prevails.
           </p>
-          {/* REVIEW: lawyer - confirm entity name, company number, registered address */}
         </Section>
 
         <Section title="2. Subject matter, duration, nature, and purpose">
@@ -203,7 +207,7 @@ export default function DpaPage() {
             <li>Rate limiting on public endpoints via Upstash Redis.</li>
             <li>CSRF origin validation on state-changing API routes.</li>
             <li>Server-side file type and file-format validation for evidence uploads; antivirus scanning is not currently provided.</li>
-            <li>User-initiated account deletion immediately and permanently removes all personal data, including evidence files, portfolio entries, cases, and all associated records.</li>
+            <li>User-initiated account deletion removes personal data (including evidence files, portfolio entries, cases, and associated records) from live systems promptly; backup copies are purged within 30 days in the normal backup rotation, and billing or other records that must be retained by law are kept only for the period legally required. See section 12 and the <Link href="/privacy" className="underline">Privacy policy</Link> retention section.</li>
             <li>Security headers (HSTS, CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy).</li>
           </ul>
           {/* Security measures confirmed proportionate by operator. No patient identifiable data is stored; all content is anonymised personal reflections and portfolio records. Penetration test schedule to be determined post-launch. */}

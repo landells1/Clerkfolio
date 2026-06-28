@@ -22,8 +22,8 @@ export default function SecurityPage() {
           <p className="font-semibold text-[#F5F5F2] mb-1">Report a vulnerability</p>
           <p className="text-xs leading-6">
             Email{' '}
-            <a href="mailto:security@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
-              security@clerkfolio.co.uk
+            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
+              admin@clerkfolio.co.uk
             </a>{' '}
             with details of the issue. Please include steps to reproduce and any supporting
             evidence. We will acknowledge your report within 3 business days.
@@ -43,7 +43,7 @@ export default function SecurityPage() {
           <ul>
             <li>clerkfolio.co.uk and all subdomains</li>
             <li>The Clerkfolio web application (portfolio, case diary, sharing, exports, authentication)</li>
-            <li>Clerkfolio public API endpoints</li>
+            <li>Clerkfolio application API routes that back the web app</li>
           </ul>
         </Section>
 
@@ -67,7 +67,7 @@ export default function SecurityPage() {
             Clerkfolio will not pursue civil or criminal action against researchers who:
           </p>
           <ul>
-            <li>Report vulnerabilities to us privately at security@clerkfolio.co.uk before any public disclosure.</li>
+            <li>Report vulnerabilities to us privately at admin@clerkfolio.co.uk before any public disclosure.</li>
             <li>Do not access, modify, or exfiltrate data beyond what is necessary to demonstrate the vulnerability.</li>
             <li>Do not disrupt or degrade the service for other users.</li>
             <li>Stay within the scope defined above.</li>
@@ -129,7 +129,7 @@ export default function SecurityPage() {
 
         <Section title="Contact">
           <ul>
-            <li>Security reports: <a href="mailto:security@clerkfolio.co.uk">security@clerkfolio.co.uk</a></li>
+            <li>Security reports: <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a></li>
             <li>General / data protection: <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a></li>
           </ul>
         </Section>

@@ -1,4 +1,4 @@
-Contact: mailto:security@clerkfolio.co.uk
+Contact: mailto:admin@clerkfolio.co.uk
 Expires: 2027-05-15T00:00:00.000Z
 Canonical: https://clerkfolio.co.uk/.well-known/security.txt
 Policy: https://clerkfolio.co.uk/security

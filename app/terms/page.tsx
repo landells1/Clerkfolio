@@ -1,17 +1,31 @@
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
+import {
+  BASE_STORAGE_MB,
+  VERIFIED_STORAGE_MB,
+  VERIFIED_BONUS_MB,
+  PRO_STORAGE_MB,
+  REFERRAL_STORAGE_BONUS_MB,
+  REFERRAL_STORAGE_BONUS_AT,
+  formatStorageQuota,
+} from '@/lib/entitlements/limits'
 
-const lastUpdated = '26 May 2026'
+const lastUpdated = '28 June 2026'
 
+// Storage figures are computed from the entitlement constants so the Terms can
+// never drift from what the app actually grants (single source: limits.ts).
 const planRows = [
-  ['Free', '100 MB storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.'],
-  ['Student', '1 GB storage for verified .ac.uk student users. The same feature limits as Free unless otherwise stated in the app.'],
-  ['Foundation', '100 MB storage and the standard free feature allowance unless upgraded or covered by referral Pro.'],
-  ['Pro', 'GBP 9.99 per year (price inclusive of VAT where applicable), 5 GB storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available.'],
+  ['Free', `${formatStorageQuota(BASE_STORAGE_MB)} storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.`],
+  ['Verified', `${formatStorageQuota(VERIFIED_STORAGE_MB)} storage for accounts verified with a .ac.uk student or NHS doctor email (the ${formatStorageQuota(BASE_STORAGE_MB)} free allowance plus a ${VERIFIED_BONUS_MB} MB verification bonus). The same feature limits as Free unless otherwise stated in the app.`],
+  ['Pro', `GBP 9.99 per year (price inclusive of VAT where applicable), ${formatStorageQuota(PRO_STORAGE_MB)} storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available. Pro is available only by paid subscription.`],
 ]
 
 const changelog = [
+  {
+    date: '28 June 2026',
+    changes: 'Corrected the operator wording (sole trader, not a limited company). Updated the plan table to the current Free / Verified / Pro tiers and clarified that Pro is paid-subscription only. Added a Referrals and rewards section.',
+  },
   {
     date: '26 May 2026',
     changes: 'Clarified that evidence file controls perform file type and format verification; antivirus scanning is not currently provided.',
@@ -148,14 +162,29 @@ export default function TermsPage() {
             You can manage or cancel your subscription through the billing portal where available.
           </p>
           <p>
-            If a paid subscription ends, your account may move to a free or foundation tier. Downgrades may block new
-            Pro-only actions, new uploads, exports, share links, or additional specialty tracking, but Clerkfolio will not
-            delete existing user content solely because of a downgrade.
+            If a paid subscription ends, your account returns to the free tier (plus any verification or referral
+            storage you have earned). Downgrades may block new Pro-only actions, new uploads, exports, share links, or
+            additional specialty tracking, but Clerkfolio will not delete existing user content solely because of a
+            downgrade, and existing files stay readable.
+          </p>
+        </Section>
+
+        <Section title="Referrals and rewards">
+          <p>
+            Clerkfolio may offer a referral programme and other rewards, such as additional storage, extra PDF exports or
+            share links, and recognition badges. Earned storage and allowances are computed from your account&apos;s status
+            (for example {`${REFERRAL_STORAGE_BONUS_MB} MB`} of additional storage once you reach {REFERRAL_STORAGE_BONUS_AT}{' '}
+            rewarded referrals, plus one extra PDF export and one extra share link for each rewarded referral).
+          </p>
+          <p>
+            Rewards have no cash value, are personal to your account, and are not transferable or exchangeable. We may
+            change, limit, withdraw, or revoke any reward or the programme itself at any time, including where we
+            reasonably believe it is being abused, gamed, or used through fake, duplicate, or inactive accounts. Rewards
+            are granted only once the qualifying conditions shown in the app are met.
           </p>
         </Section>
 
         <Section title="Refunds and cancellations">
-          {/* REVIEW: lawyer - confirm refund policy for UK consumer digital services (Consumer Contracts Regulations 2013); review whether 14-day cooling-off period applies and whether s.36 CRA 2015 digital content rights are engaged */}
           <p>
             You can cancel future renewal of a paid plan through the Stripe billing portal where available or by contacting
             us. Unless the law gives you a right to cancel or receive a refund, fees already paid are not automatically
@@ -225,14 +254,13 @@ export default function TermsPage() {
         <Section title="Disclaimers">
           <p>
             To the fullest extent permitted by law, Clerkfolio does not guarantee that the service, exports, specialty
-            structures, deadline information, scoring fields, templates, completeness indicators, or ARCP capability links
+            structures, deadline information, scoring fields, templates, importance ratings, or ARCP capability links
             are complete, accurate, current, accepted by any body, or suitable for your particular purpose. You should
             verify all official requirements independently.
           </p>
         </Section>
 
         <Section title="Liability">
-          {/* REVIEW: lawyer - confirm liability cap quantum is appropriate for a UK consumer SaaS; confirm the GBP 100 floor is legally sound; consider whether Consumer Rights Act 2015 s.57 affects any exclusions */}
           <p>
             Nothing in these terms limits liability that cannot legally be limited, including liability for death or
             personal injury caused by negligence, fraud, fraudulent misrepresentation, or rights you have under consumer

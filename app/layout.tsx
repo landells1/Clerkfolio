@@ -9,6 +9,9 @@ export const metadata: Metadata = {
   title: 'Clerkfolio - Medical Portfolio Tracker',
   description: 'The centralised portfolio tracker for UK medical students and foundation doctors. Log cases, achievements, and reflections. Export for any specialty application.',
   metadataBase: new URL('https://clerkfolio.co.uk'),
+  alternates: {
+    canonical: '/',
+  },
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [

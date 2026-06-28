@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
           return NextResponse.json(
             {
               error:
-                'Could not cancel your subscription. Account deletion is paused so you are not charged for a service you cannot access. Please email hello@clerkfolio.co.uk and we will cancel and refund manually.',
+                'Could not cancel your subscription. Account deletion is paused so you are not charged for a service you cannot access. Please email admin@clerkfolio.co.uk and we will cancel and refund manually.',
             },
             { status: 422 }
           )
@@ -115,6 +115,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (err) {
     console.error('Account deletion error:', err instanceof Error ? err.message : 'unknown error')
-    return NextResponse.json({ error: 'Deletion failed. Please contact hello@clerkfolio.co.uk.' }, { status: 500 })
+    return NextResponse.json({ error: 'Deletion failed. Please contact admin@clerkfolio.co.uk.' }, { status: 500 })
   }
 }
