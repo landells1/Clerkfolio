@@ -141,25 +141,25 @@ export default function LogList({ rows, kind }: { rows: PersonalLogListRow[]; ki
           onConfirm={() => deleteLog(row.id)}
           disabled={editingId === row.id}
         >
-          <div className="bg-[#141416] p-4">
+          <div className="bg-[var(--bg-surface)] p-4">
             {editingId === row.id && editDraft ? (
               <div className="space-y-3">
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <input required value={editDraft.title} onChange={event => updateDraft('title', event.target.value)} aria-label="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-                  <input type="date" required value={editDraft.date} onChange={event => updateDraft('date', event.target.value)} aria-label="Date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-                  {kind === 'mandatory_training' && <input type="date" value={editDraft.expiresAt} onChange={event => updateDraft('expiresAt', event.target.value)} aria-label="Expiry date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-                  {kind === 'course' && <input type="number" step="0.5" value={editDraft.cpdHours} onChange={event => updateDraft('cpdHours', event.target.value)} placeholder="CPD hours" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-                  {kind === 'exam' && <input type="number" value={editDraft.attempts} onChange={event => updateDraft('attempts', event.target.value)} placeholder="Attempt count" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-                  {kind === 'exam' && <input value={editDraft.score} onChange={event => updateDraft('score', event.target.value)} placeholder="Score" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-                  {(kind === 'exam' || kind === 'course') && <input type="number" step="0.01" value={editDraft.cost} onChange={event => updateDraft('cost', event.target.value)} placeholder="Cost GBP" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-                  {(kind === 'oop' || kind === 'rotation' || kind === 'wba_received' || kind === 'teaching_observed') && <input value={editDraft.detail} onChange={event => updateDraft('detail', event.target.value)} placeholder="Detail" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
+                  <input required value={editDraft.title} onChange={event => updateDraft('title', event.target.value)} aria-label="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
+                  <input type="date" required value={editDraft.date} onChange={event => updateDraft('date', event.target.value)} aria-label="Date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
+                  {kind === 'mandatory_training' && <input type="date" value={editDraft.expiresAt} onChange={event => updateDraft('expiresAt', event.target.value)} aria-label="Expiry date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+                  {kind === 'course' && <input type="number" step="0.5" value={editDraft.cpdHours} onChange={event => updateDraft('cpdHours', event.target.value)} placeholder="CPD hours" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+                  {kind === 'exam' && <input type="number" value={editDraft.attempts} onChange={event => updateDraft('attempts', event.target.value)} placeholder="Attempt count" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+                  {kind === 'exam' && <input value={editDraft.score} onChange={event => updateDraft('score', event.target.value)} placeholder="Score" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+                  {(kind === 'exam' || kind === 'course') && <input type="number" step="0.01" value={editDraft.cost} onChange={event => updateDraft('cost', event.target.value)} placeholder="Cost GBP" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+                  {(kind === 'oop' || kind === 'rotation' || kind === 'wba_received' || kind === 'teaching_observed') && <input value={editDraft.detail} onChange={event => updateDraft('detail', event.target.value)} placeholder="Detail" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
                 </div>
-                <textarea value={editDraft.notes} onChange={event => updateDraft('notes', event.target.value)} placeholder="Notes" className="min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3 text-sm text-[#F5F5F2]" />
+                <textarea value={editDraft.notes} onChange={event => updateDraft('notes', event.target.value)} placeholder="Notes" className="min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] p-3 text-sm text-[var(--text-primary)]" />
                 <div className="flex gap-2">
-                  <button type="button" disabled={saving} onClick={() => void saveLog(row.id)} className="min-h-[40px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white disabled:opacity-50">
+                  <button type="button" disabled={saving} onClick={() => void saveLog(row.id)} className="min-h-[40px] rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white disabled:opacity-50">
                     {saving ? 'Saving...' : 'Save changes'}
                   </button>
-                  <button type="button" disabled={saving} onClick={() => { setEditingId(null); setEditDraft(null) }} className="min-h-[40px] rounded-lg border border-white/[0.08] px-4 text-sm text-[#F5F5F2] disabled:opacity-50">
+                  <button type="button" disabled={saving} onClick={() => { setEditingId(null); setEditDraft(null) }} className="min-h-[40px] rounded-lg border border-white/[0.08] px-4 text-sm text-[var(--text-primary)] disabled:opacity-50">
                     Cancel
                   </button>
                 </div>
@@ -168,19 +168,19 @@ export default function LogList({ rows, kind }: { rows: PersonalLogListRow[]; ki
               <>
                 <div className="flex items-start justify-between gap-4">
                   <div>
-                    <h2 className="text-sm font-semibold text-[#F5F5F2]">{row.title}</h2>
-                    <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">{new Date(row.date).toLocaleDateString('en-GB')}</p>
+                    <h2 className="text-sm font-semibold text-[var(--text-primary)]">{row.title}</h2>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">{new Date(row.date).toLocaleDateString('en-GB')}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
                     {row.expires_at && <span className="rounded bg-amber-400/10 px-2 py-1 text-xs text-amber-300">Expires {new Date(row.expires_at).toLocaleDateString('en-GB')}</span>}
-                    <button type="button" onClick={() => beginEdit(row)} className="text-xs text-[#1B6FD9] transition-colors hover:text-[#3884DD]">Edit</button>
+                    <button type="button" onClick={() => beginEdit(row)} className="text-xs text-[var(--accent-text)] transition-colors hover:text-[var(--accent-bright)]">Edit</button>
                     <button type="button" onClick={() => confirmDelete(row)} className="text-xs text-red-300 transition-colors hover:text-red-200">Delete</button>
                   </div>
                 </div>
-                <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">
+                <p className="mt-2 text-sm text-[var(--text-secondary)]">
                   {[row.cpd_hours ? `${row.cpd_hours} CPD h` : '', row.score ? `Score ${row.score}` : '', row.attempts ? `${row.attempts} attempts` : '', row.cost_pence ? `£${(row.cost_pence / 100).toFixed(2)}` : '', row.meta?.detail ?? ''].filter(Boolean).join(' - ')}
                 </p>
-                {row.notes && <p className="mt-2 text-sm leading-6 text-[rgba(245,245,242,0.58)]">{row.notes}</p>}
+                {row.notes && <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{row.notes}</p>}
               </>
             )}
           </div>

@@ -12,7 +12,7 @@ export function Audience() {
       <SectionHeader number="003" label="Who it's for" title="Designed for every stage of UK medical training." />
       <div className="mt-16 grid gap-6 md:grid-cols-3">
         {cards.map(([tag, title, body, bullets]) => (
-          <article key={tag} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-7">
+          <article key={tag} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-7">
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
             <h3 className="text-[22px] font-medium leading-tight tracking-[-0.02em]">{title}</h3>
             <p className="mt-3 text-[13px] leading-[1.6] text-ink-soft">{body}</p>

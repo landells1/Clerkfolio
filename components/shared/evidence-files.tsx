@@ -78,7 +78,7 @@ export default function EvidenceFiles({
 
   return (
     <div>
-      <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-3">
+      <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-3">
         Evidence ({files.length} {files.length === 1 ? 'file' : 'files'})
       </p>
       <ul className="space-y-2">
@@ -98,7 +98,7 @@ export default function EvidenceFiles({
               <button
                 type="button"
                 onClick={() => setLightboxIndex(Math.max(0, lightboxImages.findIndex(image => image.id === file.id)))}
-                className="flex-shrink-0 rounded border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-[#1B6FD9]"
+                className="flex-shrink-0 rounded border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 aria-label={`Open preview of ${file.file_name}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -109,13 +109,13 @@ export default function EvidenceFiles({
                 />
               </button>
             ) : (
-              <svg className="shrink-0 text-[rgba(245,245,242,0.55)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="shrink-0 text-[var(--text-secondary)]" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" />
               </svg>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[rgba(245,245,242,0.8)] truncate">{file.file_name}</p>
-              <p className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">
+              <p className="text-xs text-[var(--text-primary)] truncate">{file.file_name}</p>
+              <p className="text-[10px] text-[var(--text-secondary)] font-mono">
                 {formatBytes(file.file_size)}
                 {statusLabel}
               </p>
@@ -124,14 +124,14 @@ export default function EvidenceFiles({
               <button
                 onClick={() => handleDownload(file)}
                 disabled={downloading === file.id || blocked}
-                className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors disabled:opacity-50"
+                className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors disabled:opacity-50"
               >
                 {blocked ? 'Locked' : downloading === file.id ? 'Getting link...' : 'Download'}
               </button>
               {canDelete && (
                 confirmDeleteId === file.id ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[rgba(245,245,242,0.4)]">Delete?</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">Delete?</span>
                     <button
                       onClick={() => handleDelete(file)}
                       disabled={deleting === file.id}
@@ -141,7 +141,7 @@ export default function EvidenceFiles({
                     </button>
                     <button
                       onClick={() => setConfirmDeleteId(null)}
-                      className="text-[10px] text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]"
+                      className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
                     >
                       No
                     </button>
@@ -150,7 +150,7 @@ export default function EvidenceFiles({
                   <button
                     onClick={() => setConfirmDeleteId(file.id)}
                     disabled={deleting === file.id}
-                    className="text-[rgba(245,245,242,0.55)] hover:text-red-400 transition-colors disabled:opacity-50"
+                    className="text-[var(--text-secondary)] hover:text-red-400 transition-colors disabled:opacity-50"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="3 6 5 6 21 6" />

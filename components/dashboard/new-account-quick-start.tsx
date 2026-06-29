@@ -9,24 +9,24 @@ type Props = {
 const Card = ({ done, title, body, href, cta }: { done: boolean; title: string; body: string; href: string; cta: string }) => (
   <Link
     href={href}
-    className={`flex flex-col gap-2 rounded-2xl border p-5 transition-colors ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/[0.08] bg-[#141416] hover:border-white/[0.16]'}`}
+    className={`flex flex-col gap-2 rounded-2xl border p-5 transition-colors ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/[0.08] bg-[var(--bg-surface)] hover:border-white/[0.16]'}`}
   >
     <div className="flex items-center gap-2">
-      <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${done ? 'bg-emerald-500 text-[#0B0B0C]' : 'border border-white/[0.15] text-[rgba(245,245,242,0.55)]'}`}>
+      <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${done ? 'bg-emerald-500 text-[var(--text-inverse)]' : 'border border-white/[0.15] text-[var(--text-secondary)]'}`}>
         {done ? '✓' : ''}
       </span>
-      <p className="text-sm font-semibold text-[#F5F5F2]">{title}</p>
+      <p className="text-sm font-semibold text-[var(--text-primary)]">{title}</p>
     </div>
-    <p className="text-xs leading-relaxed text-[rgba(245,245,242,0.55)]">{body}</p>
-    <span className="mt-auto text-xs font-medium text-[#6AA8FF]">{done ? 'Done' : cta} &rarr;</span>
+    <p className="text-xs leading-relaxed text-[var(--text-secondary)]">{body}</p>
+    <span className="mt-auto text-xs font-medium text-[var(--accent-text)]">{done ? 'Done' : cta} &rarr;</span>
   </Link>
 )
 
 export default function NewAccountQuickStart({ hasFirstPortfolio, hasFirstCase, hasTrackedSpecialty }: Props) {
   return (
-    <section className="rounded-2xl border border-[#1B6FD9]/20 bg-[#1B6FD9]/[0.04] p-5">
-      <h2 className="text-sm font-semibold uppercase tracking-wider text-[#6AA8FF]">Get started</h2>
-      <p className="mt-1 text-sm text-[rgba(245,245,242,0.55)]">
+    <section className="rounded-2xl border border-[var(--accent)] bg-[var(--accent)]/[0.04] p-5">
+      <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--accent-text)]">Get started</h2>
+      <p className="mt-1 text-sm text-[var(--text-secondary)]">
         Three steps to get your portfolio off the ground. Charts and trends will fill in as you log entries.
       </p>
       <div className="mt-4 grid gap-3 sm:grid-cols-3">

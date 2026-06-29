@@ -113,7 +113,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
         type="button"
         onClick={() => setSaveOpen(current => !current)}
         disabled={saving}
-        className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] hover:border-white/[0.16] hover:text-[#F5F5F2] disabled:opacity-50"
+        className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-secondary)] hover:border-white/[0.16] hover:text-[var(--text-primary)] disabled:opacity-50"
       >
         {saving ? 'Saving...' : 'Save search'}
       </button>
@@ -125,13 +125,13 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
             maxLength={60}
             placeholder="Search name"
             aria-label="Search name"
-            className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-xs text-[#F5F5F2] outline-none placeholder:text-[rgba(245,245,242,0.35)] focus:border-[#1B6FD9]"
+            className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-primary)] outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--accent)]"
             autoFocus
           />
           <button
             type="submit"
             disabled={saving || !saveName.trim()}
-            className="min-h-[36px] rounded-lg bg-[#1B6FD9] px-3 text-xs font-semibold text-white disabled:opacity-50"
+            className="min-h-[36px] rounded-lg bg-[var(--accent)] px-3 text-xs font-semibold text-white disabled:opacity-50"
           >
             Save
           </button>
@@ -141,7 +141,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
         <select
           defaultValue=""
           onChange={event => applySaved(event.target.value)}
-          className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[#141416] px-3 text-xs text-[#F5F5F2]"
+          className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-primary)]"
           aria-label="Saved searches"
         >
           <option value="" disabled>Saved searches</option>

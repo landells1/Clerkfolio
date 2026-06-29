@@ -13,18 +13,18 @@ export default function ChangelogModal({ userId, entries }: { userId: string; en
   }
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
-      <div className="w-full max-w-lg rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl">
-        <h2 className="text-lg font-semibold text-[#F5F5F2]">What&apos;s new</h2>
+      <div className="w-full max-w-lg rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">What&apos;s new</h2>
         <div className="mt-4 space-y-4">
           {entries.map(entry => (
-            <article key={`${entry.date}-${entry.title}`} className="rounded-xl bg-[#0B0B0C] p-4">
-              <p className="text-xs text-[rgba(245,245,242,0.4)]">{new Date(entry.date).toLocaleDateString('en-GB')}</p>
-              <h3 className="mt-1 text-sm font-semibold text-[#F5F5F2]">{entry.title}</h3>
-              <p className="mt-1 text-sm text-[rgba(245,245,242,0.6)]">{entry.body}</p>
+            <article key={`${entry.date}-${entry.title}`} className="rounded-xl bg-[var(--bg-canvas)] p-4">
+              <p className="text-xs text-[var(--text-muted)]">{new Date(entry.date).toLocaleDateString('en-GB')}</p>
+              <h3 className="mt-1 text-sm font-semibold text-[var(--text-primary)]">{entry.title}</h3>
+              <p className="mt-1 text-sm text-[var(--text-secondary)]">{entry.body}</p>
             </article>
           ))}
         </div>
-        <button onClick={dismiss} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">Got it</button>
+        <button onClick={dismiss} className="mt-5 min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">Got it</button>
       </div>
     </div>
   )

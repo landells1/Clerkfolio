@@ -60,15 +60,15 @@ export default function UpdatePasswordPage() {
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8">
-      <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Set new password</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8">
+      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">Set new password</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">
         Choose a strong password for your account.
       </p>
 
       <form onSubmit={handleUpdate} className="space-y-4">
         <div>
-          <label htmlFor="new-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="new-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             New password
           </label>
           <input
@@ -78,13 +78,13 @@ export default function UpdatePasswordPage() {
             autoComplete="new-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="At least 8 characters"
           />
         </div>
 
         <div>
-          <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input
@@ -94,7 +94,7 @@ export default function UpdatePasswordPage() {
             autoComplete="new-password"
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="••••••••"
           />
         </div>
@@ -108,7 +108,7 @@ export default function UpdatePasswordPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
           {loading ? 'Updating…' : 'Update password'}
         </button>

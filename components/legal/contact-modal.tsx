@@ -69,20 +69,20 @@ export function LegalContactButton() {
           }}
         >
           <div style={{
-            background: '#141416', border: '1px solid rgba(245,245,242,0.1)',
+            background: 'var(--bg-surface)', border: '1px solid rgba(245,245,242,0.1)',
             borderRadius: 20, width: '100%', maxWidth: 440, padding: 32,
             fontFamily: '"Inter", -apple-system, system-ui, sans-serif',
           }}>
             {/* Header */}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
               <div>
-                <p style={{ color: '#F5F5F2', fontWeight: 600, fontSize: 16, margin: 0 }}>Get in touch</p>
-                <p style={{ color: 'rgba(245,245,242,0.45)', fontSize: 13, margin: '4px 0 0' }}>We&apos;ll reply to your email within 48 hours.</p>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: 16, margin: 0 }}>Get in touch</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: '4px 0 0' }}>We&apos;ll reply to your email within 48 hours.</p>
               </div>
               <button
                 onClick={handleClose}
                 aria-label="Close contact form"
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'rgba(245,245,242,0.4)', fontSize: 20, lineHeight: 1, padding: 4 }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: 20, lineHeight: 1, padding: 4 }}
               >
                 ×
               </button>
@@ -95,11 +95,11 @@ export function LegalContactButton() {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </div>
-                <p style={{ color: '#F5F5F2', fontWeight: 500, margin: '0 0 8px' }}>Message sent!</p>
-                <p style={{ color: 'rgba(245,245,242,0.45)', fontSize: 13, margin: 0 }}>Thanks for reaching out. We&apos;ll be in touch soon.</p>
+                <p style={{ color: 'var(--text-primary)', fontWeight: 500, margin: '0 0 8px' }}>Message sent!</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 13, margin: 0 }}>Thanks for reaching out. We&apos;ll be in touch soon.</p>
                 <button
                   onClick={handleClose}
-                  style={{ marginTop: 20, background: 'rgba(245,245,242,0.08)', border: 'none', borderRadius: 10, color: '#F5F5F2', fontSize: 13, padding: '8px 20px', cursor: 'pointer' }}
+                  style={{ marginTop: 20, background: 'var(--bg-overlay-soft)', border: 'none', borderRadius: 10, color: 'var(--text-primary)', fontSize: 13, padding: '8px 20px', cursor: 'pointer' }}
                 >
                   Close
                 </button>
@@ -107,41 +107,41 @@ export function LegalContactButton() {
             ) : (
               <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'rgba(245,245,242,0.5)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Name</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Name</label>
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="Your name"
-                    style={{ width: '100%', background: '#0B0B0C', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#F5F5F2', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'rgba(245,245,242,0.5)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Email</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Email</label>
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    style={{ width: '100%', background: '#0B0B0C', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#F5F5F2', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: 11, color: 'rgba(245,245,242,0.5)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Message</label>
+                  <label style={{ display: 'block', fontSize: 11, color: 'var(--text-secondary)', fontWeight: 500, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 6 }}>Message</label>
                   <textarea
                     required
                     rows={4}
                     value={comment}
                     onChange={e => setComment(e.target.value)}
                     placeholder="How can we help?"
-                    style={{ width: '100%', background: '#0B0B0C', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: '#F5F5F2', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   />
                 </div>
 
                 {error && (
-                  <p style={{ color: '#f87171', fontSize: 13, margin: 0 }}>{error}</p>
+                  <p style={{ color: 'var(--danger)', fontSize: 13, margin: 0 }}>{error}</p>
                 )}
 
                 <button

@@ -35,7 +35,7 @@ export function AnonymisationBanner({ className = '' }: { className?: string }) 
 /** Compact line shown directly under a free-text field. */
 export function AnonymisationHint({ className = '' }: { className?: string }) {
   return (
-    <p className={`mt-1 text-[11px] text-[rgba(245,245,242,0.45)] ${className}`}>
+    <p className={`mt-1 text-[11px] text-[var(--text-muted)] ${className}`}>
       No patient-identifiable details.
     </p>
   )

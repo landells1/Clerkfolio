@@ -44,7 +44,7 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
   return (
     <div ref={ref} className="relative">
       <div
-        className="min-h-[42px] w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap items-center gap-1.5 cursor-text focus-within:border-[#1B6FD9] transition-colors"
+        className="min-h-[42px] w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap items-center gap-1.5 cursor-text focus-within:border-[var(--accent)] transition-colors"
         onClick={() => { setOpen(true); inputRef.current?.focus() }}
       >
         {value.map(domain => (
@@ -69,14 +69,14 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
           onChange={e => { setSearch(e.target.value); setOpen(true) }}
           onFocus={() => { setOpen(true); onFocus?.() }}
           placeholder={value.length === 0 ? 'Select clinical areas…' : ''}
-          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
+          className="flex-1 min-w-[120px] bg-transparent text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] outline-none"
         />
         {value.length === 0 && (
           <svg
             className="flex-shrink-0 transition-transform duration-150 pointer-events-none"
             style={{ transform: open ? 'rotate(180deg)' : 'none' }}
             width="12" height="12" viewBox="0 0 24 24" fill="none"
-            stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
           >
             <polyline points="6 9 12 15 18 9" />
           </svg>
@@ -84,10 +84,10 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
       </div>
 
       {open && (
-        <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
+        <div className="absolute z-20 w-full mt-1 bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
           <div className="max-h-52 overflow-y-auto">
             {filtered.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.55)]">No matches</div>
+              <div className="px-3 py-3 text-sm text-[var(--text-secondary)]">No matches</div>
             ) : (
               filtered.map(d => {
                 const selected = value.includes(d)
@@ -99,7 +99,7 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
                     className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
                       selected
                         ? 'bg-cyan-500/10 text-cyan-400'
-                        : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
+                        : 'text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-[var(--text-primary)]'
                     }`}
                   >
                     {d}

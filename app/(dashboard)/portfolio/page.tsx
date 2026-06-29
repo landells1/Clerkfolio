@@ -155,11 +155,11 @@ export default async function PortfolioPage({
             const matching = allEntries.filter(entry => (entry.interview_themes ?? []).map(normaliseTheme).includes(theme.slug))
             if (matching.length === 0) return null
             return (
-              <section key={theme.slug} className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
+              <section key={theme.slug} className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5">
                 <details open>
-                  <summary className="cursor-pointer text-sm font-semibold text-[#F5F5F2]">
+                  <summary className="cursor-pointer text-sm font-semibold text-[var(--text-primary)]">
                     {theme.colour && <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ backgroundColor: theme.colour }} />}
-                    {theme.name} <span className="text-[rgba(245,245,242,0.55)]">({matching.length})</span>
+                    {theme.name} <span className="text-[var(--text-secondary)]">({matching.length})</span>
                   </summary>
                   <div className="mt-4 space-y-3">
                     {matching.map(entry => <EntryCard key={entry.id} entry={entry} />)}

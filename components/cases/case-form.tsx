@@ -26,9 +26,9 @@ type Props = {
   existingEvidence?: EvidenceFile[]
 }
 
-const INPUT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
-const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
-const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.55)] mt-1 text-right'
+const INPUT = 'w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
+const LABEL = 'block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide'
+const WORD_COUNT_CLASS = 'text-[10px] text-[var(--text-secondary)] mt-1 text-right'
 const DRAFT_KEY = 'clerkfolio-case-draft'
 
 function draftKeyForUser(userId: string) {
@@ -266,7 +266,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
     >
       {/* Draft restored banner */}
       {draftRestored && (
-        <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
+        <div className="flex items-center justify-between bg-[var(--accent)] border border-[var(--accent)] rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
           <span>Draft restored</span>
           <button
             type="button"
@@ -280,7 +280,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
               setImportance(null)
               setNotes('')
             }}
-            className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]"
+            className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)]"
           >
             Discard
           </button>
@@ -301,7 +301,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           className={INPUT}
           placeholder="Brief description - no patient identifiers"
         />
-        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
+        <p className="text-xs text-[var(--text-secondary)] mt-1">
           Do not include patient names, dates of birth, or NHS numbers.
         </p>
       </div>
@@ -326,7 +326,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           onChange={v => { setClinicalDomains(v); markDirty() }}
           onFocus={() => markDirty()}
         />
-        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
+        <p className="text-xs text-[var(--text-secondary)] mt-1">
           The medical setting of this encounter - used to filter and organise your cases.
         </p>
       </div>
@@ -343,14 +343,14 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
         />
         {suggestedTags.length > 0 && (
           <div className="mt-2">
-            <p className="mb-1 text-[11px] text-[rgba(245,245,242,0.45)]">Suggested from your text &mdash; tap to add</p>
+            <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text &mdash; tap to add</p>
             <div className="flex flex-wrap gap-1.5">
               {suggestedTags.map(tag => (
                 <button
                   key={tag}
                   type="button"
                   onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                  className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+                  className="rounded border border-[var(--accent)] bg-[var(--accent)] px-2 py-1 text-[10px] text-[var(--accent-text)]"
                 >
                   + {formatSpecialtyLabel(tag)}
                 </button>
@@ -358,7 +358,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
             </div>
           </div>
         )}
-        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
+        <p className="text-xs text-[var(--text-secondary)] mt-1">
           Link cases to specialties for filtering and interview examples. Specialty tracker scores use portfolio entries as evidence.
         </p>
       </div>
@@ -367,7 +367,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       <div>
         <label className={LABEL}>Importance</label>
         <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
-        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">
+        <p className="text-xs text-[var(--text-secondary)] mt-1">
           Optional — flag how important this case is to you. Tap the active level again to clear it.
         </p>
       </div>
@@ -412,7 +412,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
             if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
             router.back()
           }}
-          className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
+          className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
         >
           Cancel
         </button>
@@ -421,7 +421,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
             type="submit"
             onClick={() => { addAnotherRef.current = true }}
             disabled={saving || uploading}
-            className="flex-1 border border-[#1B6FD9]/40 text-[#1B6FD9] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+            className="flex-1 border border-[var(--accent)] text-[var(--accent-text)] hover:bg-[var(--accent)] disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
           >
             Save & add another
           </button>
@@ -429,7 +429,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
         <button
           type="submit"
           disabled={saving || uploading}
-          className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+          className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
         >
           {saving ? 'Saving…' : mode === 'create' ? 'Save case' : 'Save changes'}
         </button>
@@ -437,11 +437,11 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
 
       {/* Upload progress bar */}
       {uploading && (
-        <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
+        <div className="rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
           <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-            <div className="h-full bg-[#1B6FD9] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+            <div className="h-full bg-[var(--accent)] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
           </div>
-          <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
+          <span className="text-xs text-[var(--text-muted)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
         </div>
       )}
     </form>

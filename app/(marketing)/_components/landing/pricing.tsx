@@ -19,8 +19,8 @@ export function Pricing() {
               key={tier.name}
               className={`relative rounded-2xl border p-7 ${
                 tier.highlight
-                  ? 'border-blue-500/45 bg-gradient-to-b from-blue-500/10 to-[#141416]'
-                  : 'border-white/[0.08] bg-[#141416]'
+                  ? 'border-blue-500/45 bg-gradient-to-b from-blue-500/10 to-[var(--bg-surface)]'
+                  : 'border-white/[0.08] bg-[var(--bg-surface)]'
               }`}
             >
               <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tier.name}</p>

@@ -20,9 +20,9 @@ export default async function SessionsPage() {
 
   return (
     <div className="max-w-4xl mx-auto p-6 lg:p-8">
-      <Link href="/settings" className="text-sm text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]">Back to settings</Link>
-      <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[#F5F5F2]">Sessions</h1>
-      <p className="mt-2 text-sm text-[rgba(245,245,242,0.55)]">
+      <Link href="/settings" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Back to settings</Link>
+      <h1 className="mt-4 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Sessions</h1>
+      <p className="mt-2 text-sm text-[var(--text-secondary)]">
         Each row is a browser/IP combination that has signed in. Revoking a row signs that device out
         on its next page load - including the device you&apos;re using right now if you revoke its row.
       </p>

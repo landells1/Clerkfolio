@@ -35,8 +35,8 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">{label}</span>
-      <span className="text-sm text-[rgba(245,245,242,0.8)]">{display}</span>
+      <span className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{label}</span>
+      <span className="text-sm text-[var(--text-primary)]">{display}</span>
     </div>
   )
 }
@@ -82,7 +82,7 @@ export default async function EntryDetailPage({
       {/* Back + actions */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
-          <Link href="/portfolio" className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+          <Link href="/portfolio" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="15 18 9 12 15 6" />
             </svg>
@@ -95,7 +95,7 @@ export default async function EntryDetailPage({
           <LogSimilarButton category={entry.category} tags={entry.specialty_tags} />
           <Link
             href={`/portfolio/${entry.id}/edit`}
-            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-white/[0.15] transition-colors"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -123,20 +123,20 @@ export default async function EntryDetailPage({
       )}
 
       {/* Main card */}
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 space-y-6">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 space-y-6">
         {/* Title + date */}
         <div>
-          <h1 className="text-xl font-semibold text-[#F5F5F2] tracking-tight mb-1">{entry.title}</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.4)] font-mono">{formatDate(entry.date)}</p>
+          <h1 className="text-xl font-semibold text-[var(--text-primary)] tracking-tight mb-1">{entry.title}</h1>
+          <p className="text-sm text-[var(--text-muted)] font-mono">{formatDate(entry.date)}</p>
         </div>
 
         {/* Linked specialties */}
         {entry.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Linked specialties</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
-                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[#1B6FD9] border border-[#1B6FD9]/20">
+                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[var(--accent)] text-[var(--accent-text)] border border-[var(--accent)]">
                   {formatTag(tag)}
                 </span>
               ))}
@@ -146,8 +146,8 @@ export default async function EntryDetailPage({
 
         {isImportance(importance) && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Importance</p>
-            <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[rgba(245,245,242,0.06)] text-[rgba(245,245,242,0.8)] border border-white/[0.08]">
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Importance</p>
+            <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[var(--bg-overlay-soft)] text-[var(--text-primary)] border border-white/[0.08]">
               {IMPORTANCE_LABELS[importance]}
             </span>
           </div>
@@ -155,7 +155,7 @@ export default async function EntryDetailPage({
 
         {(entry.interview_themes ?? []).length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Competency themes</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Competency themes</p>
             <div className="flex flex-wrap gap-1.5">
               {(entry.interview_themes as string[]).map(theme => (
                 <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 border border-violet-400/20">
@@ -168,7 +168,7 @@ export default async function EntryDetailPage({
 
         {/* Category-specific fields */}
         <div className="border-t border-white/[0.06] pt-5">
-          <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-4">Details</p>
+          <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-4">Details</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {entry.category === 'audit_qip' && <>
               <DetailRow label="Type" value={entry.audit_type ? AUDIT_TYPE_LABELS[entry.audit_type] ?? entry.audit_type : null} />
@@ -227,25 +227,25 @@ export default async function EntryDetailPage({
         {/* Long-form text fields */}
         {entry.category === 'audit_qip' && entry.audit_outcome && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Outcome</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Outcome</p>
             <MarkdownRenderer value={entry.audit_outcome} />
           </div>
         )}
         {entry.category === 'prize' && entry.prize_description && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.prize_description} />
           </div>
         )}
         {entry.category === 'reflection' && entry.refl_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Reflection</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Reflection</p>
             <MarkdownRenderer value={entry.refl_free_text} />
           </div>
         )}
         {entry.category === 'custom' && entry.custom_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.custom_free_text} />
           </div>
         )}
@@ -253,7 +253,7 @@ export default async function EntryDetailPage({
         {/* Notes */}
         {entry.notes && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Notes</p>
+            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Notes</p>
             <MarkdownRenderer value={entry.notes} />
           </div>
         )}
@@ -270,7 +270,7 @@ export default async function EntryDetailPage({
         ) : null}
 
         {/* Metadata */}
-        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[rgba(245,245,242,0.55)] font-mono">
+        <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[var(--text-secondary)] font-mono">
           <span>Added {formatDate(entry.created_at)}</span>
           <span>Updated {formatDate(entry.updated_at)}</span>
         </div>

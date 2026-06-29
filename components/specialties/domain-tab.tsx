@@ -301,17 +301,17 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
   // ---------- Essential mode ----------
   if (isEssential) {
     return (
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mt-2">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="font-semibold text-[#F5F5F2] text-sm truncate">{domain.label}</h2>
+            <h2 className="font-semibold text-[var(--text-primary)] text-sm truncate">{domain.label}</h2>
             <span className="shrink-0 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20">
               Essential
             </span>
           </div>
           <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isMet ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'
+            isMet ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'
           }`}>
             {isMet ? (
               <>
@@ -329,10 +329,10 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Notes */}
         {domain.notes && (
           <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <p className="text-xs text-[rgba(245,245,242,0.45)] leading-relaxed">{domain.notes}</p>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
           </div>
         )}
 
@@ -342,23 +342,23 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             essentialPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
           } ${
             isMet
-              ? 'bg-[#1B6FD9]/[0.06] border-[#1B6FD9]/25'
-              : 'bg-[#0B0B0C] border-white/[0.08] hover:border-white/[0.16]'
+              ? 'bg-[var(--accent)]/[0.06] border-[var(--accent)]'
+              : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
           }`}
           onClick={() => !essentialPending && handleEssentialToggle()}
         >
           <div
             className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-              isMet ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-transparent border-white/[0.25]'
+              isMet ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.25]'
             }`}
           >
             {isMet && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
           </div>
-          <span className={`text-sm leading-snug ${isMet ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.7)]'}`}>
+          <span className={`text-sm leading-snug ${isMet ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
             Self-mark this requirement as met (or expected by intended start date). Attach portfolio evidence where possible.
           </span>
         </label>
@@ -366,16 +366,16 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Optional supporting evidence */}
         <div className="mt-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
-            <p className="text-xs text-[rgba(245,245,242,0.55)]">Optional</p>
+            <p className="text-xs text-[var(--text-secondary)]">Optional</p>
           </div>
 
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] hover:border-white/[0.2] text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-xs font-medium transition-all"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -385,7 +385,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             </button>
             <button
               onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-all"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -397,7 +397,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {supportingEvidence.length > 0 ? (
             <DomainEvidenceList domain={domain} links={supportingEvidence} onRemove={handleRemoveLink} />
           ) : (
-            <p className="text-xs text-[rgba(245,245,242,0.55)] italic">
+            <p className="text-xs text-[var(--text-secondary)] italic">
               Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
             </p>
           )}
@@ -431,17 +431,17 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
   // ---------- Desirable evidence-only mode ----------
   if (isDesirableEvidence) {
     return (
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mt-2">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
         {/* Header */}
         <div className="flex items-center justify-between mb-3 gap-3">
           <div className="flex items-center gap-2 min-w-0">
-            <h2 className="font-semibold text-[#F5F5F2] text-sm truncate">{domain.label}</h2>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs font-medium border border-white/[0.08]">
+            <h2 className="font-semibold text-[var(--text-primary)] text-sm truncate">{domain.label}</h2>
+            <span className="shrink-0 px-1.5 py-0.5 rounded bg-white/[0.06] text-[var(--text-secondary)] text-xs font-medium border border-white/[0.08]">
               Desirable
             </span>
           </div>
           <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isEvidenced ? 'text-[#1B6FD9]' : desirableEvidence.length > 0 ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'
+            isEvidenced ? 'text-[var(--accent-text)]' : desirableEvidence.length > 0 ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'
           }`}>
             {isEvidenced ? (
               <>
@@ -459,10 +459,10 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Notes */}
         {domain.notes && (
           <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
             </svg>
-            <p className="text-xs text-[rgba(245,245,242,0.45)] leading-relaxed">{domain.notes}</p>
+            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
           </div>
         )}
 
@@ -472,23 +472,23 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             desirablePending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
           } ${
             isEvidenced
-              ? 'bg-[#1B6FD9]/[0.06] border-[#1B6FD9]/25'
-              : 'bg-[#0B0B0C] border-white/[0.08] hover:border-white/[0.16]'
+              ? 'bg-[var(--accent)]/[0.06] border-[var(--accent)]'
+              : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
           }`}
           onClick={() => !desirablePending && handleDesirableCheck()}
         >
           <div
             className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-              isEvidenced ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-transparent border-white/[0.25]'
+              isEvidenced ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.25]'
             }`}
           >
             {isEvidenced && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12" />
               </svg>
             )}
           </div>
-          <span className={`text-sm leading-snug ${isEvidenced ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.7)]'}`}>
+          <span className={`text-sm leading-snug ${isEvidenced ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
             Self-mark evidence for this criterion. Attach a portfolio entry to make it documented evidence.
           </span>
         </label>
@@ -496,16 +496,16 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Supporting evidence - optional upload */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
-            <p className="text-xs text-[rgba(245,245,242,0.55)]">Optional</p>
+            <p className="text-xs text-[var(--text-secondary)]">Optional</p>
           </div>
 
           <div className="flex gap-2 mb-3">
             <button
               onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] hover:border-white/[0.2] text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-xs font-medium transition-all"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -515,7 +515,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             </button>
             <button
               onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] text-xs font-medium transition-all"
+              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-all"
             >
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -527,7 +527,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {desirableEvidence.length > 0 ? (
             <DomainEvidenceList domain={domain} links={desirableEvidence} onRemove={handleRemoveLink} />
           ) : (
-            <p className="text-xs text-[rgba(245,245,242,0.55)] italic">
+            <p className="text-xs text-[var(--text-secondary)] italic">
               Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
             </p>
           )}
@@ -560,19 +560,19 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
 
   // ---------- Existing scored modes (self-assessed / checkbox / banded) ----------
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 mt-2">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
       {/* Domain header */}
       <div className="flex items-center justify-between mb-2">
-        <h2 className="font-semibold text-[#F5F5F2] text-sm">{domain.label}</h2>
-        <span className="text-sm font-semibold text-[#F5F5F2]">
-          {score} <span className="text-[rgba(245,245,242,0.4)] font-normal">/ {domain.maxPoints} pts</span>
+        <h2 className="font-semibold text-[var(--text-primary)] text-sm">{domain.label}</h2>
+        <span className="text-sm font-semibold text-[var(--text-primary)]">
+          {score} <span className="text-[var(--text-muted)] font-normal">/ {domain.maxPoints} pts</span>
         </span>
       </div>
 
       {/* Progress bar */}
       <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden mb-4">
         <div
-          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          className="h-full bg-[var(--accent)] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -580,23 +580,23 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       {/* Notes */}
       {domain.notes && (
         <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-          <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
           </svg>
-          <p className="text-xs text-[rgba(245,245,242,0.45)] leading-relaxed">{domain.notes}</p>
+          <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
         </div>
       )}
 
       {/* Self-assessed */}
       {domain.isSelfAssessed && (
         <div>
-          <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium mb-2 block uppercase tracking-wide">
+          <label className="text-xs text-[var(--text-muted)] font-medium mb-2 block uppercase tracking-wide">
             Self-assessment
           </label>
           <select
             value={links[0]?.band_label ?? ''}
             onChange={e => handleSelfAssessedChange(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
           >
             <option value="">Not assessed</option>
             {domain.bands.map(band => (
@@ -612,10 +612,10 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       {domain.isCheckbox && (
         <div className="space-y-2">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
               Claimed items
             </p>
-            <span className="text-xs text-[rgba(245,245,242,0.4)]">
+            <span className="text-xs text-[var(--text-muted)]">
               {score} / {domain.maxPoints} pts claimed
             </span>
           </div>
@@ -631,21 +631,21 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                 <div
                   className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
                     isChecked
-                      ? 'bg-[#1B6FD9] border-[#1B6FD9]'
+                      ? 'bg-[var(--accent)] border-[var(--accent)]'
                       : 'bg-transparent border-white/[0.2] group-hover:border-white/[0.4]'
                   }`}
                 >
                   {isChecked && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </div>
                 <div className="flex items-start justify-between flex-1 min-w-0">
-                  <span className="text-sm text-[rgba(245,245,242,0.7)] group-hover:text-[#F5F5F2] transition-colors leading-snug">
+                  <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors leading-snug">
                     {band.label}
                   </span>
-                  <span className="ml-3 shrink-0 text-xs font-semibold text-[rgba(245,245,242,0.4)]">
+                  <span className="ml-3 shrink-0 text-xs font-semibold text-[var(--text-muted)]">
                     {band.points} pts
                   </span>
                 </div>
@@ -661,8 +661,8 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {/* Scoring bands - tick to quick-claim, or link evidence below */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Scoring bands</p>
-              <p className="text-xs text-[rgba(245,245,242,0.55)]">Tick to claim</p>
+              <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Scoring bands</p>
+              <p className="text-xs text-[var(--text-secondary)]">Tick to claim</p>
             </div>
             <div className="space-y-1">
               {domain.bands.map(band => {
@@ -674,21 +674,21 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                     onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
                     className={`flex items-center gap-3 py-1.5 px-2 rounded-lg border border-transparent transition-all ${
                       isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-white/[0.06]'
-                    } ${isChecked ? 'bg-[#1B6FD9]/[0.05] border-[#1B6FD9]/20' : ''}`}
+                    } ${isChecked ? 'bg-[var(--accent)]/[0.05] border-[var(--accent)]' : ''}`}
                   >
                     <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all ${
-                      isChecked ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-transparent border-white/[0.2]'
+                      isChecked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.2]'
                     }`}>
                       {isChecked && (
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12" />
                         </svg>
                       )}
                     </div>
-                    <span className={`text-xs flex-1 leading-snug ${isChecked ? 'text-[rgba(245,245,242,0.8)]' : 'text-[rgba(245,245,242,0.5)]'}`}>
+                    <span className={`text-xs flex-1 leading-snug ${isChecked ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                       {band.label}
                     </span>
-                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'}`}>
+                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
                       {band.points} pts
                     </span>
                   </div>
@@ -700,7 +700,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {/* Separator */}
           <div className="flex items-center gap-3 mb-4">
             <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-[rgba(245,245,242,0.55)]">or link evidence</span>
+            <span className="text-xs text-[var(--text-secondary)]">or link evidence</span>
             <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
@@ -708,7 +708,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2] hover:border-white/[0.2] text-sm font-medium transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-sm font-medium transition-all"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
@@ -718,7 +718,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             </button>
             <button
               onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[#1B6FD9] hover:bg-[#155BB0] text-white text-sm font-semibold transition-colors"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white text-sm font-semibold transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -737,7 +737,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           )}
 
           {links.length === 0 && (
-            <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-4">
+            <p className="text-center text-xs text-[var(--text-secondary)] py-4">
               No evidence linked yet. Link existing entries or log new evidence above.
             </p>
           )}

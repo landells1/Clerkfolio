@@ -73,20 +73,20 @@ export default function PersonalLogForm({ kind }: Props) {
   }
 
   return (
-    <form onSubmit={submit} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-      <h2 className="mb-4 text-base font-semibold text-[#F5F5F2]">Add {LABELS[kind]}</h2>
+    <form onSubmit={submit} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+      <h2 className="mb-4 text-base font-semibold text-[var(--text-primary)]">Add {LABELS[kind]}</h2>
       <div className="grid gap-3 sm:grid-cols-2">
-        <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-        <input type="date" value={date} onChange={e => setDate(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
-        {kind === 'mandatory_training' && <input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" aria-label="Expiry date" />}
-        {kind === 'course' && <input type="number" step="0.5" value={cpdHours} onChange={e => setCpdHours(e.target.value)} placeholder="CPD hours" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-        {kind === 'exam' && <input type="number" value={attempts} onChange={e => setAttempts(e.target.value)} placeholder="Attempt count" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-        {kind === 'exam' && <input value={score} onChange={e => setScore(e.target.value)} placeholder="Score" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-        {(kind === 'exam' || kind === 'course') && <input type="number" step="0.01" value={cost} onChange={e => setCost(e.target.value)} placeholder="Cost GBP" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
-        {(kind === 'oop' || kind === 'rotation' || kind === 'wba_received' || kind === 'teaching_observed') && <input value={meta} onChange={e => setMeta(e.target.value)} placeholder={kind === 'rotation' ? 'e.g. Geriatrics block, 4 weeks' : kind === 'oop' ? 'e.g. OOPR research year' : kind === 'wba_received' ? 'e.g. CBD with Dr Patel' : 'e.g. Teaching observed by Dr Khan'} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />}
+        <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
+        <input type="date" value={date} onChange={e => setDate(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
+        {kind === 'mandatory_training' && <input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" aria-label="Expiry date" />}
+        {kind === 'course' && <input type="number" step="0.5" value={cpdHours} onChange={e => setCpdHours(e.target.value)} placeholder="CPD hours" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+        {kind === 'exam' && <input type="number" value={attempts} onChange={e => setAttempts(e.target.value)} placeholder="Attempt count" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+        {kind === 'exam' && <input value={score} onChange={e => setScore(e.target.value)} placeholder="Score" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+        {(kind === 'exam' || kind === 'course') && <input type="number" step="0.01" value={cost} onChange={e => setCost(e.target.value)} placeholder="Cost GBP" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
+        {(kind === 'oop' || kind === 'rotation' || kind === 'wba_received' || kind === 'teaching_observed') && <input value={meta} onChange={e => setMeta(e.target.value)} placeholder={kind === 'rotation' ? 'e.g. Geriatrics block, 4 weeks' : kind === 'oop' ? 'e.g. OOPR research year' : kind === 'wba_received' ? 'e.g. CBD with Dr Patel' : 'e.g. Teaching observed by Dr Khan'} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
       </div>
-      <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="mt-3 min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3 text-sm text-[#F5F5F2]" />
-      <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white disabled:opacity-50">
+      <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="mt-3 min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] p-3 text-sm text-[var(--text-primary)]" />
+      <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white disabled:opacity-50">
           {saving ? 'Saving...' : `Save ${LABELS[kind].toLowerCase()}`}
       </button>
     </form>

@@ -38,14 +38,14 @@ export default function JsonImportForm() {
 
   return (
     <>
-      <form onSubmit={submit} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+      <form onSubmit={submit} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
         <input
           type="file"
           accept=".json,.zip,application/json,application/zip"
           onChange={e => setFile(e.target.files?.[0] ?? null)}
-          className="block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+          className="block w-full text-sm text-[var(--text-secondary)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
         />
-        <button disabled={!file || loading} className="mt-5 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white disabled:opacity-50">
+        <button disabled={!file || loading} className="mt-5 min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white disabled:opacity-50">
           {loading ? 'Importing...' : 'Import backup'}
         </button>
       </form>

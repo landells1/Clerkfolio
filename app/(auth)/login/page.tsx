@@ -71,9 +71,9 @@ function LoginForm() {
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8">
-      <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Welcome back</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">Log in to your Clerkfolio account</p>
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8">
+      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">Welcome back</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">Log in to your Clerkfolio account</p>
 
       {confirmationFailed && (
         <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100 mb-4">
@@ -102,14 +102,14 @@ function LoginForm() {
       )}
 
       {nextPath.startsWith('/upgrade') && (
-        <div className="bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-blue-100 mb-4">
+        <div className="bg-[var(--accent)] border border-[var(--accent)] rounded-lg px-3.5 py-2.5 text-sm text-blue-100 mb-4">
           Log in to continue your Pro upgrade.
         </div>
       )}
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="login-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="login-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
@@ -119,17 +119,17 @@ function LoginForm() {
             autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="you@example.com"
           />
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="login-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
               Password
             </label>
-            <Link href="/reset-password" className="text-xs text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors">
+            <Link href="/reset-password" className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors">
               Forgot password?
             </Link>
           </div>
@@ -140,7 +140,7 @@ function LoginForm() {
             autoComplete="current-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="••••••••"
           />
         </div>
@@ -154,15 +154,15 @@ function LoginForm() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
           {loading ? 'Logging in…' : 'Log in'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-6">
+      <p className="text-center text-sm text-[var(--text-secondary)] mt-6">
         Don&apos;t have an account?{' '}
-        <Link href={nextPath.startsWith('/upgrade') ? `/signup?next=${encodeURIComponent(nextPath)}` : '/signup'} className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
+        <Link href={nextPath.startsWith('/upgrade') ? `/signup?next=${encodeURIComponent(nextPath)}` : '/signup'} className="text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors font-medium">
           Sign up free
         </Link>
       </p>
@@ -172,7 +172,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center text-sm text-[rgba(245,245,242,0.55)]">Loading…</div>}>
+    <Suspense fallback={<div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 text-center text-sm text-[var(--text-secondary)]">Loading…</div>}>
       <LoginForm />
     </Suspense>
   )

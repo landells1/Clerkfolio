@@ -14,7 +14,7 @@ type Props = {
 export default function ListGroupHeader({ label, meta, className }: Props) {
   return (
     <div
-      className={`sticky top-0 z-10 flex items-baseline justify-between gap-2 px-3 py-1.5 bg-surface-0/95 backdrop-blur-sm border-b border-subtle text-[11px] uppercase tracking-wide font-medium text-fg-3 ${className ?? ''}`}
+      className={`sticky top-0 z-10 flex items-baseline justify-between gap-2 px-3 py-1.5 bg-[var(--bg-canvas)] backdrop-blur-sm border-b border-subtle text-[11px] uppercase tracking-wide font-medium text-fg-3 ${className ?? ''}`}
     >
       <span>{label}</span>
       {meta ? <span className="text-fg-3 normal-case tracking-normal text-xs">{meta}</span> : null}

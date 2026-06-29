@@ -105,15 +105,15 @@ export default function TrashRow({ item }: { item: TrashItem }) {
       confirmLabel="Delete permanently"
       onConfirm={permanentlyDelete}
     >
-      <div className="flex items-center gap-3 bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
+      <div className="flex items-center gap-3 bg-[var(--bg-surface)] border border-white/[0.08] rounded-lg px-4 py-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[rgba(245,245,242,0.5)]">
+            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[var(--text-secondary)]">
               {typeLabel}
             </span>
-            <p className="text-sm text-[rgba(245,245,242,0.82)] truncate">{item.title}</p>
+            <p className="text-sm text-[var(--text-primary)] truncate">{item.title}</p>
           </div>
-          <p className="text-xs text-[rgba(245,245,242,0.55)] capitalize">
+          <p className="text-xs text-[var(--text-secondary)] capitalize">
             {item.subtitle} - {entryDate} - Deleted {deletedDate}
           </p>
         </div>

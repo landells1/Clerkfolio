@@ -156,7 +156,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
   return (
     <>
-      <div className="sticky top-0 z-20 -mx-2 mb-3 bg-surface-0/95 px-2 py-3 backdrop-blur">
+      <div className="sticky top-0 z-20 -mx-2 mb-3 bg-[var(--bg-canvas)] px-2 py-3 backdrop-blur">
         <div className="flex justify-end gap-2">
           <div className="hidden sm:flex items-center rounded-lg border border-subtle bg-surface-1 p-0.5" role="group" aria-label="Row density">
             <button
@@ -211,15 +211,15 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
       {selectMode && (
         <div className="mb-3 flex items-center justify-between">
-          <button onClick={cancelSelect} className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD]">Cancel selection</button>
+          <button onClick={cancelSelect} className="text-xs font-medium text-[var(--accent-text)] hover:text-[var(--accent-bright)]">Cancel selection</button>
           <div className="flex items-center gap-3">
-            <button onClick={() => setSelected(new Set(filtered.map(c => c.id)))} className="text-xs text-[#1B6FD9] hover:text-[#3884DD]">Select all</button>
-            <span className="text-xs text-[rgba(245,245,242,0.55)]">{selected.size} selected</span>
+            <button onClick={() => setSelected(new Set(filtered.map(c => c.id)))} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)]">Select all</button>
+            <span className="text-xs text-[var(--text-secondary)]">{selected.size} selected</span>
           </div>
         </div>
       )}
       {!selectMode && filtered.length > 0 && (
-        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] sm:hidden">
+        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-secondary)] sm:hidden">
           Select cases
         </button>
       )}
@@ -254,23 +254,23 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
       {filtersOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 sm:justify-end" onClick={() => setFiltersOpen(false)}>
-          <div className="max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/[0.08] bg-[#141416] p-6 sm:h-full sm:max-h-none sm:rounded-l-2xl sm:rounded-tr-none sm:border-l sm:border-t-0" onClick={e => e.stopPropagation()}>
+          <div className="max-h-[88dvh] w-full max-w-md overflow-y-auto rounded-t-2xl border-t border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:h-full sm:max-h-none sm:rounded-l-2xl sm:rounded-tr-none sm:border-l sm:border-t-0" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-semibold text-[#F5F5F2]">Filters</h2>
-              <button onClick={() => setFiltersOpen(false)} className="min-h-[44px] px-3 text-[rgba(245,245,242,0.55)]">Close</button>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">Filters</h2>
+              <button onClick={() => setFiltersOpen(false)} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Close</button>
             </div>
             <div className="space-y-4">
               <Select label="Clinical area" value={domain} onChange={setDomain} options={domains} />
               <Select label="Linked specialty" value={specialty} onChange={setSpecialty} options={userInterests} getOptionLabel={formatSpecialtyLabel} />
-              <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
                 From
-                <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
+                <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
               </label>
-              <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
                 To
-                <input type="date" value={to} onChange={e => setTo(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]" />
+                <input type="date" value={to} onChange={e => setTo(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
               </label>
-              <button onClick={() => { setDomain(''); setSpecialty(''); setFrom(''); setTo('') }} className="min-h-[44px] w-full rounded-lg border border-white/[0.08] text-sm text-[rgba(245,245,242,0.65)]">
+              <button onClick={() => { setDomain(''); setSpecialty(''); setFrom(''); setTo('') }} className="min-h-[44px] w-full rounded-lg border border-white/[0.08] text-sm text-[var(--text-secondary)]">
                 Clear filters
               </button>
             </div>
@@ -279,23 +279,23 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       )}
 
       {selectMode && selected.size > 0 && (
-        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
-          <span className="mr-1 text-xs font-medium text-[rgba(245,245,242,0.6)]">{selected.size} selected</span>
-          <button onClick={() => setTagModalOpen(true)} className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)]">Add tag</button>
+        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[var(--bg-raised)] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
+          <span className="mr-1 text-xs font-medium text-[var(--text-secondary)]">{selected.size} selected</span>
+          <button onClick={() => setTagModalOpen(true)} className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)]">Add tag</button>
           <button onClick={bulkTrash} disabled={busy} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 disabled:opacity-50">{busy ? 'Working...' : 'Move to trash'}</button>
-          <button onClick={cancelSelect} className="ml-1 text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2]">Close</button>
+          <button onClick={cancelSelect} className="ml-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Close</button>
         </div>
       )}
 
       {tagModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setTagModalOpen(false)}>
-          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
-            <h2 className="mb-2 text-base font-semibold text-[#F5F5F2]">Add specialty tag</h2>
-            <p className="mb-3 text-xs text-[rgba(245,245,242,0.4)]">Adding to {selected.size} {selected.size === 1 ? 'case' : 'cases'}.</p>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+            <h2 className="mb-2 text-base font-semibold text-[var(--text-primary)]">Add specialty tag</h2>
+            <p className="mb-3 text-xs text-[var(--text-muted)]">Adding to {selected.size} {selected.size === 1 ? 'case' : 'cases'}.</p>
             <SpecialtyTagSelect value={bulkTags} onChange={setBulkTags} userInterests={userInterests} trackedOnly />
             <div className="mt-4 flex gap-2">
-              <button onClick={() => setTagModalOpen(false)} className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm text-[rgba(245,245,242,0.55)]">Cancel</button>
-              <button onClick={bulkAddTags} disabled={bulkTags.length === 0 || busy} className="flex-[2] rounded-xl bg-[#1B6FD9] py-2.5 text-sm font-semibold text-white disabled:opacity-50">Apply</button>
+              <button onClick={() => setTagModalOpen(false)} className="flex-1 rounded-xl border border-white/[0.08] py-2.5 text-sm text-[var(--text-secondary)]">Cancel</button>
+              <button onClick={bulkAddTags} disabled={bulkTags.length === 0 || busy} className="flex-[2] rounded-xl bg-[var(--accent)] py-2.5 text-sm font-semibold text-white disabled:opacity-50">Apply</button>
             </div>
           </div>
         </div>
@@ -306,9 +306,9 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
 function Select({ label, value, onChange, options, getOptionLabel = option => option }: { label: string; value: string; onChange: (value: string) => void; options: string[]; getOptionLabel?: (value: string) => string }) {
   return (
-    <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+    <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
       {label}
-      <select value={value} onChange={e => onChange(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+      <select value={value} onChange={e => onChange(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
         <option value="">Any</option>
         {options.map(option => <option key={option} value={option}>{getOptionLabel(option)}</option>)}
       </select>
@@ -334,7 +334,7 @@ function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, on
       {/* Selection checkbox: hidden until hover unless selecting */}
       <button onClick={onToggle} className={`shrink-0 w-9 flex items-center justify-center transition-opacity ${selectMode || selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`} aria-label={selected ? 'Deselect case' : 'Select case'}>
         <span className={`flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-blue-500 bg-blue-500' : 'border-fg-3 bg-surface-1'}`}>
-          {selected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
+          {selected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
         </span>
       </button>
       <div className="flex-1 min-w-0">

@@ -73,16 +73,16 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
   const total = dates.length
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl">
       {/* Header */}
       <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-white/[0.06]">
-        <p className="text-[13px] font-semibold text-[#F5F5F2]">Activity</p>
+        <p className="text-[13px] font-semibold text-[var(--text-primary)]">Activity</p>
         <div className="flex items-center gap-1.5">
-          <span className="text-[10px] text-[rgba(245,245,242,0.55)]">Less</span>
+          <span className="text-[10px] text-[var(--text-secondary)]">Less</span>
           {(['rgba(245,245,242,0.05)', 'rgba(34, 197, 94, 0.30)', 'rgba(34, 197, 94, 0.65)', 'rgba(245, 158, 11, 0.85)'] as const).map((color, i) => (
             <div key={i} className="rounded-sm" style={{ width: CELL - 3, height: CELL - 3, background: color }} />
           ))}
-          <span className="text-[10px] text-[rgba(245,245,242,0.55)]">More</span>
+          <span className="text-[10px] text-[var(--text-secondary)]">More</span>
         </div>
       </div>
 
@@ -107,7 +107,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
                 <span
                   style={{
                     fontSize: 10,
-                    color: 'rgba(245,245,242,0.45)',
+                    color: 'var(--text-muted)',
                     whiteSpace: 'nowrap',
                     lineHeight: 1,
                     letterSpacing: '0.02em',
@@ -131,7 +131,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
                   flexShrink: 0,
                   textAlign: 'right',
                   fontSize: 10,
-                  color: 'rgba(245,245,242,0.55)',
+                  color: 'var(--text-secondary)',
                   lineHeight: 1,
                   letterSpacing: '0.02em',
                 }}
@@ -164,7 +164,7 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         </div>
 
         <p
-          style={{ marginTop: 12, fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: '0.01em' }}
+          style={{ marginTop: 12, fontSize: 11, color: 'var(--text-secondary)', letterSpacing: '0.01em' }}
         >
           {total} {total === 1 ? 'entry' : 'entries'} in the last year
         </p>

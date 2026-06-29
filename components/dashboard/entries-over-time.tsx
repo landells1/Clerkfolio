@@ -18,16 +18,16 @@ export type EntriesOverTimeBucket = {
 }
 
 const SERIES = [
-  ['cases', '#0EA5E9'],
-  ['audit_qip', '#1B6FD9'],
-  ['teaching', '#A855F7'],
-  ['conference', '#F59E0B'],
-  ['publication', '#F97316'],
-  ['leadership', '#EC4899'],
-  ['prize', '#EAB308'],
-  ['procedure', '#14B8A6'],
-  ['reflection', '#22C55E'],
-  ['custom', '#94A3B8'],
+  ['cases', 'var(--cat-cyan-dot)'],
+  ['audit_qip', 'var(--cat-blue-dot)'],
+  ['teaching', 'var(--cat-violet-dot)'],
+  ['conference', 'var(--cat-amber-dot)'],
+  ['publication', 'var(--cat-amber-dot)'],
+  ['leadership', 'var(--cat-pink-dot)'],
+  ['prize', 'var(--cat-amber-dot)'],
+  ['procedure', 'var(--cat-teal-dot)'],
+  ['reflection', 'var(--cat-green-dot)'],
+  ['custom', 'var(--cat-neutral-dot)'],
 ] as const
 
 export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[] }) {
@@ -36,10 +36,10 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
   useEffect(() => setMounted(true), [])
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+    <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
       <div className="mb-4">
-        <p className="text-sm font-semibold text-[#F5F5F2]">Entries over time</p>
-        <p className="mt-0.5 text-xs text-[rgba(245,245,242,0.4)]">Last 12 months, grouped by category</p>
+        <p className="text-sm font-semibold text-[var(--text-primary)]">Entries over time</p>
+        <p className="mt-0.5 text-xs text-[var(--text-muted)]">Last 12 months, grouped by category</p>
       </div>
       <div className="h-64">
         {mounted ? <ResponsiveContainer width="100%" height="100%">
@@ -52,12 +52,12 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid stroke="rgba(245,245,242,0.06)" vertical={false} />
-            <XAxis dataKey="month" tick={{ fill: 'rgba(245,245,242,0.42)', fontSize: 11 }} tickLine={false} axisLine={false} />
-            <YAxis tick={{ fill: 'rgba(245,245,242,0.55)', fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
+            <CartesianGrid stroke="var(--text-faint)" vertical={false} />
+            <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} tickLine={false} axisLine={false} />
+            <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
             <Tooltip
-              contentStyle={{ background: '#141416', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#F5F5F2' }}
-              labelStyle={{ color: '#F5F5F2' }}
+              contentStyle={{ background: 'var(--bg-surface)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'var(--text-primary)' }}
+              labelStyle={{ color: 'var(--text-primary)' }}
             />
             {SERIES.map(([key, color]) => (
               <Area key={key} type="monotone" dataKey={key} stackId="entries" stroke={color} fill={`url(#entry-${key})`} strokeWidth={1.5} />

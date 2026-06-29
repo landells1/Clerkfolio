@@ -242,10 +242,10 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   return (
     <>
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[#0E0E10] border-b border-white/[0.06] flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[var(--bg-canvas)] border-b border-white/[0.06] flex items-center justify-between px-4">
         <button
           onClick={() => setMobileOpen(true)}
-          className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 -ml-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
+          className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Open menu"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -264,13 +264,13 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
+          <span className="text-[var(--text-primary)] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </div>
         <div className="flex items-center gap-1">
           <Link
             href="/export"
             prefetch={false}
-            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Share and export"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -281,7 +281,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           </Link>
           <button
             onClick={openSearch}
-            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             aria-label="Search and commands"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -321,7 +321,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         />
       )}
 
-      <aside className={`w-[240px] h-screen bg-[#0E0E10] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-[240px] h-screen bg-[var(--bg-canvas)] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="flex items-center justify-between border-b border-white/[0.06]">
         <Link href="/dashboard" prefetch={false} onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">
@@ -334,11 +334,11 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
+          <span className="text-[var(--text-primary)] font-semibold text-[15px] tracking-tight">Clerkfolio</span>
         </Link>
         <button
           onClick={() => setMobileOpen(false)}
-          className="lg:hidden mr-4 text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors p-1"
+          className="lg:hidden mr-4 text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors p-1"
           aria-label="Close menu"
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -360,12 +360,12 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                     active
-                      ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
-                      : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                      ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                      : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
                   }`}
                   style={active ? { background: 'rgba(27,111,217,0.12)' } : undefined}
                 >
-                  <span className={active ? 'text-blue-300' : 'text-[rgba(245,245,242,0.4)]'}>
+                  <span className={active ? 'text-blue-300' : 'text-[var(--text-muted)]'}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -378,7 +378,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <div className="mt-auto pt-3 space-y-0.5">
             <button
               onClick={() => { openSearch(); setMobileOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.55)] transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -397,7 +397,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           {/* Send Feedback */}
           <button
             onClick={() => setFeedbackOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -413,8 +413,8 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                 pathname === '/upgrade'
-                  ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
-                  : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                  ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                  : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
               }`}
               style={pathname === '/upgrade' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
             >
@@ -430,7 +430,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
           >
             {loggingOut ? (
               <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full motion-safe:animate-spin flex-shrink-0" />
@@ -451,8 +451,8 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/settings' || pathname.startsWith('/settings/')
-                ? 'rounded-r-lg text-[#F5F5F2] border-l-2 border-blue-400'
-                : 'rounded-lg text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05]'
+                ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
             }`}
             style={(pathname === '/settings' || pathname.startsWith('/settings/')) ? { background: 'rgba(27,111,217,0.12)' } : undefined}
           >
@@ -468,7 +468,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
-            <span className="text-sm text-[rgba(245,245,242,0.6)] truncate font-medium">{fullName}</span>
+            <span className="text-sm text-[var(--text-secondary)] truncate font-medium">{fullName}</span>
           </div>
 
           {/* Legal links */}
@@ -490,7 +490,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 // logged-out legal footer disables prefetch.
                 prefetch={false}
                 onClick={() => setMobileOpen(false)}
-                className="text-[11px] text-[rgba(245,245,242,0.6)] hover:text-[#F5F5F2] transition-colors"
+                className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
               >
                 {label}
               </Link>
@@ -510,13 +510,13 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             aria-labelledby="feedback-title"
             tabIndex={-1}
             onClick={e => e.stopPropagation()}
-            className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md"
+            className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 w-full max-w-md"
           >
             <div className="flex items-center justify-between mb-5">
-              <h2 id="feedback-title" className="text-base font-semibold text-[#F5F5F2]">Send feedback</h2>
+              <h2 id="feedback-title" className="text-base font-semibold text-[var(--text-primary)]">Send feedback</h2>
               <button
                 onClick={() => setFeedbackOpen(false)}
-                className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -526,34 +526,34 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
             <form onSubmit={handleFeedbackSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Your name</label>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Your name</label>
                   <input
                     required
                     value={feedback.name}
                     onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="Jane Smith"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Email</label>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Email</label>
                   <input
                     type="email"
                     required
                     value={feedback.email}
                     onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors"
                     placeholder="you@example.com"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Comment</label>
+                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Comment</label>
                   <textarea
                     required
                     rows={4}
                     value={feedback.comment}
                     onChange={e => setFeedback(f => ({ ...f, comment: e.target.value }))}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
                     placeholder="Tell us what's working, what isn't, or what you'd love to see…"
                   />
                 </div>
@@ -600,11 +600,11 @@ function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
 }
 
 function NotificationBellSidebar() {
-  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:bg-white/[0.05] transition-colors" sidebar />
+  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors" sidebar />
 }
 
 function NotificationBellMobile() {
-  return <NotificationBell className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors" />
+  return <NotificationBell className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors" />
 }
 
 function NotificationBell({ className, sidebar }: { className: string; sidebar?: boolean }) {
@@ -674,12 +674,12 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
             aria-modal="true"
             aria-label="Notifications"
             tabIndex={-1}
-            className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}
+            className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
-              <span className="text-sm font-semibold text-[#F5F5F2]">Notifications</span>
+              <span className="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
               {notifications.length > 0 && (
-                <button onClick={handleMarkAllRead} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">
+                <button onClick={handleMarkAllRead} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors">
                   Mark all read
                 </button>
               )}
@@ -687,11 +687,11 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
             <div className="max-h-80 overflow-y-auto divide-y divide-white/[0.04]">
               {loading ? (
                 <div className="flex items-center justify-center py-10">
-                  <div className="w-4 h-4 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--accent)] border-t-transparent rounded-full motion-safe:animate-spin" />
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="py-10 text-center">
-                  <p className="text-sm text-[rgba(245,245,242,0.55)]">All caught up.</p>
+                  <p className="text-sm text-[var(--text-secondary)]">All caught up.</p>
                 </div>
               ) : (
                 notifications.map(n => (
@@ -703,11 +703,11 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
                     <div className="flex items-start gap-3">
                       <NotifIcon type={n.type} />
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-medium text-[#F5F5F2] leading-snug">{n.title}</p>
-                        {n.body && <p className="text-xs text-[rgba(245,245,242,0.45)] mt-0.5 leading-snug">{n.body}</p>}
-                        <p className="text-[10px] text-[rgba(245,245,242,0.55)] mt-1">{timeAgo(n.created_at)}</p>
+                        <p className="text-xs font-medium text-[var(--text-primary)] leading-snug">{n.title}</p>
+                        {n.body && <p className="text-xs text-[var(--text-muted)] mt-0.5 leading-snug">{n.body}</p>}
+                        <p className="text-[10px] text-[var(--text-secondary)] mt-1">{timeAgo(n.created_at)}</p>
                       </div>
-                      <span className="w-1.5 h-1.5 rounded-full bg-[#1B6FD9] mt-1.5 shrink-0" />
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--accent)] mt-1.5 shrink-0" />
                     </div>
                   </button>
                 ))
@@ -726,21 +726,21 @@ function NotifIcon({ type }: { type: string }) {
   const cls = "w-7 h-7 rounded-lg flex items-center justify-center shrink-0"
   if (type === 'deadline_due') return (
     <span className={`${cls} bg-red-500/15`}>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#f87171" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--danger)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
       </svg>
     </span>
   )
   if (type === 'share_link_expiring') return (
     <span className={`${cls} bg-amber-500/15`}>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--cat-amber-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/>
         <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>
       </svg>
     </span>
   )
   return (
-    <span className={`${cls} bg-[#1B6FD9]/15`}>
+    <span className={`${cls} bg-[var(--accent)]`}>
       <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>

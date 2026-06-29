@@ -31,22 +31,22 @@ export function CompareView({ applications, links, isPro = false }: Props) {
   if (applications.length < 2) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-[#141416] border border-white/[0.08] flex items-center justify-center mb-4">
-          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--bg-surface)] border border-white/[0.08] flex items-center justify-center mb-4">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="7" height="18" /><rect x="14" y="3" width="7" height="18" />
           </svg>
         </div>
         {isPro ? (
-          <p className="text-[rgba(245,245,242,0.4)] text-sm">Track at least 2 active specialties to compare them side by side.</p>
+          <p className="text-[var(--text-muted)] text-sm">Track at least 2 active specialties to compare them side by side.</p>
         ) : (
           <>
-            <p className="max-w-sm text-[rgba(245,245,242,0.55)] text-sm">
+            <p className="max-w-sm text-[var(--text-secondary)] text-sm">
               Comparing specialties needs 2+ tracked specialties. Free, Student and Foundation tiers track one
               specialty at a time — tracking more than one requires Pro.
             </p>
             <Link
               href="/upgrade?source=compare"
-              className="mt-4 inline-flex min-h-[40px] items-center rounded-lg bg-[#1B6FD9] px-4 text-sm font-semibold text-white hover:bg-[#155BB0] transition-colors"
+              className="mt-4 inline-flex min-h-[40px] items-center rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] transition-colors"
             >
               Upgrade to Pro
             </Link>
@@ -82,13 +82,13 @@ export function CompareView({ applications, links, isPro = false }: Props) {
       {/* Selector row */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+          <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
             Left specialty
           </label>
           <select
             value={leftId}
             onChange={e => setLeftId(e.target.value)}
-            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+            className="w-full bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
           >
             {applications.map(app => {
               const config = getSpecialtyConfig(app.specialty_key)
@@ -101,13 +101,13 @@ export function CompareView({ applications, links, isPro = false }: Props) {
           </select>
         </div>
         <div>
-          <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+          <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
             Right specialty
           </label>
           <select
             value={rightId}
             onChange={e => setRightId(e.target.value)}
-            className="w-full bg-[#141416] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+            className="w-full bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
           >
             {applications.map(app => {
               const config = getSpecialtyConfig(app.specialty_key)
@@ -122,22 +122,22 @@ export function CompareView({ applications, links, isPro = false }: Props) {
       </div>
 
       {/* Comparison table */}
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl overflow-hidden">
         {/* Header row */}
         <div className="grid grid-cols-3 border-b border-white/[0.08]">
           <div className="p-4 text-center">
-            <p className="font-semibold text-[#F5F5F2] text-sm">{leftConfig?.name ?? '-'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
+            <p className="font-semibold text-[var(--text-primary)] text-sm">{leftConfig?.name ?? '-'}</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {leftConfig?.cycleYear}
               {leftConfig && isEvidenceBased(leftConfig) && ' · Evidence-based'}
             </p>
           </div>
           <div className="p-4 text-center border-x border-white/[0.06]">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Domain</p>
+            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Domain</p>
           </div>
           <div className="p-4 text-center">
-            <p className="font-semibold text-[#F5F5F2] text-sm">{rightConfig?.name ?? '-'}</p>
-            <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
+            <p className="font-semibold text-[var(--text-primary)] text-sm">{rightConfig?.name ?? '-'}</p>
+            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {rightConfig?.cycleYear}
               {rightConfig && isEvidenceBased(rightConfig) && ' · Evidence-based'}
             </p>
@@ -166,13 +166,13 @@ export function CompareView({ applications, links, isPro = false }: Props) {
               key={domainKey}
               className={`grid grid-cols-3 border-b border-white/[0.04] last:border-0 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
             >
-              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[var(--accent)]/[0.08]' : ''}`}>
                 <DomainCell metric={leftMetric} highlight={leftHigher} />
               </div>
               <div className="p-3.5 flex items-center justify-center border-x border-white/[0.04]">
-                <span className="text-xs text-[rgba(245,245,242,0.45)] text-center leading-snug">{domainLabel}</span>
+                <span className="text-xs text-[var(--text-muted)] text-center leading-snug">{domainLabel}</span>
               </div>
-              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[var(--accent)]/[0.08]' : ''}`}>
                 <DomainCell metric={rightMetric} highlight={rightHigher} />
               </div>
             </div>
@@ -185,7 +185,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             <TotalCell config={leftConfig} app={leftApp} links={leftLinks} />
           </div>
           <div className="p-4 flex items-center justify-center border-x border-white/[0.06]">
-            <span className="text-xs text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide">Total</span>
+            <span className="text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wide">Total</span>
           </div>
           <div className="p-4 flex items-center justify-center">
             <TotalCell config={rightConfig} app={rightApp} links={rightLinks} />
@@ -216,21 +216,21 @@ function domainMetric(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): Dom
 
 function DomainCell({ metric, highlight }: { metric: DomainMetric | null; highlight: boolean }) {
   if (metric === null) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">-</span>
+    return <span className="text-xs text-[var(--text-secondary)]">-</span>
   }
   if (metric.kind === 'points') {
     return (
-      <span className={`text-sm font-semibold ${highlight ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+      <span className={`text-sm font-semibold ${highlight ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
         {metric.value} pts
       </span>
     )
   }
   // evidence
   if (!metric.hasEvidence) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">Not yet</span>
+    return <span className="text-xs text-[var(--text-secondary)]">Not yet</span>
   }
   return (
-    <span className={`text-xs font-semibold flex items-center gap-1 ${highlight ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+    <span className={`text-xs font-semibold flex items-center gap-1 ${highlight ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
       <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12" />
       </svg>
@@ -249,17 +249,17 @@ function TotalCell({
   links: SpecialtyEntryLink[]
 }) {
   if (!config || !app) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">-</span>
+    return <span className="text-xs text-[var(--text-secondary)]">-</span>
   }
   if (isEvidenceBased(config)) {
     const { essentialsMet, essentialsTotal, desirablesEvidenced, desirablesTotal } = getEvidenceProgress(config, links)
     return (
       <div className="text-center">
-        <p className="text-sm font-semibold text-[#F5F5F2]">
+        <p className="text-sm font-semibold text-[var(--text-primary)]">
           {essentialsMet}/{essentialsTotal}
-          <span className="text-xs font-normal text-[rgba(245,245,242,0.45)] ml-1">essentials</span>
+          <span className="text-xs font-normal text-[var(--text-muted)] ml-1">essentials</span>
         </p>
-        <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">
+        <p className="text-xs text-[var(--text-secondary)] mt-0.5">
           {desirablesEvidenced}/{desirablesTotal} desirables
         </p>
       </div>
@@ -270,10 +270,10 @@ function TotalCell({
   const domainsScore = calculateDomainsScore(config, links)
   const bonusScore = calculateBonusScore(config, app)
   return (
-    <span className="text-base font-bold text-[#F5F5F2]">
+    <span className="text-base font-bold text-[var(--text-primary)]">
       {domainsScore}
-      {bonusScore > 0 && <span className="text-xs font-semibold text-[#1B6FD9] ml-0.5">+{bonusScore}</span>}
-      <span className="text-xs font-normal text-[rgba(245,245,242,0.55)] ml-1">/ {config.totalMax}</span>
+      {bonusScore > 0 && <span className="text-xs font-semibold text-[var(--accent-text)] ml-0.5">+{bonusScore}</span>}
+      <span className="text-xs font-normal text-[var(--text-secondary)] ml-1">/ {config.totalMax}</span>
     </span>
   )
 }

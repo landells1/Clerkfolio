@@ -20,7 +20,7 @@ export default function MarkdownRenderer({ value }: { value: string }) {
 
   return (
     <div
-      className="prose prose-invert max-w-none text-sm leading-relaxed text-[rgba(245,245,242,0.72)] prose-p:my-3 prose-strong:text-[#F5F5F2]"
+      className="prose prose-invert max-w-none text-sm leading-relaxed text-[var(--text-secondary)] prose-p:my-3 prose-strong:text-[var(--text-primary)]"
       dangerouslySetInnerHTML={{ __html: html }}
     />
   )

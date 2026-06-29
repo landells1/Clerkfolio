@@ -207,13 +207,13 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
         {([1, 2, 3, 4] as Step[]).map((s, idx) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-              step === s ? 'bg-[#1B6FD9] text-white'
-              : step > s ? 'bg-emerald-500 text-[#0B0B0C]'
-              : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'
+              step === s ? 'bg-[var(--accent)] text-white'
+              : step > s ? 'bg-emerald-500 text-[var(--text-inverse)]'
+              : 'bg-white/[0.06] text-[var(--text-secondary)]'
             }`}>
               {step > s ? 'OK' : s}
             </div>
-            <span className={`text-xs font-medium ${step === s ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.55)]'}`}>
+            <span className={`text-xs font-medium ${step === s ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
               {['Upload', 'Preview', 'Configure', 'Done'][idx]}
             </span>
             {idx < 3 && <div className="w-8 h-px bg-white/[0.08] mx-1" />}
@@ -225,8 +225,8 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
       {step === 1 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Upload your Horus export</h2>
-            <p className="text-sm text-[rgba(245,245,242,0.5)]">Built for doctors moving Horus evidence into Clerkfolio. CSV exports from other official foundation portfolio systems can also work if they include date, type, and title columns.</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Upload your Horus export</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Built for doctors moving Horus evidence into Clerkfolio. CSV exports from other official foundation portfolio systems can also work if they include date, type, and title columns.</p>
           </div>
 
           <div
@@ -235,16 +235,16 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-12 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
-              dragging ? 'border-[#1B6FD9] bg-[#1B6FD9]/5' : 'border-white/[0.08] hover:border-white/[0.2]'
+              dragging ? 'border-[var(--accent)] bg-[var(--accent)]' : 'border-white/[0.08] hover:border-white/[0.2]'
             }`}
           >
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
               <polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
             </svg>
             <div className="text-center">
-              <p className="text-sm font-medium text-[rgba(245,245,242,0.7)]">Drop CSV here, or click to browse</p>
-              <p className="text-xs text-[rgba(245,245,242,0.55)] mt-1">.csv files only - Horus supervised learning event export preferred</p>
+              <p className="text-sm font-medium text-[var(--text-secondary)]">Drop CSV here, or click to browse</p>
+              <p className="text-xs text-[var(--text-secondary)] mt-1">.csv files only - Horus supervised learning event export preferred</p>
             </div>
             <input
               ref={fileRef}
@@ -264,16 +264,16 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             </div>
           )}
 
-          <div className="bg-[#141416] border border-white/[0.06] rounded-xl p-4 text-xs text-[rgba(245,245,242,0.45)] space-y-1.5">
-            <p className="font-medium text-[rgba(245,245,242,0.6)]">How to export from Horus</p>
-            <p>1. Log in to your Horus account at <span className="font-mono text-[rgba(245,245,242,0.6)]">horus.hee.nhs.uk</span></p>
+          <div className="bg-[var(--bg-surface)] border border-white/[0.06] rounded-xl p-4 text-xs text-[var(--text-muted)] space-y-1.5">
+            <p className="font-medium text-[var(--text-secondary)]">How to export from Horus</p>
+            <p>1. Log in to your Horus account at <span className="font-mono text-[var(--text-secondary)]">horus.hee.nhs.uk</span></p>
             <p>2. Navigate to Portfolio, then Supervised Learning Events or portfolio contents</p>
             <p>3. Use the export/download option and choose CSV where available</p>
             <p>4. Upload that file here</p>
             <p className="pt-2">Horus is the NHS England ePortfolio for foundation doctors in England. Clerkfolio imports your own export; it does not connect to Horus directly.</p>
             <div className="flex flex-wrap gap-3 pt-2">
-              <a href="https://supporthorus.hee.nhs.uk/about-horus/what-is-horus/" target="_blank" rel="noopener noreferrer" className="text-[#1B6FD9] hover:text-[#3884DD]">Horus support</a>
-              <a href="https://foundationprogramme.nhs.uk/curriculum/e-portfolio/" target="_blank" rel="noopener noreferrer" className="text-[#1B6FD9] hover:text-[#3884DD]">UKFPO e-portfolio guidance</a>
+              <a href="https://supporthorus.hee.nhs.uk/about-horus/what-is-horus/" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-text)] hover:text-[var(--accent-bright)]">Horus support</a>
+              <a href="https://foundationprogramme.nhs.uk/curriculum/e-portfolio/" target="_blank" rel="noopener noreferrer" className="text-[var(--accent-text)] hover:text-[var(--accent-bright)]">UKFPO e-portfolio guidance</a>
             </div>
           </div>
         </div>
@@ -284,13 +284,13 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
         <div className="space-y-4">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Preview</h2>
-              <p className="text-sm text-[rgba(245,245,242,0.5)]">{rows.length} rows parsed - {skippableCount > 0 ? `${skippableCount} will be skipped (no title)` : 'All rows have titles'}</p>
+              <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Preview</h2>
+              <p className="text-sm text-[var(--text-secondary)]">{rows.length} rows parsed - {skippableCount > 0 ? `${skippableCount} will be skipped (no title)` : 'All rows have titles'}</p>
             </div>
             <div className="flex gap-2 shrink-0">
-              <button onClick={() => toggleAll(true)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">Select all</button>
-              <span className="text-[rgba(245,245,242,0.55)]">-</span>
-              <button onClick={() => toggleAll(false)} className="text-xs text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors">None</button>
+              <button onClick={() => toggleAll(true)} className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">Select all</button>
+              <span className="text-[var(--text-secondary)]">-</span>
+              <button onClick={() => toggleAll(false)} className="text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">None</button>
             </div>
           </div>
 
@@ -307,15 +307,15 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
           <div className="border border-white/[0.06] rounded-xl overflow-hidden">
             <div className="overflow-x-auto max-h-[50vh] overflow-y-auto">
               <table className="w-full text-xs">
-                <thead className="bg-[#141416] border-b border-white/[0.06] sticky top-0">
+                <thead className="bg-[var(--bg-surface)] border-b border-white/[0.06] sticky top-0">
                   <tr>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)] w-10">
-                      <input type="checkbox" checked={rows.every(r => r.selected)} onChange={e => toggleAll(e.target.checked)} className="accent-[#1B6FD9]" />
+                    <th className="px-3 py-2.5 text-left font-medium text-[var(--text-muted)] w-10">
+                      <input type="checkbox" checked={rows.every(r => r.selected)} onChange={e => toggleAll(e.target.checked)} className="accent-[var(--accent-text)]" />
                     </th>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Date</th>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Title</th>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Type / Category</th>
-                    <th className="px-3 py-2.5 text-left font-medium text-[rgba(245,245,242,0.4)]">Supervisor</th>
+                    <th className="px-3 py-2.5 text-left font-medium text-[var(--text-muted)]">Date</th>
+                    <th className="px-3 py-2.5 text-left font-medium text-[var(--text-muted)]">Title</th>
+                    <th className="px-3 py-2.5 text-left font-medium text-[var(--text-muted)]">Type / Category</th>
+                    <th className="px-3 py-2.5 text-left font-medium text-[var(--text-muted)]">Supervisor</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-white/[0.04]">
@@ -327,19 +327,19 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                           checked={row.selected}
                           disabled={!row.title}
                           onChange={() => toggleRow(idx)}
-                          className="accent-[#1B6FD9]"
+                          className="accent-[var(--accent-text)]"
                         />
                       </td>
-                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.55)] whitespace-nowrap font-mono">{row.date || '-'}</td>
-                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.8)] max-w-[200px] truncate">
-                        {row.title || <span className="italic text-[rgba(245,245,242,0.55)]">no title</span>}
+                      <td className="px-3 py-2.5 text-[var(--text-secondary)] whitespace-nowrap font-mono">{row.date || '-'}</td>
+                      <td className="px-3 py-2.5 text-[var(--text-primary)] max-w-[200px] truncate">
+                        {row.title || <span className="italic text-[var(--text-secondary)]">no title</span>}
                       </td>
                       <td className="px-3 py-2.5">
-                        <span className="text-[rgba(245,245,242,0.4)]">{row.type || '-'}</span>
-                        {row.type && <span className="mx-1 text-[rgba(245,245,242,0.55)]">/</span>}
-                        <span className="text-[rgba(245,245,242,0.6)]">{categoryLabel(row.mappedCategory)}</span>
+                        <span className="text-[var(--text-muted)]">{row.type || '-'}</span>
+                        {row.type && <span className="mx-1 text-[var(--text-secondary)]">/</span>}
+                        <span className="text-[var(--text-secondary)]">{categoryLabel(row.mappedCategory)}</span>
                       </td>
-                      <td className="px-3 py-2.5 text-[rgba(245,245,242,0.4)] truncate max-w-[120px]">{row.supervisor || '-'}</td>
+                      <td className="px-3 py-2.5 text-[var(--text-muted)] truncate max-w-[120px]">{row.supervisor || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -348,13 +348,13 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
           </div>
 
           <div className="flex justify-between gap-3">
-            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] transition-colors">
+            <button onClick={() => setStep(1)} className="px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Back
             </button>
             <button
               onClick={() => setStep(3)}
               disabled={selectedCount === 0}
-              className="px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               Configure import ({selectedCount} rows)
             </button>
@@ -366,14 +366,14 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
       {step === 3 && (
         <div className="space-y-6">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Configure import</h2>
-            <p className="text-sm text-[rgba(245,245,242,0.5)]">Set options that apply to all {selectedCount} selected entries.</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Configure import</h2>
+            <p className="text-sm text-[var(--text-secondary)]">Set options that apply to all {selectedCount} selected entries.</p>
           </div>
 
           {/* Specialty tags */}
-          <div className="bg-[#141416] border border-white/[0.08] rounded-xl p-4 space-y-3">
-            <p className="text-sm font-medium text-[#F5F5F2]">Specialty tags</p>
-            <p className="text-xs text-[rgba(245,245,242,0.45)]">Tag all imported entries with your tracked specialties so they show up in the specialty tracker. You can change this per-entry later.</p>
+          <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-[var(--text-primary)]">Specialty tags</p>
+            <p className="text-xs text-[var(--text-muted)]">Tag all imported entries with your tracked specialties so they show up in the specialty tracker. You can change this per-entry later.</p>
             {specialtyOptions.length > 0 ? (
               <div className="flex flex-wrap gap-2">
                 {specialtyOptions.map(option => (
@@ -381,21 +381,21 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                     key={option.key}
                     type="button"
                     onClick={() => toggleTag(option.key)}
-                    className={`min-h-[36px] rounded-lg border px-3 text-xs font-medium ${selectedTags.includes(option.key) ? 'border-[#1B6FD9] bg-[#1B6FD9]/15 text-[#F5F5F2]' : 'border-white/[0.08] text-[rgba(245,245,242,0.55)]'}`}
+                    className={`min-h-[36px] rounded-lg border px-3 text-xs font-medium ${selectedTags.includes(option.key) ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--text-primary)]' : 'border-white/[0.08] text-[var(--text-secondary)]'}`}
                   >
                     {option.name}
                   </button>
                 ))}
               </div>
             ) : (
-              <p className="text-xs text-[rgba(245,245,242,0.4)]">Track a specialty first if you want these entries to appear in a specialty score tracker.</p>
+              <p className="text-xs text-[var(--text-muted)]">Track a specialty first if you want these entries to appear in a specialty score tracker.</p>
             )}
           </div>
 
           {/* Duplicate handling */}
-          <div className="bg-[#141416] border border-white/[0.08] rounded-xl p-4 space-y-3">
-            <p className="text-sm font-medium text-[#F5F5F2]">Duplicate handling</p>
-            <p className="text-xs text-[rgba(245,245,242,0.45)]">If an entry with the same title and date already exists in your portfolio:</p>
+          <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl p-4 space-y-3">
+            <p className="text-sm font-medium text-[var(--text-primary)]">Duplicate handling</p>
+            <p className="text-xs text-[var(--text-muted)]">If an entry with the same title and date already exists in your portfolio:</p>
             <div className="space-y-2">
               {[
                 { val: 'skip' as const, label: 'Skip duplicates', desc: 'Don\'t import rows that look like duplicates' },
@@ -404,15 +404,15 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                 <label key={opt.val} className="flex items-start gap-3 cursor-pointer">
                   <div
                     className={`mt-0.5 w-4 h-4 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors ${
-                      dupHandling === opt.val ? 'border-[#1B6FD9]' : 'border-white/[0.3]'
+                      dupHandling === opt.val ? 'border-[var(--accent)]' : 'border-white/[0.3]'
                     }`}
                     onClick={() => setDupHandling(opt.val)}
                   >
-                    {dupHandling === opt.val && <div className="w-2 h-2 rounded-full bg-[#1B6FD9]" />}
+                    {dupHandling === opt.val && <div className="w-2 h-2 rounded-full bg-[var(--accent)]" />}
                   </div>
                   <div>
-                    <p className="text-sm text-[rgba(245,245,242,0.8)]">{opt.label}</p>
-                    <p className="text-xs text-[rgba(245,245,242,0.4)]">{opt.desc}</p>
+                    <p className="text-sm text-[var(--text-primary)]">{opt.label}</p>
+                    <p className="text-xs text-[var(--text-muted)]">{opt.desc}</p>
                   </div>
                 </label>
               ))}
@@ -426,17 +426,17 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
           )}
 
           <div className="flex justify-between gap-3">
-            <button onClick={() => setStep(2)} className="px-4 py-2 text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] transition-colors">
+            <button onClick={() => setStep(2)} className="px-4 py-2 text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
               Back
             </button>
             <button
               onClick={handleImport}
               disabled={importing}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {importing ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full motion-safe:animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--bg-canvas)] border-t-[var(--bg-canvas)] rounded-full motion-safe:animate-spin" />
                   Importing...
                 </>
               ) : (
@@ -452,32 +452,32 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
         <div className="space-y-6">
           <div className="flex flex-col items-center py-8 text-center">
             <div className="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center mb-4">
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--cat-green-text)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="20 6 9 17 4 12"/>
               </svg>
             </div>
-            <h2 className="text-xl font-semibold text-[#F5F5F2] mb-2">Import complete</h2>
+            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Import complete</h2>
             <div className="grid grid-cols-2 gap-6 mt-4">
               <div>
-                <p className="text-3xl font-bold text-[#F5F5F2]">{result.created}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Created</p>
+                <p className="text-3xl font-bold text-[var(--text-primary)]">{result.created}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Created</p>
               </div>
               <div>
-                <p className="text-3xl font-bold text-[rgba(245,245,242,0.4)]">{result.skipped}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Skipped</p>
+                <p className="text-3xl font-bold text-[var(--text-muted)]">{result.skipped}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">Skipped</p>
               </div>
             </div>
           </div>
           <div className="flex justify-center gap-3">
             <Link
               href="/portfolio"
-              className="flex items-center gap-2 px-5 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] text-white font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm rounded-xl transition-colors"
             >
               View portfolio
             </Link>
             <button
               onClick={() => { setStep(1); setRows([]); setResult(null); setError(null) }}
-              className="px-5 py-2.5 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] text-sm rounded-xl transition-colors"
+              className="px-5 py-2.5 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-sm rounded-xl transition-colors"
             >
               Import another file
             </button>

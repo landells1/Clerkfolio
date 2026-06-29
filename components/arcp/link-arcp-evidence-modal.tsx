@@ -80,13 +80,13 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
-      <div className="bg-[#141416] border border-white/[0.1] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
+      <div className="bg-[var(--bg-surface)] border border-white/[0.1] rounded-t-2xl sm:rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]" onClick={e => e.stopPropagation()}>
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Link portfolio evidence</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{capability.name}</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Link portfolio evidence</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{capability.name}</p>
           </div>
-          <button onClick={onClose} className="min-h-[44px] px-3 text-[rgba(245,245,242,0.55)]">Close</button>
+          <button onClick={onClose} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Close</button>
         </div>
 
         <div className="p-6 overflow-y-auto flex-1">
@@ -95,27 +95,27 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search portfolio entries..."
-            className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-4 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9]"
+            className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-4 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)]"
           />
-          {searching && <p className="py-4 text-xs text-[rgba(245,245,242,0.55)]">Searching...</p>}
+          {searching && <p className="py-4 text-xs text-[var(--text-secondary)]">Searching...</p>}
           <div className="mt-4 space-y-2">
             {results.map(result => (
-              <button key={result.id} onClick={() => handleLink(result)} disabled={linking} className="w-full min-h-[44px] rounded-xl bg-[#0B0B0C] border border-white/[0.06] p-3 text-left hover:border-[#1B6FD9]/40 disabled:opacity-50">
-                <p className="text-sm font-medium text-[#F5F5F2]">{result.title}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(result.date).toLocaleDateString('en-GB')}</p>
+              <button key={result.id} onClick={() => handleLink(result)} disabled={linking} className="w-full min-h-[44px] rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] p-3 text-left hover:border-[var(--accent)] disabled:opacity-50">
+                <p className="text-sm font-medium text-[var(--text-primary)]">{result.title}</p>
+                <p className="text-xs text-[var(--text-secondary)]">{new Date(result.date).toLocaleDateString('en-GB')}</p>
               </button>
             ))}
           </div>
           {!query && (
             <div className="text-center py-8 px-4 space-y-2">
-              <p className="text-xs text-[rgba(245,245,242,0.55)]">Start typing to search your portfolio entries.</p>
-              <p className="text-[11px] text-[rgba(245,245,242,0.4)]">Pick anything that demonstrates this capability. The same entry can support multiple capabilities.</p>
+              <p className="text-xs text-[var(--text-secondary)]">Start typing to search your portfolio entries.</p>
+              <p className="text-[11px] text-[var(--text-muted)]">Pick anything that demonstrates this capability. The same entry can support multiple capabilities.</p>
             </div>
           )}
           {query && !searching && results.length === 0 && (
             <div className="py-8 text-center">
-              <p className="text-xs text-[rgba(245,245,242,0.55)]">No matching portfolio entries found.</p>
-              <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[#1B6FD9] hover:border-[#1B6FD9]/40">
+              <p className="text-xs text-[var(--text-secondary)]">No matching portfolio entries found.</p>
+              <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--accent-text)] hover:border-[var(--accent)]">
                 Create portfolio entry
               </Link>
             </div>

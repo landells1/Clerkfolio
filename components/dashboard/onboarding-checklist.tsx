@@ -87,7 +87,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
   const pct = Math.round((progress / ITEMS.length) * 100)
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl overflow-hidden mb-6">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl overflow-hidden mb-6">
       {/* Header */}
       <div
         className="flex items-center justify-between px-5 py-4 cursor-pointer select-none"
@@ -121,16 +121,16 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
             <div className="hidden sm:flex items-center gap-2">
               <div className="w-24 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-[#1B6FD9] rounded-full transition-all duration-500"
+                  className="h-full bg-[var(--accent)] rounded-full transition-all duration-500"
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="text-xs text-[rgba(245,245,242,0.55)] font-mono">{pct}%</span>
+              <span className="text-xs text-[var(--text-secondary)] font-mono">{pct}%</span>
             </div>
           )}
           <button
             onClick={e => { e.stopPropagation(); handleDismiss() }}
-            className="text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+            className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
             aria-label="Dismiss checklist"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -138,7 +138,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
             </svg>
           </button>
           <svg
-            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+            width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
             className={`transition-transform duration-200 ${collapsed ? '' : 'rotate-180'}`}
           >
             <polyline points="18 15 12 9 6 15"/>
@@ -158,25 +158,25 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
                   onClick={() => toggleItem(item.key)}
                   className={`w-5 h-5 rounded flex items-center justify-center border transition-all shrink-0 ${
                     done
-                      ? 'bg-[#1B6FD9] border-[#1B6FD9]'
+                      ? 'bg-[var(--accent)] border-[var(--accent)]'
                       : 'bg-transparent border-white/[0.2] hover:border-white/[0.4]'
                   }`}
                 >
                   {done && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                   )}
                 </button>
                 {/* Label */}
-                <span className={`flex-1 text-sm transition-colors ${done ? 'line-through text-[rgba(245,245,242,0.55)]' : 'text-[rgba(245,245,242,0.75)]'}`}>
+                <span className={`flex-1 text-sm transition-colors ${done ? 'line-through text-[var(--text-secondary)]' : 'text-[var(--text-secondary)]'}`}>
                   {item.label}
                 </span>
                 {/* Arrow link */}
                 {!done && (
                   <Link
                     href={item.href}
-                    className="text-[#1B6FD9] hover:text-[#3884DD] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
+                    className="text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6"/>

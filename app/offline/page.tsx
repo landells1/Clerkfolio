@@ -7,8 +7,8 @@ export const metadata = {
 
 export default function OfflinePage() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#0B0B0C] px-4 text-[#F5F5F2]">
-      <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[#141416] p-8 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-canvas)] px-4 text-[var(--text-primary)]">
+      <div className="w-full max-w-sm rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8 text-center">
         <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/15 text-amber-300">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <line x1="1" y1="1" x2="23" y2="23" />
@@ -21,12 +21,12 @@ export default function OfflinePage() {
           </svg>
         </div>
         <h1 className="mb-2 text-lg font-semibold">You are offline</h1>
-        <p className="mb-6 text-sm text-[rgba(245,245,242,0.55)]">
+        <p className="mb-6 text-sm text-[var(--text-secondary)]">
           Clerkfolio cannot reach the server right now. Cached pages of the dashboard, portfolio and cases are still available; new entries cannot save until your connection returns.
         </p>
         <Link
           href="/dashboard"
-          className="inline-block rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#155BB0]"
+          className="inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]"
         >
           Try the dashboard
         </Link>

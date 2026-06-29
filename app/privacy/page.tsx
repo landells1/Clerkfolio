@@ -106,14 +106,14 @@ const changelog = [
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Privacy policy</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
-          <p className="max-w-3xl text-sm leading-7 text-[rgba(245,245,242,0.72)]">
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             This policy explains how Clerkfolio collects, uses, stores, shares, and protects personal data when you use
             Clerkfolio. Clerkfolio is a UK medical portfolio organisation tool for medical students, foundation doctors,
             and doctors preparing portfolio material. It is designed for anonymised case notes and personal portfolio
@@ -159,7 +159,7 @@ export default function PrivacyPage() {
           </p>
           <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
             <table className="min-w-[760px] border-collapse text-left text-xs leading-6">
-              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+              <thead className="bg-white/[0.04] text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Category</th>
                   <th className="px-4 py-3 font-semibold">Examples</th>
@@ -170,10 +170,10 @@ export default function PrivacyPage() {
               <tbody className="divide-y divide-white/[0.06]">
                 {dataRows.map(row => (
                   <tr key={row.category} className="align-top">
-                    <td className="px-4 py-3 font-medium text-[#F5F5F2]">{row.category}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.examples}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.purpose}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.lawfulBasis}</td>
+                    <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{row.category}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.examples}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.purpose}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.lawfulBasis}</td>
                   </tr>
                 ))}
               </tbody>
@@ -191,7 +191,7 @@ export default function PrivacyPage() {
             To the extent that any information you enter could constitute health data about a third party under
             Article 9 UK GDPR (for example, a case note that incidentally reveals a patient&apos;s medical condition
             even after anonymisation), we rely on your explicit consent given when you create an account and accept
-            our <Link href="/terms" className="underline hover:text-[#F5F5F2]">Terms of service</Link>. You may
+            our <Link href="/terms" className="underline hover:text-[var(--text-primary)]">Terms of service</Link>. You may
             withdraw this consent by deleting the relevant content or your account, though withdrawal does not
             affect processing already carried out.
           </p>
@@ -231,7 +231,7 @@ export default function PrivacyPage() {
           </ul>
           <p>
             Full details of transfer mechanisms are on the{' '}
-            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link>.
+            <Link href="/subprocessors" className="underline hover:text-[var(--text-primary)]">Subprocessors page</Link>.
           </p>
           {/* DPF in force as of May 2026. Clerkfolio's exposure is low: clinical content stays in Supabase eu-west-2; only email/name (Resend) and request metadata (Vercel) reach US infrastructure. UK IDTA is the fallback if DPF is invalidated. Monitor noyb.eu for challenge outcomes. */}
         </Section>
@@ -240,7 +240,7 @@ export default function PrivacyPage() {
           <p>
             We use the following main providers to operate Clerkfolio. Full details, transfer mechanisms, and links
             to each provider&apos;s DPA are at{' '}
-            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">clerkfolio.co.uk/subprocessors</Link>:
+            <Link href="/subprocessors" className="underline hover:text-[var(--text-primary)]">clerkfolio.co.uk/subprocessors</Link>:
           </p>
           <ul>
             {processors.map(({ name, description }) => (
@@ -274,7 +274,7 @@ export default function PrivacyPage() {
             Clerkfolio uses essential authentication cookies and similar technologies to keep you signed in, secure your
             session, remember requested service state, and run the web app. When you first visit the site, we ask for your
             consent before loading optional analytics. Full details are in our{' '}
-            <Link href="/cookies" className="underline hover:text-[#F5F5F2]">Cookie policy</Link>.
+            <Link href="/cookies" className="underline hover:text-[var(--text-primary)]">Cookie policy</Link>.
           </p>
           <p>
             Vercel Analytics is used to understand aggregate product usage and performance. It is off by default and only
@@ -321,7 +321,7 @@ export default function PrivacyPage() {
           <p>
             Institutional or enterprise customers who require a formal data processing agreement can find our standard
             terms at{' '}
-            <Link href="/dpa" className="underline hover:text-[#F5F5F2]">clerkfolio.co.uk/dpa</Link>. For bilateral
+            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">clerkfolio.co.uk/dpa</Link>. For bilateral
             signed DPAs, contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
           </p>
         </Section>
@@ -336,7 +336,7 @@ export default function PrivacyPage() {
           </p>
           <p>
             Data is encrypted at rest by Supabase (eu-west-2). See{' '}
-            <Link href="/security" className="underline hover:text-[#F5F5F2]">our security policy</Link> and{' '}
+            <Link href="/security" className="underline hover:text-[var(--text-primary)]">our security policy</Link> and{' '}
             <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a> to report vulnerabilities.
           </p>
         </Section>
@@ -348,7 +348,7 @@ export default function PrivacyPage() {
           </p>
           <div className="overflow-x-auto rounded-xl border border-white/[0.08] mt-4">
             <table className="min-w-[400px] border-collapse text-left text-xs leading-6">
-              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+              <thead className="bg-white/[0.04] text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Date</th>
                   <th className="px-4 py-3 font-semibold">Changes</th>
@@ -357,8 +357,8 @@ export default function PrivacyPage() {
               <tbody className="divide-y divide-white/[0.06]">
                 {changelog.map(row => (
                   <tr key={row.date} className="align-top">
-                    <td className="px-4 py-3 font-medium text-[#F5F5F2] whitespace-nowrap">{row.date}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.changes}</td>
+                    <td className="px-4 py-3 font-medium text-[var(--text-primary)] whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.changes}</td>
                   </tr>
                 ))}
               </tbody>
@@ -373,7 +373,7 @@ export default function PrivacyPage() {
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-4 py-4 text-sm leading-7 text-[rgba(245,245,242,0.82)]">
+    <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-4 py-4 text-sm leading-7 text-[var(--text-primary)]">
       {children}
     </div>
   )
@@ -381,8 +381,8 @@ function Notice({ children }: { children: React.ReactNode }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-      <h2 className="text-lg font-semibold text-[#F5F5F2]">{title}</h2>
+    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   )

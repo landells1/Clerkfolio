@@ -73,9 +73,9 @@ export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {
       {entries.map(entry => {
         const text = sentence(entry)
         return (
-          <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-            <p className="text-sm leading-relaxed text-[rgba(245,245,242,0.78)]">{text}</p>
-            <button onClick={() => copy(entry.id, text)} className="mt-4 min-h-[36px] rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[#F5F5F2]">
+          <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+            <p className="text-sm leading-relaxed text-[var(--text-secondary)]">{text}</p>
+            <button onClick={() => copy(entry.id, text)} className="mt-4 min-h-[36px] rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-primary)]">
               {copied === entry.id ? 'Copied' : 'Copy'}
             </button>
             {fallback?.id === entry.id && (
@@ -91,7 +91,7 @@ export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {
         )
       })}
       {entries.length === 0 && (
-        <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-8 text-sm text-[rgba(245,245,242,0.45)]">
+        <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8 text-sm text-[var(--text-muted)]">
           No portfolio entries available.
         </div>
       )}

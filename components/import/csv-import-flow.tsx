@@ -269,38 +269,38 @@ export default function CsvImportFlow() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
         {([1, 2, 3, 4] as Step[]).map(s => (
-          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[#1B6FD9] text-white' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[rgba(245,245,242,0.55)]'}`}>
+          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[var(--accent)] text-white' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[var(--text-secondary)]'}`}>
             {s === 1 ? 'Upload' : s === 2 ? 'Map' : s === 3 ? 'Preview' : 'Done'}
           </span>
         ))}
       </div>
 
       {step === 1 && (
-        <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
-          <label className="block text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+        <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
+          <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
             CSV file
             <input
               type="file"
               accept=".csv,text/csv"
               onChange={e => e.target.files?.[0] && handleFile(e.target.files[0])}
-              className="mt-3 block w-full text-sm text-[rgba(245,245,242,0.65)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[#1B6FD9] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+              className="mt-3 block w-full text-sm text-[var(--text-secondary)] file:min-h-[44px] file:mr-4 file:rounded-lg file:border-0 file:bg-[var(--accent)] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
             />
           </label>
         </section>
       )}
 
       {step === 2 && (
-        <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
+        <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Preset
-              <select value={preset} onChange={e => applyPreset(e.target.value as PresetKey)} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+              <select value={preset} onChange={e => applyPreset(e.target.value as PresetKey)} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 {Object.entries(PRESETS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
               </select>
             </label>
-            <label className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
               Import as
-              <select value={target} onChange={e => { const next = e.target.value as ImportTarget; setTarget(next); setMapping(autoMap(headers, preset, next)) }} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]">
+              <select value={target} onChange={e => { const next = e.target.value as ImportTarget; setTarget(next); setMapping(autoMap(headers, preset, next)) }} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 <option value="portfolio">Portfolio entries</option>
                 <option value="cases">Cases</option>
               </select>
@@ -309,12 +309,12 @@ export default function CsvImportFlow() {
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {FIELD_OPTIONS[target].map(field => (
-              <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+              <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
                 {field.label}{field.required ? ' *' : ''}
                 <select
                   value={mapping[field.value] ?? ''}
                   onChange={e => setMapping(current => ({ ...current, [field.value]: e.target.value || undefined }))}
-                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2]"
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]"
                 >
                   <option value="">Not mapped</option>
                   {headers.map(header => <option key={header} value={header}>{header}</option>)}
@@ -322,23 +322,23 @@ export default function CsvImportFlow() {
               </label>
             ))}
           </div>
-          <button onClick={() => setStep(3)} className="mt-6 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">Preview rows</button>
+          <button onClick={() => setStep(3)} className="mt-6 min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">Preview rows</button>
         </section>
       )}
 
       {step === 3 && (
-        <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
+        <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
           <div className="border-b border-white/[0.06] px-5 py-4">
-            <p className="text-sm font-semibold text-[#F5F5F2]">{rows.length} rows parsed</p>
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{rows.length} rows parsed</p>
           </div>
           <div className="max-h-96 overflow-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-[#0B0B0C] text-[rgba(245,245,242,0.45)]">
+              <thead className="bg-[var(--bg-canvas)] text-[var(--text-muted)]">
                 <tr>
                   {Object.keys(preview[0] ?? { title: '', date: '' }).map(key => <th key={key} className="px-4 py-3 font-medium">{PREVIEW_LABELS[key] ?? key}</th>)}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-white/[0.04] text-[rgba(245,245,242,0.72)]">
+              <tbody className="divide-y divide-white/[0.04] text-[var(--text-secondary)]">
                 {preview.map((row, index) => (
                   <tr key={index}>
                     {Object.entries(row).map(([key, value]) => (
@@ -350,8 +350,8 @@ export default function CsvImportFlow() {
             </table>
           </div>
           <div className="flex flex-wrap gap-2 p-5">
-            <button onClick={() => setStep(2)} className="min-h-[44px] rounded-xl border border-white/[0.08] px-5 text-sm font-medium text-[#F5F5F2]">Back</button>
-            <button onClick={importRows} disabled={importing} className="min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white disabled:opacity-50">
+            <button onClick={() => setStep(2)} className="min-h-[44px] rounded-xl border border-white/[0.08] px-5 text-sm font-medium text-[var(--text-primary)]">Back</button>
+            <button onClick={importRows} disabled={importing} className="min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white disabled:opacity-50">
               {importing ? 'Importing...' : 'Commit import'}
             </button>
           </div>
@@ -361,7 +361,7 @@ export default function CsvImportFlow() {
       {step === 4 && (
         <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6">
           <p className="text-sm font-semibold text-emerald-200">Import complete</p>
-          <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">
+          <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">
             Open imported records
           </button>
         </section>

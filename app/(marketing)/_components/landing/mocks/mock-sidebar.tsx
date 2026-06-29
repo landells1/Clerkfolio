@@ -12,7 +12,7 @@ const items = [
 
 export function MockSidebar({ active }: { active: string }) {
   return (
-    <aside className="flex w-[168px] shrink-0 flex-col border-r border-white/[0.08] bg-[#0E0E10] px-2 py-3.5 max-sm:hidden">
+    <aside className="flex w-[168px] shrink-0 flex-col border-r border-white/[0.08] bg-[var(--bg-canvas)] px-2 py-3.5 max-sm:hidden">
       <div className="mb-5 flex items-center gap-2 px-1.5">
         <Logo />
         <span className="text-sm font-medium tracking-[-0.02em]">Clerkfolio</span>
@@ -25,7 +25,7 @@ export function MockSidebar({ active }: { active: string }) {
               key={label}
               className={`flex items-center gap-2 rounded-md border px-2 py-2 text-[12px] ${
                 isActive
-                  ? 'border-white/[0.08] bg-[#141416] text-ink'
+                  ? 'border-white/[0.08] bg-[var(--bg-surface)] text-ink'
                   : 'border-transparent text-ink-soft'
               }`}
             >

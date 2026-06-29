@@ -183,7 +183,7 @@ export function SpecialtyDetail({
       {/* Back button */}
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors mb-5"
+        className="flex items-center gap-1.5 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors mb-5"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <polyline points="15 18 9 12 15 6" />
@@ -192,12 +192,12 @@ export function SpecialtyDetail({
       </button>
 
       {/* Header */}
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-5">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-5">
         <div className="flex items-start justify-between mb-4 gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">
-              <h1 className="text-xl font-semibold text-[#F5F5F2]">{config.name}</h1>
-              <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
+              <h1 className="text-xl font-semibold text-[var(--text-primary)]">{config.name}</h1>
+              <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[var(--text-muted)] text-xs">
                 {config.cycleYear}
               </span>
               {!config.isOfficial && (
@@ -206,7 +206,7 @@ export function SpecialtyDetail({
                 </span>
               )}
               {evidenceBased && (
-                <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
+                <span className="px-2 py-0.5 rounded bg-white/[0.06] text-[var(--text-secondary)] text-xs border border-white/[0.08]">
                   Evidence-based
                 </span>
               )}
@@ -262,7 +262,7 @@ export function SpecialtyDetail({
         {/* Bonus options - only for points-based with bonuses */}
         {!evidenceBased && config.bonusOptions && config.bonusOptions.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide">Bonus Points</p>
+            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Bonus Points</p>
             {config.bonusOptions.map(opt => (
               <label
                 key={opt.key}
@@ -272,19 +272,19 @@ export function SpecialtyDetail({
                 <div
                   className={`w-5 h-5 rounded flex items-center justify-center border transition-all ${
                     bonusClaimed
-                      ? 'bg-[#1B6FD9] border-[#1B6FD9]'
+                      ? 'bg-[var(--accent)] border-[var(--accent)]'
                       : 'bg-transparent border-white/[0.2] hover:border-white/[0.4]'
                   }`}
                 >
                   {bonusClaimed && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="20 6 9 17 4 12" />
                     </svg>
                   )}
                 </div>
-                <span className="text-sm text-[rgba(245,245,242,0.7)]">{opt.label}</span>
+                <span className="text-sm text-[var(--text-secondary)]">{opt.label}</span>
                 {bonusClaimed && (
-                  <span className="ml-auto px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-xs font-semibold border border-[var(--accent)]">
                     +{opt.points} pts
                   </span>
                 )}
@@ -334,13 +334,13 @@ export function SpecialtyDetail({
       {/* Source citation */}
       <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2">
         {!config.isOfficial && <span className="text-amber-400">⚠️</span>}
-        <p className="text-xs text-[rgba(245,245,242,0.55)]">
+        <p className="text-xs text-[var(--text-secondary)]">
           {evidenceBased ? 'Person specification: ' : 'Scoring criteria: '}
           <a
             href={config.source}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline hover:text-[rgba(245,245,242,0.6)] transition-colors"
+            className="underline hover:text-[var(--text-secondary)] transition-colors"
           >
             {config.sourceLabel}
           </a>
@@ -378,21 +378,21 @@ function SpecialtyScoreCharts({
 
   return (
     <div className="mb-5 grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+      <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
         <div className="mb-3">
-          <h2 className="text-sm font-semibold text-[#F5F5F2]">Domain score bars</h2>
-          <p className="mt-1 text-xs text-[rgba(245,245,242,0.45)]">How much of each scored domain you have already claimed.</p>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Domain score bars</h2>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">How much of each scored domain you have already claimed.</p>
         </div>
         <div className="space-y-2.5">
           {chartDomains.map(domain => (
             <div key={domain.key} className="flex items-center gap-3">
-              <span className="w-40 shrink-0 truncate text-xs text-[rgba(245,245,242,0.72)]" title={domain.label}>
+              <span className="w-40 shrink-0 truncate text-xs text-[var(--text-secondary)]" title={domain.label}>
                 {domain.shortLabel}
               </span>
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-white/[0.06]">
-                <div className="h-full rounded-full bg-[#1B6FD9]" style={{ width: `${Math.round(domain.fraction * 100)}%` }} />
+                <div className="h-full rounded-full bg-[var(--accent)]" style={{ width: `${Math.round(domain.fraction * 100)}%` }} />
               </div>
-              <span className="w-16 shrink-0 text-right text-xs font-mono text-[rgba(245,245,242,0.55)]">
+              <span className="w-16 shrink-0 text-right text-xs font-mono text-[var(--text-secondary)]">
                 {domain.score}/{domain.max}
               </span>
             </div>
@@ -400,10 +400,10 @@ function SpecialtyScoreCharts({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+      <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
         <div className="mb-3">
-          <h2 className="text-sm font-semibold text-[#F5F5F2]">Domain radar</h2>
-          <p className="mt-1 text-xs text-[rgba(245,245,242,0.45)]">Normalised coverage across the scored domains for this specialty.</p>
+          <h2 className="text-sm font-semibold text-[var(--text-primary)]">Domain radar</h2>
+          <p className="mt-1 text-xs text-[var(--text-muted)]">Normalised coverage across the scored domains for this specialty.</p>
         </div>
         {canRenderRadar ? (
           <svg viewBox="0 0 360 300" className="w-full" aria-label="Specialty domain radar chart">
@@ -412,7 +412,7 @@ function SpecialtyScoreCharts({
                 key={fraction}
                 points={angles.map(angle => `${centerX + Math.cos(angle) * radius * fraction},${centerY + Math.sin(angle) * radius * fraction}`).join(' ')}
                 fill="none"
-                stroke="rgba(245,245,242,0.08)"
+                stroke="var(--text-faint)"
                 strokeWidth="1"
               />
             ))}
@@ -423,7 +423,7 @@ function SpecialtyScoreCharts({
                 y1={centerY}
                 x2={centerX + Math.cos(angle) * radius}
                 y2={centerY + Math.sin(angle) * radius}
-                stroke="rgba(245,245,242,0.08)"
+                stroke="var(--text-faint)"
                 strokeWidth="1"
               />
             ))}
@@ -438,10 +438,10 @@ function SpecialtyScoreCharts({
               return (
                 <g key={domain.key}>
                   <circle cx={pointX} cy={pointY} r="3.5" fill="#1B6FD9" />
-                  <text x={labelX} y={labelY} textAnchor={textAnchor} fontSize="10" fill="rgba(245,245,242,0.72)">
+                  <text x={labelX} y={labelY} textAnchor={textAnchor} fontSize="10" fill="var(--text-secondary)">
                     {domain.shortLabel}
                   </text>
-                  <text x={labelX} y={labelY + 12} textAnchor={textAnchor} fontSize="9" fill="rgba(245,245,242,0.45)">
+                  <text x={labelX} y={labelY + 12} textAnchor={textAnchor} fontSize="9" fill="var(--text-muted)">
                     {domain.score}/{domain.max}
                   </text>
                 </g>
@@ -449,7 +449,7 @@ function SpecialtyScoreCharts({
             })}
           </svg>
         ) : (
-          <p className="py-12 text-center text-xs text-[rgba(245,245,242,0.55)]">
+          <p className="py-12 text-center text-xs text-[var(--text-secondary)]">
             Add more scored domains to render the radar view.
           </p>
         )}
@@ -484,17 +484,17 @@ function PointsHeader({
     return (
       <>
         <div className="flex items-baseline gap-1.5 mb-3">
-          <span className="text-4xl font-bold text-[#F5F5F2]">{domainsScore}</span>
-          <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+          <span className="text-4xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
+          <span className="text-sm text-[var(--text-muted)]">/ {config.totalMax} pts</span>
           {bonusScore > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-xs font-semibold border border-[var(--accent)]">
               +{bonusScore} bonus
             </span>
           )}
         </div>
         <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#1B6FD9] rounded-full transition-all"
+            className="h-full bg-[var(--accent)] rounded-full transition-all"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -505,21 +505,21 @@ function PointsHeader({
   return (
     <div className="grid grid-cols-2 gap-6 mt-2">
       <div>
-        <p className="text-[10px] text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide mb-1">
+        <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
           Score
         </p>
         <div className="flex items-baseline gap-1.5 mb-2">
-          <span className="text-3xl font-bold text-[#F5F5F2]">{domainsScore}</span>
-          <span className="text-xs text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+          <span className="text-3xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
+          <span className="text-xs text-[var(--text-muted)]">/ {config.totalMax} pts</span>
           {bonusScore > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-[10px] font-semibold border border-[#1B6FD9]/20">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-[10px] font-semibold border border-[var(--accent)]">
               +{bonusScore} bonus
             </span>
           )}
         </div>
         <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
           <div
-            className="h-full bg-[#1B6FD9] rounded-full transition-all"
+            className="h-full bg-[var(--accent)] rounded-full transition-all"
             style={{ width: `${pct}%` }}
           />
         </div>
@@ -583,18 +583,18 @@ function HeaderProgressBlock({
 }) {
   return (
     <div>
-      <p className="text-[10px] text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide mb-1">
+      <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
         {label}
       </p>
       <div className="flex items-baseline gap-1.5 mb-2">
-        <span className="text-3xl font-bold text-[#F5F5F2]">{current}</span>
-        <span className="text-xs text-[rgba(245,245,242,0.4)]">
+        <span className="text-3xl font-bold text-[var(--text-primary)]">{current}</span>
+        <span className="text-xs text-[var(--text-muted)]">
           / {total} {sublabel}
         </span>
       </div>
       <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          className="h-full bg-[var(--accent)] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -683,10 +683,10 @@ function PointsLayoutTabs({
       />
       <div>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
+          <span className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wide shrink-0">
             Scoring
           </span>
-          <span className="text-xs text-[rgba(245,245,242,0.55)] flex-1">
+          <span className="text-xs text-[var(--text-secondary)] flex-1">
             Self-assessment for shortlisting
           </span>
         </div>
@@ -786,15 +786,15 @@ function DomainGroup({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="text-xs text-[rgba(245,245,242,0.65)] font-semibold uppercase tracking-wide shrink-0">
+        <span className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wide shrink-0">
           {title}
         </span>
-        <span className="text-xs text-[rgba(245,245,242,0.55)] flex-1">{subtitle}</span>
+        <span className="text-xs text-[var(--text-secondary)] flex-1">{subtitle}</span>
         {onTickAll && (
           <button
             onClick={onTickAll}
             disabled={tickingAll}
-            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#1B6FD9] disabled:opacity-50 transition-colors shrink-0"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--accent-text)] disabled:opacity-50 transition-colors shrink-0"
           >
             {tickingAll ? 'Updating...' : unmetCount > 0 ? `Tick all (${unmetCount})` : 'Untick all'}
           </button>
@@ -846,8 +846,8 @@ function DomainTabButton({
       onClick={onSelect}
       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
         isActive
-          ? 'bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25'
-          : 'bg-[#141416] text-[rgba(245,245,242,0.45)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[rgba(245,245,242,0.7)]'
+          ? 'bg-[var(--accent)] text-[var(--accent-text)] border border-[var(--accent)]'
+          : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[var(--text-secondary)]'
       }`}
     >
       <span>{domain.label}</span>
@@ -856,7 +856,7 @@ function DomainTabButton({
       ) : (
         <span
           className={`px-1.5 py-0.5 rounded-md text-xs font-semibold ${
-            isActive ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
+            isActive ? 'bg-[var(--accent)] text-[var(--accent-text)]' : 'bg-white/[0.06] text-[var(--text-muted)]'
           }`}
         >
           {score ?? 0}
@@ -871,7 +871,7 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
     return (
       <span
         className={`w-3.5 h-3.5 rounded-full border ${
-          isActive ? 'border-[#1B6FD9]/40' : 'border-white/[0.15]'
+          isActive ? 'border-[var(--accent)]' : 'border-white/[0.15]'
         }`}
       />
     )
@@ -880,10 +880,10 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
   return (
     <span
       className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
-        isActive ? 'bg-[#1B6FD9]' : 'bg-[#1B6FD9]/80'
+        isActive ? 'bg-[var(--accent)]' : 'bg-[var(--accent)]'
       }`}
     >
-      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
         <polyline points="20 6 9 17 4 12" />
       </svg>
     </span>
@@ -952,16 +952,16 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative bg-[#141416] border border-white/[0.1] rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <div className="relative bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl p-6 w-full max-w-md shadow-2xl">
         {/* Header */}
         <div className="flex items-start justify-between mb-5 gap-3">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Share read-only link</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Share read-only link</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">
               Anyone with the link can view your evidence - no account needed.
             </p>
           </div>
-          <button onClick={onClose} className="shrink-0 text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] transition-colors mt-0.5">
+          <button onClick={onClose} className="shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mt-0.5">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
             </svg>
@@ -970,20 +970,20 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
 
         {loading ? (
           <div className="flex items-center justify-center py-8">
-            <div className="w-5 h-5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
+            <div className="w-5 h-5 border-2 border-[var(--accent)] border-t-transparent rounded-full motion-safe:animate-spin" />
           </div>
         ) : link ? (
           <div className="space-y-4">
             {/* URL display */}
-            <div className="bg-[#0B0B0C] border border-white/[0.08] rounded-xl p-3">
-              <p className="text-xs font-mono text-[rgba(245,245,242,0.5)] truncate">{url}</p>
+            <div className="bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl p-3">
+              <p className="text-xs font-mono text-[var(--text-secondary)] truncate">{url}</p>
             </div>
-            <p className="text-xs text-[rgba(245,245,242,0.4)]">Expires {expiresFormatted} · Read-only</p>
+            <p className="text-xs text-[var(--text-muted)]">Expires {expiresFormatted} · Read-only</p>
             {/* Actions */}
             <div className="flex items-center gap-2">
               <button
                 onClick={handleCopy}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[var(--text-secondary)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   {copied
@@ -997,7 +997,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
                 href={url!}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[rgba(245,245,242,0.7)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
+                className="flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-medium text-[var(--text-secondary)] bg-white/[0.06] hover:bg-white/[0.1] border border-white/[0.08] rounded-lg transition-colors"
               >
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
@@ -1015,49 +1015,49 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
               </button>
             </div>
             {/* Manage all links */}
-            <p className="text-xs text-[rgba(245,245,242,0.55)] text-center">
+            <p className="text-xs text-[var(--text-secondary)] text-center">
               Manage all shared links in{' '}
-              <a href="/export?tab=share" className="text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2] underline transition-colors">
+              <a href="/export?tab=share" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline transition-colors">
                 Import &amp; export → Share
               </a>
             </p>
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-[#0B0B0C] border border-white/[0.06] rounded-xl p-4 flex flex-col gap-2">
+            <div className="bg-[var(--bg-canvas)] border border-white/[0.06] rounded-xl p-4 flex flex-col gap-2">
               <div className="flex items-center gap-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10"/>
                   <line x1="12" y1="8" x2="12" y2="12"/>
                   <line x1="12" y1="16" x2="12.01" y2="16"/>
                 </svg>
-                <span className="text-xs text-[rgba(245,245,242,0.4)]">Link expires after 30 days</span>
+                <span className="text-xs text-[var(--text-muted)]">Link expires after 30 days</span>
               </div>
               <div className="flex items-center gap-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                <span className="text-xs text-[rgba(245,245,242,0.4)]">Read-only - no login required</span>
+                <span className="text-xs text-[var(--text-muted)]">Read-only - no login required</span>
               </div>
               <div className="flex items-center gap-2">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="3 6 5 6 21 6"/>
                   <path d="M19 6l-1 14H6L5 6"/>
                   <path d="M10 11v6M14 11v6"/>
                   <path d="M9 6V4h6v2"/>
                 </svg>
-                <span className="text-xs text-[rgba(245,245,242,0.4)]">Revoke at any time</span>
+                <span className="text-xs text-[var(--text-muted)]">Revoke at any time</span>
               </div>
             </div>
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {generating ? (
                 <>
-                  <div className="w-4 h-4 border-2 border-[#0B0B0C]/30 border-t-[#0B0B0C] rounded-full motion-safe:animate-spin" />
+                  <div className="w-4 h-4 border-2 border-[var(--bg-canvas)] border-t-[var(--bg-canvas)] rounded-full motion-safe:animate-spin" />
                   Generating…
                 </>
               ) : (

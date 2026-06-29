@@ -58,7 +58,7 @@ export function Features() {
 
 function FeatureCard({ tag, title, body, mock, wide }: { tag: string; title: string; body: string; mock: ReactNode; wide?: boolean }) {
   return (
-    <article className={`rounded-2xl border border-white/[0.08] bg-[#141416] p-7 ${wide ? 'lg:col-span-2 lg:grid lg:grid-cols-[0.75fr_1.25fr] lg:gap-8' : ''}`}>
+    <article className={`rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-7 ${wide ? 'lg:col-span-2 lg:grid lg:grid-cols-[0.75fr_1.25fr] lg:gap-8' : ''}`}>
       <div>
         <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
         <h3 className="text-[26px] font-medium leading-tight tracking-[-0.025em] text-ink">{title}</h3>

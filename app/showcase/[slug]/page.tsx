@@ -54,33 +54,33 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
   const visibleEntries = dedupeEntries((entries ?? []) as Entry[])
 
   return (
-    <main className="min-h-screen bg-[#0B0B0C] text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] text-[var(--text-primary)]">
       <div className="mx-auto max-w-4xl px-6 py-10">
         <header className="mb-8 border-b border-white/[0.08] pb-6">
-          <p className="text-xs font-medium uppercase tracking-wider text-[#1B6FD9]">Clerkfolio showcase</p>
+          <p className="text-xs font-medium uppercase tracking-wider text-[var(--accent-text)]">Clerkfolio showcase</p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight">{ownerName}</h1>
-          <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">{visibleEntries.length} portfolio entries</p>
+          <p className="mt-1 text-sm text-[var(--text-muted)]">{visibleEntries.length} portfolio entries</p>
         </header>
 
         {visibleEntries.length === 0 ? (
-          <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-8 text-sm text-[rgba(245,245,242,0.55)]">
+          <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8 text-sm text-[var(--text-secondary)]">
             No public portfolio entries have been added to this showcase yet.
           </div>
         ) : (
         <div className="space-y-4">
           {visibleEntries.map(entry => (
-            <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+            <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">{categoryLabel(entry.category)}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">{categoryLabel(entry.category)}</p>
                   <h2 className="mt-1 text-lg font-semibold">{entry.title}</h2>
                 </div>
-                <time className="text-xs text-[rgba(245,245,242,0.55)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
+                <time className="text-xs text-[var(--text-secondary)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>
               </div>
               {entry.specialty_tags?.length ? (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {entry.specialty_tags.map(tag => (
-                    <span key={tag} className="rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-[rgba(245,245,242,0.55)]">
+                    <span key={tag} className="rounded-full border border-white/[0.08] px-2.5 py-1 text-xs text-[var(--text-secondary)]">
                       {formatSpecialtyLabel(tag)}
                     </span>
                   ))}

@@ -43,12 +43,12 @@ export default function DeleteCaseButton({ id }: { id: string }) {
           </button>
           <button
             onClick={() => setConfirm(false)}
-            className="px-3 py-2 text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
+            className="px-3 py-2 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             Cancel
           </button>
         </div>
-        <p className="text-xs text-[rgba(245,245,242,0.55)]">This will move the case to Trash. You can restore it within 30 days.</p>
+        <p className="text-xs text-[var(--text-secondary)]">This will move the case to Trash. You can restore it within 30 days.</p>
       </div>
     )
   }

@@ -35,11 +35,11 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
   }
 
   return (
-    <div className="mb-6 rounded-2xl border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 p-5">
+    <div className="mb-6 rounded-2xl border border-[var(--accent)] bg-[var(--accent)] p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-base font-semibold text-[#F5F5F2]">These are example entries</h2>
-          <p className="mt-1 text-sm text-[rgba(245,245,242,0.6)]">
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">These are example entries</h2>
+          <p className="mt-1 text-sm text-[var(--text-secondary)]">
             A demo case and demo audit (labelled “edit me”) show you how entries work. Edit them into
             your own, or clear them.
           </p>
@@ -48,14 +48,14 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
           <button
             onClick={dismiss}
             disabled={busy !== null}
-            className="min-h-[40px] rounded-xl px-4 text-sm font-medium text-[rgba(245,245,242,0.7)] transition-colors hover:text-[#F5F5F2] disabled:opacity-50"
+            className="min-h-[40px] rounded-xl px-4 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
           >
             {busy === 'dismiss' ? 'Hiding...' : 'Keep & hide'}
           </button>
           <button
             onClick={removeDemos}
             disabled={busy !== null}
-            className="min-h-[40px] rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] transition-colors hover:border-white/[0.15] disabled:opacity-50"
+            className="min-h-[40px] rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-white/[0.15] disabled:opacity-50"
           >
             {busy === 'remove' ? 'Removing...' : 'Remove sample data'}
           </button>

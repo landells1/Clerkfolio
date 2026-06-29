@@ -66,22 +66,22 @@ export default async function TrashPage({
   return (
     <PullToRefresh className="p-8 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Trash</h1>
-        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Trash</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">
           {totalItems === 0 ? 'Trash is empty' : `${totalItems} deleted ${totalItems === 1 ? 'item' : 'items'}`}
         </p>
       </div>
 
       <form className="mb-6 flex flex-wrap gap-2">
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-xs text-[rgba(245,245,242,0.65)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-secondary)]">
           <input type="checkbox" name="recent" value="7" defaultChecked={recentOnly} />
           Deleted last 7 days
         </label>
-        <select name="category" defaultValue={activeCategory} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-3 text-sm text-[#F5F5F2]">
+        <select name="category" defaultValue={activeCategory} className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)]">
           <option value="">Any category</option>
           {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
         </select>
-        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm font-medium text-[#F5F5F2]">Filter</button>
+        <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-4 text-sm font-medium text-[var(--text-primary)]">Filter</button>
       </form>
 
       {totalItems > 0 && (
@@ -98,11 +98,11 @@ export default async function TrashPage({
         </div>
       )}
 
-      <div className="flex items-start gap-3 bg-[#141416] border border-white/[0.06] rounded-lg px-4 py-3 mb-6">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
+      <div className="flex items-start gap-3 bg-[var(--bg-surface)] border border-white/[0.06] rounded-lg px-4 py-3 mb-6">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0 mt-0.5">
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
-        <p className="text-xs text-[rgba(245,245,242,0.4)] leading-relaxed">
+        <p className="text-xs text-[var(--text-muted)] leading-relaxed">
           Items stay in Trash for 30 days before permanent deletion is available. Files linked to restored entries remain available.
         </p>
       </div>
@@ -110,12 +110,12 @@ export default async function TrashPage({
       {totalItems === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
             </svg>
           </div>
-          <p className="text-sm font-medium text-[#F5F5F2] mb-1">Nothing in trash</p>
-          <p className="max-w-sm text-xs text-[rgba(245,245,242,0.55)]">
+          <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Nothing in trash</p>
+          <p className="max-w-sm text-xs text-[var(--text-secondary)]">
             Deleted entries and cases land here for 30 days, then are permanently removed. You can restore anything within that window.
           </p>
         </div>
@@ -132,9 +132,9 @@ export default async function TrashPage({
 
 function TrashStat({ label, value }: { label: string; value: number }) {
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-lg px-4 py-3">
-      <p className="text-xs text-[rgba(245,245,242,0.4)] mb-1">{label}</p>
-      <p className="text-xl font-semibold text-[#F5F5F2]">{value}</p>
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-lg px-4 py-3">
+      <p className="text-xs text-[var(--text-muted)] mb-1">{label}</p>
+      <p className="text-xl font-semibold text-[var(--text-primary)]">{value}</p>
     </div>
   )
 }

@@ -112,14 +112,14 @@ const categoryLabel: Record<CookieRow['category'], string> = {
 
 export default function CookiesPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Cookie policy</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
-          <p className="max-w-3xl text-sm leading-7 text-[rgba(245,245,242,0.72)]">
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             This page lists every cookie, browser storage key, and similar technology used by Clerkfolio.
             We use strictly necessary storage to operate the service, and optional analytics storage only
             with your consent. You can change your preferences at any time below.
@@ -161,7 +161,7 @@ export default function CookiesPage() {
         <Section title="Full cookie list">
           <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
             <table className="min-w-[700px] border-collapse text-left text-xs leading-6">
-              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+              <thead className="bg-white/[0.04] text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Name / key</th>
                   <th className="px-4 py-3 font-semibold">Storage</th>
@@ -174,17 +174,17 @@ export default function CookiesPage() {
               <tbody className="divide-y divide-white/[0.06]">
                 {rows.map(row => (
                   <tr key={row.name} className="align-top">
-                    <td className="px-4 py-3 font-mono text-[11px] text-[#F5F5F2]">{row.name}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">
+                    <td className="px-4 py-3 font-mono text-[11px] text-[var(--text-primary)]">{row.name}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">
                       {row.type === 'cookie' && 'HTTP cookie'}
                       {row.type === 'localStorage' && 'localStorage'}
                       {row.type === 'sessionStorage' && 'sessionStorage'}
                       {row.type === 'cacheAPI' && 'Cache API (SW)'}
                     </td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{categoryLabel[row.category]}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.purpose}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.expiry}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.setBy}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{categoryLabel[row.category]}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.purpose}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.expiry}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.setBy}</td>
                   </tr>
                 ))}
               </tbody>
@@ -213,7 +213,7 @@ export default function CookiesPage() {
             replay. Diagnostic events are sent to Sentry&apos;s EU region and are scrubbed before sending:
             default personal data is disabled, and cookies and authorisation headers are stripped. No
             portfolio content is sent. Sentry is listed on our{' '}
-            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link>.
+            <Link href="/subprocessors" className="underline hover:text-[var(--text-primary)]">Subprocessors page</Link>.
           </p>
         </Section>
 
@@ -225,7 +225,7 @@ export default function CookiesPage() {
               href="https://stripe.com/gb/privacy"
               target="_blank"
               rel="noopener noreferrer"
-              className="underline hover:text-[#F5F5F2]"
+              className="underline hover:text-[var(--text-primary)]"
             >
               Stripe&apos;s privacy policy
             </a>{' '}
@@ -239,9 +239,9 @@ export default function CookiesPage() {
 
         <Section title="More information">
           <p>
-            See our <Link href="/privacy" className="underline hover:text-[#F5F5F2]">Privacy policy</Link>{' '}
+            See our <Link href="/privacy" className="underline hover:text-[var(--text-primary)]">Privacy policy</Link>{' '}
             and{' '}
-            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors list</Link>{' '}
+            <Link href="/subprocessors" className="underline hover:text-[var(--text-primary)]">Subprocessors list</Link>{' '}
             for more on how we handle your data. Questions can be sent to{' '}
             <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
           </p>
@@ -254,8 +254,8 @@ export default function CookiesPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-      <h2 className="text-lg font-semibold text-[#F5F5F2]">{title}</h2>
+    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   )

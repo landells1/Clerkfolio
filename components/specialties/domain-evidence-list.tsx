@@ -40,7 +40,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2">
+      <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-2">
         {isEvidenceOnly ? 'Linked evidence' : 'Claimed & linked evidence'}
       </p>
       <div className="space-y-2">
@@ -53,7 +53,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               key={link.id}
               className={`relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 isCounting
-                  ? 'border-l-2 border-l-[#1B6FD9] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[#1B6FD9]/[0.05]'
+                  ? 'border-l-2 border-l-[var(--accent)] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[var(--accent)]/[0.05]'
                   : 'border-white/[0.06] bg-white/[0.02]'
               }`}
             >
@@ -71,26 +71,26 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-sm font-medium leading-snug ${isCounting ? 'text-[#F5F5F2]' : 'text-[rgba(245,245,242,0.6)]'}`}>
+                  <span className={`text-sm font-medium leading-snug ${isCounting ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
                     {link.band_label}
                   </span>
                   {!isEvidenceOnly && (
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         isCounting
-                          ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]'
-                          : 'bg-white/[0.06] text-[rgba(245,245,242,0.4)]'
+                          ? 'bg-[var(--accent)] text-[var(--accent-text)]'
+                          : 'bg-white/[0.06] text-[var(--text-muted)]'
                       }`}
                     >
                       {link.points_claimed} pts
                     </span>
                   )}
                   {isClaimed ? (
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs">
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[var(--text-secondary)] text-xs">
                       Self-claimed
                     </span>
                   ) : link.entry_type ? (
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs capitalize">
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[var(--text-secondary)] text-xs capitalize">
                       {link.entry_type}
                     </span>
                   ) : null}
@@ -99,21 +99,21 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                       href={`/portfolio/${link.entry_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-xs text-[#1B6FD9] hover:underline"
+                      className="text-xs text-[var(--accent-text)] hover:underline"
                     >
                       View
                     </a>
                   )}
                 </div>
                 {!isEvidenceOnly && domain.scoringRule === 'highest' && (
-                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)]'}`}>
+                  <p className={`text-xs mt-0.5 ${isCounting ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
                     {isCounting ? 'Counting' : 'Not counting (lower score)'}
                   </p>
                 )}
               </div>
               <button
                 onClick={() => handleRemove(link.id)}
-                className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.55)] hover:text-red-400 hover:bg-red-500/10 transition-all"
+                className="shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-all"
                 aria-label="Remove link"
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -127,8 +127,8 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
 
       {!isEvidenceOnly && domain.scoringRule === 'cumulative_capped' && links.length > 0 && (
         <div className="mt-3 pt-3 border-t border-white/[0.06] flex items-center justify-between">
-          <span className="text-xs text-[rgba(245,245,242,0.4)]">Total (capped at {domain.maxPoints} pts)</span>
-          <span className="text-sm font-semibold text-[#F5F5F2]">
+          <span className="text-xs text-[var(--text-muted)]">Total (capped at {domain.maxPoints} pts)</span>
+          <span className="text-sm font-semibold text-[var(--text-primary)]">
             {cappedTotal} / {domain.maxPoints} pts
           </span>
         </div>

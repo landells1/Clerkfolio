@@ -28,10 +28,10 @@ export default async function SignupStatusPage({
   const message = MESSAGE_BY_STATE[state as keyof typeof MESSAGE_BY_STATE] ?? MESSAGE_BY_STATE.unavailable
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center">
-      <h1 className="text-lg font-semibold text-[#F5F5F2] mb-2">{message.title}</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">{message.text}</p>
-      <Link href="/signup" className="inline-flex min-h-[44px] items-center rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 text-center">
+      <h1 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{message.title}</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">{message.text}</p>
+      <Link href="/signup" className="inline-flex min-h-[44px] items-center rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white">
         Back to sign up
       </Link>
     </div>

@@ -117,13 +117,13 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
     <div ref={ref} className="relative">
       {/* Selected tags */}
       <div
-        className="min-h-[42px] w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap gap-1.5 cursor-text focus-within:border-[#1B6FD9] transition-colors"
+        className="min-h-[42px] w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 py-2 flex flex-wrap gap-1.5 cursor-text focus-within:border-[var(--accent)] transition-colors"
         onClick={() => setOpen(true)}
       >
         {value.map(tag => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 bg-[#1B6FD9]/15 text-[#1B6FD9] border border-[#1B6FD9]/25 rounded px-2 py-0.5 text-xs font-medium"
+            className="inline-flex items-center gap-1 bg-[var(--accent)] text-[var(--accent-text)] border border-[var(--accent)] rounded px-2 py-0.5 text-xs font-medium"
           >
             {getOptionLabel(tag)}
             <button
@@ -176,7 +176,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
           placeholder={value.length === 0 ? (trackedOnly ? 'Select programmes…' : 'Search specialties…') : ''}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? 'specialty-tag-select-error' : undefined}
-          className="flex-1 min-w-[120px] bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
+          className="flex-1 min-w-[120px] bg-transparent text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] outline-none"
         />
       </div>
       {error && (
@@ -187,10 +187,10 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
 
       {/* Dropdown */}
       {open && (
-        <div className="absolute z-20 w-full mt-1 bg-[#141416] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
+        <div className="absolute z-20 w-full mt-1 bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
           {/* Section header - only in non-tracked mode when there are user interests */}
           {!trackedOnly && userInterests.length > 0 && (
-            <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-b border-white/[0.06]">
+            <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties
             </div>
           )}
@@ -198,11 +198,11 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
             {trackedOnly && userInterests.length === 0 ? (
               /* Empty state when no programmes tracked */
               <div className="px-3 py-4 text-center">
-                <p className="text-sm text-[rgba(245,245,242,0.55)] mb-1">No tracked programmes</p>
-                <p className="text-xs text-[rgba(245,245,242,0.55)]">Add specialties in the Specialties tab first.</p>
+                <p className="text-sm text-[var(--text-secondary)] mb-1">No tracked programmes</p>
+                <p className="text-xs text-[var(--text-secondary)]">Add specialties in the Specialties tab first.</p>
               </div>
             ) : sorted.length === 0 ? (
-              <div className="px-3 py-3 text-sm text-[rgba(245,245,242,0.55)]">No matches</div>
+              <div className="px-3 py-3 text-sm text-[var(--text-secondary)]">No matches</div>
             ) : (
               sorted.map((s, i) => {
                 const isInterest = !trackedOnly && userInterests.includes(s)
@@ -213,7 +213,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
                 return (
                   <div key={s}>
                     {showDivider && (
-                      <div className="px-3 py-1.5 text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider border-t border-white/[0.06]">
+                      <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-t border-white/[0.06]">
                         All specialties
                       </div>
                     )}
@@ -226,10 +226,10 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
                       onClick={() => toggle(s)}
                       className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
                         isSelected
-                          ? 'bg-[#1B6FD9]/10 text-[#1B6FD9]'
+                          ? 'bg-[var(--accent)] text-[var(--accent-text)]'
                           : isActive
-                            ? 'bg-white/[0.06] text-[#F5F5F2]'
-                            : 'text-[rgba(245,245,242,0.7)] hover:bg-white/[0.04] hover:text-[#F5F5F2]'
+                            ? 'bg-white/[0.06] text-[var(--text-primary)]'
+                            : 'text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       <span>{getOptionLabel(s)}</span>

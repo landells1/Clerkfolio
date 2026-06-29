@@ -9,7 +9,7 @@ export function CtaFooter() {
         <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">◉ Begin</p>
         <h2 className="text-[clamp(56px,7vw,96px)] font-medium leading-none tracking-[-0.055em]">
           Start the<br />
-          <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_250),oklch(0.7_0.13_260))] bg-clip-text font-normal italic text-transparent">
+          <span className="bg-[image:var(--accent-gradient)] bg-clip-text font-normal italic text-transparent">
             record you&apos;ll keep.
           </span>
         </h2>

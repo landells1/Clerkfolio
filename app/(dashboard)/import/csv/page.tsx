@@ -11,20 +11,20 @@ export default async function CsvImportPage() {
   return (
     <div className="p-6 sm:p-8 max-w-5xl mx-auto">
       <div className="mb-8 flex items-center gap-3">
-        <Link href="/import" className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Back</Link>
+        <Link href="/import" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Back</Link>
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[#F5F5F2]">CSV import</h1>
-          <p className="mt-0.5 text-sm text-[rgba(245,245,242,0.45)]">Import portfolio rows from Horus, MicroGuide, NHS Learn, or a custom CSV.</p>
+          <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">CSV import</h1>
+          <p className="mt-0.5 text-sm text-[var(--text-muted)]">Import portfolio rows from Horus, MicroGuide, NHS Learn, or a custom CSV.</p>
         </div>
       </div>
 
       {sub?.limits.canBulkImport ? (
         <CsvImportFlow />
       ) : (
-        <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-6">
-          <h2 className="text-lg font-semibold text-[#F5F5F2]">Bulk import is a Pro feature</h2>
-          <p className="mt-2 text-sm text-[rgba(245,245,242,0.52)]">Free accounts can still add cases and portfolio entries manually.</p>
-          <Link href="/upgrade" className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white">
+        <section className="rounded-2xl border border-[var(--accent)] bg-[var(--bg-surface)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Bulk import is a Pro feature</h2>
+          <p className="mt-2 text-sm text-[var(--text-secondary)]">Free accounts can still add cases and portfolio entries manually.</p>
+          <Link href="/upgrade" className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">
             Upgrade to Pro
           </Link>
         </section>

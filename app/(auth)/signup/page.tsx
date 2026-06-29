@@ -103,19 +103,19 @@ export default function SignupPage() {
 
   if (awaitingConfirmation) {
     return (
-      <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 text-center">
-        <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/15 flex items-center justify-center mx-auto mb-4">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center mx-auto mb-4">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
             <polyline points="22,6 12,13 2,6" />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">Check your email</h2>
-        <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
-          We&apos;ve sent a confirmation link to <strong className="text-[#F5F5F2]">{email}</strong>.
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">Check your email</h2>
+        <p className="text-sm text-[var(--text-secondary)] mb-6">
+          We&apos;ve sent a confirmation link to <strong className="text-[var(--text-primary)]">{email}</strong>.
           Click the link to activate your account and continue.
         </p>
-        <p className="text-xs text-[rgba(245,245,242,0.55)]">
+        <p className="text-xs text-[var(--text-secondary)]">
           Didn&apos;t get it? Check your spam folder.
         </p>
       </div>
@@ -123,16 +123,16 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8">
-      <h1 className="text-xl font-semibold text-[#F5F5F2] mb-1">Create your account</h1>
-      <p className="text-sm text-[rgba(245,245,242,0.55)] mb-6">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8">
+      <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">Create your account</h1>
+      <p className="text-sm text-[var(--text-secondary)] mb-6">
         Free to start. No credit card required.
       </p>
 
       <form action="/api/auth/signup" method="post" onSubmit={handleSignup} className="space-y-4">
         <input type="hidden" name="next" value={upgradeIntent ?? ''} />
         <div>
-          <label htmlFor="signup-email" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
@@ -143,7 +143,7 @@ export default function SignupPage() {
             autoComplete="email"
             value={email}
             onChange={e => setEmail(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="you@example.com"
           />
           {/* Inline institutional-email detection: lights up when an .ac.uk or
@@ -166,7 +166,7 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="signup-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             Password
           </label>
           <input
@@ -177,13 +177,13 @@ export default function SignupPage() {
             autoComplete="new-password"
             value={password}
             onChange={e => setPassword(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="At least 8 characters"
           />
         </div>
 
         <div>
-          <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input
@@ -194,14 +194,14 @@ export default function SignupPage() {
             autoComplete="off"
             value={confirm}
             onChange={e => setConfirm(e.target.value)}
-            className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
             placeholder="••••••••"
           />
         </div>
 
         <div>
-          <label htmlFor="signup-referral-code" className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">
-            Referral code <span className="normal-case text-[rgba(245,245,242,0.35)]">(optional)</span>
+          <label htmlFor="signup-referral-code" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+            Referral code <span className="normal-case text-[var(--text-muted)]">(optional)</span>
           </label>
           <div className="relative">
             <input
@@ -211,7 +211,7 @@ export default function SignupPage() {
               autoComplete="off"
               value={referralInput}
               onChange={e => setReferralInput(e.target.value.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 5))}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.35)] focus:outline-none focus:border-[#1B6FD9] transition-colors pr-24 tracking-widest"
+              className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-muted)] focus:outline-none focus:border-[var(--accent)] transition-colors pr-24 tracking-widest"
               placeholder="XXXXX"
               maxLength={5}
             />
@@ -232,21 +232,21 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
           {loading ? 'Creating account…' : 'Create account →'}
         </button>
       </form>
 
-      <p className="text-center text-xs text-[rgba(245,245,242,0.55)] mt-5 leading-relaxed">
+      <p className="text-center text-xs text-[var(--text-secondary)] mt-5 leading-relaxed">
         By signing up you agree to our{' '}
-        <Link href="/terms" className="text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.8)] underline transition-colors">Terms of Service</Link> and{' '}
-        <Link href="/privacy" className="text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.8)] underline transition-colors">Privacy Policy</Link>.
+        <Link href="/terms" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline transition-colors">Terms of Service</Link> and{' '}
+        <Link href="/privacy" className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] underline transition-colors">Privacy Policy</Link>.
       </p>
 
-      <p className="text-center text-sm text-[rgba(245,245,242,0.55)] mt-4">
+      <p className="text-center text-sm text-[var(--text-secondary)] mt-4">
         Already have an account?{' '}
-        <Link href="/login" className="text-[#1B6FD9] hover:text-[#1B6FD9]/80 transition-colors font-medium">
+        <Link href="/login" className="text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors font-medium">
           Log in
         </Link>
       </p>

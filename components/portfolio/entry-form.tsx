@@ -32,19 +32,19 @@ type Props = {
   existingEvidence?: EvidenceFile[]
 }
 
-const INPUT ='w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors'
-const SELECT = 'w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors'
-const LABEL = 'block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide'
+const INPUT ='w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
+const SELECT = 'w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
+const LABEL = 'block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide'
 const FIELD = 'flex flex-col gap-1'
 const GRID2 = 'grid grid-cols-1 gap-4 sm:grid-cols-2'
 const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
-      ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
-      : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
+      ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+      : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
   }`
 
-const WORD_COUNT_CLASS = 'text-[10px] text-[rgba(245,245,242,0.55)] mt-1 text-right'
+const WORD_COUNT_CLASS = 'text-[10px] text-[var(--text-secondary)] mt-1 text-right'
 const LONG_TEXT_MAX = 10000
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
@@ -133,17 +133,17 @@ function CheckboxField({ label, checked, onChange }: { label: string; checked: b
     <label className="flex items-center gap-3 cursor-pointer py-1">
       <div
         className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-          checked ? 'bg-[#1B6FD9] border-[#1B6FD9]' : 'bg-[#0B0B0C] border-white/[0.15]'
+          checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg-canvas)] border-white/[0.15]'
         }`}
         onClick={() => onChange(!checked)}
       >
         {checked && (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         )}
       </div>
-      <span className="text-sm text-[rgba(245,245,242,0.7)]">{label}</span>
+      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
     </label>
   )
 }
@@ -650,13 +650,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       >
         {/* Draft restored banner */}
         {draftRestored && (
-          <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[#1B6FD9] mb-4">
+          <div className="flex items-center justify-between bg-[var(--accent)] border border-[var(--accent)] rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
             {/* Free text (notes, reflection content) is deliberately excluded
                 from the autosaved draft for privacy - say so, or a user who
                 drafted a Gibbs reflection finds the section open and every
                 box empty with no explanation. */}
             <span>Draft restored — notes and reflection text aren&apos;t auto-saved</span>
-            <button type="button" onClick={resetForm} className="text-xs text-[#1B6FD9]/70 hover:text-[#1B6FD9]">
+            <button type="button" onClick={resetForm} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)]">
               Discard
             </button>
           </div>
@@ -675,7 +675,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <button
                   type="button"
                   onClick={() => setTemplatePickerOpen(true)}
-                  className="mb-1 text-xs font-medium text-[rgba(245,245,242,0.55)] transition-colors hover:text-[#F5F5F2]"
+                  className="mb-1 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
                 >
                   Use template
                 </button>
@@ -689,8 +689,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   onClick={() => setCategory(c.value)}
                   className={`py-2.5 px-3 text-sm rounded-xl border text-left transition-colors ${
                     category === c.value
-                      ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
-                      : 'bg-[#141416] border-white/[0.08] text-[rgba(245,245,242,0.6)] hover:border-white/[0.15]'
+                      ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+                      : 'bg-[var(--bg-surface)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                   }`}
                 >
                   {c.label}
@@ -702,7 +702,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Common fields */}
         <div className="space-y-4">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">General</h3>
+          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">General</h3>
           <Field label="Title *">
             <input type="text" required maxLength={200} value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder={ph('title', 'Give this entry a clear title')} />
           </Field>
@@ -712,18 +712,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             </Field>
           </div>
           <Field label="Linked specialties">
-            <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-1.5">Which of your tracked specialty programmes can you use this entry for?</p>
+            <p className="text-[11px] text-[var(--text-muted)] -mt-1 mb-1.5">Which of your tracked specialty programmes can you use this entry for?</p>
             <SpecialtyTagSelect ref={specialtyRef} value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
             {suggestedTags.length > 0 && (
               <div className="mt-2">
-                <p className="mb-1 text-[11px] text-[rgba(245,245,242,0.45)]">Suggested from your text &mdash; tap to add</p>
+                <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text &mdash; tap to add</p>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestedTags.map(tag => (
                     <button
                       key={tag}
                       type="button"
                       onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                      className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[#6AA8FF]"
+                      className="rounded border border-[var(--accent)] bg-[var(--accent)] px-2 py-1 text-[10px] text-[var(--accent-text)]"
                     >
                       + {formatSpecialtyLabel(tag)}
                     </button>
@@ -740,7 +740,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
           <Field label="Importance">
             <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
-            <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+            <p className="mt-2 text-[11px] text-[var(--text-muted)]">
               Optional — flag how important this entry is to you. Tap the active level again to clear it.
             </p>
           </Field>
@@ -750,7 +750,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Category-specific fields */}
         <div className="space-y-4 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
             {CATEGORIES.find(c => c.value === category)?.label} details
           </h3>
 
@@ -783,12 +783,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       }}
                       className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                         auditCycleStage === stage.value
-                          ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/10'
-                          : 'border-white/[0.08] bg-[#0B0B0C] hover:border-white/[0.16]'
+                          ? 'border-[var(--accent)] bg-[var(--accent)]'
+                          : 'border-white/[0.08] bg-[var(--bg-canvas)] hover:border-white/[0.16]'
                       }`}
                     >
-                      <span className="block text-sm font-medium text-[#F5F5F2]">{stage.label}</span>
-                      <span className="mt-1 block text-xs text-[rgba(245,245,242,0.45)]">{stage.hint}</span>
+                      <span className="block text-sm font-medium text-[var(--text-primary)]">{stage.label}</span>
+                      <span className="mt-1 block text-xs text-[var(--text-muted)]">{stage.hint}</span>
                     </button>
                   ))}
                 </div>
@@ -968,7 +968,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {/* Reflection framework selector */}
               <div>
                 <label className={LABEL}>Reflection framework</label>
-                <p className="text-[11px] text-[rgba(245,245,242,0.45)] -mt-1 mb-2">
+                <p className="text-[11px] text-[var(--text-muted)] -mt-1 mb-2">
                   Gibbs: 6-step cycle. Rolfe / Driscoll: three short questions (What? / So What? / Now What?). Pick whichever fits how you reflect.
                 </p>
                 <div className="flex gap-2">
@@ -986,8 +986,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       }}
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         reflFramework === fw
-                          ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[#1B6FD9]'
-                          : 'bg-[#0B0B0C] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:border-white/[0.15]'
+                          ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+                          : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                       }`}
                     >
                       {fw === 'none' ? 'No framework' : fw === 'gibbs' ? "Gibbs' Cycle" : fw === 'driscoll' ? 'Driscoll' : 'Rolfe'}
@@ -1071,7 +1071,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider">Evidence</h3>
+          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Evidence</h3>
           {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
           {mode === 'edit' && existingEvidence.length > 0 && (
             <EvidenceFiles initialFiles={existingEvidence} canDelete />
@@ -1092,7 +1092,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
               router.back()
             }}
-            className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
+            className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -1101,7 +1101,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               type="submit"
               onClick={() => { addAnotherRef.current = true }}
               disabled={saving || uploading}
-              className="flex-1 border border-[#1B6FD9]/40 text-[#1B6FD9] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+              className="flex-1 border border-[var(--accent)] text-[var(--accent-text)] hover:bg-[var(--accent)] disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
             >
               Save & add another
             </button>
@@ -1109,18 +1109,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <button
             type="submit"
             disabled={saving || uploading}
-            className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
+            className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-3 text-sm transition-colors"
           >
             {saving ? 'Saving…' : mode === 'create' ? 'Save entry' : 'Save changes'}
           </button>
         </div>
 
         {uploading && (
-          <div className="rounded-xl overflow-hidden bg-[#141416] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
+          <div className="rounded-xl overflow-hidden bg-[var(--bg-surface)] border border-white/[0.08] px-4 py-3 flex items-center gap-3">
             <div className="flex-1 h-1.5 bg-white/[0.08] rounded-full overflow-hidden">
-              <div className="h-full bg-[#1B6FD9] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
+              <div className="h-full bg-[var(--accent)] rounded-full motion-safe:animate-[upload-progress_1.4s_ease-in-out_infinite]" />
             </div>
-            <span className="text-xs text-[rgba(245,245,242,0.45)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
+            <span className="text-xs text-[var(--text-muted)] shrink-0">Uploading {pendingFiles.length} file{pendingFiles.length !== 1 ? 's' : ''}…</span>
           </div>
         )}
       </form>
@@ -1128,13 +1128,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       {/* Template picker modal */}
       {templatePickerOpen && (
         <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/60 backdrop-blur-sm" onClick={() => setTemplatePickerOpen(false)}>
-          <div className="bg-[#141416] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[70vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[70vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Choose a template</h2>
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Choose a template</h2>
               <button
                 onClick={() => setTemplatePickerOpen(false)}
                 aria-label="Close template picker"
-                className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#1B6FD9] rounded transition-colors"
+                className="text-[var(--text-muted)] hover:text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded transition-colors"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -1146,17 +1146,17 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {/* Personal templates */}
               {personalTemplates.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">Your templates</p>
+                  <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Your templates</p>
                   <div className="grid grid-cols-2 gap-2">
                     {personalTemplates.map(t => (
                       <button
                         key={t.id}
                         type="button"
                         onClick={() => applyTemplate(t)}
-                        className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[#1B6FD9]/40 hover:bg-[#1B6FD9]/5 transition-colors"
+                        className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[var(--accent)] hover:bg-[var(--accent)] transition-colors"
                       >
-                        <p className="text-sm font-medium text-[#F5F5F2]">{t.name}</p>
-                        <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{CATEGORIES.find(cat => cat.value === t.category)?.label ?? t.category}</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
+                        <p className="text-xs text-[var(--text-muted)] mt-0.5">{CATEGORIES.find(cat => cat.value === t.category)?.label ?? t.category}</p>
                       </button>
                     ))}
                   </div>
@@ -1169,17 +1169,17 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 if (!ts || ts.length === 0) return null
                 return (
                   <div key={cat.value}>
-                    <p className="text-[10px] font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wider mb-2">{cat.label}</p>
+                    <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">{cat.label}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {ts.map(t => (
                         <button
                           key={t.id}
                           type="button"
                           onClick={() => applyTemplate(t)}
-                          className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[#1B6FD9]/40 hover:bg-[#1B6FD9]/5 transition-colors"
+                          className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[var(--accent)] hover:bg-[var(--accent)] transition-colors"
                         >
-                          <p className="text-sm font-medium text-[#F5F5F2]">{t.name}</p>
-                          {t.description && <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{t.description}</p>}
+                          <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
+                          {t.description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.description}</p>}
                         </button>
                       ))}
                     </div>

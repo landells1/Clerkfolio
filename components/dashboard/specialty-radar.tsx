@@ -13,16 +13,16 @@ function BarView({ sorted, max, columns = 1 }: { sorted: [string, number][]; max
       <div className="grid grid-cols-2 gap-x-10 gap-y-2.5">
         {sorted.map(([area, count]) => (
           <div key={area} className="flex items-center gap-3">
-            <span className="text-xs text-[rgba(245,245,242,0.7)] w-40 shrink-0 truncate" title={area}>
+            <span className="text-xs text-[var(--text-secondary)] w-40 shrink-0 truncate" title={area}>
               {area}
             </span>
             <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
               <div
-                className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                className="h-full bg-[var(--accent)] rounded-full transition-all"
                 style={{ width: `${Math.round((count / max) * 100)}%` }}
               />
             </div>
-            <span className="text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right shrink-0">
+            <span className="text-xs font-mono text-[var(--text-secondary)] w-5 text-right shrink-0">
               {count}
             </span>
           </div>
@@ -35,16 +35,16 @@ function BarView({ sorted, max, columns = 1 }: { sorted: [string, number][]; max
     <div className="space-y-2.5">
       {sorted.map(([area, count]) => (
         <div key={area} className="flex items-center gap-3">
-          <span className="text-xs text-[rgba(245,245,242,0.7)] w-36 shrink-0 truncate" title={area}>
+          <span className="text-xs text-[var(--text-secondary)] w-36 shrink-0 truncate" title={area}>
             {area}
           </span>
           <div className="flex-1 h-1.5 rounded-full bg-white/[0.06] overflow-hidden">
             <div
-              className="h-full bg-[#1B6FD9] rounded-full transition-all"
+              className="h-full bg-[var(--accent)] rounded-full transition-all"
               style={{ width: `${Math.round((count / max) * 100)}%` }}
             />
           </div>
-          <span className="text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right shrink-0">
+          <span className="text-xs font-mono text-[var(--text-secondary)] w-5 text-right shrink-0">
             {count}
           </span>
         </div>
@@ -86,20 +86,20 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
             `${cx + maxR * frac * Math.cos(a)},${cy + maxR * frac * Math.sin(a)}`
           ).join(' ')}
           fill="none"
-          stroke="rgba(245,245,242,0.06)"
+          stroke="var(--text-faint)"
           strokeWidth="1"
         />
       ))}
       {axisPoints.map((pt, i) => (
         <line key={i} x1={cx} y1={cy} x2={pt.x} y2={pt.y}
-          stroke="rgba(245,245,242,0.08)" strokeWidth="1" />
+          stroke="var(--text-faint)" strokeWidth="1" />
       ))}
       <polygon
         points={angles.map(a =>
           `${cx + maxR * 0.75 * Math.cos(a)},${cy + maxR * 0.75 * Math.sin(a)}`
         ).join(' ')}
         fill="none"
-        stroke="rgba(245,245,242,0.55)"
+        stroke="var(--text-secondary)"
         strokeWidth="1.2"
         strokeDasharray="4 4"
       />
@@ -135,11 +135,11 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
           <g key={i}>
             <title>{area}: {count}</title>
             <text x={lx} y={nameY} textAnchor={anchor} fontSize={fontSize}
-              fill="rgba(245,245,242,0.7)">
+              fill="var(--text-secondary)">
               {area}
             </text>
             <text x={lx} y={countY} textAnchor={anchor} fontSize={countSize}
-              fill="rgba(245,245,242,0.55)" fontFamily="monospace">
+              fill="var(--text-secondary)" fontFamily="monospace">
               {count}
             </text>
           </g>
@@ -170,18 +170,18 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
   const max = sorted[0]?.[1] ?? 1
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5">
       <div className="flex items-start justify-between mb-1">
         <div>
-          <p className="text-sm font-semibold text-[#F5F5F2]">Clinical area coverage</p>
-          <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">Top clinical areas by case count</p>
+          <p className="text-sm font-semibold text-[var(--text-primary)]">Clinical area coverage</p>
+          <p className="text-xs text-[var(--text-muted)] mt-0.5">Top clinical areas by case count</p>
         </div>
         {sorted.length >= 3 && (
           <div className="flex items-center gap-1 shrink-0 ml-2">
             <button
               onClick={() => handleSetView('bar')}
               title="Bar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[var(--accent)] text-[var(--accent-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -190,7 +190,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
             <button
               onClick={() => handleSetView('radar')}
               title="Radar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[#1B6FD9]/20 text-[#1B6FD9]' : 'text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[var(--accent)] text-[var(--accent-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 19 7 19 17 12 22 5 17 5 7"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="5" y1="7" x2="19" y2="17"/><line x1="19" y1="7" x2="5" y2="17"/>
@@ -202,7 +202,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
 
       <div className="mt-4">
         {sorted.length === 0 ? (
-          <p className="text-xs text-[rgba(245,245,242,0.55)] text-center py-6">
+          <p className="text-xs text-[var(--text-secondary)] text-center py-6">
             Log cases with a clinical area set to see coverage here
           </p>
         ) : view === 'radar' ? (

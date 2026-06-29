@@ -66,34 +66,34 @@ const subprocessors: Subprocessor[] = [
 
 export default function SubprocessorsPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Subprocessors</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
-          <p className="max-w-3xl text-sm leading-7 text-[rgba(245,245,242,0.72)]">
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             This page lists the third-party subprocessors Clerkfolio uses to deliver the service.
             All subprocessors are engaged under written data processing agreements with obligations
             equivalent to those in our{' '}
-            <Link href="/dpa" className="underline hover:text-[#F5F5F2]">
+            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">
               Data Processing Agreement
             </Link>
             .
           </p>
         </header>
 
-        <div className="rounded-xl border border-[#1B6FD9]/20 bg-[#1B6FD9]/08 px-5 py-4 text-sm leading-7 text-[rgba(245,245,242,0.82)]">
-          <p className="font-semibold text-[#F5F5F2] mb-1">Stay informed</p>
+        <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-5 py-4 text-sm leading-7 text-[var(--text-primary)]">
+          <p className="font-semibold text-[var(--text-primary)] mb-1">Stay informed</p>
           <p className="text-xs leading-6">
             To be notified of changes to this subprocessor list (at least 30 days in advance of any
             addition or replacement), email{' '}
-            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
+            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[var(--text-primary)]">
               admin@clerkfolio.co.uk
             </a>{' '}
             with the subject line &ldquo;Subscribe to subprocessor changes&rdquo;. See our{' '}
-            <Link href="/dpa" className="underline hover:text-[#F5F5F2]">DPA</Link> for your rights
+            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">DPA</Link> for your rights
             to object to new subprocessors.
           </p>
         </div>
@@ -102,12 +102,12 @@ export default function SubprocessorsPage() {
           {subprocessors.map(sp => (
             <div
               key={sp.name}
-              className="rounded-xl border border-white/[0.08] bg-[#0E0E10] px-5 py-5 space-y-3"
+              className="rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] px-5 py-5 space-y-3"
             >
               <div className="flex items-start justify-between gap-4 flex-wrap">
                 <div>
-                  <h2 className="text-base font-semibold text-[#F5F5F2]">{sp.name}</h2>
-                  <p className="text-xs text-[rgba(245,245,242,0.5)] mt-0.5">{sp.location}</p>
+                  <h2 className="text-base font-semibold text-[var(--text-primary)]">{sp.name}</h2>
+                  <p className="text-xs text-[var(--text-secondary)] mt-0.5">{sp.location}</p>
                 </div>
                 {sp.transferMechanism && (
                   <span className="shrink-0 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] text-amber-300">
@@ -115,9 +115,9 @@ export default function SubprocessorsPage() {
                   </span>
                 )}
               </div>
-              <p className="text-sm leading-6 text-[rgba(245,245,242,0.72)]">{sp.purpose}</p>
+              <p className="text-sm leading-6 text-[var(--text-secondary)]">{sp.purpose}</p>
               {sp.transferMechanism && (
-                <p className="text-xs text-[rgba(245,245,242,0.55)]">
+                <p className="text-xs text-[var(--text-secondary)]">
                   Transfer mechanism: {sp.transferMechanism}
                 </p>
               )}
@@ -126,7 +126,7 @@ export default function SubprocessorsPage() {
                   href={sp.privacyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#1B6FD9] underline hover:text-[#3884DD] transition-colors"
+                  className="text-xs text-[var(--accent-text)] underline hover:text-[var(--accent-bright)] transition-colors"
                 >
                   Privacy policy
                 </a>
@@ -134,7 +134,7 @@ export default function SubprocessorsPage() {
                   href={sp.dpaUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-xs text-[#1B6FD9] underline hover:text-[#3884DD] transition-colors"
+                  className="text-xs text-[var(--accent-text)] underline hover:text-[var(--accent-bright)] transition-colors"
                 >
                   DPA / processing terms
                 </a>
@@ -143,14 +143,14 @@ export default function SubprocessorsPage() {
           ))}
         </div>
 
-        <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-          <h2 className="text-lg font-semibold text-[#F5F5F2]">Contact</h2>
+        <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Contact</h2>
           <p>
             Questions about this list or our data processing practices should be sent to{' '}
             <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>. See also our{' '}
-            <Link href="/privacy" className="underline hover:text-[#F5F5F2]">Privacy policy</Link>{' '}
+            <Link href="/privacy" className="underline hover:text-[var(--text-primary)]">Privacy policy</Link>{' '}
             and{' '}
-            <Link href="/dpa" className="underline hover:text-[#F5F5F2]">Data processing agreement</Link>.
+            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">Data processing agreement</Link>.
           </p>
         </section>
       </article>

@@ -8,17 +8,17 @@ import type { Case } from '@/lib/types/cases'
 import { relativeDate } from '@/lib/utils/dates'
 import { entrySubtitle } from '@/lib/types/portfolio-labels'
 
-// Dot glow colour map (hex values for box-shadow)
+// Dot glow colour map (themed category tokens used for box-shadow + dot fill)
 const DOT_HEX: Record<string, string> = {
-  audit_qip:   '#60A5FA',
-  teaching:    '#A78BFA',
-  conference:  '#F472B6',
-  publication: '#FB923C',
-  leadership:  '#F472B6',
-  prize:       '#FBBF24',
-  procedure:   '#1B6FD9',
-  reflection:  '#94A3B8',
-  custom:      'rgba(245,245,242,0.4)',
+  audit_qip:   'var(--cat-blue-dot)',
+  teaching:    'var(--cat-violet-dot)',
+  conference:  'var(--cat-pink-dot)',
+  publication: 'var(--cat-amber-dot)',
+  leadership:  'var(--cat-pink-dot)',
+  prize:       'var(--cat-amber-dot)',
+  procedure:   'var(--cat-rose-dot)',
+  reflection:  'var(--cat-neutral-dot)',
+  custom:      'var(--text-muted)',
 }
 
 type SpecialtyScore = {
@@ -54,7 +54,7 @@ export default function ActivityFeed({
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl flex flex-col min-h-0">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl flex flex-col min-h-0">
       {/* Widget header with segmented tab control */}
       <div className="flex items-center justify-between px-4 pt-4 pb-0 border-b border-white/[0.06]">
         <div className="flex gap-0.5">
@@ -64,8 +64,8 @@ export default function ActivityFeed({
               onClick={() => setTab(t)}
               className={`px-3 py-2 text-xs font-medium transition-colors relative whitespace-nowrap ${
                 tab === t
-                  ? 'text-[#F5F5F2]'
-                  : 'text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)]'
+                  ? 'text-[var(--text-primary)]'
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-secondary)]'
               }`}
             >
               {tabCounts[t] !== null ? `${t} - ${tabCounts[t]}` : t}
@@ -100,12 +100,12 @@ export default function ActivityFeed({
                     style={{ boxShadow: `0 0 0 3px ${dotHex}22` }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{e.title}</p>
-                    {sub && <p className="text-xs text-[rgba(245,245,242,0.4)] truncate">{sub}</p>}
+                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-white transition-colors">{e.title}</p>
+                    {sub && <p className="text-xs text-[var(--text-muted)] truncate">{sub}</p>}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
                     <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${colour.bg} ${colour.text}`}>{label}</span>
-                    <span className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">{relativeDate(e.date ?? e.created_at)}</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{relativeDate(e.date ?? e.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -132,13 +132,13 @@ export default function ActivityFeed({
                     style={{ boxShadow: '0 0 0 3px #3884DD22' }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#F5F5F2] truncate group-hover:text-white transition-colors">{c.title}</p>
+                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-white transition-colors">{c.title}</p>
                     {domainStr && (
-                      <p className="text-xs text-[rgba(245,245,242,0.4)] truncate">{domainStr}</p>
+                      <p className="text-xs text-[var(--text-muted)] truncate">{domainStr}</p>
                     )}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
-                    <span className="text-[10px] text-[rgba(245,245,242,0.55)] font-mono">{relativeDate(c.date ?? c.created_at)}</span>
+                    <span className="text-[10px] text-[var(--text-secondary)] font-mono">{relativeDate(c.date ?? c.created_at)}</span>
                   </div>
                 </Link>
               )
@@ -163,14 +163,14 @@ export default function ActivityFeed({
                     /* Evidence-based: two mini progress tracks */
                     <div>
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
+                        <span className="text-sm text-[var(--text-primary)] group-hover:text-[var(--text-primary)] transition-colors">{s.label}</span>
                         <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-400/10 text-amber-400 font-medium">Evidence</span>
                       </div>
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Essentials</span>
-                            <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.essentialsMet}/{s.essentialsTotal}</span>
+                            <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wide">Essentials</span>
+                            <span className="text-[10px] font-mono text-[var(--text-secondary)]">{s.essentialsMet}/{s.essentialsTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
                             <div
@@ -181,12 +181,12 @@ export default function ActivityFeed({
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[rgba(245,245,242,0.55)] uppercase tracking-wide">Desirables</span>
-                            <span className="text-[10px] font-mono text-[rgba(245,245,242,0.5)]">{s.desirablesEvidenced}/{s.desirablesTotal}</span>
+                            <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wide">Desirables</span>
+                            <span className="text-[10px] font-mono text-[var(--text-secondary)]">{s.desirablesEvidenced}/{s.desirablesTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
                             <div
-                              className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                              className="h-full bg-[var(--accent)] rounded-full transition-all"
                               style={{ width: s.desirablesTotal > 0 ? `${Math.round((s.desirablesEvidenced / s.desirablesTotal) * 100)}%` : '0%' }}
                             />
                           </div>
@@ -197,14 +197,14 @@ export default function ActivityFeed({
                     /* Points-based: single score bar */
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
-                        <span className="text-sm text-[rgba(245,245,242,0.8)] group-hover:text-[#F5F5F2] transition-colors">{s.label}</span>
-                        <span className="text-xs font-mono text-[rgba(245,245,242,0.4)]">
-                          {s.score}<span className="text-[rgba(245,245,242,0.55)]">/{s.maxScore} pts</span>
+                        <span className="text-sm text-[var(--text-primary)] group-hover:text-[var(--text-primary)] transition-colors">{s.label}</span>
+                        <span className="text-xs font-mono text-[var(--text-muted)]">
+                          {s.score}<span className="text-[var(--text-secondary)]">/{s.maxScore} pts</span>
                         </span>
                       </div>
                       <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
                         <div
-                          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+                          className="h-full bg-[var(--accent)] rounded-full transition-all"
                           style={{ width: s.maxScore > 0 ? `${Math.round((s.score / s.maxScore) * 100)}%` : '0%' }}
                         />
                       </div>
@@ -213,7 +213,7 @@ export default function ActivityFeed({
                 </Link>
               ))}
               <div className="pt-1 border-t border-white/[0.06]">
-                <Link href="/specialties" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)] transition-colors">
+                <Link href="/specialties" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors">
                   Manage programmes &gt;
                 </Link>
               </div>
@@ -228,8 +228,8 @@ export default function ActivityFeed({
 function EmptyState({ icon, text, href, cta }: { icon: React.ReactNode; text: string; href: string; cta: string }) {
   return (
     <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
-      <div className="text-[rgba(245,245,242,0.15)]">{icon}</div>
-      <p className="text-sm text-[rgba(245,245,242,0.55)]">{text}</p>
+      <div className="text-[var(--text-faint)]">{icon}</div>
+      <p className="text-sm text-[var(--text-secondary)]">{text}</p>
       <Link href={href} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">{cta}</Link>
     </div>
   )

@@ -16,7 +16,7 @@ export function Hero() {
             Every case,<br />
             Every audit,<br />
             Every reflection -<br />
-            <span className="bg-[linear-gradient(100deg,oklch(0.82_0.13_250)_0%,oklch(0.7_0.13_250)_100%)] bg-clip-text font-normal italic text-transparent">
+            <span className="bg-[image:var(--accent-gradient)] bg-clip-text font-normal italic text-transparent">
               In one place.
             </span>
           </h1>

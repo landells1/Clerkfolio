@@ -15,27 +15,30 @@ export default function GlobalError({
 
   return (
     <html lang="en">
-      <body style={{ margin: 0, background: '#0B0B0C', color: '#F5F5F2', fontFamily: '"Inter", -apple-system, system-ui, sans-serif' }}>
+      {/* Renders its own document on a fatal error — globals.css (and the theme
+          CSS vars) are not guaranteed to be loaded here, so colours are literal.
+          They mirror the CREAM default theme so the fallback is on-brand. */}
+      <body style={{ margin: 0, background: '#EDE8D0', color: '#26241E', fontFamily: '"Inter", -apple-system, system-ui, sans-serif' }}>
         <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-          <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>
+          <div style={{ fontFamily: 'monospace', fontSize: 11, color: '#8B8470', letterSpacing: 1.5, marginBottom: 24 }}>
             CRITICAL ERROR
           </div>
           <h1 style={{ fontSize: 'clamp(32px, 5vw, 56px)', fontWeight: 500, letterSpacing: -2, margin: 0, marginBottom: 16, lineHeight: 1, textAlign: 'center' }}>
             Something went wrong.
           </h1>
-          <p style={{ fontSize: 16, color: 'rgba(245,245,242,0.55)', maxWidth: 400, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
+          <p style={{ fontSize: 16, color: '#595444', maxWidth: 400, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
             A critical error occurred. Your data is safe - please refresh the page or contact{' '}
-            <a href="mailto:admin@clerkfolio.co.uk" style={{ color: '#1B6FD9' }}>admin@clerkfolio.co.uk</a>{' '}
+            <a href="mailto:admin@clerkfolio.co.uk" style={{ color: '#1D4ED8' }}>admin@clerkfolio.co.uk</a>{' '}
             if this keeps happening.
           </p>
           {error.digest && (
-            <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', marginBottom: 32, letterSpacing: 1 }}>
+            <p style={{ fontFamily: 'monospace', fontSize: 11, color: '#595444', marginBottom: 32, letterSpacing: 1 }}>
               Error reference: {error.digest}
             </p>
           )}
           <button
             onClick={reset}
-            style={{ background: '#1B6FD9', color: '#0B0B0C', padding: '12px 28px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
+            style={{ background: '#1B6FD9', color: '#FFFFFF', padding: '12px 28px', borderRadius: 8, border: 'none', fontSize: 14, fontWeight: 600, cursor: 'pointer' }}
           >
             Try again
           </button>

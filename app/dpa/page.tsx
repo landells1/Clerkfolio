@@ -9,18 +9,18 @@ const lastUpdated = '28 June 2026'
 
 export default function DpaPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Data processing agreement</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
         </header>
 
         {/* ── Lite DPA Summary ── */}
-        <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-5 py-5 text-sm leading-7 text-[rgba(245,245,242,0.82)]">
-          <p className="font-semibold text-[#F5F5F2] mb-2">Summary (non-binding)</p>
+        <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-5 py-5 text-sm leading-7 text-[var(--text-primary)]">
+          <p className="font-semibold text-[var(--text-primary)] mb-2">Summary (non-binding)</p>
           <ul className="space-y-1.5 text-xs leading-6">
             <li>Clerkfolio acts as a <strong>data processor</strong> when processing personal data on behalf of an institutional customer (the controller). For individual consumer sign-ups, Clerkfolio is itself the data controller - see the <Link href="/privacy" className="underline">Privacy policy</Link>.</li>
             <li>Data is stored in Supabase eu-west-2 (London, UK). Subprocessors are listed at <Link href="/subprocessors" className="underline">/subprocessors</Link>. US subprocessors (Resend, Vercel) participate in the UK International Data Transfer Agreement or the EU-US Data Privacy Framework.</li>
@@ -28,7 +28,7 @@ export default function DpaPage() {
             <li>Security incidents affecting personal data will be notified to the controller without undue delay and within 72 hours of becoming aware.</li>
             <li>On termination, personal data will be returned or deleted at the controller&apos;s request within 30 days, unless retention is required by law.</li>
           </ul>
-          <p className="mt-3 text-xs text-[rgba(245,245,242,0.55)]">
+          <p className="mt-3 text-xs text-[var(--text-secondary)]">
             This summary is for convenience only. The full agreement below governs. For enterprise DPA requests, contact{' '}
             <a href="mailto:admin@clerkfolio.co.uk" className="underline">admin@clerkfolio.co.uk</a>.
           </p>
@@ -38,7 +38,7 @@ export default function DpaPage() {
         <div className="flex items-center gap-3">
           <button
             onClick={() => typeof window !== 'undefined' && window.print()}
-            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-4 py-2 text-sm font-medium text-[rgba(245,245,242,0.68)] transition-colors hover:border-white/[0.16] hover:text-[#F5F5F2]"
+            className="inline-flex items-center gap-2 rounded-lg border border-white/[0.08] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:border-white/[0.16] hover:text-[var(--text-primary)]"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -284,8 +284,8 @@ export default function DpaPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-      <h2 className="text-lg font-semibold text-[#F5F5F2]">{title}</h2>
+    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   )

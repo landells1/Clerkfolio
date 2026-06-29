@@ -118,16 +118,16 @@ export function LinkEvidenceModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh]">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[85vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Link existing evidence</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{domain.label}</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Link existing evidence</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{domain.label}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] hover:bg-white/[0.06] transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.06] transition-all"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -147,7 +147,7 @@ export function LinkEvidenceModal({
             <>
               {/* Search */}
               <div className="relative mb-3">
-                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="absolute left-3.5 top-1/2 -translate-y-1/2" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
                 </svg>
                 <input
@@ -156,10 +156,10 @@ export function LinkEvidenceModal({
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Search portfolio entries..."
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                  className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
                 {searching && (
-                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[#1B6FD9] border-t-transparent rounded-full motion-safe:animate-spin" />
+                  <div className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 border-2 border-[var(--accent)] border-t-transparent rounded-full motion-safe:animate-spin" />
                 )}
               </div>
 
@@ -169,21 +169,21 @@ export function LinkEvidenceModal({
                     <button
                       key={result.id}
                       onClick={() => setSelectedResult(result)}
-                      className="w-full flex items-start gap-3 p-3 bg-[#0B0B0C] border border-white/[0.06] hover:border-white/[0.16] rounded-xl text-left transition-all"
+                      className="w-full flex items-start gap-3 p-3 bg-[var(--bg-canvas)] border border-white/[0.06] hover:border-white/[0.16] rounded-xl text-left transition-all"
                     >
-                      <span className="text-xs mt-0.5 shrink-0 text-[rgba(245,245,242,0.45)]">Entry</span>
+                      <span className="text-xs mt-0.5 shrink-0 text-[var(--text-muted)]">Entry</span>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm text-[#F5F5F2] font-medium truncate">{result.title}</p>
+                        <p className="text-sm text-[var(--text-primary)] font-medium truncate">{result.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
-                          <span className="text-xs text-[rgba(245,245,242,0.55)]">
+                          <span className="text-xs text-[var(--text-secondary)]">
                             {new Date(result.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                           </span>
-                          <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[rgba(245,245,242,0.55)] text-xs capitalize">
+                          <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[var(--text-secondary)] text-xs capitalize">
                             {result.type}
                           </span>
                         </div>
                       </div>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.55)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-1">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-1">
                         <polyline points="9 18 15 12 9 6" />
                       </svg>
                     </button>
@@ -192,13 +192,13 @@ export function LinkEvidenceModal({
               )}
 
               {query && !searching && results.length === 0 && (
-                <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-6">
+                <p className="text-center text-xs text-[var(--text-secondary)] py-6">
                   No matching entries found.
                 </p>
               )}
 
               {!query && (
-                <p className="text-center text-xs text-[rgba(245,245,242,0.55)] py-6">
+                <p className="text-center text-xs text-[var(--text-secondary)] py-6">
                   Start typing to search your portfolio entries.
                 </p>
               )}
@@ -209,33 +209,33 @@ export function LinkEvidenceModal({
               <div className="flex items-center gap-2 mb-5">
                 <button
                   onClick={() => setSelectedResult(null)}
-                  className="text-xs text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2] transition-colors"
+                  className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
                 >
                   ← Back
                 </button>
-                <span className="text-[rgba(245,245,242,0.55)]">|</span>
+                <span className="text-[var(--text-secondary)]">|</span>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs shrink-0 text-[rgba(245,245,242,0.45)]">Entry</span>
-                  <span className="text-sm text-[#F5F5F2] font-medium truncate">{selectedResult.title}</span>
+                  <span className="text-xs shrink-0 text-[var(--text-muted)]">Entry</span>
+                  <span className="text-sm text-[var(--text-primary)] font-medium truncate">{selectedResult.title}</span>
                 </div>
               </div>
 
               {noBands ? (
                 <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
-                  <p className="text-xs text-[rgba(245,245,242,0.55)] leading-relaxed">
+                  <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
                     This domain is evidence-only - no scoring bands. Linking this entry will
                     mark the domain as evidenced.
                   </p>
                 </div>
               ) : (
                 <div>
-                  <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-2 block">
+                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-2 block">
                     Which scoring band does this evidence qualify for?
                   </label>
                   <select
                     value={selectedBand}
                     onChange={e => setSelectedBand(e.target.value)}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
                   >
                     <option value="">Select a band…</option>
                     {domain.bands.map(band => (
@@ -256,7 +256,7 @@ export function LinkEvidenceModal({
             <button
               onClick={handleLink}
               disabled={!canLink || linking}
-              className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {linking ? 'Linking…' : 'Link evidence'}
             </button>

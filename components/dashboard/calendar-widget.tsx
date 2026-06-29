@@ -36,15 +36,15 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
   })
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+    <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
       <div className="mb-4 flex items-start justify-between">
         <div>
-          <p className="text-sm font-semibold text-[#F5F5F2]">This month</p>
-          <p className="mt-0.5 text-xs text-[rgba(245,245,242,0.4)]">Entries and upcoming deadlines</p>
+          <p className="text-sm font-semibold text-[var(--text-primary)]">This month</p>
+          <p className="mt-0.5 text-xs text-[var(--text-muted)]">Entries and upcoming deadlines</p>
         </div>
-        <Link href="/timeline" className="text-xs text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Timeline</Link>
+        <Link href="/timeline" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Timeline</Link>
       </div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[rgba(245,245,242,0.55)]">
+      <div className="grid grid-cols-7 gap-1 text-center text-[10px] text-[var(--text-secondary)]">
         {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
       </div>
       <div className="mt-2 grid grid-cols-7 gap-1">
@@ -66,8 +66,8 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
               prefetch={false}
               title={`${count?.entries ?? 0} entries, ${count?.deadlines ?? 0} deadlines`}
               className={`relative flex aspect-square min-h-[34px] items-center justify-center rounded-lg border text-xs ${
-                today ? 'border-[#1B6FD9]/60' : 'border-white/[0.04]'
-              } ${muted ? 'text-[rgba(245,245,242,0.18)]' : 'text-[rgba(245,245,242,0.62)]'}`}
+                today ? 'border-[var(--accent)]' : 'border-white/[0.04]'
+              } ${muted ? 'text-[var(--text-faint)]' : 'text-[var(--text-secondary)]'}`}
               style={{ backgroundColor: intensity === 0 ? 'rgba(245,245,242,0.035)' : ['#0A3260', '#155BB0', '#3884DD'][intensity - 1] }}
             >
               {day.getDate()}

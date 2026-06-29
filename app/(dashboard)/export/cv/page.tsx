@@ -64,16 +64,16 @@ export default async function CvGeneratorPage({
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-8">
       <div className="mb-6">
-        <Link href="/export" prefetch={false} className="text-sm text-[rgba(245,245,242,0.45)] hover:text-[#F5F5F2]">Export</Link>
-        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[#F5F5F2]">CV generator</h1>
-        <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">Generate a clinical, academic, or ST-application CV summary from your portfolio entries.</p>
+        <Link href="/export" prefetch={false} className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Export</Link>
+        <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">CV generator</h1>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Generate a clinical, academic, or ST-application CV summary from your portfolio entries.</p>
       </div>
       <div className="mb-5 flex flex-wrap gap-2">
         {TEMPLATES.map(item => (
           // prefetch={false}: the three template switchers are query-param variants
           // of this one PDF-heavy route; default prefetch fans out the RSC renders
           // on mount (the BUG-001 / F-032 / F-044 prefetch storm). Fetch on click.
-          <Link key={item.key} href={`/export/cv?template=${item.key}`} prefetch={false} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[#1B6FD9] text-white' : 'border border-white/[0.08] bg-[#141416] text-[#F5F5F2]'}`}>
+          <Link key={item.key} href={`/export/cv?template=${item.key}`} prefetch={false} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[var(--accent)] text-white' : 'border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)]'}`}>
             {item.label}
           </Link>
         ))}
@@ -85,15 +85,15 @@ export default async function CvGeneratorPage({
           CV downloads share the PDF allowance with Application PDF and Year in review downloads.
         </p>
       )}
-      <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
-        <h2 className="text-lg font-semibold text-[#F5F5F2]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
+      <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
         {rows.length === 0 ? (
-          <div className="mt-5 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-5 text-sm text-[rgba(245,245,242,0.55)]">
+          <div className="mt-5 rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-5 text-sm text-[var(--text-secondary)]">
             Add publications, teaching, leadership, prizes, audits, or conference entries to build a CV preview.
           </div>
         ) : (
         <div className="mt-5 space-y-5">
-          <p className="rounded-xl border border-white/[0.06] bg-[#0B0B0C] px-4 py-3 text-sm text-[rgba(245,245,242,0.65)]">
+          <p className="rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-4 py-3 text-sm text-[var(--text-secondary)]">
             {TEMPLATE_INTRO[template]}
           </p>
           {categoryOrder.map(categoryKey => {
@@ -103,11 +103,11 @@ export default async function CvGeneratorPage({
             if (matching.length === 0) return null
             return (
               <div key={category.value}>
-                <h3 className="text-sm font-semibold text-[#F5F5F2]">{category.label}</h3>
+                <h3 className="text-sm font-semibold text-[var(--text-primary)]">{category.label}</h3>
                 <ul className="mt-2 space-y-2">
                   {matching.slice(0, 8).map(entry => (
-                    <li key={entry.id} className="text-sm text-[rgba(245,245,242,0.62)]">
-                      <span className="text-[#F5F5F2]">{entry.title}</span> · {new Date(entry.date).getFullYear()}
+                    <li key={entry.id} className="text-sm text-[var(--text-secondary)]">
+                      <span className="text-[var(--text-primary)]">{entry.title}</span> · {new Date(entry.date).getFullYear()}
                       {tail(entry, category.value) ? ` · ${tail(entry, category.value)}` : ''}
                     </li>
                   ))}

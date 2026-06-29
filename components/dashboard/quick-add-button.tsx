@@ -51,7 +51,7 @@ export default function QuickAddButton({ userInterests: _ }: { userInterests: st
         onPointerUp={clearLongPress}
         onPointerLeave={clearLongPress}
         onPointerCancel={clearLongPress}
-        className="flex shrink-0 items-center gap-2 rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#155BB0]"
+        className="flex shrink-0 items-center gap-2 rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
           <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
@@ -60,12 +60,12 @@ export default function QuickAddButton({ userInterests: _ }: { userInterests: st
       </button>
 
       {pickerOpen && (
-        <div className="absolute bottom-full right-0 z-50 mb-2 w-44 rounded-xl border border-white/[0.08] bg-[#141416] p-1.5 shadow-2xl md:hidden">
+        <div className="absolute bottom-full right-0 z-50 mb-2 w-44 rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] p-1.5 shadow-2xl md:hidden">
           {CATEGORIES.map(category => (
             <button
               key={category.type}
               onClick={() => open(category.type)}
-              className="block min-h-[40px] w-full rounded-lg px-3 text-left text-sm text-[rgba(245,245,242,0.72)] hover:bg-white/[0.06] hover:text-[#F5F5F2]"
+              className="block min-h-[40px] w-full rounded-lg px-3 text-left text-sm text-[var(--text-secondary)] hover:bg-white/[0.06] hover:text-[var(--text-primary)]"
             >
               {category.label}
             </button>

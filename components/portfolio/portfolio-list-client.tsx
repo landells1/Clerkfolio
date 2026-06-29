@@ -148,19 +148,19 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={cancelSelect}
-            className="text-xs font-medium text-[#1B6FD9] hover:text-[#3884DD] transition-colors"
+            className="text-xs font-medium text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors"
           >
             Cancel selection
           </button>
           <div className="flex items-center gap-3">
-            <button onClick={selectAll} className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors">Select all</button>
-            <button onClick={deselectAll} className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">Deselect all</button>
-            <span className="text-xs text-[rgba(245,245,242,0.55)]">{selected.size} selected</span>
+            <button onClick={selectAll} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors">Select all</button>
+            <button onClick={deselectAll} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">Deselect all</button>
+            <span className="text-xs text-[var(--text-secondary)]">{selected.size} selected</span>
           </div>
         </div>
       )}
       {!selectMode && entries.length > 0 && (
-        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[rgba(245,245,242,0.65)] sm:hidden">
+        <button onClick={() => setSelectMode(true)} className="mb-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-secondary)] sm:hidden">
           Select entries
         </button>
       )}
@@ -187,11 +187,11 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
             >
               <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
                 selected.has(entry.id)
-                  ? 'bg-[#1B6FD9] border-[#1B6FD9]'
-                  : 'border-white/[0.3] bg-[#141416] group-hover/row:border-white/[0.5]'
+                  ? 'bg-[var(--accent)] border-[var(--accent)]'
+                  : 'border-white/[0.3] bg-[var(--bg-surface)] group-hover/row:border-white/[0.5]'
               }`}>
                 {selected.has(entry.id) && (
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#0B0B0C" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 )}
@@ -216,11 +216,11 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
 
       {/* Floating action bar */}
       {selectMode && selected.size > 0 && (
-        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[#1B1B1E] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
-          <span className="text-xs font-medium text-[rgba(245,245,242,0.6)] mr-1">{selected.size} selected</span>
+        <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[var(--bg-raised)] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
+          <span className="text-xs font-medium text-[var(--text-secondary)] mr-1">{selected.size} selected</span>
           <button
             onClick={() => { setBulkTags([]); setTagModalOpen(true) }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
@@ -229,7 +229,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           </button>
           <button
             onClick={() => { setBulkCategory('reflection'); setCategoryModalOpen(true) }}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 6h18M3 12h18M3 18h18" />
@@ -238,7 +238,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           </button>
           <button
             onClick={handleAddToExport}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.8)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
+            className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-[var(--text-primary)] bg-white/[0.06] hover:bg-white/[0.1] rounded-lg transition-colors border border-white/[0.08]"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
@@ -257,7 +257,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           </button>
           <button
             onClick={cancelSelect}
-            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors ml-1"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors ml-1"
           >
             ×
           </button>
@@ -267,35 +267,35 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       {/* Recategorise modal */}
       {categoryModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setCategoryModalOpen(false)}>
-          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Recategorise entries</h2>
-              <button onClick={() => setCategoryModalOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Recategorise entries</h2>
+              <button onClick={() => setCategoryModalOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">
+            <p className="text-xs text-[var(--text-muted)] mb-3">
               Moving {selected.size} {selected.size === 1 ? 'entry' : 'entries'} to a new category.
             </p>
             <select
               value={bulkCategory}
               onChange={event => setBulkCategory(event.target.value as Category)}
-              className="min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+              className="min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             >
               {CATEGORIES.map(category => (
                 <option key={category.value} value={category.value}>{category.label}</option>
               ))}
             </select>
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setCategoryModalOpen(false)} className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] rounded-xl py-2.5 text-sm transition-colors">
+              <button onClick={() => setCategoryModalOpen(false)} className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl py-2.5 text-sm transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleBulkRecategorise}
                 disabled={recategorising}
-                className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {recategorising ? 'Applying...' : 'Apply category'}
               </button>
@@ -307,27 +307,27 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
       {/* Add tag modal */}
       {tagModalOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4" onClick={() => setTagModalOpen(false)}>
-          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
+          <div className="w-full max-w-sm rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Add specialty tag</h2>
-              <button onClick={() => setTagModalOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Add specialty tag</h2>
+              <button onClick={() => setTagModalOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mb-3">
+            <p className="text-xs text-[var(--text-muted)] mb-3">
               Adding to {selected.size} {selected.size === 1 ? 'entry' : 'entries'}.
             </p>
             <SpecialtyTagSelect value={bulkTags} onChange={setBulkTags} userInterests={userInterests} trackedOnly />
             <div className="flex gap-2 mt-4">
-              <button onClick={() => setTagModalOpen(false)} className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] rounded-xl py-2.5 text-sm transition-colors">
+              <button onClick={() => setTagModalOpen(false)} className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl py-2.5 text-sm transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleBulkAddTag}
                 disabled={bulkTags.length === 0 || applyingTag}
-                className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {applyingTag ? 'Applying…' : `Apply to ${selected.size} ${selected.size === 1 ? 'entry' : 'entries'}`}
               </button>

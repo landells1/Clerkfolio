@@ -198,12 +198,12 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
         aria-modal="true"
         aria-label="Search and commands"
         tabIndex={-1}
-        className="w-full max-w-lg bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
+        className="w-full max-w-lg bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden"
         onClick={e => e.stopPropagation()}
       >
         {/* Search input */}
         <div className="flex items-center gap-3 px-4 py-3.5 border-b border-white/[0.08]">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(245,245,242,0.4)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
           <input
@@ -218,17 +218,17 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
             aria-controls="global-search-listbox"
             aria-activedescendant={activeDescendantId}
             aria-autocomplete="list"
-            className="flex-1 bg-transparent text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] outline-none"
+            className="flex-1 bg-transparent text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] outline-none"
           />
-          <kbd className="text-[10px] text-[rgba(245,245,242,0.55)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
+          <kbd className="text-[10px] text-[var(--text-secondary)] bg-white/[0.06] px-1.5 py-0.5 rounded border border-white/[0.08]">Esc</kbd>
         </div>
 
         {/* Results */}
         {q.trim().length >= 2 && (
           <div id="global-search-listbox" role="listbox" aria-label="Search results" className="py-2 max-h-80 overflow-y-auto">
-            {loading && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">Searching...</p>}
+            {loading && <p className="text-xs text-[var(--text-muted)] px-4 py-3">Searching...</p>}
             {!loading && searchError && <p className="text-xs text-red-400 px-4 py-3">Search failed. Please try again.</p>}
-            {!loading && !searchError && matchingCommands.length === 0 && results.length === 0 && <p className="text-xs text-[rgba(245,245,242,0.4)] px-4 py-3">No active results for &ldquo;{q}&rdquo; - deleted items won&apos;t appear here</p>}
+            {!loading && !searchError && matchingCommands.length === 0 && results.length === 0 && <p className="text-xs text-[var(--text-muted)] px-4 py-3">No active results for &ldquo;{q}&rdquo; - deleted items won&apos;t appear here</p>}
             {matchingCommands.map((command, i) => (
               <button
                 key={command.keys}
@@ -238,8 +238,8 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
                 onClick={() => runCommand(command.href)}
                 className={`w-full flex items-center justify-between gap-3 px-4 py-2.5 text-left transition-colors ${i === selected ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'}`}
               >
-                <span className="text-sm text-[rgba(245,245,242,0.8)] truncate">{command.label}</span>
-                <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[rgba(245,245,242,0.45)]">{command.keys}</kbd>
+                <span className="text-sm text-[var(--text-primary)] truncate">{command.label}</span>
+                <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{command.keys}</kbd>
               </button>
             ))}
             {results.map((r, i) => (
@@ -258,7 +258,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
                 }`}>
                   {r.type === 'case' ? 'Case' : r.subtitle}
                 </span>
-                <span className="text-sm text-[rgba(245,245,242,0.8)] truncate">{r.title}</span>
+                <span className="text-sm text-[var(--text-primary)] truncate">{r.title}</span>
               </button>
             ))}
           </div>
@@ -266,7 +266,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
 
         {q.trim().length < 2 && (
           <div className="px-4 py-3">
-            <p className="mb-3 text-xs text-[rgba(245,245,242,0.55)]">Type to search across your portfolio and cases</p>
+            <p className="mb-3 text-xs text-[var(--text-secondary)]">Type to search across your portfolio and cases</p>
             <div className="grid gap-1">
               {commands.map(command => (
                 <button
@@ -275,10 +275,10 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
                   if (command.href !== '#') router.push(command.href)
                   onClose()
                   }}
-                  className="flex min-h-[36px] items-center justify-between rounded-lg px-2 text-left text-xs text-[rgba(245,245,242,0.58)] hover:bg-white/[0.04] hover:text-[#F5F5F2]"
+                  className="flex min-h-[36px] items-center justify-between rounded-lg px-2 text-left text-xs text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-[var(--text-primary)]"
                 >
                   <span>{command.label}</span>
-                  <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[rgba(245,245,242,0.45)]">{command.keys}</kbd>
+                  <kbd className="rounded border border-white/[0.08] bg-white/[0.06] px-1.5 py-0.5 text-[10px] text-[var(--text-muted)]">{command.keys}</kbd>
                 </button>
               ))}
             </div>

@@ -115,16 +115,16 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-      <div className="bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
+      <div className="bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08] shrink-0">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Log &amp; link evidence</h2>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mt-0.5">{domain.label}</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Log &amp; link evidence</h2>
+            <p className="text-xs text-[var(--text-muted)] mt-0.5">{domain.label}</p>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] hover:bg-white/[0.06] transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.06] transition-all"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -136,13 +136,13 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
         <div className="p-6 overflow-y-auto flex-1">
           {success ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/20 flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>
-              <p className="text-[#F5F5F2] font-medium">Entry logged and linked!</p>
-              <p className="text-xs text-[rgba(245,245,242,0.4)] mt-1">Closing…</p>
+              <p className="text-[var(--text-primary)] font-medium">Entry logged and linked!</p>
+              <p className="text-xs text-[var(--text-muted)] mt-1">Closing…</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-4" id="log-link-form">
@@ -154,7 +154,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Title */}
               <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                   Title <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -164,26 +164,26 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   value={title}
                   onChange={e => setTitle(e.target.value)}
                   placeholder="e.g. National conference oral presentation"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                  className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
               </div>
 
               {/* Date */}
               <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                   Date
                 </label>
                 <input
                   type="date"
                   value={date}
                   onChange={e => setDate(e.target.value)}
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors"
+                  className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
               </div>
 
               {/* Entry type */}
               <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                   Entry type
                 </label>
                 <div className="flex gap-2">
@@ -194,8 +194,8 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                       onClick={() => setEntryType(t)}
                       className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${
                         entryType === t
-                          ? 'bg-[#1B6FD9]/15 text-[#1B6FD9] border-[#1B6FD9]/25'
-                          : 'bg-[#0B0B0C] text-[rgba(245,245,242,0.5)] border-white/[0.08] hover:border-white/[0.16]'
+                          ? 'bg-[var(--accent)] text-[var(--accent-text)] border-[var(--accent)]'
+                          : 'bg-[var(--bg-canvas)] text-[var(--text-secondary)] border-white/[0.08] hover:border-white/[0.16]'
                       }`}
                     >
                       {t === 'portfolio' ? '📄 Portfolio Entry' : '💼 Case'}
@@ -207,13 +207,13 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               {/* Category (portfolio only) */}
               {entryType === 'portfolio' && (
                 <div>
-                  <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                     Category
                   </label>
                   <select
                     value={category}
                     onChange={e => setCategory(e.target.value as Category)}
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
                   >
                     {PORTFOLIO_CATEGORIES.map(c => (
                       <option key={c.value} value={c.value}>{c.label}</option>
@@ -224,11 +224,11 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Auto-tag */}
               <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                   Auto-tagged
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="px-2.5 py-1 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-medium border border-[#1B6FD9]/20">
+                  <span className="px-2.5 py-1 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-xs font-medium border border-[var(--accent)]">
                     {specialtyName}
                   </span>
                 </div>
@@ -236,29 +236,29 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Notes */}
               <div>
-                <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
-                  Notes <span className="text-[rgba(245,245,242,0.55)]">(optional)</span>
+                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                  Notes <span className="text-[var(--text-secondary)]">(optional)</span>
                 </label>
                 <textarea
                   value={notes}
                   onChange={e => setNotes(e.target.value)}
                   rows={3}
                   placeholder="Any additional details…"
-                  className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors resize-none"
+                  className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none"
                 />
               </div>
 
               {/* Band selection - hidden for evidence-only domains */}
               {!noBands && (
                 <div>
-                  <label className="text-xs text-[rgba(245,245,242,0.4)] font-medium uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
                     Scoring band <span className="text-red-400">*</span>
                   </label>
                   <select
                     value={selectedBand}
                     onChange={e => setSelectedBand(e.target.value)}
                     required
-                    className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9] transition-colors appearance-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
                   >
                     <option value="">Select the scoring band this evidence qualifies for…</option>
                     {domain.bands.map(band => (
@@ -280,7 +280,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               type="submit"
               form="log-link-form"
               disabled={!canSubmit || submitting}
-              className="w-full py-2.5 bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
             >
               {submitting ? 'Saving…' : 'Log & link evidence'}
             </button>

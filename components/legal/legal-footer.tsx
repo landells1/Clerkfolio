@@ -23,14 +23,14 @@ export default function LegalFooter({ className }: { className?: string }) {
             // clicked legal pages on every render contributes to the per-IP
             // `?_rsc=` prefetch-burst 503s. Disable prefetch here. (BUG-001)
             prefetch={false}
-            className="text-xs text-[rgba(245,245,242,0.35)] transition-colors hover:text-[rgba(245,245,242,0.65)]"
+            className="text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)]"
           >
             {label}
           </Link>
         ))}
-        <CookiePreferencesButton className="text-xs text-[rgba(245,245,242,0.35)] transition-colors hover:text-[rgba(245,245,242,0.65)]" />
+        <CookiePreferencesButton className="text-xs text-[var(--text-muted)] transition-colors hover:text-[var(--text-secondary)]" />
       </div>
-      <p className="mt-3 px-6 mx-auto max-w-4xl text-[11px] text-[rgba(245,245,242,0.25)]">
+      <p className="mt-3 px-6 mx-auto max-w-4xl text-[11px] text-[var(--text-faint)]">
         &copy; {new Date().getFullYear()} Clerkfolio.
       </p>
     </footer>

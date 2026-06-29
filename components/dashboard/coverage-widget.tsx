@@ -10,13 +10,13 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
   const byCategory = Object.fromEntries(counts.map(c => [c.category, c.count]))
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl">
       <div className="flex items-center justify-between px-4 pt-4 pb-3 border-b border-white/[0.06]">
         <div>
-          <h3 className="text-sm font-semibold text-[#F5F5F2]">Portfolio coverage</h3>
-          <p className="text-xs text-[rgba(245,245,242,0.55)] mt-0.5">{total} {total === 1 ? 'entry' : 'entries'} total</p>
+          <h3 className="text-sm font-semibold text-[var(--text-primary)]">Portfolio coverage</h3>
+          <p className="text-xs text-[var(--text-secondary)] mt-0.5">{total} {total === 1 ? 'entry' : 'entries'} total</p>
         </div>
-        <Link href="/portfolio" className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+        <Link href="/portfolio" className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
           View all →
         </Link>
       </div>
@@ -32,7 +32,7 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
               href={`/portfolio?category=${cat.value}`}
               className="flex items-center gap-3 group"
             >
-              <span className="text-xs text-[rgba(245,245,242,0.6)] group-hover:text-[rgba(245,245,242,0.9)] transition-colors w-24 shrink-0 truncate">
+              <span className="text-xs text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors w-24 shrink-0 truncate">
                 {cat.short}
               </span>
               <div className="flex-1 h-1 rounded-full bg-white/[0.06] overflow-hidden">
@@ -41,7 +41,7 @@ export default function CoverageWidget({ counts }: { counts: CategoryCount[] }) 
                   style={{ width: `${pct}%` }}
                 />
               </div>
-              <span className="shrink-0 text-xs font-mono text-[rgba(245,245,242,0.55)] w-5 text-right">
+              <span className="shrink-0 text-xs font-mono text-[var(--text-secondary)] w-5 text-right">
                 {count}
               </span>
             </Link>

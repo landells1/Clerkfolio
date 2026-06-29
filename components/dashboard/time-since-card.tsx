@@ -19,16 +19,16 @@ function ageLabel(date: string | null) {
 
 export default function TimeSinceCard({ rows }: { rows: Row[] }) {
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
+    <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
       <div className="mb-4">
-        <p className="text-sm font-semibold text-[#F5F5F2]">Time since last entry</p>
-        <p className="mt-0.5 text-xs text-[rgba(245,245,242,0.4)]">By portfolio category and cases</p>
+        <p className="text-sm font-semibold text-[var(--text-primary)]">Time since last entry</p>
+        <p className="mt-0.5 text-xs text-[var(--text-muted)]">By portfolio category and cases</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         {rows.map(row => (
-          <div key={row.category} className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0B0B0C] px-3 py-2">
-            <span className="truncate text-xs text-[rgba(245,245,242,0.62)]">{row.label}</span>
-            <span className="ml-3 rounded-md bg-white/[0.06] px-2 py-1 text-[11px] font-medium text-[#F5F5F2]">{ageLabel(row.lastDate)}</span>
+          <div key={row.category} className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-3 py-2">
+            <span className="truncate text-xs text-[var(--text-secondary)]">{row.label}</span>
+            <span className="ml-3 rounded-md bg-white/[0.06] px-2 py-1 text-[11px] font-medium text-[var(--text-primary)]">{ageLabel(row.lastDate)}</span>
           </div>
         ))}
       </div>

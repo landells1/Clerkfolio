@@ -10,8 +10,168 @@
   font-display: swap;
 }
 
+/* ============================================================================
+   Clerkfolio theme tokens  (cream default · dark opt-in)
+   ----------------------------------------------------------------------------
+   :root holds the CREAM theme (the new default). html[data-theme="dark"]
+   overrides every token with the CURRENT dark scheme — values transcribed
+   from the pre-migration app so dark looks identical to before.
+
+   Components must read these via var(--token); a no-flash inline script in
+   app/layout.tsx stamps data-theme="dark" before first paint when chosen.
+   See the colour-scheme handover doc for the full rationale.
+   ========================================================================== */
 :root {
+  color-scheme: light;
+
+  /* legacy alias kept for any direct var(--blue) reads */
   --blue: #1B6FD9;
+
+  /* Surfaces — layered light to deep by elevation */
+  --bg-canvas:        #EDE8D0; /* page background */
+  --bg-surface:       #F5F1E1; /* cards, panels */
+  --bg-raised:        #FBF8EF; /* inputs, popovers, menus, elevated */
+  --bg-sidebar:       #E5DFC4; /* left navigation */
+  --bg-sunken:        #E3DCC0; /* search wells, insets, table headers */
+  --bg-hover:         #E8E2C9; /* row / nav hover */
+  --bg-active:        #DED7BB; /* selected nav item */
+
+  /* Translucent elevation overlays (white-on-dark today → warm raises on cream) */
+  --bg-overlay-faint: rgba(72, 64, 38, 0.035); /* was bg-white/[<=0.04] */
+  --bg-overlay-soft:  rgba(72, 64, 38, 0.06);  /* was bg-white/[0.05-0.10] */
+  --bg-overlay-strong:rgba(72, 64, 38, 0.11);  /* was bg-white/[>=0.12]   */
+
+  /* Borders & dividers */
+  --border-subtle:    #DDD6BC; /* hairlines between rows */
+  --border-default:   #D2CAAC; /* card outlines, input borders */
+  --border-strong:    #C3BA98; /* emphasised / focused outlines */
+
+  /* Text */
+  --text-primary:     #26241E; /* headings, primary copy (warm near-black) */
+  --text-secondary:   #595444; /* body, labels */
+  --text-muted:       #8B8470; /* captions, meta, placeholders */
+  --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
+  --text-on-accent:   #FFFFFF; /* text on accent fills */
+
+  /* Brand accent — primary blue fill stays brand blue in both themes */
+  --accent:           #1B6FD9; /* button fill, active states */
+  --accent-hover:     #155BB0;
+  --accent-bright:    #2563EB; /* brighter blue accents */
+  --accent-text:      #1D4ED8; /* blue links / icon text on cream (AA) */
+  --accent-soft:      #DCE6FA; /* soft blue chip / tag background */
+  --accent-soft-text: #1E40AF; /* text inside soft blue chips */
+  --focus-ring:       #1B6FD9;
+
+  /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
+  --accent-gradient:  linear-gradient(100deg, oklch(0.55 0.18 255) 0%, oklch(0.46 0.17 262) 100%);
+  --danger-gradient:  linear-gradient(100deg, oklch(0.58 0.19 28) 0%, oklch(0.50 0.19 22) 100%);
+
+  /* Informational panel ("example entries" banner) */
+  --info-bg:          #E4ECF8;
+  --info-border:      #C6D6F1;
+  --info-text:        #2C3A57;
+
+  /* Inverted surface (intentionally high-contrast buttons/chips that were a
+     light block in dark mode — become a dark block on cream). */
+  --bg-inverse:       #26241E;
+  --text-inverse:     #F5F1E1;
+
+  /* Status */
+  --success:          #15803D;
+  --warning:          #B45309;
+  --danger:           #DC2626;
+
+  /* Elevation — light themes need real shadows for depth */
+  --shadow-sm:  0 1px 2px rgba(72, 64, 38, 0.06);
+  --shadow-md:  0 4px 16px rgba(72, 64, 38, 0.10);
+  --shadow-lg:  0 16px 48px rgba(72, 64, 38, 0.14);
+
+  /* Category / pill colours — dot, soft chip bg, border, chip text.
+     Cream values are deepened so they read on the warm background. */
+  --cat-blue:    #2563EB; --cat-blue-soft:    #DCE6FA; --cat-blue-border:    #C3D4F5; --cat-blue-text:    #1D4ED8; --cat-blue-dot:    #2563EB;
+  --cat-green:   #15803D; --cat-green-soft:   #DCEEDD; --cat-green-border:   #BFE0C4; --cat-green-text:   #15803D; --cat-green-dot:   #15803D;
+  --cat-amber:   #D97706; --cat-amber-soft:   #F6E8CF; --cat-amber-border:   #E7D2A6; --cat-amber-text:   #B45309; --cat-amber-dot:   #D97706;
+  --cat-rose:    #E11D48; --cat-rose-soft:    #F9DCE2; --cat-rose-border:    #F0C2CC; --cat-rose-text:    #BE123C; --cat-rose-dot:    #E11D48;
+  --cat-violet:  #7C3AED; --cat-violet-soft:  #E7DEFA; --cat-violet-border:  #D5C7F2; --cat-violet-text:  #6D28D9; --cat-violet-dot:  #7C3AED;
+  --cat-cyan:    #0284C7; --cat-cyan-soft:    #D6EAF7; --cat-cyan-border:    #B3D7EC; --cat-cyan-text:    #0369A1; --cat-cyan-dot:    #0284C7;
+  --cat-pink:    #DB2777; --cat-pink-soft:    #F8DEEC; --cat-pink-border:    #EFC2D8; --cat-pink-text:    #BE185D; --cat-pink-dot:    #DB2777;
+  --cat-red:     #DC2626; --cat-red-soft:     #FBE0E0; --cat-red-border:     #F2C4C4; --cat-red-text:     #B91C1C; --cat-red-dot:     #DC2626;
+  --cat-teal:    #0D9488; --cat-teal-soft:    #D5EDEA; --cat-teal-border:    #AEDAD4; --cat-teal-text:    #0F766E; --cat-teal-dot:    #0D9488;
+  --cat-indigo:  #4F46E5; --cat-indigo-soft:  #E2E0FB; --cat-indigo-border:  #C9C5F2; --cat-indigo-text:  #4338CA; --cat-indigo-dot:  #4F46E5;
+  --cat-fuchsia: #C026D3; --cat-fuchsia-soft: #F4DBF8; --cat-fuchsia-border: #E6BCEC; --cat-fuchsia-text: #A21CAF; --cat-fuchsia-dot: #C026D3;
+  --cat-neutral: #6B7280; --cat-neutral-soft: #E5E2D7; --cat-neutral-border: #D2CAAC; --cat-neutral-text: #595444; --cat-neutral-dot: #6B7280;
+}
+
+/* ---------------------------------------------------------------------------
+   DARK (current scheme — opt-in). Values transcribed from the pre-migration
+   app so dark mode is visually unchanged.
+   --------------------------------------------------------------------------- */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --blue: #1B6FD9;
+
+  --bg-canvas:        #0B0B0C;
+  --bg-surface:       #141416;
+  --bg-raised:        #1B1B1E;
+  --bg-sidebar:       #0B0B0C;
+  --bg-sunken:        #101012;
+  --bg-hover:         #232326;
+  --bg-active:        #1B1B1E;
+
+  --bg-overlay-faint: rgba(255, 255, 255, 0.04);
+  --bg-overlay-soft:  rgba(255, 255, 255, 0.06);
+  --bg-overlay-strong:rgba(255, 255, 255, 0.12);
+
+  --border-subtle:    rgba(245, 245, 242, 0.06);
+  --border-default:   rgba(245, 245, 242, 0.08);
+  --border-strong:    rgba(245, 245, 242, 0.16);
+
+  --text-primary:     #F5F5F2;
+  --text-secondary:   rgba(245, 245, 242, 0.55);
+  --text-muted:       rgba(245, 245, 242, 0.45);
+  --text-faint:       rgba(245, 245, 242, 0.30);
+  --text-on-accent:   #FFFFFF;
+
+  --accent:           #1B6FD9;
+  --accent-hover:     #155BB0;
+  --accent-bright:    #3884DD;
+  --accent-text:      #6AA8FF;
+  --accent-soft:      rgba(27, 111, 217, 0.15);
+  --accent-soft-text: #93C5FD;
+  --focus-ring:       #1B6FD9;
+
+  --accent-gradient:  linear-gradient(100deg, oklch(0.82 0.13 250) 0%, oklch(0.70 0.13 255) 100%);
+  --danger-gradient:  linear-gradient(100deg, oklch(0.75 0.15 30) 0%, oklch(0.65 0.15 20) 100%);
+
+  --info-bg:          #0A3260;
+  --info-border:      rgba(27, 111, 217, 0.42);
+  --info-text:        #EAF2FC;
+
+  --bg-inverse:       #F5F5F2;
+  --text-inverse:     #0B0B0C;
+
+  --success:          #22C55E;
+  --warning:          #F59E0B;
+  --danger:           #F87171;
+
+  --shadow-sm:  0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:  0 4px 16px rgba(0, 0, 0, 0.4);
+  --shadow-lg:  0 16px 48px rgba(0, 0, 0, 0.5);
+
+  /* Category colours — bright dark-tuned shades + translucent chip bgs */
+  --cat-blue:    #3884DD; --cat-blue-soft:    rgba(27, 111, 217, 0.14); --cat-blue-border:    rgba(27, 111, 217, 0.42); --cat-blue-text:    #5F9AE3; --cat-blue-dot:    #3884DD;
+  --cat-green:   #4ade80; --cat-green-soft:   rgba(34, 197, 94, 0.10);  --cat-green-border:   rgba(34, 197, 94, 0.32);  --cat-green-text:   #86efac; --cat-green-dot:   #4ade80;
+  --cat-amber:   #fbbf24; --cat-amber-soft:   rgba(245, 158, 11, 0.10); --cat-amber-border:   rgba(245, 158, 11, 0.32); --cat-amber-text:   #fcd34d; --cat-amber-dot:   #fbbf24;
+  --cat-rose:    #fb7185; --cat-rose-soft:    rgba(244, 63, 94, 0.10);  --cat-rose-border:    rgba(244, 63, 94, 0.32);  --cat-rose-text:    #fda4af; --cat-rose-dot:    #fb7185;
+  --cat-violet:  #a78bfa; --cat-violet-soft:  rgba(167, 139, 250, 0.11);--cat-violet-border:  rgba(167, 139, 250, 0.32);--cat-violet-text:  #c4b5fd; --cat-violet-dot:  #a78bfa;
+  --cat-cyan:    #22d3ee; --cat-cyan-soft:    rgba(34, 211, 238, 0.10); --cat-cyan-border:    rgba(34, 211, 238, 0.32); --cat-cyan-text:    #67e8f9; --cat-cyan-dot:    #22d3ee;
+  --cat-pink:    #f472b6; --cat-pink-soft:    rgba(236, 72, 153, 0.10); --cat-pink-border:    rgba(236, 72, 153, 0.32); --cat-pink-text:    #f9a8d4; --cat-pink-dot:    #f472b6;
+  --cat-red:     #f87171; --cat-red-soft:     rgba(239, 68, 68, 0.10);  --cat-red-border:     rgba(239, 68, 68, 0.32);  --cat-red-text:     #fca5a5; --cat-red-dot:     #f87171;
+  --cat-teal:    #2dd4bf; --cat-teal-soft:    rgba(45, 212, 191, 0.10); --cat-teal-border:    rgba(45, 212, 191, 0.32); --cat-teal-text:    #5eead4; --cat-teal-dot:    #2dd4bf;
+  --cat-indigo:  #818cf8; --cat-indigo-soft:  rgba(99, 102, 241, 0.10); --cat-indigo-border:  rgba(99, 102, 241, 0.32); --cat-indigo-text:  #a5b4fc; --cat-indigo-dot:  #818cf8;
+  --cat-fuchsia: #e879f9; --cat-fuchsia-soft: rgba(217, 70, 239, 0.10); --cat-fuchsia-border: rgba(217, 70, 239, 0.32); --cat-fuchsia-text: #f0abfc; --cat-fuchsia-dot: #e879f9;
+  --cat-neutral: #9CA3AF; --cat-neutral-soft: rgba(245, 245, 242, 0.06); --cat-neutral-border: rgba(245, 245, 242, 0.14); --cat-neutral-text: rgba(245,245,242,0.85); --cat-neutral-dot: rgba(245,245,242,0.55);
 }
 
 @media print {
@@ -85,8 +245,8 @@
 }
 
 body {
-  background-color: #0B0B0C;
-  color: #F5F5F2;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -96,37 +256,42 @@ body.font-dyslexic {
   font-family: 'OpenDyslexic', 'Inter', system-ui, -apple-system, sans-serif;
 }
 
-body.theme-high-contrast {
-  background-color: #000;
-  color: #fff;
+/* High-contrast mode — theme-aware. Dark pushes to pure black/white; cream
+   pushes to a stark warm-white canvas with near-black ink. Either way it
+   lifts the weak muted-text tiers so they pass at a glance (F-033). */
+html[data-theme="dark"] body.theme-high-contrast {
+  --bg-canvas: #000;
+  --bg-surface: #000;
+  --bg-raised: #0A0A0A;
+  --bg-sidebar: #000;
+  --bg-sunken: #000;
+  --text-primary: #fff;
+  --text-secondary: rgba(255, 255, 255, 0.92);
+  --text-muted: rgba(255, 255, 255, 0.85);
+  --text-faint: rgba(255, 255, 255, 0.7);
+  --border-subtle: rgba(255, 255, 255, 0.35);
+  --border-default: rgba(255, 255, 255, 0.45);
+  --border-strong: rgba(255, 255, 255, 0.6);
+}
+
+html:not([data-theme="dark"]) body.theme-high-contrast {
+  --bg-canvas: #FFFDF5;
+  --bg-surface: #FFFDF5;
+  --bg-raised: #FFFFFF;
+  --bg-sidebar: #FFFDF5;
+  --bg-sunken: #F4EFDD;
+  --text-primary: #1A1814;
+  --text-secondary: #2E2A20;
+  --text-muted: #4A4534;
+  --text-faint: rgba(26, 24, 20, 0.7);
+  --border-subtle: rgba(26, 24, 20, 0.4);
+  --border-default: rgba(26, 24, 20, 0.55);
+  --border-strong: rgba(26, 24, 20, 0.7);
 }
 
 body.theme-high-contrast a,
 body.theme-high-contrast button {
   text-decoration-thickness: 2px;
-}
-
-body.theme-high-contrast [class*="bg-[#141416]"],
-body.theme-high-contrast [class*="bg-[#0B0B0C]"] {
-  background-color: #000 !important;
-}
-
-body.theme-high-contrast [class*="border-white/"] {
-  border-color: rgba(255, 255, 255, 0.45) !important;
-}
-
-/* High-contrast mode must actually raise the weak text, not just panels/borders
-   (F-033). Lift every muted text/icon tier — the `ink`/`fg` tokens and the
-   pervasive `text-[rgba(245,245,242,…)]` greys — to >= rgba(255,255,255,0.8).
-   Icons that inherit `currentColor` follow their text colour up with them. */
-body.theme-high-contrast .text-ink-soft,
-body.theme-high-contrast .text-ink-dim,
-body.theme-high-contrast .text-fg-1,
-body.theme-high-contrast .text-fg-2,
-body.theme-high-contrast .text-fg-3,
-body.theme-high-contrast .text-fg-4,
-body.theme-high-contrast [class*="text-[rgba(245,245,242"] {
-  color: rgba(255, 255, 255, 0.92) !important;
 }
 
 .skip-link {
@@ -136,8 +301,8 @@ body.theme-high-contrast [class*="text-[rgba(245,245,242"] {
   z-index: 10000;
   transform: translateY(-160%);
   border-radius: 10px;
-  background: #F5F5F2;
-  color: #0B0B0C;
+  background: var(--accent);
+  color: var(--text-on-accent);
   padding: 10px 14px;
   font-size: 14px;
   font-weight: 700;
@@ -155,16 +320,16 @@ body.theme-high-contrast [class*="text-[rgba(245,245,242"] {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(245, 245, 242, 0.15);
+  background: var(--border-strong);
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(245, 245, 242, 0.25);
+  background: var(--text-muted);
 }
 
 /* Focus ring */
 :focus-visible {
-  outline: 2px solid #1B6FD9;
+  outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
 }
 

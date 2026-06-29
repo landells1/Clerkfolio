@@ -46,20 +46,20 @@ const REFLECTION_FRAMEWORKS: Term[] = [
 
 function Section({ title, terms }: { title: string; terms: Term[] }) {
   return (
-    <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6 mb-6">
-      <h2 className="text-base font-semibold text-[#F5F5F2] mb-4">{title}</h2>
+    <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 mb-6">
+      <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">{title}</h2>
       <div className="space-y-4">
         {terms.map(term => (
           <div key={term.term}>
-            <p className="text-sm font-medium text-[#F5F5F2]">
+            <p className="text-sm font-medium text-[var(--text-primary)]">
               {term.term}
               {term.expansion && (
-                <span className="ml-2 text-xs font-normal text-[rgba(245,245,242,0.55)]">
+                <span className="ml-2 text-xs font-normal text-[var(--text-secondary)]">
                   ({term.expansion})
                 </span>
               )}
             </p>
-            <p className="mt-1 text-sm text-[rgba(245,245,242,0.6)] leading-relaxed">{term.description}</p>
+            <p className="mt-1 text-sm text-[var(--text-secondary)] leading-relaxed">{term.description}</p>
           </div>
         ))}
       </div>
@@ -71,11 +71,11 @@ export default function HelpPage() {
   return (
     <div className="p-6 lg:p-8 max-w-3xl">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Help & glossary</h1>
-        <p className="mt-1 text-sm text-[rgba(245,245,242,0.55)]">
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Help & glossary</h1>
+        <p className="mt-1 text-sm text-[var(--text-secondary)]">
           Acronyms, concepts, and the difference between the look-alikes (snippets vs templates,
           goals vs deadlines, themes vs specialties). If something is unclear, search this page or
-          email <Link href="/contact" className="text-[#1B6FD9] hover:underline">support</Link>.
+          email <Link href="/contact" className="text-[var(--accent-text)] hover:underline">support</Link>.
         </p>
       </div>
 
@@ -83,9 +83,9 @@ export default function HelpPage() {
       <Section title="Concepts in Clerkfolio" terms={CONCEPTS} />
       <Section title="Reflection frameworks" terms={REFLECTION_FRAMEWORKS} />
 
-      <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-2">Keyboard shortcuts</h2>
-        <p className="text-sm text-[rgba(245,245,242,0.55)] mb-4">
+      <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-2">Keyboard shortcuts</h2>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">
           Open the command palette with <kbd className="rounded border border-white/[0.1] bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs">Cmd K</kbd> /
           {' '}<kbd className="rounded border border-white/[0.1] bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs">Ctrl K</kbd>.
         </p>
@@ -110,9 +110,9 @@ export default function HelpPage() {
 
 function Shortcut({ keys, label }: { keys: string; label: string }) {
   return (
-    <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[#0B0B0C] px-3 py-2">
-      <span className="text-[rgba(245,245,242,0.7)]">{label}</span>
-      <kbd className="rounded border border-white/[0.1] bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-[rgba(245,245,242,0.7)]">{keys}</kbd>
+    <div className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-3 py-2">
+      <span className="text-[var(--text-secondary)]">{label}</span>
+      <kbd className="rounded border border-white/[0.1] bg-white/[0.06] px-1.5 py-0.5 font-mono text-xs text-[var(--text-secondary)]">{keys}</kbd>
     </div>
   )
 }

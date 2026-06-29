@@ -42,7 +42,7 @@ export default function TrashActions({ id, type }: { id: string; type: 'entry' |
   return (
     <div className="flex items-center gap-2 shrink-0">
       <button onClick={handleRestore} disabled={!!loading}
-        className="text-xs text-[#1B6FD9] hover:text-[#3884DD] transition-colors disabled:opacity-50">
+        className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors disabled:opacity-50">
         {loading === 'restore' ? 'Restoring…' : 'Restore'}
       </button>
     </div>

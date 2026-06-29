@@ -29,20 +29,20 @@ export default function RotationSummaryCards({ rotations, entries, cases }: { ro
         const entryCount = entries.filter(inBlock).length
         const caseCount = cases.filter(inBlock).length
         return (
-          <div key={rotation.id} className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-            <p className="text-sm font-semibold text-[#F5F5F2]">{rotation.title}</p>
-            <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">
+          <div key={rotation.id} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+            <p className="text-sm font-semibold text-[var(--text-primary)]">{rotation.title}</p>
+            <p className="mt-1 text-xs text-[var(--text-muted)]">
               {start.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })} to {end.toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })}
               {rotation.meta?.detail ? ` · ${rotation.meta.detail}` : ''}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <div className="rounded-xl bg-[#0B0B0C] p-3">
-                <p className="text-2xl font-semibold text-[#F5F5F2]">{entryCount}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.42)]">portfolio entries</p>
+              <div className="rounded-xl bg-[var(--bg-canvas)] p-3">
+                <p className="text-2xl font-semibold text-[var(--text-primary)]">{entryCount}</p>
+                <p className="text-xs text-[var(--text-muted)]">portfolio entries</p>
               </div>
-              <div className="rounded-xl bg-[#0B0B0C] p-3">
-                <p className="text-2xl font-semibold text-[#F5F5F2]">{caseCount}</p>
-                <p className="text-xs text-[rgba(245,245,242,0.42)]">cases</p>
+              <div className="rounded-xl bg-[var(--bg-canvas)] p-3">
+                <p className="text-2xl font-semibold text-[var(--text-primary)]">{caseCount}</p>
+                <p className="text-xs text-[var(--text-muted)]">cases</p>
               </div>
             </div>
           </div>

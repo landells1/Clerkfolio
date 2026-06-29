@@ -120,7 +120,7 @@ export default function SwipeToDelete({
               type="button"
               onClick={closeSheet}
               disabled={busy}
-              className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] text-sm font-medium text-[rgba(245,245,242,0.65)] transition-colors hover:text-[#F5F5F2] disabled:opacity-50"
+              className="min-h-[44px] flex-1 rounded-xl border border-white/[0.08] text-sm font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)] disabled:opacity-50"
             >
               Cancel
             </button>

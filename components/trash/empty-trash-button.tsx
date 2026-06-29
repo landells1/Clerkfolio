@@ -117,7 +117,7 @@ export default function EmptyTrashButton({
           Empty trash
         </button>
         {eligibleCount === 0 && retainedCount > 0 && nextEligibleAt && (
-          <p className="mt-2 text-xs leading-relaxed text-[rgba(245,245,242,0.48)]">
+          <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">
             No items can be permanently deleted yet. The next item becomes eligible after{' '}
             {new Date(new Date(nextEligibleAt).getTime() + 30 * 86_400_000).toLocaleDateString('en-GB', {
               day: 'numeric',
@@ -129,12 +129,12 @@ export default function EmptyTrashButton({
       </div>
       {open && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
-          <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[#141416] p-6 sm:rounded-2xl">
-            <h2 className="text-lg font-semibold text-[#F5F5F2]">Empty trash?</h2>
-            <p className="mt-2 text-sm text-[rgba(245,245,242,0.72)]">Type EMPTY to permanently remove deleted entries and cases whose 30-day restore window has passed.</p>
-            <input value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="EMPTY" className="mt-5 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 text-sm text-[#F5F5F2]" />
+          <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl">
+            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Empty trash?</h2>
+            <p className="mt-2 text-sm text-[var(--text-secondary)]">Type EMPTY to permanently remove deleted entries and cases whose 30-day restore window has passed.</p>
+            <input value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="EMPTY" className="mt-5 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[var(--bg-canvas)] px-3.5 text-sm text-[var(--text-primary)]" />
             <div className="mt-5 flex gap-2">
-              <button onClick={() => setOpen(false)} className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] text-sm text-[#F5F5F2]">Cancel</button>
+              <button onClick={() => setOpen(false)} className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] text-sm text-[var(--text-primary)]">Cancel</button>
               <button onClick={emptyTrash} disabled={confirm !== 'EMPTY' || loading} className="min-h-[44px] flex-1 rounded-lg bg-red-500 px-4 text-sm font-semibold text-white disabled:opacity-40">
                 {loading ? 'Emptying...' : 'Empty'}
               </button>

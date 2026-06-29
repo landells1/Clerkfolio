@@ -45,7 +45,7 @@ export default function DashboardSection({ title, subtitle, defaultOpen = false,
     <details className="group" open={open}>
       <summary
         aria-label={`${open ? 'Collapse' : 'Expand'} ${title}`}
-        className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[#141416] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[#F5F5F2]"
+        className="flex min-h-[44px] cursor-pointer list-none items-center justify-between rounded-xl bg-[var(--bg-surface)] border border-white/[0.08] px-4 py-3 text-sm font-semibold text-[var(--text-primary)]"
         onClick={e => {
           e.preventDefault()
           const next = !open
@@ -60,10 +60,10 @@ export default function DashboardSection({ title, subtitle, defaultOpen = false,
         <span>
           {title}
           {subtitle && (
-            <span className="ml-2 font-normal text-xs text-[rgba(245,245,242,0.45)]">{subtitle}</span>
+            <span className="ml-2 font-normal text-xs text-[var(--text-muted)]">{subtitle}</span>
           )}
         </span>
-        <span className="text-[rgba(245,245,242,0.55)] group-open:rotate-90 transition-transform">&gt;</span>
+        <span className="text-[var(--text-secondary)] group-open:rotate-90 transition-transform">&gt;</span>
       </summary>
       <div className="pt-4">{children}</div>
     </details>

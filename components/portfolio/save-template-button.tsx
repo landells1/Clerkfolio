@@ -75,7 +75,7 @@ export default function SaveTemplateButton({ entry }: Props) {
     <>
       <button
         onClick={() => { setName(entry.title); setOpen(true) }}
-        className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[rgba(245,245,242,0.6)] border border-white/[0.08] rounded-lg hover:text-[#F5F5F2] hover:border-white/[0.15] transition-colors"
+        className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-white/[0.15] transition-colors"
         title="Save as template"
       >
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,35 +86,35 @@ export default function SaveTemplateButton({ entry }: Props) {
 
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)}>
-          <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+          <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Save as template</h2>
-              <button onClick={() => setOpen(false)} className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Save as template</h2>
+              <button onClick={() => setOpen(false)} className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
-            <p className="text-xs text-[rgba(245,245,242,0.4)] mb-4">
+            <p className="text-xs text-[var(--text-muted)] mb-4">
               This will save the category and key field values as a personal template you can reuse when creating new entries.
             </p>
-            <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] mb-1.5 uppercase tracking-wide">Template name</label>
+            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Template name</label>
             <input
               type="text"
               value={name}
               onChange={e => setName(e.target.value)}
               autoFocus
               maxLength={100}
-              className="w-full bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] placeholder-[rgba(245,245,242,0.55)] focus:outline-none focus:border-[#1B6FD9] transition-colors mb-4"
+              className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors mb-4"
             />
             <div className="flex gap-2">
-              <button onClick={() => setOpen(false)} className="flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] rounded-xl py-2.5 text-sm transition-colors">
+              <button onClick={() => setOpen(false)} className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-xl py-2.5 text-sm transition-colors">
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !name.trim()}
-                className="flex-[2] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {saving ? 'Saving…' : 'Save template'}
               </button>

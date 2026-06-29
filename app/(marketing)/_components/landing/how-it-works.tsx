@@ -9,11 +9,11 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="bg-[#141416] px-6 py-24 md:px-14 lg:py-32">
+    <section id="how" className="bg-[var(--bg-surface)] px-6 py-24 md:px-14 lg:py-32">
       <SectionHeader number="004" label="How it works" title="Four moves. Repeat forever." />
       <div className="mt-16 grid overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.06] md:grid-cols-2 md:gap-px lg:grid-cols-4">
         {steps.map(([number, title, body]) => (
-          <article key={number} className="min-h-[240px] bg-[#141416] p-8">
+          <article key={number} className="min-h-[240px] bg-[var(--bg-surface)] p-8">
             <p className="mb-7 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{number}</p>
             <h3 className="text-4xl font-medium tracking-[-0.03em]">{title}</h3>
             <p className="mt-4 text-sm leading-[1.6] text-ink-soft">{body}</p>

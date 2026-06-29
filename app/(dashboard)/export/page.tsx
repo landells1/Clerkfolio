@@ -95,8 +95,8 @@ function filenameFromContentDisposition(header: string | null): string | null {
 function specialtyChipClass(active: boolean) {
   return `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[#1B6FD9]'
-      : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+      ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-text)]'
+      : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
   }`
 }
 
@@ -560,8 +560,8 @@ export default function ExportPage() {
       )}
 
       {tab !== 'backup' && tab !== 'import' && (
-        <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Target specialty</p>
+        <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[
               { value: ALL_RECORDS, label: 'All records' },
@@ -574,7 +574,7 @@ export default function ExportPage() {
           </div>
           {trackedSpecialtyOptions.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Tracked specialties</p>
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">Tracked specialties</p>
               <div className="flex flex-wrap gap-2">
                 {trackedSpecialtyOptions.map(({ key, count }) => (
                   <button key={key} onClick={() => setSpecialty(current => current === key ? '' : key)} className={specialtyChipClass(specialty === key)}>
@@ -586,7 +586,7 @@ export default function ExportPage() {
           )}
           {linkedOnlyOptions.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Tagged in your entries</p>
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">Tagged in your entries</p>
               <div className="flex flex-wrap gap-2">
                 {linkedOnlyOptions.map(({ tag, count }) => (
                   <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={specialtyChipClass(specialty === tag)}>
@@ -610,7 +610,7 @@ export default function ExportPage() {
             onChange={e => setSpecialty(e.target.value)}
             onFocus={e => e.currentTarget.select()}
             placeholder="Or type any specialty..."
-            className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none transition-colors focus:border-[#1B6FD9]"
+            className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent)]"
           />
         </div>
       )}
@@ -620,27 +620,27 @@ export default function ExportPage() {
           {subInfo && !subInfo.isPro && (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
               <p className="font-semibold text-amber-300">Bulk import is a Pro feature</p>
-              <p className="mt-1 text-[rgba(245,245,242,0.6)]">
+              <p className="mt-1 text-[var(--text-secondary)]">
                 Importing from Horus, a spreadsheet, or a backup is available on Pro. You can still add entries manually on Free.
-                {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £9.99/yr</Link>.
+                {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
               </p>
             </div>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Link href="/import" className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-5 transition-colors hover:border-[#1B6FD9]/50 sm:col-span-2">
+            <Link href="/import" className="rounded-2xl border border-[var(--accent)] bg-[var(--bg-surface)] p-5 transition-colors hover:border-[var(--accent)] sm:col-span-2">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-[#F5F5F2]">Import from Horus</h2>
-                <span className="rounded-full border border-[#1B6FD9]/30 bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[#6AA8FF]">Recommended</span>
+                <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
+                <span className="rounded-full border border-[var(--accent)] bg-[var(--accent)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">Recommended</span>
               </div>
-              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
             </Link>
-            <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">CSV / spreadsheet</h2>
-              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Map columns from any CSV (MicroGuide, NHS Learn, or your own) to portfolio entries or cases.</p>
+            <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">CSV / spreadsheet</h2>
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Map columns from any CSV (MicroGuide, NHS Learn, or your own) to portfolio entries or cases.</p>
             </Link>
-            <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5 transition-colors hover:border-white/[0.16]">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Clerkfolio backup</h2>
-              <p className="mt-1.5 text-sm text-[rgba(245,245,242,0.55)]">Restore from a Clerkfolio JSON backup — the file you download from the Data backup tab.</p>
+            <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Clerkfolio backup</h2>
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Restore from a Clerkfolio JSON backup — the file you download from the Data backup tab.</p>
             </Link>
           </div>
         </section>
@@ -656,23 +656,23 @@ export default function ExportPage() {
                     ? '1 of 1 PDF remaining on Free'
                     : 'PDF cap reached on Free'}
                 </p>
-                <p className="text-[rgba(245,245,242,0.55)]">
+                <p className="text-[var(--text-secondary)]">
                   Application PDF, appended PDFs, Year in review and CV downloads share this allowance. CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
-                  {' '}<Link href="/upgrade" className="text-[#6AA8FF] underline">Upgrade for £9.99/yr</Link>.
+                  {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
                 </p>
               </div>
             )}
 
-            <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Format</p>
+            <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Format</p>
               <div className="flex gap-2">
                 {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
-                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[#1B6FD9]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.55)]'}`}>
+                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
                     {f.toUpperCase()}
                   </button>
                 ))}
               </div>
-              <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+              <p className="mt-2 text-[11px] text-[var(--text-muted)]">
                 {format === 'pdf' && 'Formatted portfolio for ARCP panels, applications, or printing.'}
                 {format === 'csv' && 'Spreadsheet for sorting, filtering, or pivoting your records.'}
                 {format === 'json' && 'Raw data dump for backups or scripting.'}
@@ -680,15 +680,15 @@ export default function ExportPage() {
             </div>
 
             {format === 'pdf' && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Template</p>
-                <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Template</p>
+                <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="default">Default</option>
                   <option value="foundation">Foundation portfolio</option>
                   <option value="mrcp">MRCP</option>
                   <option value="st_application">ST application</option>
                 </select>
-                <p className="mt-2 text-[11px] text-[rgba(245,245,242,0.45)]">
+                <p className="mt-2 text-[11px] text-[var(--text-muted)]">
                   {pdfTemplate === 'default' && 'Clean general-purpose layout, grouped by category.'}
                   {pdfTemplate === 'foundation' && 'Foundation Programme layout grouped by ARCP capability.'}
                   {pdfTemplate === 'mrcp' && 'Tailored to MRCP application section ordering.'}
@@ -698,9 +698,9 @@ export default function ExportPage() {
             )}
 
             {themes.length > 0 && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Theme filter</p>
-                <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Theme filter</p>
+                <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="">Any theme</option>
                 {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
                 </select>
@@ -708,22 +708,22 @@ export default function ExportPage() {
             )}
 
             {loadedSpecialty && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Category</p>
+              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Category</p>
                 <div className="flex flex-wrap gap-2">
-                  <button onClick={() => setCategoryFilter('all')} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === 'all' ? 'border-white/[0.15] bg-white/[0.1] text-[#F5F5F2]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.5)]'}`}>All</button>
+                  <button onClick={() => setCategoryFilter('all')} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === 'all' ? 'border-white/[0.15] bg-white/[0.1] text-[var(--text-primary)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>All</button>
                   {CATEGORIES.filter(c => categoriesPresent.includes(c.value)).map(cat => (
-                    <button key={cat.value} onClick={() => setCategoryFilter(cat.value)} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === cat.value ? 'border-white/[0.15] bg-white/[0.1] text-[#F5F5F2]' : 'border-white/[0.06] bg-white/[0.04] text-[rgba(245,245,242,0.5)]'}`}>{cat.short}</button>
+                    <button key={cat.value} onClick={() => setCategoryFilter(cat.value)} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === cat.value ? 'border-white/[0.15] bg-white/[0.1] text-[var(--text-primary)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>{cat.short}</button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Fields</p>
+            <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Fields</p>
               <div className="space-y-2">
                 {EXPORT_FIELDS.map(field => (
-                  <label key={field.value} className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                  <label key={field.value} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                     <input
                       type="checkbox"
                       checked={selectedFields.includes(field.value)}
@@ -736,17 +736,17 @@ export default function ExportPage() {
             </div>
 
             {format === 'pdf' && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">Append PDF</p>
-                <p className="mb-3 text-[11px] text-[rgba(245,245,242,0.45)]">
+              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Append PDF</p>
+                <p className="mb-3 text-[11px] text-[var(--text-muted)]">
                   Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
                 </p>
-                <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[rgba(245,245,242,0.55)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[#F5F5F2]" />
+                <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[var(--text-secondary)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[var(--text-primary)]" />
                 <button
                   onClick={handleAppendPdf}
                   disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf}
                   title={!appendPdfFile ? 'Choose a PDF first' : selectedEntryIds.size === 0 ? 'Select at least one entry' : undefined}
-                  className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] disabled:cursor-not-allowed disabled:opacity-40"
+                  className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
                 >
                   {appendingPdf ? 'Appending...' : 'Append selected'}
                 </button>
@@ -754,34 +754,34 @@ export default function ExportPage() {
             )}
           </aside>
 
-          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
+          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
             <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.55)]">
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
                 {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
               </p>
               {format === 'pdf' && visibleCases.length > 0 && (
-                <p className="text-xs text-[rgba(245,245,242,0.45)]">Cases export as CSV or JSON. PDFs include portfolio entries only.</p>
+                <p className="text-xs text-[var(--text-muted)]">Cases export as CSV or JSON. PDFs include portfolio entries only.</p>
               )}
               <div className="flex items-center gap-3">
-                <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[#1B6FD9]">Select visible</button>
-                <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[rgba(245,245,242,0.45)]">Clear</button>
-                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[#1B6FD9] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
+                <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[var(--accent-text)]">Select visible</button>
+                <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[var(--text-muted)]">Clear</button>
+                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
             </div>
 
             {!specialty ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Choose a target specialty above to load your portfolio.</div>
+              <div className="p-8 text-sm text-[var(--text-muted)]">Choose a target specialty above to load your portfolio.</div>
             ) : loading ? (
-              <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">Loading entries for {exportScopeLabel(specialty)}...</div>
+              <div className="p-8 text-sm text-[var(--text-muted)]">Loading entries for {exportScopeLabel(specialty)}...</div>
             ) : visible.length === 0 && visibleCases.length === 0 ? (
               selectedIsRealSpecialty && categoryFilter === 'all' ? (
-                <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">
+                <div className="p-8 text-sm text-[var(--text-muted)]">
                   No entries linked to {exportScopeLabel(specialty)} yet — tag entries with {exportScopeLabel(specialty)} in the entry&apos;s &ldquo;Linked specialties&rdquo; field to include them here.
                 </div>
               ) : (
-                <div className="p-8 text-sm text-[rgba(245,245,242,0.4)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
+                <div className="p-8 text-sm text-[var(--text-muted)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
               )
             ) : (
               <div className="divide-y divide-white/[0.04]">
@@ -790,20 +790,20 @@ export default function ExportPage() {
                   const colour = CATEGORY_COLOURS[entry.category]
                   const label = CATEGORIES.find(c => c.value === entry.category)?.short ?? entry.category
                   return (
-                    <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
+                    <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[var(--accent)]' : 'hover:bg-white/[0.02]'}`}>
                       <input type="checkbox" checked={checked} onChange={() => setSelectedEntryIds(prev => {
                         const next = new Set(prev)
                         next.has(entry.id) ? next.delete(entry.id) : next.add(entry.id)
                         return next
-                      })} className="h-4 w-4 accent-[#1B6FD9]" />
+                      })} className="h-4 w-4 accent-[var(--accent-text)]" />
                       <div className="min-w-0 flex-1">
                         <div className="mb-0.5 flex flex-wrap items-center gap-2">
                           <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${colour.bg} ${colour.text}`}>{label}</span>
-                          <span className="truncate text-sm text-[rgba(245,245,242,0.9)]">{entry.title}</span>
+                          <span className="truncate text-sm text-[var(--text-primary)]">{entry.title}</span>
                         </div>
-                        {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[rgba(245,245,242,0.4)]">{entrySubtitle(entry)}</p>}
+                        {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[var(--text-muted)]">{entrySubtitle(entry)}</p>}
                       </div>
-                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{formatDate(entry.date)}</span>
+                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">{formatDate(entry.date)}</span>
                       <button
                         type="button"
                         title="Download every uploaded evidence file for this entry as a single ZIP."
@@ -812,7 +812,7 @@ export default function ExportPage() {
                           e.stopPropagation()
                           downloadEvidenceZip(entry.id, entry.title)
                         }}
-                        className="shrink-0 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]"
+                        className="shrink-0 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
                       >
                         Evidence ZIP
                       </button>
@@ -823,20 +823,20 @@ export default function ExportPage() {
                   const checked = selectedCaseIds.has(c.id)
                   const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
                   return (
-                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
+                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[var(--accent)]' : 'hover:bg-white/[0.02]'}`}>
                       <input type="checkbox" checked={checked} onChange={() => setSelectedCaseIds(prev => {
                         const next = new Set(prev)
                         next.has(c.id) ? next.delete(c.id) : next.add(c.id)
                         return next
-                      })} className="h-4 w-4 accent-[#1B6FD9]" />
+                      })} className="h-4 w-4 accent-[var(--accent-text)]" />
                       <div className="min-w-0 flex-1">
                         <div className="mb-0.5 flex flex-wrap items-center gap-2">
                           <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-medium text-cyan-400">Case</span>
-                          <span className="truncate text-sm text-[rgba(245,245,242,0.9)]">{c.title}</span>
+                          <span className="truncate text-sm text-[var(--text-primary)]">{c.title}</span>
                         </div>
-                        {areas.length > 0 && <p className="truncate text-xs text-[rgba(245,245,242,0.4)]">{areas.join(' - ')}</p>}
+                        {areas.length > 0 && <p className="truncate text-xs text-[var(--text-muted)]">{areas.join(' - ')}</p>}
                       </div>
-                      <span className="shrink-0 text-xs text-[rgba(245,245,242,0.55)]">{formatDate(c.date)}</span>
+                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">{formatDate(c.date)}</span>
                     </label>
                   )
                 })}
@@ -847,12 +847,12 @@ export default function ExportPage() {
       )}
 
       {tab === 'backup' && (
-        <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-6">
-          <h2 className="text-lg font-semibold text-[#F5F5F2]">Full data backup</h2>
-          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[rgba(245,245,242,0.48)]">
+        <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Full data backup</h2>
+          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[var(--text-muted)]">
             Download a ZIP containing your profile, portfolio entries, cases, deadlines, goals, specialty scoring links, templates, and evidence files.
           </p>
-          <label className="mt-4 flex items-center gap-2 text-sm text-[rgba(245,245,242,0.72)]">
+          <label className="mt-4 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
             <input type="checkbox" checked={includeEvidenceBackup} onChange={e => setIncludeEvidenceBackup(e.target.checked)} />
             Include evidence files
           </label>
@@ -861,19 +861,19 @@ export default function ExportPage() {
               <p className="font-semibold">
                 {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
               </p>
-              <p className="mt-1 text-[rgba(245,245,242,0.6)]">
+              <p className="mt-1 text-[var(--text-secondary)]">
                 Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV downloads.
               </p>
             </div>
           )}
-          <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
           <button
             type="button"
             onClick={handleYearReview}
             disabled={yearReviewLoading || Boolean(subInfo && !subInfo.isPro && !subInfo.limits.canExportPdf)}
-            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
+            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
           >
             {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
           </button>
@@ -881,7 +881,7 @@ export default function ExportPage() {
             type="button"
             onClick={handleMarkdownExport}
             disabled={markdownLoading}
-            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16] disabled:opacity-50"
+            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:opacity-50"
           >
             {markdownLoading ? 'Exporting...' : 'Reflections MD'}
           </button>
@@ -890,8 +890,8 @@ export default function ExportPage() {
 
       {tab === 'share' && (
         <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-          <section className="rounded-2xl border border-white/[0.08] bg-[#141416] p-5">
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Create protected link</h2>
+          <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Create protected link</h2>
             {subInfo && !subInfo.isPro && (
               <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
                 <p className="font-semibold">
@@ -901,7 +901,7 @@ export default function ExportPage() {
                       ? 'Active link cap reached'
                       : 'Share link cap reached on Free'}
                 </p>
-                <p className="mt-0.5 text-[rgba(245,245,242,0.55)]">
+                <p className="mt-0.5 text-[var(--text-secondary)]">
                   {canCreateShareLink
                     ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
                     : hasActiveShareLinks
@@ -912,20 +912,20 @@ export default function ExportPage() {
             )}
             <div className="mt-5 space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Scope</span>
-                <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Scope</span>
+                <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="specialty">Tracked specialty</option>
                   <option value="theme">Competency theme</option>
                   <option value="full">Full portfolio (entries only)</option>
                 </select>
                 {shareScope === 'full' && (
-                  <p className="mt-1.5 text-xs text-[rgba(245,245,242,0.45)]">Shares all your portfolio entries. Cases are never shared.</p>
+                  <p className="mt-1.5 text-xs text-[var(--text-muted)]">Shares all your portfolio entries. Cases are never shared.</p>
                 )}
               </label>
               {shareScope === 'specialty' && (
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Specialty</span>
-                  <select value={shareSpecialty} onChange={e => setShareSpecialty(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]">
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Specialty</span>
+                  <select value={shareSpecialty} onChange={e => setShareSpecialty(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                     {trackedApps.length === 0 && <option value="">No tracked specialties</option>}
                     {trackedApps.map(app => <option key={app.id} value={app.specialty_key}>{formatSpecialtyLabel(app.specialty_key)}</option>)}
                   </select>
@@ -934,13 +934,13 @@ export default function ExportPage() {
               )}
               {shareScope === 'theme' && (
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Theme</span>
-                  <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Theme</span>
+                  <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
                   <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
                 </label>
               )}
               <div>
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">Expires</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Expires</span>
                 <div className="grid grid-cols-2 gap-2">
                   {EXPIRY_PRESETS.map(preset => (
                     <button
@@ -949,8 +949,8 @@ export default function ExportPage() {
                       onClick={() => setExpiryPreset(preset.days)}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         expiryPreset === preset.days
-                          ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[#1B6FD9]'
-                          : 'border-white/[0.08] bg-[#0B0B0C] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2]'
+                          ? 'border-[var(--accent)] bg-[var(--accent)] text-[var(--accent-text)]'
+                          : 'border-white/[0.08] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >
                       {preset.label}
@@ -964,71 +964,71 @@ export default function ExportPage() {
                     min={isoDateOffset(1)}
                     max={isoDateOffset(90)}
                     onChange={e => setCustomExpiry(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]"
+                    className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
                   />
                 )}
               </div>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">PIN</span>
-                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]" />
-                <p className="mt-1 text-xs text-[rgba(245,245,242,0.55)]">Optional PIN (4-8 digits)</p>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">PIN</span>
+                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">Optional PIN (4-8 digits)</p>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[rgba(245,245,242,0.4)]">View webhook</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">View webhook</span>
                 <input
                   value={viewWebhookUrl}
                   onChange={e => setViewWebhookUrl(e.target.value)}
                   placeholder="https://example.com/share-viewed"
-                  className="w-full rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 py-2.5 text-sm text-[#F5F5F2]"
+                  className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
                 />
               </label>
-              <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-3">
-                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+              <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-3">
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                   <input type="checkbox" checked={hideNotes} onChange={e => setHideNotes(e.target.checked)} />
                   Hide notes
                 </label>
-                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                   <input type="checkbox" checked={hideReflection} onChange={e => setHideReflection(e.target.checked)} />
                   Hide reflection text
                 </label>
-                <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
                   <input type="checkbox" checked={redactTags} onChange={e => setRedactTags(e.target.checked)} />
                   Redact tags
                 </label>
               </div>
-              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
+              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>
           </section>
 
-          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[#141416]">
+          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
             <div className="border-b border-white/[0.06] px-5 py-4">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Active links</h2>
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Active links</h2>
             </div>
             {shareLinks.length === 0 ? (
-              <p className="p-6 text-sm text-[rgba(245,245,242,0.45)]">No active share links.</p>
+              <p className="p-6 text-sm text-[var(--text-muted)]">No active share links.</p>
             ) : (
               <div className="divide-y divide-white/[0.04]">
                 {shareLinks.map(link => (
                   <article key={link.id} className="p-5">
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                       <div>
-                        <p className="text-sm font-medium text-[#F5F5F2]">{shareLabel(link)}</p>
-                        <p className="mt-1 text-xs text-[rgba(245,245,242,0.4)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
+                        <p className="text-sm font-medium text-[var(--text-primary)]">{shareLabel(link)}</p>
+                        <p className="mt-1 text-xs text-[var(--text-muted)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
                         {link.view_webhook_url && <p className="mt-1 text-xs text-emerald-300">Webhook enabled</p>}
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
-                        <a href={`/share/${link.token}`} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">Preview</a>
-                        <button onClick={() => renewShareLink(link.id)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:text-[#F5F5F2]">Renew</button>
+                        <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
+                        <a href={`/share/${link.token}`} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Preview</a>
+                        <button onClick={() => renewShareLink(link.id)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Renew</button>
                         {confirmRevoke === link.id ? (
                           <>
                             <button
                               type="button"
                               onClick={() => setConfirmRevoke(null)}
                               disabled={revokingLink === link.id}
-                              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] disabled:opacity-50"
+                              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] disabled:opacity-50"
                             >
                               Cancel
                             </button>

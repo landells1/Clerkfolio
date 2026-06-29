@@ -38,7 +38,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
           {filters.map((filter) => {
             const active = filter.startsWith('Reflection')
             return (
-              <span key={filter} className={`shrink-0 rounded border px-2 py-1 font-mono text-[10px] ${active ? 'border-blue-500/40 bg-blue-500/10 text-[#6AA8FF]' : 'border-white/[0.08] text-ink-dim'}`}>
+              <span key={filter} className={`shrink-0 rounded border px-2 py-1 font-mono text-[10px] ${active ? 'border-blue-500/40 bg-blue-500/10 text-[var(--accent-text)]' : 'border-white/[0.08] text-ink-dim'}`}>
                 {filter}
               </span>
             )
@@ -48,7 +48,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
           {entries.map((entry) => {
             const colours = CATEGORY_COLOURS[entry.category]
             return (
-              <article key={entry.title} className="rounded-xl border border-white/[0.06] bg-[#141416] p-3.5">
+              <article key={entry.title} className="rounded-xl border border-white/[0.06] bg-[var(--bg-surface)] p-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">

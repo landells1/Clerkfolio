@@ -132,12 +132,12 @@ export default async function CasesPage({
       <SavedSearchBar surface="cases" q={q} />
 
       {Object.keys(domainCountMap).length > 0 && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-6 text-xs text-[rgba(245,245,242,0.4)]">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mb-6 text-xs text-[var(--text-muted)]">
           {Object.entries(domainCountMap)
             .sort(([, a], [, b]) => b - a)
             .slice(0, 6)
             .map(([domain, count]) => (
-              <span key={domain}><span className="text-[rgba(245,245,242,0.65)]">{count}</span> {domain}</span>
+              <span key={domain}><span className="text-[var(--text-secondary)]">{count}</span> {domain}</span>
             ))}
         </div>
       )}

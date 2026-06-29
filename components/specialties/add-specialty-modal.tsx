@@ -121,13 +121,13 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-[8vh] bg-black/60 backdrop-blur-sm overflow-y-auto">
-      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="add-specialty-title" className="bg-[#141416] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[84vh] my-auto">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-labelledby="add-specialty-title" className="bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl w-full max-w-lg flex flex-col max-h-[84vh] my-auto">
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-white/[0.08] flex-shrink-0">
-          <h2 id="add-specialty-title" className="text-lg font-semibold text-[#F5F5F2]">Add Specialty Tracker</h2>
+          <h2 id="add-specialty-title" className="text-lg font-semibold text-[var(--text-primary)]">Add Specialty Tracker</h2>
           <button
             onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] hover:bg-white/[0.06] transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-white/[0.06] transition-all"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
@@ -145,36 +145,36 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
 
           {!canTrackAnotherSpecialty ? (
             <div className="py-8 text-center space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 flex items-center justify-center mx-auto">
+              <div className="w-12 h-12 rounded-2xl bg-[var(--accent)] border border-[var(--accent)] flex items-center justify-center mx-auto">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-semibold text-[#F5F5F2] mb-1">Upgrade to Pro</p>
-                <p className="text-xs text-[rgba(245,245,242,0.45)] max-w-xs mx-auto leading-relaxed">
+                <p className="text-sm font-semibold text-[var(--text-primary)] mb-1">Upgrade to Pro</p>
+                <p className="text-xs text-[var(--text-muted)] max-w-xs mx-auto leading-relaxed">
                   Free accounts can track one specialty. Upgrade to Pro to add more specialty trackers.
                 </p>
               </div>
               <button
                 onClick={() => { window.location.href = '/upgrade' }}
-                className="inline-flex items-center gap-2 bg-[#1B6FD9] hover:bg-[#3884DD] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
+                className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-bright)] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
               >
                 View Pro plan
               </button>
             </div>
           ) : available.length === 0 ? (
             <div className="py-8 text-center">
-              <p className="text-[rgba(245,245,242,0.4)] text-sm">
+              <p className="text-[var(--text-muted)] text-sm">
                 You&apos;ve added all available specialties.
               </p>
             </div>
           ) : (
             <div className="space-y-5">
-              <p className="text-xs text-[rgba(245,245,242,0.4)]">
+              <p className="text-xs text-[var(--text-muted)]">
                 Select a specialty to begin tracking your application score.
                 {!canTrackAnotherSpecialty && (
-                  <span className="ml-1 text-[rgba(245,245,242,0.55)]">
+                  <span className="ml-1 text-[var(--text-secondary)]">
                     ({activeCount}/{FREE_SPECIALTY_LIMIT} free slots used)
                   </span>
                 )}
@@ -221,10 +221,10 @@ function SpecialtyGroup({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between px-1">
-        <span className="text-[10px] font-semibold text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
+        <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
           {title}
         </span>
-        <span className="text-[10px] text-[rgba(245,245,242,0.55)]">
+        <span className="text-[10px] text-[var(--text-secondary)]">
           {subtitle}
         </span>
       </div>
@@ -258,16 +258,16 @@ function SpecialtyCard({
     <button
       onClick={() => onSelect(config.key, config.cycleYear)}
       disabled={loading}
-      className="w-full flex items-start justify-between p-4 bg-[#0B0B0C] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
+      className="w-full flex items-start justify-between p-4 bg-[var(--bg-canvas)] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
     >
       <div>
         <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span className="font-semibold text-[#F5F5F2] text-sm">{config.name}</span>
-          <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs">
+          <span className="font-semibold text-[var(--text-primary)] text-sm">{config.name}</span>
+          <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[var(--text-muted)] text-xs">
             {config.cycleYear}
           </span>
           {config.isOfficial ? (
-            <span className="px-1.5 py-0.5 rounded bg-[#1B6FD9]/10 text-[#1B6FD9] text-xs border border-[#1B6FD9]/20">
+            <span className="px-1.5 py-0.5 rounded bg-[var(--accent)] text-[var(--accent-text)] text-xs border border-[var(--accent)]">
               Official
             </span>
           ) : (
@@ -276,12 +276,12 @@ function SpecialtyCard({
             </span>
           )}
           {evidenceBased && (
-            <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs border border-white/[0.08]">
+            <span className="px-1.5 py-0.5 rounded bg-white/[0.06] text-[var(--text-secondary)] text-xs border border-white/[0.08]">
               Evidence-based
             </span>
           )}
         </div>
-        <p className="text-xs text-[rgba(245,245,242,0.4)]">
+        <p className="text-xs text-[var(--text-muted)]">
           {evidenceBased
             ? `${essentialsCount} essentials - ${desirablesCount} desirables`
             : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
@@ -295,11 +295,11 @@ function SpecialtyCard({
         height="16"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="rgba(245,245,242,0.55)"
+        stroke="var(--text-secondary)"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="shrink-0 mt-0.5 group-hover:stroke-[rgba(245,245,242,0.6)] transition-colors"
+        className="shrink-0 mt-0.5 group-hover:stroke-[var(--text-secondary)] transition-colors"
       >
         <polyline points="9 18 15 12 9 6" />
       </svg>

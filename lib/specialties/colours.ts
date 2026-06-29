@@ -116,22 +116,15 @@ export function getCaseRowColour(specialtyTags: string[] | null | undefined, cli
   return getClinicalDomainColour(clinicalDomain)
 }
 
-// Tailwind class triple for a given pill colour.
-// Text uses the 300-level shade so it reads on dark surfaces without shouting.
-// Neutral falls back to fg tokens because there is no tailwind "neutral-300".
+// Tailwind class quad for a given pill colour, routed through the themed
+// category CSS variables (defined in app/globals.css). Each --cat-*-{soft,
+// border,text,dot} flips between the cream and dark palettes, so chips read
+// correctly on both backgrounds (deepened on cream, bright on dark).
 export function colourClasses(colour: PillColour): { bg: string; border: string; text: string; dot: string } {
-  if (colour === 'neutral') {
-    return {
-      bg: 'bg-pill-neutral',
-      border: 'border-pill-neutral',
-      text: 'text-fg-1',
-      dot: 'bg-fg-2',
-    }
-  }
   return {
-    bg: `bg-pill-${colour}`,
-    border: `border-pill-${colour}`,
-    text: `text-${colour}-300`,
-    dot: `bg-${colour}-400`,
+    bg: `bg-[var(--cat-${colour}-soft)]`,
+    border: `border-[var(--cat-${colour}-border)]`,
+    text: `text-[var(--cat-${colour}-text)]`,
+    dot: `bg-[var(--cat-${colour}-dot)]`,
   }
 }

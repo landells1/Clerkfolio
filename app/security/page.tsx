@@ -5,24 +5,24 @@ const lastUpdated = '26 May 2026'
 
 export default function SecurityPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Security policy</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
-          <p className="max-w-3xl text-sm leading-7 text-[rgba(245,245,242,0.72)]">
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             Clerkfolio is committed to protecting the security of the service and the personal data
             of our users. We welcome good-faith security research and responsible disclosure.
           </p>
         </header>
 
-        <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-5 py-4 text-sm leading-7 text-[rgba(245,245,242,0.82)]">
-          <p className="font-semibold text-[#F5F5F2] mb-1">Report a vulnerability</p>
+        <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-5 py-4 text-sm leading-7 text-[var(--text-primary)]">
+          <p className="font-semibold text-[var(--text-primary)] mb-1">Report a vulnerability</p>
           <p className="text-xs leading-6">
             Email{' '}
-            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[#F5F5F2]">
+            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[var(--text-primary)]">
               admin@clerkfolio.co.uk
             </a>{' '}
             with details of the issue. Please include steps to reproduce and any supporting
@@ -120,10 +120,10 @@ export default function SecurityPage() {
           </ul>
           <p>
             More detail is available in our{' '}
-            <a href="/dpa" className="underline hover:text-[#F5F5F2]">Data Processing Agreement</a>.
+            <a href="/dpa" className="underline hover:text-[var(--text-primary)]">Data Processing Agreement</a>.
             Third-party security posture is governed by each provider&apos;s own controls and certifications -
             see the{' '}
-            <a href="/subprocessors" className="underline hover:text-[#F5F5F2]">subprocessors page</a>.
+            <a href="/subprocessors" className="underline hover:text-[var(--text-primary)]">subprocessors page</a>.
           </p>
         </Section>
 
@@ -141,8 +141,8 @@ export default function SecurityPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-      <h2 className="text-lg font-semibold text-[#F5F5F2]">{title}</h2>
+    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   )

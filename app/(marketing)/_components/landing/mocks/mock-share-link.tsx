@@ -8,7 +8,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
           <h3 className="text-lg font-semibold tracking-[-0.02em]">Import &amp; export</h3>
           <p className="text-xs text-ink-dim">Import a portfolio, build application-ready packs, or protected links.</p>
         </div>
-        <div className="flex rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-1 font-mono text-[10px] text-ink-dim">
+        <div className="flex rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] p-1 font-mono text-[10px] text-ink-dim">
           <span className="px-2 py-1">Import</span>
           <span className="px-2 py-1">Application PDF</span>
           <span className="px-2 py-1">Data backup</span>
@@ -16,7 +16,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <div className="rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-4">
+        <div className="rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-4">
           <h4 className="mb-3 text-sm font-medium">Create protected link</h4>
           <div className="space-y-3 text-xs">
             <Field label="Scope" value="Current specialty ▾" />
@@ -24,7 +24,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
               <p className="mb-1.5 text-ink-dim">Expires</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {['1 day', '1 week', '1 month', 'Custom'].map((item) => (
-                  <span key={item} className={`rounded border px-2 py-2 text-center ${item === '1 month' ? 'border-blue-500/40 bg-blue-500/10 text-[#6AA8FF]' : 'border-white/[0.08] text-ink-soft'}`}>{item}</span>
+                  <span key={item} className={`rounded border px-2 py-2 text-center ${item === '1 month' ? 'border-blue-500/40 bg-blue-500/10 text-[var(--accent-text)]' : 'border-white/[0.08] text-ink-soft'}`}>{item}</span>
                 ))}
               </div>
             </div>
@@ -32,7 +32,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
             <button className="w-full rounded-lg bg-blue-500 px-3 py-2.5 text-xs font-semibold text-white">Create link</button>
           </div>
         </div>
-        <div className="rounded-xl border border-white/[0.08] bg-[#0B0B0C] p-4">
+        <div className="rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-4">
           <h4 className="mb-3 text-sm font-medium">Active links</h4>
           <div className="space-y-2">
             <LinkRow title="Internal Medicine Training" meta="Expires 13 May 2026 · 4 views" />
@@ -48,14 +48,14 @@ function Field({ label, value, mono = false }: { label: string; value: string; m
   return (
     <label className="block">
       <span className="mb-1.5 block text-ink-dim">{label}</span>
-      <span className={`block rounded-lg border border-white/[0.08] bg-[#141416] px-3 py-2 text-ink ${mono ? 'font-mono' : ''}`}>{value}</span>
+      <span className={`block rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 py-2 text-ink ${mono ? 'font-mono' : ''}`}>{value}</span>
     </label>
   )
 }
 
 function LinkRow({ title, meta }: { title: string; meta: string }) {
   return (
-    <div className="rounded-lg border border-white/[0.08] bg-[#141416] p-3">
+    <div className="rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] p-3">
       <div className="text-xs font-medium">{title}</div>
       <div className="mt-1 font-mono text-[10px] text-ink-dim">{meta}</div>
       <div className="mt-2 flex gap-1.5">

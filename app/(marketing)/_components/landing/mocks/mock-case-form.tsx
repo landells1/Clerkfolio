@@ -1,6 +1,6 @@
 import { WindowChrome } from './window-chrome'
 
-const input = 'h-[38px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2 text-xs text-ink'
+const input = 'h-[38px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2 text-xs text-ink'
 
 export function MockCaseForm({ className = '' }: { className?: string }) {
   return (
@@ -29,7 +29,7 @@ export function MockCaseForm({ className = '' }: { className?: string }) {
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-ink-soft">Notes</span>
-          <span className="block h-[92px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2 text-xs leading-5 text-ink-soft">
+          <span className="block h-[92px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2 text-xs leading-5 text-ink-soft">
             Presented with ketones, acidosis and dehydration. Managed with fluids, fixed-rate insulin infusion and potassium replacement under senior review.
           </span>
         </label>

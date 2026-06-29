@@ -42,14 +42,14 @@ const changelog = [
 
 export default function TermsPage() {
   return (
-    <main className="min-h-screen bg-[#0B0B0C] px-6 py-12 text-[#F5F5F2]">
+    <main className="min-h-screen bg-[var(--bg-canvas)] px-6 py-12 text-[var(--text-primary)]">
       <article className="mx-auto max-w-4xl space-y-8">
         <BackButton />
         <header className="space-y-3">
-          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[#1B6FD9]">Legal</p>
+          <p className="text-sm font-medium uppercase tracking-[0.18em] text-[var(--accent-text)]">Legal</p>
           <h1 className="text-3xl font-semibold tracking-tight">Terms of service</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Last updated: {lastUpdated}</p>
-          <p className="max-w-3xl text-sm leading-7 text-[rgba(245,245,242,0.72)]">
+          <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
+          <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
             These terms govern your use of Clerkfolio. By creating an account, using the app, uploading content, creating
             share links, or buying a paid plan, you agree to these terms and to the Privacy Policy.
           </p>
@@ -139,7 +139,7 @@ export default function TermsPage() {
         <Section title="Plans, billing, and limits">
           <div className="overflow-x-auto rounded-xl border border-white/[0.08]">
             <table className="min-w-[640px] border-collapse text-left text-xs leading-6">
-              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+              <thead className="bg-white/[0.04] text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Plan</th>
                   <th className="px-4 py-3 font-semibold">Current summary</th>
@@ -148,8 +148,8 @@ export default function TermsPage() {
               <tbody className="divide-y divide-white/[0.06]">
                 {planRows.map(([plan, summary]) => (
                   <tr key={plan} className="align-top">
-                    <td className="px-4 py-3 font-medium text-[#F5F5F2]">{plan}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{summary}</td>
+                    <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{plan}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{summary}</td>
                   </tr>
                 ))}
               </tbody>
@@ -215,7 +215,7 @@ export default function TermsPage() {
         <Section title="Acceptable use">
           <ul>
             <li>Do not attempt to bypass plan limits, security controls, rate limits, storage quotas, authentication, row level security, or access controls.</li>
-            <li>Do not probe, scan, scrape, overload, reverse engineer, or interfere with Clerkfolio except where permitted by law and responsibly disclosed under our <Link href="/security" className="underline hover:text-[#F5F5F2]">Security policy</Link>.</li>
+            <li>Do not probe, scan, scrape, overload, reverse engineer, or interfere with Clerkfolio except where permitted by law and responsibly disclosed under our <Link href="/security" className="underline hover:text-[var(--text-primary)]">Security policy</Link>.</li>
             <li>Do not use Clerkfolio to store malware, regulated clinical records, patient-identifiable information, illegal material, or content that infringes another person&apos;s rights.</li>
             <li>Do not misrepresent Clerkfolio outputs as verified, formally approved, supervisor-signed, or submitted to any training body.</li>
             <li>Do not create accounts or share links for abusive, fraudulent, spam, or unauthorised commercial purposes.</li>
@@ -238,7 +238,7 @@ export default function TermsPage() {
             systems and terms may apply to parts of the service they provide. We are not responsible for third-party
             outages, policy changes, or failures outside our reasonable control, but we will use reasonable care in
             selecting and operating providers. See our{' '}
-            <Link href="/subprocessors" className="underline hover:text-[#F5F5F2]">Subprocessors page</Link> for details.
+            <Link href="/subprocessors" className="underline hover:text-[var(--text-primary)]">Subprocessors page</Link> for details.
           </p>
         </Section>
 
@@ -306,7 +306,7 @@ export default function TermsPage() {
           </p>
           <div className="overflow-x-auto rounded-xl border border-white/[0.08] mt-4">
             <table className="min-w-[400px] border-collapse text-left text-xs leading-6">
-              <thead className="bg-white/[0.04] text-[rgba(245,245,242,0.7)]">
+              <thead className="bg-white/[0.04] text-[var(--text-secondary)]">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Date</th>
                   <th className="px-4 py-3 font-semibold">Changes</th>
@@ -315,8 +315,8 @@ export default function TermsPage() {
               <tbody className="divide-y divide-white/[0.06]">
                 {changelog.map(row => (
                   <tr key={row.date} className="align-top">
-                    <td className="px-4 py-3 font-medium text-[#F5F5F2] whitespace-nowrap">{row.date}</td>
-                    <td className="px-4 py-3 text-[rgba(245,245,242,0.68)]">{row.changes}</td>
+                    <td className="px-4 py-3 font-medium text-[var(--text-primary)] whitespace-nowrap">{row.date}</td>
+                    <td className="px-4 py-3 text-[var(--text-secondary)]">{row.changes}</td>
                   </tr>
                 ))}
               </tbody>
@@ -331,7 +331,7 @@ export default function TermsPage() {
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-4 py-4 text-sm leading-7 text-[rgba(245,245,242,0.82)]">
+    <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-4 py-4 text-sm leading-7 text-[var(--text-primary)]">
       {children}
     </div>
   )
@@ -339,8 +339,8 @@ function Notice({ children }: { children: React.ReactNode }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[rgba(245,245,242,0.72)]">
-      <h2 className="text-lg font-semibold text-[#F5F5F2]">{title}</h2>
+    <section className="space-y-3 border-t border-white/[0.08] pt-6 text-sm leading-7 text-[var(--text-secondary)]">
+      <h2 className="text-lg font-semibold text-[var(--text-primary)]">{title}</h2>
       {children}
     </section>
   )

@@ -13,6 +13,7 @@ import StorageMeter from '@/components/upgrade/storage-meter'
 import { isInstitutionEmail, normaliseEmail } from '@/lib/institutional-email'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES } from '@/lib/constants/career-stages'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { applyTheme, type Theme } from '@/lib/theme'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
@@ -30,6 +31,7 @@ type ProfileState = {
   display_prefs: {
     high_contrast?: boolean
     dyslexic_font?: boolean
+    theme?: Theme
   }
 }
 
@@ -376,8 +378,25 @@ export default function SettingsPage() {
     document.body.classList.toggle('font-dyslexic', Boolean(nextPrefs.dyslexic_font))
   }
 
+  // Appearance: apply instantly (no reload, no flash) and persist to the profile
+  // so the choice follows the user across devices.
+  function chooseTheme(theme: Theme) {
+    if (theme === profile.display_prefs.theme) return
+    applyTheme(theme)
+    const nextPrefs = { ...profile.display_prefs, theme }
+    setProfile(p => ({ ...p, display_prefs: nextPrefs }))
+    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    apiFetch('/api/settings/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayPrefs: nextPrefs }),
+    }).then(({ ok }) => {
+      if (!ok) addToast('Theme applied, but saving it to your account failed.', 'error')
+    })
+  }
+
   if (loading) {
-    return <div className="p-8 text-sm text-[rgba(245,245,242,0.45)]">Loading settings...</div>
+    return <div className="p-8 text-sm text-[var(--text-muted)]">Loading settings...</div>
   }
   const settingsLinks: Array<[string, string, string]> = ([
     ['/settings/notifications', 'Notifications', 'Email digests and reminders'],
@@ -397,8 +416,8 @@ export default function SettingsPage() {
   return (
     <div className="p-6 lg:p-8 max-w-3xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Settings</h1>
-        <p className="text-sm text-[rgba(245,245,242,0.45)] mt-1">Manage your profile, plan, data, and preferences.</p>
+        <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Settings</h1>
+        <p className="text-sm text-[var(--text-muted)] mt-1">Manage your profile, plan, data, and preferences.</p>
       </div>
 
       {settingsErrorMessage && (
@@ -415,11 +434,11 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <section className="bg-[#141416] border border-[#1B6FD9]/30 rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-[var(--accent)] rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2] mb-1">Career stage</h2>
-            <p className="text-sm text-[rgba(245,245,242,0.45)]">This controls which features are shown in your sidebar. Moving out of medical school changes Student accounts to Foundation accounts.</p>
+            <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Career stage</h2>
+            <p className="text-sm text-[var(--text-muted)]">This controls which features are shown in your sidebar. Moving out of medical school changes Student accounts to Foundation accounts.</p>
           </div>
           <select
             value={pendingStage ?? profile.career_stage}
@@ -427,29 +446,29 @@ export default function SettingsPage() {
               const nextStage = e.target.value
               setPendingStage(nextStage && nextStage !== profile.career_stage ? nextStage : null)
             }}
-            className="min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] focus:outline-none focus:border-[#1B6FD9]"
+            className="min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)]"
           >
             <option value="">Select career stage</option>
             {CAREER_STAGES.map(stage => <option key={stage.value} value={stage.value}>{stage.label}</option>)}
           </select>
         </div>
         {subInfo?.isMedStudent && (
-          <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[rgba(245,245,242,0.55)]">
+          <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
             Expected graduation date
             <input
               type="date"
               value={profile.student_graduation_date}
               onChange={e => setProfile(p => ({ ...p, student_graduation_date: e.target.value }))}
               onBlur={() => saveProfile()}
-              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal outline-none focus:border-[#1B6FD9]"
+              className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal outline-none focus:border-[var(--accent)]"
             />
           </label>
         )}
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <div className="mb-5 flex items-center gap-2">
-          <h2 className="text-base font-semibold text-[#F5F5F2]">{profileDisplayName(profile) || 'Profile'}</h2>
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">{profileDisplayName(profile) || 'Profile'}</h2>
           {isLoyalAccount(accountCreatedAt) && (
             <span title="One year on Clerkfolio" aria-label="One year on Clerkfolio" className="text-sm">
               🎓
@@ -468,45 +487,45 @@ export default function SettingsPage() {
           className="space-y-4"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
               First name
               <input
                 value={profile.first_name}
                 onChange={e => setProfile(p => ({ ...p, first_name: e.target.value }))}
-                className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal"
+                className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal"
               />
             </label>
-            <label className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+            <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
               Last name
               <input
                 value={profile.last_name}
                 onChange={e => setProfile(p => ({ ...p, last_name: e.target.value }))}
-                className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal"
+                className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal"
               />
             </label>
           </div>
-          <div className="text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
             Email
             <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
-              <input value={email} disabled className="w-full min-h-[44px] flex-1 bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[rgba(245,245,242,0.45)] normal-case tracking-normal" />
+              <input value={email} disabled className="w-full min-h-[44px] flex-1 bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-muted)] normal-case tracking-normal" />
               {!emailForm.open && (
                 <button
                   type="button"
                   onClick={() => { setEmailChangeSentTo(null); setEmailForm({ open: true, newEmail: '', password: '' }) }}
-                  className="min-h-[44px] shrink-0 rounded-lg border border-white/[0.12] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[#F5F5F2] hover:bg-white/[0.06]"
+                  className="min-h-[44px] shrink-0 rounded-lg border border-white/[0.12] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[var(--text-primary)] hover:bg-white/[0.06]"
                 >
                   Change email
                 </button>
               )}
             </div>
             {emailChangeSentTo && !emailForm.open && (
-              <p role="status" className="mt-2 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-xs font-normal normal-case tracking-normal text-blue-100">
+              <p role="status" className="mt-2 rounded-lg border border-[var(--accent)] bg-[var(--accent)] px-3 py-2 text-xs font-normal normal-case tracking-normal text-blue-100">
                 We sent a confirmation link to {emailChangeSentTo}. Open it to finish changing your login email. Your current email stays active until you do.
               </p>
             )}
             {emailForm.open && (
-              <div className="mt-2 rounded-lg border border-white/[0.08] bg-[#0B0B0C] p-3">
-                <p className="text-xs font-normal normal-case tracking-normal text-[rgba(245,245,242,0.55)]">
+              <div className="mt-2 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] p-3">
+                <p className="text-xs font-normal normal-case tracking-normal text-[var(--text-secondary)]">
                   We&apos;ll email a confirmation link to the new address. Your login email changes only after you open it. A verified institutional email is re-checked when your login email changes.
                 </p>
                 <input
@@ -515,7 +534,7 @@ export default function SettingsPage() {
                   value={emailForm.newEmail}
                   onChange={e => setEmailForm(f => ({ ...f, newEmail: e.target.value }))}
                   placeholder="new@email.com"
-                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#141416] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                 />
                 <input
                   type="password"
@@ -523,14 +542,14 @@ export default function SettingsPage() {
                   value={emailForm.password}
                   onChange={e => setEmailForm(f => ({ ...f, password: e.target.value }))}
                   placeholder="Current password"
-                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[#141416] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+                  className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
                 />
                 <div className="mt-2 flex gap-2">
                   <button
                     type="button"
                     onClick={handleEmailChange}
                     disabled={emailChangeLoading}
-                    className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-4 py-2.5 text-sm font-semibold normal-case tracking-normal text-white hover:bg-[#155BB0] disabled:opacity-50"
+                    className="min-h-[44px] rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold normal-case tracking-normal text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
                   >
                     {emailChangeLoading ? 'Sending...' : 'Send confirmation'}
                   </button>
@@ -538,7 +557,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={() => setEmailForm({ open: false, newEmail: '', password: '' })}
                     disabled={emailChangeLoading}
-                    className="min-h-[44px] rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[rgba(245,245,242,0.7)] disabled:opacity-50"
+                    className="min-h-[44px] rounded-lg border border-white/[0.08] px-4 py-2.5 text-sm font-medium normal-case tracking-normal text-[var(--text-secondary)] disabled:opacity-50"
                   >
                     Cancel
                   </button>
@@ -546,33 +565,33 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-          <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide">
+          <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
             Timezone
-            <select value={profile.timezone} onChange={e => setProfile(p => ({ ...p, timezone: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2] normal-case tracking-normal">
+            <select value={profile.timezone} onChange={e => setProfile(p => ({ ...p, timezone: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal">
               <option value="Europe/London">Europe/London</option>
               <option value="UTC">UTC</option>
               <option value="Europe/Dublin">Europe/Dublin</option>
               <option value="Europe/Paris">Europe/Paris</option>
             </select>
-            <span className="mt-1 block text-[11px] font-normal normal-case tracking-normal text-[rgba(245,245,242,0.45)]">
+            <span className="mt-1 block text-[11px] font-normal normal-case tracking-normal text-[var(--text-muted)]">
               Used to display deadlines and digest send times in your local time.
             </span>
           </label>
-          <button disabled={savingProfile} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
+          <button disabled={savingProfile} className="min-h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
             {savingProfile ? 'Saving...' : 'Save profile'}
           </button>
         </form>
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Public showcase</h2>
-            <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Public showcase</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               {profile.public_slug ? `${origin || ''}/showcase/${normalisePublicSlug(profile.public_slug)}` : 'Choose a public slug'}
             </p>
           </div>
-          <label className="flex items-center gap-2 text-sm text-[rgba(245,245,242,0.65)]">
+          <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
             <input
               type="checkbox"
               checked={profile.public_showcase_enabled}
@@ -586,28 +605,63 @@ export default function SettingsPage() {
             value={profile.public_slug}
             onChange={e => setProfile(p => ({ ...p, public_slug: e.target.value }))}
             placeholder="dr-test"
-            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
           />
-          <button onClick={() => saveProfile()} disabled={savingProfile} className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button onClick={() => saveProfile()} disabled={savingProfile} className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
             Save showcase
           </button>
         </div>
         {profile.public_slug && (
           <div className="mt-3 space-y-2">
-            <p className="text-xs text-[rgba(245,245,242,0.5)]">
+            <p className="text-xs text-[var(--text-secondary)]">
               Public showcases display entry titles, categories, dates, and linked specialty labels. Private notes and reflection text are not shown.
             </p>
-            <Link href={`/showcase/${normalisePublicSlug(profile.public_slug)}`} className="inline-flex text-sm text-[#1B6FD9] hover:text-[#6AA8FF]">
+            <Link href={`/showcase/${normalisePublicSlug(profile.public_slug)}`} className="inline-flex text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)]">
               Preview showcase
             </Link>
           </div>
         )}
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-4">Accessibility</h2>
+      <section className="bg-[var(--bg-surface)] border border-[var(--border-default)] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Appearance</h2>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">Choose your colour scheme. Applies instantly and follows you across devices.</p>
+        <div className="grid grid-cols-2 gap-3 max-w-md" role="radiogroup" aria-label="Colour theme">
+          {([
+            { value: 'cream' as Theme, label: 'Cream', hint: 'Warm light (default)', canvas: '#EDE8D0', surface: '#F5F1E1', ink: '#26241E' },
+            { value: 'dark' as Theme, label: 'Dark', hint: 'Original scheme', canvas: '#0B0B0C', surface: '#141416', ink: '#F5F5F2' },
+          ]).map(opt => {
+            const active = (profile.display_prefs.theme ?? 'cream') === opt.value
+            return (
+              <button
+                key={opt.value}
+                type="button"
+                role="radio"
+                aria-checked={active}
+                onClick={() => chooseTheme(opt.value)}
+                className={`rounded-xl border p-3 text-left transition-colors ${active ? 'border-[var(--accent)] ring-2 ring-[var(--accent)]/40' : 'border-[var(--border-default)] hover:border-[var(--border-strong)]'}`}
+              >
+                <div className="rounded-lg border border-[var(--border-default)] overflow-hidden mb-3" style={{ background: opt.canvas }}>
+                  <div className="h-10 flex items-end p-1.5 gap-1">
+                    <span className="h-5 w-8 rounded" style={{ background: opt.surface, border: '1px solid rgba(128,128,128,0.25)' }} />
+                    <span className="h-2 w-10 rounded self-center" style={{ background: opt.ink, opacity: 0.85 }} />
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-semibold text-[var(--text-primary)]">{opt.label}</span>
+                  {active && <span className="text-[10px] font-semibold uppercase tracking-wide text-[var(--accent-text)]">Active</span>}
+                </div>
+                <span className="text-xs text-[var(--text-muted)]">{opt.hint}</span>
+              </button>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-4">Accessibility</h2>
         <div className="space-y-3">
-          <label className="flex items-center justify-between gap-4 text-sm text-[rgba(245,245,242,0.72)]">
+          <label className="flex items-center justify-between gap-4 text-sm text-[var(--text-secondary)]">
             High contrast
             <input
               type="checkbox"
@@ -615,7 +669,7 @@ export default function SettingsPage() {
               onChange={e => setDisplayPref('high_contrast', e.target.checked)}
             />
           </label>
-          <label className="flex items-center justify-between gap-4 text-sm text-[rgba(245,245,242,0.72)]">
+          <label className="flex items-center justify-between gap-4 text-sm text-[var(--text-secondary)]">
             Dyslexic-friendly font
             <input
               type="checkbox"
@@ -624,14 +678,14 @@ export default function SettingsPage() {
             />
           </label>
         </div>
-        <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+        <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
           Save display preferences
         </button>
-        <p className="mt-4 text-xs text-[rgba(245,245,242,0.55)]">Data encrypted at rest by Supabase, eu-west-2.</p>
+        <p className="mt-4 text-xs text-[var(--text-secondary)]">Data encrypted at rest by Supabase, eu-west-2.</p>
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Plan</h2>
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-3">Plan</h2>
         {subInfo && (() => {
           const provenance = planProvenance(subInfo)
           const pdfAllowance = subInfo.isPro ? 'unlimited' : String(1 + subInfo.referralCount)
@@ -639,16 +693,16 @@ export default function SettingsPage() {
           return (
             <div className="space-y-5">
               <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                <div className="space-y-2 text-sm text-[rgba(245,245,242,0.55)]">
+                <div className="space-y-2 text-sm text-[var(--text-secondary)]">
                   <p>
-                    <span className="text-[#F5F5F2] font-medium">{provenance.label}</span>
+                    <span className="text-[var(--text-primary)] font-medium">{provenance.label}</span>
                     <span> · {formatStorageQuota(subInfo.storageQuotaMB)} storage</span>
                   </p>
                   {subInfo.isVerified && (
-                    <p className="text-xs text-[#6AA8FF]">Institution verified · +{VERIFIED_BONUS_MB} MB storage</p>
+                    <p className="text-xs text-[var(--accent-text)]">Institution verified · +{VERIFIED_BONUS_MB} MB storage</p>
                   )}
                   {subInfo.referralCount > 0 && !subInfo.isPro && (
-                    <p className="text-xs text-[#6AA8FF]">
+                    <p className="text-xs text-[var(--accent-text)]">
                       {subInfo.referralCount} referral{subInfo.referralCount === 1 ? '' : 's'} · +{subInfo.referralCount} PDF export{subInfo.referralCount === 1 ? '' : 's'}, +{subInfo.referralCount} share link{subInfo.referralCount === 1 ? '' : 's'}
                       {subInfo.referralCount >= REFERRAL_STORAGE_BONUS_AT ? `, +${REFERRAL_STORAGE_BONUS_MB} MB` : ''}
                     </p>
@@ -657,7 +711,7 @@ export default function SettingsPage() {
                   <p>Share links used: {subInfo.usage.shareLinksUsed} / {shareAllowance}</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:items-end">
-                  <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-[#155BB0]">
+                  <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">
                     View plans
                   </Link>
                   <BillingActionButton hasStripeBilling={provenance.hasStripeBilling} label={provenance.billingLabel} />
@@ -669,11 +723,11 @@ export default function SettingsPage() {
         })()}
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
         <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <h2 className="text-base font-semibold text-[#F5F5F2]">Institutional email</h2>
-            <p className="mt-1 text-sm text-[rgba(245,245,242,0.45)]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Institutional email</h2>
+            <p className="mt-1 text-sm text-[var(--text-muted)]">
               Verify a university or NHS email for Student storage where eligible and referral rewards. Re-verification is required yearly, and you can change this email when your institution changes.
             </p>
           </div>
@@ -685,20 +739,20 @@ export default function SettingsPage() {
             value={studentEmail.email}
             onChange={e => setStudentEmail(current => ({ ...current, email: e.target.value }))}
             placeholder="you@university.ac.uk or you@nhs.net"
-            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+            className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
           />
           <button
             disabled={sendingStudentEmail}
-            className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#155BB0] disabled:opacity-50"
+            className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
           >
             {sendingStudentEmail ? 'Sending...' : studentEmail.verified ? 'Re-verify' : 'Send verification'}
           </button>
         </form>
-        <p className="mt-3 text-xs text-[rgba(245,245,242,0.55)]">
+        <p className="mt-3 text-xs text-[var(--text-secondary)]">
           Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
         </p>
         {studentEmail.sentAt && !studentEmail.verified && (
-          <p role="status" className="mt-3 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-sm text-blue-100">
+          <p role="status" className="mt-3 rounded-lg border border-[var(--accent)] bg-[var(--accent)] px-3 py-2 text-sm text-blue-100">
             We sent a verification link to {studentEmail.email}. Check your institution inbox.
           </p>
         )}
@@ -710,15 +764,15 @@ export default function SettingsPage() {
       </section>
 
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
-        <input value={settingsSearch} onChange={e => setSettingsSearch(e.target.value)} placeholder="Search settings" className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[#141416] px-4 text-sm text-[#F5F5F2] sm:col-span-2" />
+        <input value={settingsSearch} onChange={e => setSettingsSearch(e.target.value)} placeholder="Search settings" className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-4 text-sm text-[var(--text-primary)] sm:col-span-2" />
         {settingsLinks.map(([href, label, description]) => <SettingsLink key={href} href={href} label={label} description={description} />)}
-        <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[#F5F5F2] hover:border-white/[0.16]">
+        <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16]">
           Restart tutorial
         </button>
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Legal</h2>
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-3">Legal</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <SettingsLink href="/terms" label="Terms and conditions" />
           <SettingsLink href="/privacy" label="Privacy policy" />
@@ -726,22 +780,22 @@ export default function SettingsPage() {
       </section>
 
       {profile.referral_code && (
-        <section className="bg-[#141416] border border-[#1B6FD9]/25 rounded-2xl p-6 mb-6">
+        <section className="bg-[var(--bg-surface)] border border-[var(--accent)] rounded-2xl p-6 mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-[rgba(245,245,242,0.45)] mb-2">Referral code</p>
-              <h2 className="text-3xl font-semibold tracking-[0.18em] text-[#F5F5F2]">{profile.referral_code}</h2>
-              <p className="mt-3 break-all text-sm text-[rgba(245,245,242,0.45)]">{origin ? `${origin}/r/${profile.referral_code}` : `/r/${profile.referral_code}`}</p>
+              <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Referral code</p>
+              <h2 className="text-3xl font-semibold tracking-[0.18em] text-[var(--text-primary)]">{profile.referral_code}</h2>
+              <p className="mt-3 break-all text-sm text-[var(--text-muted)]">{origin ? `${origin}/r/${profile.referral_code}` : `/r/${profile.referral_code}`}</p>
             </div>
             <div className="flex flex-col gap-2 sm:items-end">
               <button
                 type="button"
                 onClick={copyReferralLink}
-                className="min-h-[44px] rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#155BB0]"
+                className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"
               >
                 Copy link
               </button>
-              <Link href="/settings/referrals" className="text-sm text-[rgba(245,245,242,0.5)] hover:text-[#F5F5F2]">
+              <Link href="/settings/referrals" className="text-sm text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
                 View referrals
               </Link>
             </div>
@@ -749,27 +803,27 @@ export default function SettingsPage() {
         </section>
       )}
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Competency themes</h2>
-        <p className="mb-5 text-sm text-[rgba(245,245,242,0.45)]">Create or delete your custom competency themes.</p>
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-3">Competency themes</h2>
+        <p className="mb-5 text-sm text-[var(--text-muted)]">Create or delete your custom competency themes.</p>
         <CompetencyThemePicker manageOnly />
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-5">Password</h2>
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-5">Password</h2>
         <form onSubmit={handlePasswordChange} className="space-y-4">
-          <input type="password" autoComplete="current-password" placeholder="Current password" value={passwordForm.current} onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
-          <input type="password" autoComplete="new-password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
-          <input type="password" autoComplete="new-password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[#0B0B0C] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[#F5F5F2]" />
-          <button disabled={passwordLoading} className="min-h-[44px] bg-[#1B6FD9] hover:bg-[#155BB0] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
+          <input type="password" autoComplete="current-password" placeholder="Current password" value={passwordForm.current} onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
+          <input type="password" autoComplete="new-password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
+          <input type="password" autoComplete="new-password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
+          <button disabled={passwordLoading} className="min-h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
             {passwordLoading ? 'Updating...' : 'Update password'}
           </button>
         </form>
       </section>
 
-      <section className="bg-[#141416] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <h2 className="text-base font-semibold text-[#F5F5F2] mb-3">Data</h2>
-        <button onClick={handleDataExport} disabled={exportLoading} className="min-h-[44px] bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-50 text-[#F5F5F2] font-medium rounded-lg px-5 py-2.5 text-sm">
+      <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
+        <h2 className="text-base font-semibold text-[var(--text-primary)] mb-3">Data</h2>
+        <button onClick={handleDataExport} disabled={exportLoading} className="min-h-[44px] bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-50 text-[var(--text-primary)] font-medium rounded-lg px-5 py-2.5 text-sm">
           {exportLoading ? 'Preparing backup...' : 'Download personal data backup'}
         </button>
       </section>
@@ -817,9 +871,9 @@ export default function SettingsPage() {
 
 function SettingsLink({ href, label, description }: { href: string; label: string; description?: string }) {
   return (
-    <Link href={href} className="min-h-[44px] flex flex-col bg-[#141416] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/[0.16]">
-      <span className="text-sm font-medium text-[#F5F5F2]">{label}</span>
-      {description && <span className="mt-0.5 text-[11px] text-[rgba(245,245,242,0.45)]">{description}</span>}
+    <Link href={href} className="min-h-[44px] flex flex-col bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/[0.16]">
+      <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
+      {description && <span className="mt-0.5 text-[11px] text-[var(--text-muted)]">{description}</span>}
     </Link>
   )
 }
@@ -847,7 +901,7 @@ function isLoyalAccount(createdAt: string) {
 
 function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; verified: boolean; verifiedAt: string; dueAt: string } }) {
   if (!studentEmail.email) {
-    return <span className="text-xs text-[rgba(245,245,242,0.55)]">Not added</span>
+    return <span className="text-xs text-[var(--text-secondary)]">Not added</span>
   }
 
   if (!studentEmail.verified) {
@@ -859,7 +913,7 @@ function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; v
     : 'next year'
 
   return (
-    <span className="rounded-full bg-[#1B6FD9]/15 px-2.5 py-1 text-xs font-medium text-[#6AA8FF]">
+    <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-xs font-medium text-[var(--accent-text)]">
       Verified until {dueLabel}
     </span>
   )
@@ -898,15 +952,15 @@ function ConfirmModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
-      <div className="w-full sm:max-w-md mx-auto bg-[#141416] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
-        <h2 className="text-lg font-semibold text-[#F5F5F2] mb-2">{title}</h2>
-        <p className="text-sm text-[rgba(245,245,242,0.5)] leading-relaxed mb-6">{body}</p>
+      <div className="w-full sm:max-w-md mx-auto bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{title}</h2>
+        <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-6">{body}</p>
         {confirmationRequired && (
           <input
             value={confirmationText ?? ''}
             onChange={e => onConfirmationTextChange?.(e.target.value)}
             placeholder={confirmationRequired}
-            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-red-400"
+            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-red-400"
           />
         )}
         {passwordRequired && (
@@ -916,14 +970,14 @@ function ConfirmModal({
             value={passwordValue ?? ''}
             onChange={e => onPasswordChange?.(e.target.value)}
             placeholder="Current password"
-            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[#0B0B0C] px-3.5 py-2.5 text-sm text-[#F5F5F2] outline-none focus:border-red-400"
+            className="mb-4 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-red-400"
           />
         )}
         <div className="flex gap-2">
-          <button onClick={onCancel} className="min-h-[44px] flex-1 border border-white/[0.08] text-[rgba(245,245,242,0.65)] rounded-lg px-4 py-2.5 text-sm">
+          <button onClick={onCancel} className="min-h-[44px] flex-1 border border-white/[0.08] text-[var(--text-secondary)] rounded-lg px-4 py-2.5 text-sm">
             Cancel
           </button>
-          <button disabled={disabled} onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 ${danger ? 'bg-red-500 text-white' : 'bg-[#1B6FD9] text-white'}`}>
+          <button disabled={disabled} onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 ${danger ? 'bg-red-500 text-white' : 'bg-[var(--accent)] text-white'}`}>
             {confirmLabel}
           </button>
         </div>

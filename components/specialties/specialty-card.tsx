@@ -56,13 +56,13 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
   return (
     <div
       onClick={onSelect}
-      className="bg-[#141416] border border-white/[0.08] rounded-2xl p-5 cursor-pointer hover:border-white/[0.16] transition-all group"
+      className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 cursor-pointer hover:border-white/[0.16] transition-all group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          <h3 className="font-semibold text-[#F5F5F2] text-base truncate">{config.name}</h3>
-          <span className="shrink-0 px-2 py-0.5 rounded-md bg-white/[0.06] text-[rgba(245,245,242,0.45)] text-xs font-medium">
+          <h3 className="font-semibold text-[var(--text-primary)] text-base truncate">{config.name}</h3>
+          <span className="shrink-0 px-2 py-0.5 rounded-md bg-white/[0.06] text-[var(--text-muted)] text-xs font-medium">
             {config.cycleYear}
           </span>
           {!config.isOfficial && (
@@ -71,14 +71,14 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
             </span>
           )}
           {evidenceBased && (
-            <span className="shrink-0 px-2 py-0.5 rounded-md bg-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs font-medium border border-white/[0.08]">
+            <span className="shrink-0 px-2 py-0.5 rounded-md bg-white/[0.06] text-[var(--text-secondary)] text-xs font-medium border border-white/[0.08]">
               Evidence-based
             </span>
           )}
         </div>
         <button
           onClick={handleRemove}
-          className="ml-2 shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[rgba(245,245,242,0.55)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
+          className="ml-2 shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
           aria-label="Remove specialty"
         >
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -103,7 +103,7 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
           target="_blank"
           rel="noopener noreferrer"
           onClick={e => e.stopPropagation()}
-          className="flex items-center gap-1 text-xs text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)] transition-colors"
+          className="flex items-center gap-1 text-xs text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
         >
           {config.isOfficial ? 'Official criteria' : 'Unofficial criteria - verify with official person spec'}
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -138,10 +138,10 @@ function PointsProgress({
     <>
       {/* Total score */}
       <div className="flex items-baseline gap-1.5 mb-2">
-        <span className="text-3xl font-bold text-[#F5F5F2]">{domainsScore}</span>
-        <span className="text-sm text-[rgba(245,245,242,0.4)]">/ {config.totalMax} pts</span>
+        <span className="text-3xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
+        <span className="text-sm text-[var(--text-muted)]">/ {config.totalMax} pts</span>
         {bonusScore > 0 && (
-          <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[#1B6FD9] text-xs font-semibold border border-[#1B6FD9]/20">
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-xs font-semibold border border-[var(--accent)]">
             +{bonusScore} bonus
           </span>
         )}
@@ -150,7 +150,7 @@ function PointsProgress({
       {/* Progress bar */}
       <div className="h-1.5 w-full bg-white/[0.06] rounded-full mb-4 overflow-hidden">
         <div
-          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          className="h-full bg-[var(--accent)] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>
@@ -162,7 +162,7 @@ function PointsProgress({
           return (
             <span
               key={domain.key}
-              className="px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[rgba(245,245,242,0.55)] text-xs"
+              className="px-2 py-0.5 rounded-lg bg-white/[0.04] border border-white/[0.06] text-[var(--text-secondary)] text-xs"
             >
               {truncateLabel(domain.label)}: {score} pts
             </span>
@@ -223,18 +223,18 @@ function ProgressBlock({
 }) {
   return (
     <div>
-      <p className="text-[10px] text-[rgba(245,245,242,0.4)] font-semibold uppercase tracking-wide mb-1">
+      <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
         {label}
       </p>
       <div className="flex items-baseline gap-1.5 mb-1.5">
-        <span className="text-2xl font-bold text-[#F5F5F2]">{current}</span>
-        <span className="text-xs text-[rgba(245,245,242,0.4)]">
+        <span className="text-2xl font-bold text-[var(--text-primary)]">{current}</span>
+        <span className="text-xs text-[var(--text-muted)]">
           / {total} {sublabel}
         </span>
       </div>
       <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
         <div
-          className="h-full bg-[#1B6FD9] rounded-full transition-all"
+          className="h-full bg-[var(--accent)] rounded-full transition-all"
           style={{ width: `${pct}%` }}
         />
       </div>

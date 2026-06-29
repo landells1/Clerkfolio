@@ -37,24 +37,24 @@ export default function DraftResumeBanner({ userId }: { userId: string }) {
   if (!hasDraft) return null
 
   return (
-    <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-xl px-4 py-3 mb-6">
+    <div className="flex items-center justify-between bg-[var(--accent)] border border-[var(--accent)] rounded-xl px-4 py-3 mb-6">
       <div className="flex items-center gap-2.5">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
         </svg>
-        <span className="text-sm text-[#1B6FD9] font-medium">You have an unsaved draft</span>
+        <span className="text-sm text-[var(--accent-text)] font-medium">You have an unsaved draft</span>
       </div>
       <div className="flex items-center gap-3">
         <button
           onClick={discard}
-          className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[rgba(245,245,242,0.7)] transition-colors"
+          className="text-xs text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors"
         >
           Discard
         </button>
         <Link
           href="/cases/new"
-          className="text-xs font-semibold text-[#1B6FD9] hover:text-white transition-colors"
+          className="text-xs font-semibold text-[var(--accent-text)] hover:text-white transition-colors"
         >
           Continue →
         </Link>

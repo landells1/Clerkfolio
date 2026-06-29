@@ -9,19 +9,19 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   }, [error])
 
   return (
-    <div style={{ background: '#0B0B0C', color: '#F5F5F2', minHeight: '100vh', fontFamily: '"Inter", -apple-system, system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
-      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', letterSpacing: 1.5, marginBottom: 24 }}>ERROR · UNEXPECTED</div>
+    <div style={{ background: 'var(--bg-canvas)', color: 'var(--text-primary)', minHeight: '100vh', fontFamily: '"Inter", -apple-system, system-ui, sans-serif', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 24px' }}>
+      <div style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-secondary)', letterSpacing: 1.5, marginBottom: 24 }}>ERROR · UNEXPECTED</div>
       <h1 style={{ fontSize: 'clamp(36px, 5vw, 64px)', fontWeight: 500, letterSpacing: -2, margin: 0, marginBottom: 20, lineHeight: 1, textAlign: 'center' }}>
         Something went{' '}
-        <span style={{ background: 'linear-gradient(100deg, oklch(0.75 0.15 30) 0%, oklch(0.65 0.15 20) 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontStyle: 'italic', fontWeight: 400 }}>
+        <span style={{ background: 'var(--danger-gradient)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', fontStyle: 'italic', fontWeight: 400 }}>
           wrong.
         </span>
       </h1>
-      <p style={{ fontSize: 17, color: 'rgba(245,245,242,0.55)', maxWidth: 440, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
+      <p style={{ fontSize: 17, color: 'var(--text-secondary)', maxWidth: 440, textAlign: 'center', lineHeight: 1.6, marginBottom: 40 }}>
         An unexpected error occurred. Your data is safe - please try again or return to the dashboard.
       </p>
       {error.digest && (
-        <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'rgba(245,245,242,0.55)', marginBottom: 32, letterSpacing: 1 }}>
+        <p style={{ fontFamily: 'monospace', fontSize: 11, color: 'var(--text-secondary)', marginBottom: 32, letterSpacing: 1 }}>
           Error reference: {error.digest}
         </p>
       )}
@@ -32,7 +32,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
         >
           Try again
         </button>
-        <Link href="/dashboard" style={{ background: 'transparent', color: '#F5F5F2', border: '1px solid rgba(245,245,242,0.15)', padding: '12px 24px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+        <Link href="/dashboard" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid rgba(245,245,242,0.15)', padding: '12px 24px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
           Go to dashboard
         </Link>
       </div>

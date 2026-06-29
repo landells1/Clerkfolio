@@ -78,10 +78,10 @@ export default function PullToRefresh({ children, className = '', threshold = 60
     >
       <div
         aria-hidden={!visible}
-        className="pointer-events-none fixed left-1/2 top-16 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/[0.08] bg-[#141416] px-3 py-2 text-xs font-medium text-[rgba(245,245,242,0.72)] shadow-2xl transition-opacity lg:top-4"
+        className="pointer-events-none fixed left-1/2 top-16 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-white/[0.08] bg-[var(--bg-surface)] px-3 py-2 text-xs font-medium text-[var(--text-secondary)] shadow-2xl transition-opacity lg:top-4"
         style={{ opacity: visible ? 1 : 0 }}
       >
-        <span className="h-3.5 w-3.5 rounded-full border-2 border-[#1B6FD9]/30 border-t-[#1B6FD9] motion-safe:animate-spin" />
+        <span className="h-3.5 w-3.5 rounded-full border-2 border-[var(--accent)] border-t-[var(--accent)] motion-safe:animate-spin" />
         {refreshing ? 'Refreshing' : 'Release to refresh'}
       </div>
       {children}

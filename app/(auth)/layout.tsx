@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-[#0B0B0C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg-canvas)] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2.5 mb-10 justify-center hover:opacity-80 transition-opacity">
@@ -20,7 +20,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               <path d="M48 34 L52 38 L56 28" stroke="#155BB0" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <span className="text-[#F5F5F2] font-semibold text-lg tracking-tight">Clerkfolio</span>
+          <span className="text-[var(--text-primary)] font-semibold text-lg tracking-tight">Clerkfolio</span>
         </Link>
         {children}
       </div>

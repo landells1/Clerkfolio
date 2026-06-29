@@ -38,15 +38,15 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
   return (
     <>
       {/* Progress summary */}
-      <div className="flex items-center gap-4 mb-6 p-4 bg-[#141416] border border-white/[0.06] rounded-xl">
+      <div className="flex items-center gap-4 mb-6 p-4 bg-[var(--bg-surface)] border border-white/[0.06] rounded-xl">
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-[rgba(245,245,242,0.45)]" title="Capabilities with at least one piece of linked evidence">Evidence coverage</span>
-            <span className="text-xs font-mono text-[rgba(245,245,242,0.55)]">{totalLinked} / {capabilities.length} capabilities · {links.length} linked {links.length === 1 ? 'entry' : 'entries'}</span>
+            <span className="text-xs text-[var(--text-muted)]" title="Capabilities with at least one piece of linked evidence">Evidence coverage</span>
+            <span className="text-xs font-mono text-[var(--text-secondary)]">{totalLinked} / {capabilities.length} capabilities · {links.length} linked {links.length === 1 ? 'entry' : 'entries'}</span>
           </div>
           <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
             <div
-              className="h-full bg-[#1B6FD9] rounded-full transition-all"
+              className="h-full bg-[var(--accent)] rounded-full transition-all"
               style={{ width: capabilities.length > 0 ? `${(totalLinked / capabilities.length) * 100}%` : '0%' }}
             />
           </div>
@@ -57,13 +57,13 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
               const pct = total > 0 ? Math.round((linked / total) * 100) : 0
               return (
                 <div key={cat}>
-                  <div className="mb-1 flex justify-between text-xs text-white/50">
+                  <div className="mb-1 flex justify-between text-xs text-[var(--text-secondary)]">
                     <span>{ARCP_CATEGORY_LABELS[cat]}</span>
                     <span>{linked}/{total}</span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-[var(--bg-overlay-soft)]">
                     <div
-                      className="h-full rounded-full bg-[#1B6FD9] transition-all"
+                      className="h-full rounded-full bg-[var(--accent)] transition-all"
                       style={{ width: `${pct}%` }}
                     />
                   </div>
@@ -76,7 +76,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
           href="https://www.fparcp.co.uk/employers/curriculum"
           target="_blank"
           rel="noopener noreferrer"
-          className="shrink-0 text-xs text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.6)] transition-colors flex items-center gap-1"
+          className="shrink-0 text-xs text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors flex items-center gap-1"
         >
           FP Curriculum
           <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -95,10 +95,10 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
           return (
             <div key={cat}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs font-semibold text-[rgba(245,245,242,0.55)] uppercase tracking-wider">
+                <h2 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
                   {ARCP_CATEGORY_LABELS[cat]}
                 </h2>
-                <span className="text-xs text-[rgba(245,245,242,0.55)] font-mono">{catLinked}/{caps.length}</span>
+                <span className="text-xs text-[var(--text-secondary)] font-mono">{catLinked}/{caps.length}</span>
               </div>
               <div className="space-y-2">
                 {caps.map(cap => (

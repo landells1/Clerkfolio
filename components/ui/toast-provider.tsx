@@ -75,14 +75,14 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
   }, [])
 
   const accent =
-    toast.type === 'success' ? '#1B6FD9' :
-    toast.type === 'error'   ? '#f87171' :
-                               'rgba(245,245,242,0.4)'
+    toast.type === 'success' ? 'var(--accent)' :
+    toast.type === 'error'   ? 'var(--danger)' :
+                               'var(--text-muted)'
 
   const bg =
-    toast.type === 'success' ? 'bg-[#1B6FD9]/10 border-[#1B6FD9]/20' :
+    toast.type === 'success' ? 'bg-[var(--accent)] border-[var(--accent)]' :
     toast.type === 'error'   ? 'bg-red-500/10 border-red-500/20' :
-                               'bg-[#141416] border-white/[0.1]'
+                               'bg-[var(--bg-surface)] border-white/[0.1]'
 
   return (
     <div
@@ -93,18 +93,18 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
     >
       {/* Coloured dot */}
       <span className="mt-0.5 flex-shrink-0 w-1.5 h-1.5 rounded-full" style={{ background: accent, marginTop: 6 }} />
-      <p className="text-sm text-[#F5F5F2] flex-1 leading-snug">{toast.message}</p>
+      <p className="text-sm text-[var(--text-primary)] flex-1 leading-snug">{toast.message}</p>
       {toast.undo && (
         <button
           onClick={() => { toast.undo?.(); onDismiss() }}
-          className="text-sm font-medium text-[#1B6FD9] hover:text-[#6AA8FF]"
+          className="text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)]"
         >
           Undo
         </button>
       )}
       <button
         onClick={onDismiss}
-        className="flex-shrink-0 text-[rgba(245,245,242,0.55)] hover:text-[rgba(245,245,242,0.7)] transition-colors"
+        className="flex-shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
       >
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>

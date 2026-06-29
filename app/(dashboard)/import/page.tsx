@@ -26,19 +26,19 @@ export default async function ImportPage() {
   return (
     <div className="p-6 sm:p-8 max-w-5xl mx-auto">
       <div className="flex items-center gap-3 mb-8">
-        <Link href="/dashboard" className="text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors">
+        <Link href="/dashboard" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="15 18 9 12 15 6"/>
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-[#F5F5F2] tracking-tight">Import your portfolio</h1>
-          <p className="text-sm text-[rgba(245,245,242,0.45)] mt-0.5">
+          <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Import your portfolio</h1>
+          <p className="text-sm text-[var(--text-muted)] mt-0.5">
             Bring an existing portfolio into Clerkfolio. The Horus importer is below — you can also map a CSV/spreadsheet or restore a Clerkfolio backup.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Link href="/import/csv" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">CSV / spreadsheet</Link>
-            <Link href="/import/json" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[rgba(245,245,242,0.7)] hover:text-[#F5F5F2]">Clerkfolio backup</Link>
+            <Link href="/import/csv" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]">CSV / spreadsheet</Link>
+            <Link href="/import/json" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Clerkfolio backup</Link>
           </div>
         </div>
       </div>
@@ -46,14 +46,14 @@ export default async function ImportPage() {
       {sub?.limits.canBulkImport ? (
         <HorusImportWizard specialtyOptions={specialtyOptions} />
       ) : (
-        <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[#141416] p-6">
-          <h2 className="text-lg font-semibold text-[#F5F5F2]">Bulk import is a Pro feature</h2>
-          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[rgba(245,245,242,0.52)]">
+        <section className="rounded-2xl border border-[var(--accent)] bg-[var(--bg-surface)] p-6">
+          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Bulk import is a Pro feature</h2>
+          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[var(--text-secondary)]">
             CSV and Horus imports are available on Pro. Free accounts can still add cases and portfolio entries manually.
           </p>
           <Link
             href="/upgrade"
-            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[#1B6FD9] px-5 text-sm font-semibold text-white hover:bg-[#155BB0]"
+            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"
           >
             Upgrade to Pro
           </Link>

@@ -11,7 +11,7 @@ const links = [
 
 export function Nav() {
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-white/[0.08] bg-[#0B0B0C]/85 px-6 py-5 backdrop-blur md:px-14">
+    <nav className="sticky top-0 z-50 flex items-center justify-between border-b border-white/[0.08] bg-[var(--bg-canvas)] px-6 py-5 backdrop-blur md:px-14">
       <div className="flex items-center gap-8 lg:gap-11">
         <Link href="/" className="flex items-center gap-2.5 rounded-sm">
           <Logo />

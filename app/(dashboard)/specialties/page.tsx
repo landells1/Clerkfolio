@@ -19,7 +19,7 @@ export default async function SpecialtiesPage({
   if (!user) {
     return (
       <div className="p-8 flex items-center justify-center">
-        <p className="text-[rgba(245,245,242,0.4)] text-sm">Please sign in to view specialty tracking.</p>
+        <p className="text-[var(--text-muted)] text-sm">Please sign in to view specialty tracking.</p>
       </div>
     )
   }

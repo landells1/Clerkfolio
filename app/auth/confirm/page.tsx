@@ -121,14 +121,14 @@ function ConfirmContent() {
   }
 
   return (
-    <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
-      <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/15 flex items-center justify-center mx-auto mb-4">
+    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
+      <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center mx-auto mb-4">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
           <polyline points="22,6 12,13 2,6" />
         </svg>
       </div>
-      <h1 className="text-lg font-semibold text-[#F5F5F2] mb-2">
+      <h1 className="text-lg font-semibold text-[var(--text-primary)] mb-2">
         {type === 'recovery' ? 'Confirm your password reset' : 'Confirm your email'}
       </h1>
       {tokenHash && !error ? (
@@ -139,7 +139,7 @@ function ConfirmContent() {
               {type === 'recovery' ? ' before resetting the password for the account linked in this email.' : ' before confirming the email link.'}
             </p>
           )}
-          <p role="status" className="mb-5 text-sm text-[rgba(245,245,242,0.55)]">
+          <p role="status" className="mb-5 text-sm text-[var(--text-secondary)]">
             {loading
               ? type === 'recovery' ? 'Continuing to reset your password...' : 'Confirming your email...'
               : type === 'recovery'
@@ -150,7 +150,7 @@ function ConfirmContent() {
             type="button"
             onClick={handleConfirm}
             disabled={loading}
-            className="min-h-[44px] w-full rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
+            className="min-h-[44px] w-full rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
           >
             {type === 'recovery' ? 'Continue password reset' : 'Confirm email'}
           </button>
@@ -161,7 +161,7 @@ function ConfirmContent() {
       {error && (
         <>
           <p className="mb-5 text-sm text-red-400">{error} If you already confirmed your email, log in to continue.</p>
-          <Link href="/login" className="inline-flex min-h-[44px] items-center rounded-lg bg-[#1B6FD9] px-5 py-2.5 text-sm font-semibold text-white">
+          <Link href="/login" className="inline-flex min-h-[44px] items-center rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white">
             Log in
           </Link>
         </>
@@ -172,10 +172,10 @@ function ConfirmContent() {
 
 export default function ConfirmPage() {
   return (
-    <div className="min-h-screen bg-[#0B0B0C] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[var(--bg-canvas)] flex items-center justify-center p-4">
       <Suspense fallback={
-        <div className="bg-[#141416] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
-          <p className="text-sm text-[rgba(245,245,242,0.55)]">Loading...</p>
+        <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 max-w-sm w-full text-center">
+          <p className="text-sm text-[var(--text-secondary)]">Loading...</p>
         </div>
       }>
         <ConfirmContent />

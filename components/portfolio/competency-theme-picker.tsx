@@ -195,21 +195,21 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <label className="block text-xs font-medium text-[rgba(245,245,242,0.55)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
-          Competency themes <span className="normal-case font-normal text-[rgba(245,245,242,0.55)]">(optional)</span>
+        <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
+          Competency themes <span className="normal-case font-normal text-[var(--text-secondary)]">(optional)</span>
         </label>
         <div className="flex items-center gap-3">
           <button
             type="button"
             onClick={() => setManageOpen(true)}
-            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             Manage
           </button>
           <button
             type="button"
             onClick={() => setOpen(current => !current)}
-            className="text-xs text-[rgba(245,245,242,0.4)] hover:text-[#F5F5F2] transition-colors"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             {open ? '-' : '+'}
           </button>
@@ -223,13 +223,13 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               key={theme}
               type="button"
               onClick={() => toggleTheme(theme)}
-              style={colourByValue.has(theme) ? { borderColor: `${colourByValue.get(theme)}66`, backgroundColor: `${colourByValue.get(theme)}22`, color: '#F5F5F2' } : undefined}
+              style={colourByValue.has(theme) ? { borderColor: `${colourByValue.get(theme)}66`, backgroundColor: `${colourByValue.get(theme)}22`, color: 'var(--text-primary)' } : undefined}
               className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-violet-300 border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
             >
               {labelByValue.get(theme) ?? theme} x
             </button>
           ))}
-          <button type="button" onClick={() => setOpen(true)} className="text-[11px] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] px-1">edit</button>
+          <button type="button" onClick={() => setOpen(true)} className="text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-1">edit</button>
         </div>
       )}
 
@@ -243,11 +243,11 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
                   key={theme.value}
                   type="button"
                   onClick={() => toggleTheme(theme.value)}
-                  style={theme.isCustom && active ? { borderColor: `${theme.colour}66`, backgroundColor: `${theme.colour}22`, color: '#F5F5F2' } : undefined}
+                  style={theme.isCustom && active ? { borderColor: `${theme.colour}66`, backgroundColor: `${theme.colour}22`, color: 'var(--text-primary)' } : undefined}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     active
                       ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
-                      : 'bg-white/[0.04] border-white/[0.08] text-[rgba(245,245,242,0.55)] hover:text-[#F5F5F2] hover:border-white/[0.15]'
+                      : 'bg-white/[0.04] border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15]'
                   }`}
                 >
                   {theme.label}{theme.isCustom ? ' *' : ''}
@@ -261,9 +261,9 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               onChange={event => setNewTheme(event.target.value)}
               maxLength={40}
               placeholder="Theme name"
-              className="min-h-[36px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+              className="min-h-[36px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             />
-            <button type="button" onClick={addTheme} className="rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[#F5F5F2] hover:border-[#1B6FD9]/40">
+            <button type="button" onClick={addTheme} className="rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-primary)] hover:border-[var(--accent)]">
               + Add theme
             </button>
           </div>
@@ -273,10 +273,10 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
 
       {manageOpen && (
         <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4" onClick={() => setManageOpen(false)}>
-          <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[#141416] p-5 sm:rounded-2xl" onClick={event => event.stopPropagation()}>
+          <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 sm:rounded-2xl" onClick={event => event.stopPropagation()}>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold text-[#F5F5F2]">Manage themes</h2>
-              <button type="button" onClick={() => setManageOpen(false)} className="text-sm text-[rgba(245,245,242,0.45)]">Close</button>
+              <h2 className="text-base font-semibold text-[var(--text-primary)]">Manage themes</h2>
+              <button type="button" onClick={() => setManageOpen(false)} className="text-sm text-[var(--text-muted)]">Close</button>
             </div>
             <ThemeManager
               customThemes={customThemes}
@@ -322,21 +322,21 @@ function ThemeManager({
           onChange={event => setNewTheme(event.target.value)}
           maxLength={40}
           placeholder="Theme name"
-          className="min-h-[40px] flex-1 rounded-lg border border-white/[0.08] bg-[#0B0B0C] px-3 text-sm text-[#F5F5F2] outline-none focus:border-[#1B6FD9]"
+          className="min-h-[40px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
         />
-        <button type="button" onClick={addTheme} className="rounded-lg bg-[#1B6FD9] px-3 text-sm font-semibold text-white">
+        <button type="button" onClick={addTheme} className="rounded-lg bg-[var(--accent)] px-3 text-sm font-semibold text-white">
           Add
         </button>
       </div>
       {error && <p className="text-xs text-red-300">{error}</p>}
       <div className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.08]">
         {customThemes.length === 0 ? (
-          <p className="p-4 text-sm text-[rgba(245,245,242,0.45)]">No custom themes yet.</p>
+          <p className="p-4 text-sm text-[var(--text-muted)]">No custom themes yet.</p>
         ) : customThemes.map(theme => (
           <div key={theme.id} className="flex items-center justify-between gap-3 p-3">
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[#F5F5F2]">{theme.name}</p>
-              <p className="text-xs text-[rgba(245,245,242,0.55)]">Custom theme</p>
+              <p className="text-sm font-medium text-[var(--text-primary)]">{theme.name}</p>
+              <p className="text-xs text-[var(--text-secondary)]">Custom theme</p>
             </div>
             <div className="flex items-center gap-2">
               <input
@@ -346,7 +346,7 @@ function ThemeManager({
                 className="h-8 w-9 rounded border border-white/[0.08] bg-transparent"
                 aria-label={`Colour for ${theme.name}`}
               />
-              <button type="button" onClick={() => renameTheme(theme)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[rgba(245,245,242,0.65)] hover:bg-white/[0.05]">
+              <button type="button" onClick={() => renameTheme(theme)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-white/[0.05]">
                 Rename
               </button>
               <button type="button" onClick={() => removeTheme(theme)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">

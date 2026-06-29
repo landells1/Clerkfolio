@@ -50,8 +50,17 @@ export default async function RootLayout({
   const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
-    <html lang="en" className="dark">
+    <html lang="en">
       <head>
+        {/* No-flash theme init — runs before first paint. Cream is the default;
+            dark is opt-in and stamped here from the stored choice so dark users
+            never see a flash of cream (and vice versa). Keep this first in head. */}
+        <script
+          nonce={nonce}
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('cf-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+          }}
+        />
         <meta name="theme-color" content="#1B6FD9" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
