@@ -40,7 +40,7 @@ const GRID2 = 'grid grid-cols-1 gap-4 sm:grid-cols-2'
 const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
-      ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+      ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[var(--accent-text)]'
       : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
   }`
 
@@ -650,13 +650,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       >
         {/* Draft restored banner */}
         {draftRestored && (
-          <div className="flex items-center justify-between bg-[var(--accent)] border border-[var(--accent)] rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
+          <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
             {/* Free text (notes, reflection content) is deliberately excluded
                 from the autosaved draft for privacy - say so, or a user who
                 drafted a Gibbs reflection finds the section open and every
                 box empty with no explanation. */}
             <span>Draft restored — notes and reflection text aren&apos;t auto-saved</span>
-            <button type="button" onClick={resetForm} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)]">
+            <button type="button" onClick={resetForm} className="text-xs text-[#1B6FD9]/70 hover:text-[var(--accent-text)]">
               Discard
             </button>
           </div>
@@ -689,7 +689,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   onClick={() => setCategory(c.value)}
                   className={`py-2.5 px-3 text-sm rounded-xl border text-left transition-colors ${
                     category === c.value
-                      ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+                      ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[var(--accent-text)]'
                       : 'bg-[var(--bg-surface)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                   }`}
                 >
@@ -723,7 +723,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       key={tag}
                       type="button"
                       onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                      className="rounded border border-[var(--accent)] bg-[var(--accent)] px-2 py-1 text-[10px] text-[var(--accent-text)]"
+                      className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[var(--accent-text)]"
                     >
                       + {formatSpecialtyLabel(tag)}
                     </button>
@@ -783,7 +783,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       }}
                       className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                         auditCycleStage === stage.value
-                          ? 'border-[var(--accent)] bg-[var(--accent)]'
+                          ? 'border-[#1B6FD9]/50 bg-[#1B6FD9]/10'
                           : 'border-white/[0.08] bg-[var(--bg-canvas)] hover:border-white/[0.16]'
                       }`}
                     >
@@ -986,7 +986,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       }}
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         reflFramework === fw
-                          ? 'bg-[var(--accent)] border-[var(--accent)] text-[var(--accent-text)]'
+                          ? 'bg-[#1B6FD9]/15 border-[#1B6FD9]/40 text-[var(--accent-text)]'
                           : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                       }`}
                     >
@@ -1101,7 +1101,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               type="submit"
               onClick={() => { addAnotherRef.current = true }}
               disabled={saving || uploading}
-              className="flex-1 border border-[var(--accent)] text-[var(--accent-text)] hover:bg-[var(--accent)] disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+              className="flex-1 border border-[#1B6FD9]/40 text-[var(--accent-text)] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
             >
               Save & add another
             </button>
@@ -1153,7 +1153,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                         key={t.id}
                         type="button"
                         onClick={() => applyTemplate(t)}
-                        className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[var(--accent)] hover:bg-[var(--accent)] transition-colors"
+                        className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[#1B6FD9]/40 hover:bg-[#1B6FD9]/5 transition-colors"
                       >
                         <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
                         <p className="text-xs text-[var(--text-muted)] mt-0.5">{CATEGORIES.find(cat => cat.value === t.category)?.label ?? t.category}</p>
@@ -1176,7 +1176,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                           key={t.id}
                           type="button"
                           onClick={() => applyTemplate(t)}
-                          className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[var(--accent)] hover:bg-[var(--accent)] transition-colors"
+                          className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-[#1B6FD9]/40 hover:bg-[#1B6FD9]/5 transition-colors"
                         >
                           <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
                           {t.description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.description}</p>}

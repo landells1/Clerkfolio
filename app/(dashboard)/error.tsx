@@ -19,7 +19,7 @@ export default function DashboardError({ error, reset }: { error: Error & { dige
       <div className="flex gap-3">
         <button
           onClick={reset}
-          className="bg-[var(--accent)] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[var(--accent)] transition-colors"
+          className="bg-[var(--accent)] text-white px-5 py-2.5 rounded-lg text-sm font-medium hover:bg-[#1B6FD9]/90 transition-colors"
         >
           Try again
         </button>

@@ -24,7 +24,7 @@ const Card = ({ done, title, body, href, cta }: { done: boolean; title: string; 
 
 export default function NewAccountQuickStart({ hasFirstPortfolio, hasFirstCase, hasTrackedSpecialty }: Props) {
   return (
-    <section className="rounded-2xl border border-[var(--accent)] bg-[var(--accent)]/[0.04] p-5">
+    <section className="rounded-2xl border border-[#1B6FD9]/20 bg-[#1B6FD9]/[0.04] p-5">
       <h2 className="text-sm font-semibold uppercase tracking-wider text-[var(--accent-text)]">Get started</h2>
       <p className="mt-1 text-sm text-[var(--text-secondary)]">
         Three steps to get your portfolio off the ground. Charts and trends will fill in as you log entries.

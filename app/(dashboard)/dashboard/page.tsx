@@ -319,7 +319,7 @@ export default async function DashboardPage({
         </div>
       )}
       {resolvedSearchParams?.referral === 'existing-account' && (
-        <div role="status" className="mb-6 rounded-2xl border border-blue-400/25 bg-blue-400/10 px-4 py-3 text-sm text-blue-100">
+        <div role="status" className="mb-6 rounded-2xl border border-blue-400/25 bg-blue-400/10 px-4 py-3 text-sm text-[var(--accent-soft-text)]">
           Referral links only apply to brand-new signups, so this one couldn&apos;t be added to your existing account.
         </div>
       )}

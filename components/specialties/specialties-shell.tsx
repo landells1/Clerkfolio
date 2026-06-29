@@ -343,7 +343,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
   }
 
   return (
-    <div className="flex items-center gap-3 px-4 py-3 bg-[var(--accent)] border border-[var(--accent)] rounded-xl text-sm">
+    <div className="flex items-center gap-3 px-4 py-3 bg-[#1B6FD9]/8 border border-[#1B6FD9]/25 rounded-xl text-sm">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>

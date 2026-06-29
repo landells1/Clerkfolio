@@ -21,7 +21,7 @@ export default async function CsvImportPage() {
       {sub?.limits.canBulkImport ? (
         <CsvImportFlow />
       ) : (
-        <section className="rounded-2xl border border-[var(--accent)] bg-[var(--bg-surface)] p-6">
+        <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[var(--bg-surface)] p-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Bulk import is a Pro feature</h2>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">Free accounts can still add cases and portfolio entries manually.</p>
           <Link href="/upgrade" className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">

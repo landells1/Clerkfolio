@@ -37,7 +37,7 @@ export default function DraftResumeBanner({ userId }: { userId: string }) {
   if (!hasDraft) return null
 
   return (
-    <div className="flex items-center justify-between bg-[var(--accent)] border border-[var(--accent)] rounded-xl px-4 py-3 mb-6">
+    <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-xl px-4 py-3 mb-6">
       <div className="flex items-center gap-2.5">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />

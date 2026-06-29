@@ -66,7 +66,7 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
               prefetch={false}
               title={`${count?.entries ?? 0} entries, ${count?.deadlines ?? 0} deadlines`}
               className={`relative flex aspect-square min-h-[34px] items-center justify-center rounded-lg border text-xs ${
-                today ? 'border-[var(--accent)]' : 'border-white/[0.04]'
+                today ? 'border-[#1B6FD9]/60' : 'border-white/[0.04]'
               } ${muted ? 'text-[var(--text-faint)]' : 'text-[var(--text-secondary)]'}`}
               style={{ backgroundColor: intensity === 0 ? 'rgba(245,245,242,0.035)' : ['#0A3260', '#155BB0', '#3884DD'][intensity - 1] }}
             >

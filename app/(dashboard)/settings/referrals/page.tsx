@@ -66,7 +66,7 @@ export default async function ReferralsPage() {
       </div>
 
       {!institutionVerified && (
-        <section className="mb-6 rounded-2xl border border-[var(--accent)] bg-[var(--accent)] p-5">
+        <section className="mb-6 rounded-2xl border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 p-5">
           <h2 className="mb-2 text-sm font-semibold text-[var(--text-primary)]">Verify your institutional email to earn rewards</h2>
           <p className="text-sm leading-6 text-[var(--text-secondary)]">
             Your referrals are tracked from day one, but rewards only pay out once you have verified a .ac.uk, NHS, or HSC
@@ -125,7 +125,7 @@ export default async function ReferralsPage() {
           </p>
         )}
         {(foundingEarned || isFoundingSharerWindowOpen()) && (
-          <div className="mt-5 rounded-xl border border-[var(--accent)] bg-[var(--accent)] p-4">
+          <div className="mt-5 rounded-xl border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 p-4">
             <p className="text-sm font-medium text-[var(--text-primary)]">🚀 Founding Sharer {foundingEarned ? '· Earned' : '· Limited time'}</p>
             <p className="mt-1 text-xs leading-5 text-[var(--text-secondary)]">
               {foundingEarned

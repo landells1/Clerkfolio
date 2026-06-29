@@ -80,7 +80,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
                                'var(--text-muted)'
 
   const bg =
-    toast.type === 'success' ? 'bg-[var(--accent)] border-[var(--accent)]' :
+    toast.type === 'success' ? 'bg-[#1B6FD9]/10 border-[#1B6FD9]/20' :
     toast.type === 'error'   ? 'bg-red-500/10 border-red-500/20' :
                                'bg-[var(--bg-surface)] border-white/[0.1]'
 
@@ -97,7 +97,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
       {toast.undo && (
         <button
           onClick={() => { toast.undo?.(); onDismiss() }}
-          className="text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-text)]"
+          className="text-sm font-medium text-[var(--accent-text)] hover:text-[var(--accent-bright)]"
         >
           Undo
         </button>

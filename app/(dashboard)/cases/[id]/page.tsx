@@ -104,7 +104,7 @@ export default async function CaseDetailPage({
             <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
-                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[var(--accent)] text-[var(--accent-text)] border border-[var(--accent)]">
+                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[#1B6FD9]/10 text-[var(--accent-text)] border border-[#1B6FD9]/20">
                   {formatSpecialtyLabel(tag)}
                 </span>
               ))}

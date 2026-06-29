@@ -45,7 +45,7 @@ export default function ResetPasswordPage() {
   if (sent) {
     return (
       <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 text-center">
-        <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center mx-auto mb-4">
+        <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/15 flex items-center justify-center mx-auto mb-4">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -55,7 +55,7 @@ export default function ResetPasswordPage() {
           If a confirmed account exists for <strong className="text-[var(--text-primary)]">{email}</strong>, we&apos;ll send a password reset link.
           Check your inbox and follow the latest link.
         </p>
-        <Link href="/login" className="text-sm text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors">
+        <Link href="/login" className="text-sm text-[var(--accent-text)] hover:text-[#1B6FD9]/80 transition-colors">
           ← Back to login
         </Link>
       </div>
@@ -102,7 +102,7 @@ export default function ResetPasswordPage() {
       </form>
 
       <p className="text-center text-sm text-[var(--text-secondary)] mt-6">
-        <Link href="/login" className="text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors">
+        <Link href="/login" className="text-[var(--accent-text)] hover:text-[#1B6FD9]/80 transition-colors">
           ← Back to login
         </Link>
       </p>

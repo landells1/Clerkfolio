@@ -166,13 +166,13 @@ export function CompareView({ applications, links, isPro = false }: Props) {
               key={domainKey}
               className={`grid grid-cols-3 border-b border-white/[0.04] last:border-0 ${idx % 2 === 0 ? '' : 'bg-white/[0.01]'}`}
             >
-              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[var(--accent)]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${leftHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
                 <DomainCell metric={leftMetric} highlight={leftHigher} />
               </div>
               <div className="p-3.5 flex items-center justify-center border-x border-white/[0.04]">
                 <span className="text-xs text-[var(--text-muted)] text-center leading-snug">{domainLabel}</span>
               </div>
-              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[var(--accent)]/[0.08]' : ''}`}>
+              <div className={`p-3.5 flex items-center justify-center ${rightHigher ? 'bg-[#1B6FD9]/[0.08]' : ''}`}>
                 <DomainCell metric={rightMetric} highlight={rightHigher} />
               </div>
             </div>

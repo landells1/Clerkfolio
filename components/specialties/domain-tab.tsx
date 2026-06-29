@@ -342,7 +342,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             essentialPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
           } ${
             isMet
-              ? 'bg-[var(--accent)]/[0.06] border-[var(--accent)]'
+              ? 'bg-[#1B6FD9]/[0.06] border-[#1B6FD9]/25'
               : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
           }`}
           onClick={() => !essentialPending && handleEssentialToggle()}
@@ -472,7 +472,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             desirablePending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
           } ${
             isEvidenced
-              ? 'bg-[var(--accent)]/[0.06] border-[var(--accent)]'
+              ? 'bg-[#1B6FD9]/[0.06] border-[#1B6FD9]/25'
               : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
           }`}
           onClick={() => !desirablePending && handleDesirableCheck()}
@@ -674,7 +674,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                     onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
                     className={`flex items-center gap-3 py-1.5 px-2 rounded-lg border border-transparent transition-all ${
                       isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-white/[0.06]'
-                    } ${isChecked ? 'bg-[var(--accent)]/[0.05] border-[var(--accent)]' : ''}`}
+                    } ${isChecked ? 'bg-[#1B6FD9]/[0.05] border-[#1B6FD9]/20' : ''}`}
                   >
                     <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all ${
                       isChecked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.2]'

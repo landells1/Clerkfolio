@@ -102,7 +102,7 @@ function LoginForm() {
       )}
 
       {nextPath.startsWith('/upgrade') && (
-        <div className="bg-[var(--accent)] border border-[var(--accent)] rounded-lg px-3.5 py-2.5 text-sm text-blue-100 mb-4">
+        <div className="bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-soft-text)] mb-4">
           Log in to continue your Pro upgrade.
         </div>
       )}
@@ -129,7 +129,7 @@ function LoginForm() {
             <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
               Password
             </label>
-            <Link href="/reset-password" className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors">
+            <Link href="/reset-password" className="text-xs text-[var(--accent-text)] hover:text-[#1B6FD9]/80 transition-colors">
               Forgot password?
             </Link>
           </div>
@@ -162,7 +162,7 @@ function LoginForm() {
 
       <p className="text-center text-sm text-[var(--text-secondary)] mt-6">
         Don&apos;t have an account?{' '}
-        <Link href={nextPath.startsWith('/upgrade') ? `/signup?next=${encodeURIComponent(nextPath)}` : '/signup'} className="text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors font-medium">
+        <Link href={nextPath.startsWith('/upgrade') ? `/signup?next=${encodeURIComponent(nextPath)}` : '/signup'} className="text-[var(--accent-text)] hover:text-[#1B6FD9]/80 transition-colors font-medium">
           Sign up free
         </Link>
       </p>

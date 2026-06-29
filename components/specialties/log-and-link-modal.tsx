@@ -136,7 +136,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
         <div className="p-6 overflow-y-auto flex-1">
           {success ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="w-12 h-12 rounded-full bg-[var(--accent)] flex items-center justify-center mb-3">
+              <div className="w-12 h-12 rounded-full bg-[#1B6FD9]/20 flex items-center justify-center mb-3">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
@@ -194,7 +194,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                       onClick={() => setEntryType(t)}
                       className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${
                         entryType === t
-                          ? 'bg-[var(--accent)] text-[var(--accent-text)] border-[var(--accent)]'
+                          ? 'bg-[#1B6FD9]/15 text-[var(--accent-text)] border-[#1B6FD9]/25'
                           : 'bg-[var(--bg-canvas)] text-[var(--text-secondary)] border-white/[0.08] hover:border-white/[0.16]'
                       }`}
                     >
@@ -228,7 +228,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   Auto-tagged
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="px-2.5 py-1 rounded-full bg-[var(--accent)] text-[var(--accent-text)] text-xs font-medium border border-[var(--accent)]">
+                  <span className="px-2.5 py-1 rounded-full bg-[#1B6FD9]/15 text-[var(--accent-text)] text-xs font-medium border border-[#1B6FD9]/20">
                     {specialtyName}
                   </span>
                 </div>

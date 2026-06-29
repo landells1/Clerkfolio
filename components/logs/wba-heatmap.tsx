@@ -23,7 +23,7 @@ export default function WbaHeatmap({ rows }: { rows: LogRow[] }) {
               <td className="py-2 text-[var(--text-primary)]">{rotation}</td>
               {TYPES.map(type => {
                 const count = rows.filter(row => (row.meta?.detail || 'Unassigned') === rotation && row.title.toLowerCase().includes(type.toLowerCase())).length
-                return <td key={type} className="py-2"><span className="inline-flex min-w-8 justify-center rounded bg-[var(--accent)] px-2 py-1 text-[var(--accent-text)]">{count}</span></td>
+                return <td key={type} className="py-2"><span className="inline-flex min-w-8 justify-center rounded bg-[#1B6FD9]/15 px-2 py-1 text-[var(--accent-text)]">{count}</span></td>
               })}
             </tr>
           ))}

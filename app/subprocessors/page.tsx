@@ -84,7 +84,7 @@ export default function SubprocessorsPage() {
           </p>
         </header>
 
-        <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-5 py-4 text-sm leading-7 text-[var(--text-primary)]">
+        <div className="rounded-xl border border-[#1B6FD9]/20 bg-[#1B6FD9]/08 px-5 py-4 text-sm leading-7 text-[var(--text-primary)]">
           <p className="font-semibold text-[var(--text-primary)] mb-1">Stay informed</p>
           <p className="text-xs leading-6">
             To be notified of changes to this subprocessor list (at least 30 days in advance of any

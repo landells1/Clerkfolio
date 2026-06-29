@@ -19,7 +19,7 @@ export default function DpaPage() {
         </header>
 
         {/* ── Lite DPA Summary ── */}
-        <div className="rounded-xl border border-[var(--accent)] bg-[var(--accent)] px-5 py-5 text-sm leading-7 text-[var(--text-primary)]">
+        <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-5 py-5 text-sm leading-7 text-[var(--text-primary)]">
           <p className="font-semibold text-[var(--text-primary)] mb-2">Summary (non-binding)</p>
           <ul className="space-y-1.5 text-xs leading-6">
             <li>Clerkfolio acts as a <strong>data processor</strong> when processing personal data on behalf of an institutional customer (the controller). For individual consumer sign-ups, Clerkfolio is itself the data controller - see the <Link href="/privacy" className="underline">Privacy policy</Link>.</li>
