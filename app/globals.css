@@ -34,13 +34,13 @@
   --blue: rgb(var(--accent-rgb));
 
   /* Surfaces — layered light to deep by elevation */
-  --bg-canvas:        #EDE8D0; /* page background */
-  --bg-surface:       #F5F1E1; /* cards, panels */
+  --bg-canvas:        #E4DDC1; /* page background (deepened so cards/panels stand out) */
+  --bg-surface:       #F5F1E1; /* cards, panels — kept light for contrast vs canvas */
   --bg-raised:        #FBF8EF; /* inputs, popovers, menus, elevated */
-  --bg-sidebar:       #E5DFC4; /* left navigation */
-  --bg-sunken:        #E3DCC0; /* search wells, insets, table headers */
-  --bg-hover:         #E8E2C9; /* row / nav hover */
-  --bg-active:        #DED7BB; /* selected nav item */
+  --bg-sidebar:       #DED7B9; /* left navigation */
+  --bg-sunken:        #DAD2B0; /* search wells, insets, table headers */
+  --bg-hover:         #DCD5B6; /* row / nav hover */
+  --bg-active:        #D4CBA6; /* selected nav item */
 
   /* Sidebar "you are here" indicator — muted on cream (the dark-mode values
      of solid blue-400 + a 12% tint read as a vivid ring against the lighter
