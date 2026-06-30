@@ -321,7 +321,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         />
       )}
 
-      <aside className={`w-[240px] h-screen bg-[var(--bg-canvas)] border-r border-white/[0.06] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-[240px] h-screen bg-[var(--bg-canvas)] border-r border-[var(--border-default)] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="flex items-center justify-between border-b border-white/[0.06]">
         <Link href="/dashboard" prefetch={false} onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">

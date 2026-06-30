@@ -36,7 +36,7 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
   })
 
   return (
-    <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+    <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
       <div className="mb-4 flex items-start justify-between">
         <div>
           <p className="text-sm font-semibold text-[var(--text-primary)]">This month</p>
@@ -66,9 +66,16 @@ export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] 
               prefetch={false}
               title={`${count?.entries ?? 0} entries, ${count?.deadlines ?? 0} deadlines`}
               className={`relative flex aspect-square min-h-[34px] items-center justify-center rounded-lg border text-xs ${
-                today ? 'border-accent/60' : 'border-white/[0.04]'
-              } ${muted ? 'text-[var(--text-faint)]' : 'text-[var(--text-secondary)]'}`}
-              style={{ backgroundColor: intensity === 0 ? 'rgba(245,245,242,0.035)' : ['#0A3260', '#155BB0', '#3884DD'][intensity - 1] }}
+                today ? 'border-accent/60' : 'border-[var(--border-subtle)]'
+              }`}
+              style={{
+                backgroundColor: muted
+                  ? 'transparent'
+                  : intensity === 0
+                    ? 'var(--bg-sunken)'
+                    : ['var(--cal-fill-1)', 'var(--cal-fill-2)', 'var(--cal-fill-3)'][intensity - 1],
+                color: muted ? 'var(--text-faint)' : 'var(--text-primary)',
+              }}
             >
               {day.getDate()}
               {(count?.deadlines ?? 0) > 0 && <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-amber-300" />}
