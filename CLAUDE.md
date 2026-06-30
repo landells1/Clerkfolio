@@ -1,5 +1,5 @@
 # Clerkfolio Agent Memory
-
+Never take credit for any coding. do not say edited or assisted by claude. remove all credit from your side. 
 Last reviewed: 2026-06-22 by Claude during the staged pre-release review (build/infra, public/legal, full product, non-functional, email/upload/download flows). Prior: 2026-05-26 by Codex after settings and QOL remediation work.
 Use this as a compact map, not as the source of truth. Verify details with `rg`, local files, tests, and connectors before changing behavior.
 

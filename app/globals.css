@@ -28,7 +28,7 @@
      Every brand-blue value derives from it: the solid --accent/--blue/--focus-ring
      here, and the translucent tints app-wide (Tailwind `bg-accent/15` etc., which
      compile to rgb(var(--accent-rgb) / .15)). Change this one line to rebrand. */
-  --accent-rgb: 163 38 56; /* #A32638 oxblood — brighter/punchier so it stands out (dark mode keeps blue, see dark block) */
+  --accent-rgb: 184 42 64; /* #B82A40 oxblood — luminous crimson so small accent text pops (dark mode keeps blue, see dark block) */
 
   /* legacy alias kept for any direct var(--blue) reads */
   --blue: rgb(var(--accent-rgb));
@@ -64,22 +64,22 @@
   --text-muted:       #6B6450; /* captions, meta, placeholders (deepened) */
   --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
-  --text-emphasis:    #A32638; /* brighter oxblood for important text (sidebar nav, key labels) — AAA on cream, sticks out */
+  --text-emphasis:    #B82A40; /* luminous oxblood for important text (sidebar nav, key labels) — pops crisp on cream */
 
   /* Brand accent — primary blue fill stays brand blue in both themes.
      --accent / --focus-ring derive from --accent-rgb (above) so the brand
      colour has one source. --accent-bright/-text/-soft/-soft-text are distinct
      tuned tokens (not pure brand blue) and stay independently adjustable. */
   --accent:           rgb(var(--accent-rgb)); /* button fill, active states */
-  --accent-hover:     #82202E; /* darker oxblood (pressed/hover) */
-  --accent-bright:    #C13247; /* brightest oxblood accents */
-  --accent-text:      #A32638; /* oxblood links / icon text on cream (AAA) */
+  --accent-hover:     #952033; /* darker oxblood (pressed/hover) */
+  --accent-bright:    #D23A52; /* brightest oxblood accents */
+  --accent-text:      #B82A40; /* oxblood links / icon text on cream */
   --accent-soft:      #F3D9DD; /* soft oxblood chip / tag background */
   --accent-soft-text: #6E1E2B; /* text inside soft oxblood chips */
   --focus-ring:       rgb(var(--accent-rgb));
 
   /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
-  --accent-gradient:  linear-gradient(100deg, oklch(0.50 0.17 20) 0%, oklch(0.42 0.16 14) 100%);
+  --accent-gradient:  linear-gradient(100deg, oklch(0.56 0.19 24) 0%, oklch(0.47 0.18 17) 100%);
   --danger-gradient:  linear-gradient(100deg, oklch(0.58 0.19 28) 0%, oklch(0.50 0.19 22) 100%);
 
   /* Informational panel ("example entries" banner) */
