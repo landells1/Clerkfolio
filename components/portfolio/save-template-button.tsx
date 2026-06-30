@@ -114,7 +114,7 @@ export default function SaveTemplateButton({ entry }: Props) {
               <button
                 onClick={handleSave}
                 disabled={saving || !name.trim()}
-                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {saving ? 'Saving…' : 'Save template'}
               </button>

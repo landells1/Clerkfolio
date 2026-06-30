@@ -122,7 +122,7 @@ function FeatureCell({ value }: { value: boolean | string }) {
 function ChecklistItem({ done, label }: { done: boolean; label: string }) {
   return (
     <div className="flex items-start gap-3">
-      <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${done ? 'border-[var(--accent)] bg-[var(--accent)] text-white' : 'border-white/[0.14] text-[var(--text-secondary)]'}`}>
+      <span className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[11px] ${done ? 'border-[var(--accent)] bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]' : 'border-white/[0.14] text-[var(--text-secondary)]'}`}>
         {done ? (
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="20 6 9 17 4 12" />

@@ -12,7 +12,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
           <span className="px-2 py-1">Import</span>
           <span className="px-2 py-1">Application PDF</span>
           <span className="px-2 py-1">Data backup</span>
-          <span className="rounded bg-blue-500 px-2 py-1 text-white">Share links</span>
+          <span className="rounded bg-[var(--button-primary-bg)] px-2 py-1 text-[var(--button-primary-text)]">Share links</span>
         </div>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
@@ -29,7 +29,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
               </div>
             </div>
             <Field label="PIN" value="••••" mono />
-            <button className="w-full rounded-lg bg-blue-500 px-3 py-2.5 text-xs font-semibold text-white">Create link</button>
+            <button className="w-full rounded-lg bg-[var(--button-primary-bg)] px-3 py-2.5 text-xs font-semibold text-[var(--button-primary-text)]">Create link</button>
           </div>
         </div>
         <div className="rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-4">

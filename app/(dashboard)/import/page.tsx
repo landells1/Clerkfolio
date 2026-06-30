@@ -46,14 +46,14 @@ export default async function ImportPage() {
       {sub?.limits.canBulkImport ? (
         <HorusImportWizard specialtyOptions={specialtyOptions} />
       ) : (
-        <section className="rounded-2xl border border-[#1B6FD9]/25 bg-[var(--bg-surface)] p-6">
+        <section className="rounded-2xl border border-[#1B6FD9]/12 bg-[var(--bg-surface)] p-6">
           <h2 className="text-lg font-semibold text-[var(--text-primary)]">Bulk import is a Pro feature</h2>
           <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[var(--text-secondary)]">
             CSV and Horus imports are available on Pro. Free accounts can still add cases and portfolio entries manually.
           </p>
           <Link
             href="/upgrade"
-            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"
+            className="mt-5 inline-flex min-h-[44px] items-center rounded-xl bg-[var(--button-primary-bg)] px-5 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)]"
           >
             Upgrade to Pro
           </Link>

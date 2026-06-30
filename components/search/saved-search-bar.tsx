@@ -131,7 +131,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
           <button
             type="submit"
             disabled={saving || !saveName.trim()}
-            className="min-h-[36px] rounded-lg bg-[var(--accent)] px-3 text-xs font-semibold text-white disabled:opacity-50"
+            className="min-h-[36px] rounded-lg bg-[var(--button-primary-bg)] px-3 text-xs font-semibold text-[var(--button-primary-text)] disabled:opacity-50"
           >
             Save
           </button>

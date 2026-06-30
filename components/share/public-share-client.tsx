@@ -117,7 +117,7 @@ export default function PublicShareClient({ token }: { token: string }) {
       <header className="border-b border-white/[0.06] px-5 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--accent)] text-sm font-bold text-white">C</div>
+            <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[var(--button-primary-bg)] text-sm font-bold text-[var(--button-primary-text)]">C</div>
             <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
           {payload && (
@@ -156,7 +156,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               placeholder="0000"
             />
             {error && <p className="mt-3 text-sm text-[var(--danger)]">{error}</p>}
-            <button className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]">
+            <button className="mt-5 w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-3 text-sm font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)]">
               Unlock
             </button>
           </form>
@@ -169,7 +169,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               <button type="button" onClick={() => history.back()} className="min-h-[40px] rounded-lg border border-red-200/20 px-4 text-sm font-medium text-white hover:bg-[var(--bg-overlay-soft)]">
                 Back
               </button>
-              <Link href="/login" className="inline-flex min-h-[40px] items-center rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">
+              <Link href="/login" className="inline-flex min-h-[40px] items-center rounded-lg bg-[var(--button-primary-bg)] px-4 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)]">
                 Log in to Clerkfolio
               </Link>
             </div>

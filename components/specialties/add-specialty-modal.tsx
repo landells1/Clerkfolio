@@ -158,7 +158,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
               </div>
               <button
                 onClick={() => { window.location.href = '/upgrade' }}
-                className="inline-flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-bright)] text-white text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
+                className="inline-flex items-center gap-2 bg-[var(--button-primary-bg)] hover:bg-[var(--accent-bright)] text-[var(--button-primary-text)] text-sm font-medium rounded-xl px-5 py-2.5 transition-colors"
               >
                 View Pro plan
               </button>

@@ -232,7 +232,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+          className="w-full bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 disabled:cursor-not-allowed text-[var(--button-primary-text)] font-semibold rounded-lg py-2.5 text-sm transition-colors"
         >
           {loading ? 'Creating account…' : 'Create account →'}
         </button>

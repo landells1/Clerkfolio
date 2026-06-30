@@ -199,7 +199,7 @@ export default function OnboardingPage() {
       <header className="border-b border-subtle px-5 py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-blue-500 text-sm font-bold text-white">C</div>
+            <div className="flex h-7 w-7 items-center justify-center rounded bg-[var(--button-primary-bg)] text-sm font-bold text-[var(--button-primary-text)]">C</div>
             <span className="text-sm font-semibold tracking-tight">Clerkfolio</span>
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
@@ -337,7 +337,7 @@ export default function OnboardingPage() {
             Back
           </button>
           {step === 'first-entry' ? (
-            <button onClick={() => complete()} disabled={saving} className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-white disabled:opacity-50 transition-colors">
+            <button onClick={() => complete()} disabled={saving} className="rounded-lg bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] px-6 py-3 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50 transition-colors">
               {saving ? 'Finishing...' : 'Finish setup'}
             </button>
           ) : (
@@ -345,7 +345,7 @@ export default function OnboardingPage() {
               <button
                 onClick={next}
                 aria-describedby={profileStepBlocked && profileContinueAttempted ? profileHintId : undefined}
-                className="rounded-lg bg-blue-500 hover:bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors"
+                className="rounded-lg bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] px-6 py-3 text-sm font-semibold text-[var(--button-primary-text)] transition-colors"
               >
                 Continue
               </button>

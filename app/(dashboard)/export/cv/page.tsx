@@ -73,7 +73,7 @@ export default async function CvGeneratorPage({
           // prefetch={false}: the three template switchers are query-param variants
           // of this one PDF-heavy route; default prefetch fans out the RSC renders
           // on mount (the BUG-001 / F-032 / F-044 prefetch storm). Fetch on click.
-          <Link key={item.key} href={`/export/cv?template=${item.key}`} prefetch={false} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[var(--accent)] text-white' : 'border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)]'}`}>
+          <Link key={item.key} href={`/export/cv?template=${item.key}`} prefetch={false} className={`rounded-xl px-4 py-2 text-sm font-medium ${template === item.key ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]' : 'border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)]'}`}>
             {item.label}
           </Link>
         ))}

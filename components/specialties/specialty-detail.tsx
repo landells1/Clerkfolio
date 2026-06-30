@@ -1053,7 +1053,7 @@ function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; onClose: 
             <button
               onClick={handleGenerate}
               disabled={generating}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               {generating ? (
                 <>

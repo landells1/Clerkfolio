@@ -36,7 +36,7 @@ export function MockCaseForm({ className = '' }: { className?: string }) {
       </div>
       <div className="mt-5 grid grid-cols-3 gap-3 border-t border-white/[0.08] pt-4">
         <button className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-ink-soft">Cancel</button>
-        <button className="col-span-2 rounded-lg bg-blue-500 px-3 py-2 text-xs font-semibold text-white">Save case</button>
+        <button className="col-span-2 rounded-lg bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">Save case</button>
       </div>
     </WindowChrome>
   )

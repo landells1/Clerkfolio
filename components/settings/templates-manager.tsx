@@ -76,7 +76,7 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
           <p className="text-xs text-[var(--text-secondary)] mb-6 max-w-xs">
             Open any portfolio entry and click the &quot;Template&quot; button in the actions row to save it as a personal template.
           </p>
-          <Link href="/portfolio" className="flex items-center gap-2 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
+          <Link href="/portfolio" className="flex items-center gap-2 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold rounded-xl px-4 py-2.5 text-sm transition-colors">
             Go to Portfolio
           </Link>
         </div>

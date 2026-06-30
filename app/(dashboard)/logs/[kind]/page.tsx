@@ -111,7 +111,7 @@ export default async function LogsKindPage({
           <p className="mt-1 text-sm text-fg-1">
             {rotationReflectionPrompts[0].title} is at or near its end date. Capture a brief reflection while the block is still fresh.
           </p>
-          <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg bg-blue-500 hover:bg-blue-600 px-4 text-sm font-semibold text-white transition-colors">
+          <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] px-4 text-sm font-semibold text-[var(--button-primary-text)] transition-colors">
             Add reflection
           </Link>
         </div>

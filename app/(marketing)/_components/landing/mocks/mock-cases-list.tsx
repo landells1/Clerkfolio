@@ -55,7 +55,7 @@ export function MockCasesList({ className = '' }: { className?: string }) {
             <h3 className="text-lg font-semibold tracking-[-0.02em]">Cases</h3>
             <p className="text-xs text-ink-dim">23 cases logged</p>
           </div>
-          <button className="rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white">+ Log case</button>
+          <button className="rounded-md bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">+ Log case</button>
         </div>
         <p className="mb-3 font-mono text-[11px] text-ink-dim">9 Acute medicine · 5 Cardiology · 4 General surgery · 3 Renal</p>
         <div className="mb-3 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-xs leading-5 text-ink-soft">

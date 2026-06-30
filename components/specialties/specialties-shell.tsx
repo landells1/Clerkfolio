@@ -95,7 +95,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           {activeTab === 'my_specialties' && (
             <button
               onClick={() => setShowAddModal(true)}
-              className="flex min-h-[40px] items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-600"
+              className="flex min-h-[40px] items-center gap-2 rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)]"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
@@ -120,7 +120,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               onClick={() => { setActiveTab(tab); setSelectedAppId(null) }}
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                 activeTab === tab
-                  ? 'bg-blue-500 text-white'
+                  ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]'
                   : 'text-fg-2 hover:bg-surface-3 hover:text-fg'
               }`}
             >
@@ -168,7 +168,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                   </p>
                   <button
                     onClick={() => setShowAddModal(true)}
-                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
+                    className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] transition-colors"
                   >
                     Track your first specialty
                   </button>
@@ -354,7 +354,7 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
       <button
         onClick={handleStart}
         disabled={loading}
-        className="shrink-0 px-3 py-1.5 text-xs font-semibold text-white bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 rounded-lg transition-colors"
+        className="shrink-0 px-3 py-1.5 text-xs font-semibold text-[var(--button-primary-text)] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 rounded-lg transition-colors"
       >
         {loading ? 'Starting...' : 'Start new cycle'}
       </button>

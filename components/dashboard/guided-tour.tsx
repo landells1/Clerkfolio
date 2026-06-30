@@ -25,7 +25,7 @@ export default function GuidedTour({ userId, initialStep }: { userId: string; in
       <p className="mt-1 text-sm text-[var(--text-secondary)]">{body}</p>
       <div className="mt-4 flex gap-2">
         <button onClick={() => setNext(STEPS.length)} className="min-h-[40px] flex-1 rounded-xl border border-white/[0.08] text-sm text-[var(--text-secondary)]">Skip</button>
-        <button onClick={() => setNext(step + 1)} className="min-h-[40px] flex-1 rounded-xl bg-[var(--accent)] text-sm font-semibold text-white">{step === STEPS.length - 1 ? 'Done' : 'Next'}</button>
+        <button onClick={() => setNext(step + 1)} className="min-h-[40px] flex-1 rounded-xl bg-[var(--button-primary-bg)] text-sm font-semibold text-[var(--button-primary-text)]">{step === STEPS.length - 1 ? 'Done' : 'Next'}</button>
       </div>
     </div>
   )

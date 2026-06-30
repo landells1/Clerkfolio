@@ -76,7 +76,7 @@ export default function CookieBanner() {
       <div className="flex flex-wrap gap-2">
         <button
           onClick={accept}
-          className="flex-1 rounded-lg bg-[var(--accent)] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]"
+          className="flex-1 rounded-lg bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)]"
         >
           Accept all
         </button>

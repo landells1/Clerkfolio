@@ -280,7 +280,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               type="submit"
               form="log-link-form"
               disabled={!canSubmit || submitting}
-              className="w-full py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="w-full py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-40 text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               {submitting ? 'Saving…' : 'Log & link evidence'}
             </button>

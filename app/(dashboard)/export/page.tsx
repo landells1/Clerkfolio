@@ -546,7 +546,7 @@ export default function ExportPage() {
           <button
             key={item}
             onClick={() => setTab(item)}
-            className={`rounded px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-blue-500 text-white' : 'text-fg-2 hover:bg-surface-3 hover:text-fg'}`}
+            className={`rounded px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]' : 'text-fg-2 hover:bg-surface-3 hover:text-fg'}`}
           >
             {item === 'import' ? 'Import' : item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : 'Share links'}
           </button>
@@ -627,7 +627,7 @@ export default function ExportPage() {
             </div>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Link href="/import" className="rounded-2xl border border-[#1B6FD9]/25 bg-[var(--bg-surface)] p-5 transition-colors hover:border-[#1B6FD9]/50 sm:col-span-2">
+            <Link href="/import" className="rounded-2xl border border-[#1B6FD9]/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-[#1B6FD9]/30 sm:col-span-2">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
                 <span className="rounded-full border border-[#1B6FD9]/30 bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">Recommended</span>
@@ -765,7 +765,7 @@ export default function ExportPage() {
               <div className="flex items-center gap-3">
                 <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[var(--accent-text)]">Select visible</button>
                 <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[var(--text-muted)]">Clear</button>
-                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
+                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
                   {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
                 </button>
               </div>
@@ -866,7 +866,7 @@ export default function ExportPage() {
               </p>
             </div>
           )}
-          <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
             {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
           </button>
           <button
@@ -996,7 +996,7 @@ export default function ExportPage() {
                   Redact tags
                 </label>
               </div>
-              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-40 disabled:cursor-not-allowed">
+              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
                 {shareLoading ? 'Creating...' : 'Create link'}
               </button>
             </div>

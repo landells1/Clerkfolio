@@ -36,6 +36,12 @@
   --bg-hover:         #E8E2C9; /* row / nav hover */
   --bg-active:        #DED7BB; /* selected nav item */
 
+  /* Sidebar "you are here" indicator — muted on cream (the dark-mode values
+     of solid blue-400 + a 12% tint read as a vivid ring against the lighter
+     canvas), kept exactly as-is in dark mode. */
+  --nav-active-border: rgba(27, 111, 217, 0.4);
+  --nav-active-bg:     rgba(27, 111, 217, 0.06);
+
   /* Translucent elevation overlays (white-on-dark today → warm raises on cream) */
   --bg-overlay-faint: rgba(72, 64, 38, 0.035); /* was bg-white/[<=0.04] */
   --bg-overlay-soft:  rgba(72, 64, 38, 0.06);  /* was bg-white/[0.05-0.10] */
@@ -75,6 +81,13 @@
      light block in dark mode — become a dark block on cream). */
   --bg-inverse:       #26241E;
   --text-inverse:     #F5F1E1;
+
+  /* Primary/CTA buttons — ink-on-cream (overrides the handover doc's "blue
+     buttons in both themes" default; brand blue stays everywhere else —
+     links, focus rings, category dots, soft accent tints). */
+  --button-primary-bg:       #26241E;
+  --button-primary-bg-hover: #3D3A2F;
+  --button-primary-text:     #F5F1E1;
 
   /* Status */
   --success:          #15803D;
@@ -119,6 +132,9 @@ html[data-theme="dark"] {
   --bg-hover:         #232326;
   --bg-active:        #1B1B1E;
 
+  --nav-active-border: #3884DD;
+  --nav-active-bg:     rgba(27, 111, 217, 0.12);
+
   --bg-overlay-faint: rgba(255, 255, 255, 0.04);
   --bg-overlay-soft:  rgba(255, 255, 255, 0.06);
   --bg-overlay-strong:rgba(255, 255, 255, 0.12);
@@ -150,6 +166,11 @@ html[data-theme="dark"] {
 
   --bg-inverse:       #F5F5F2;
   --text-inverse:     #0B0B0C;
+
+  /* Dark mode keeps the original brand-blue primary buttons unchanged. */
+  --button-primary-bg:       #1B6FD9;
+  --button-primary-bg-hover: #155BB0;
+  --button-primary-text:     #FFFFFF;
 
   --success:          #22C55E;
   --warning:          #F59E0B;

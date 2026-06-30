@@ -32,7 +32,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
             <h3 className="text-lg font-semibold tracking-[-0.02em]">Portfolio</h3>
             <p className="text-xs text-ink-dim">62 entries across 8 categories</p>
           </div>
-          <button className="rounded-md bg-blue-500 px-3 py-2 text-xs font-semibold text-white">+ New entry</button>
+          <button className="rounded-md bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">+ New entry</button>
         </div>
         <div className="mb-3 flex gap-1.5 overflow-hidden">
           {filters.map((filter) => {

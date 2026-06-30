@@ -97,7 +97,7 @@ export default async function PortfolioPage({
           <Link
             href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'}
             prefetch={false}
-            className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
+            className="min-h-[44px] flex items-center gap-2 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
           >
             <span className="text-lg leading-none">+</span>
             Add entry
@@ -211,7 +211,7 @@ function EmptyPortfolio() {
         <Link
           href="/portfolio/new"
           prefetch={false}
-          className="inline-flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-600 transition-colors"
+          className="inline-flex items-center gap-2 rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] transition-colors"
         >
           Add your first entry
         </Link>

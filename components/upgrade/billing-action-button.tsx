@@ -39,7 +39,7 @@ export default function BillingActionButton({
         type="button"
         onClick={openBilling}
         disabled={loading}
-        className="min-h-[44px] w-full rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50 sm:w-auto"
+        className="min-h-[44px] w-full rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 sm:w-auto"
       >
         {loading ? 'Opening...' : buttonLabel}
       </button>

@@ -295,7 +295,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               <button
                 onClick={handleBulkRecategorise}
                 disabled={recategorising}
-                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {recategorising ? 'Applying...' : 'Apply category'}
               </button>
@@ -327,7 +327,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               <button
                 onClick={handleBulkAddTag}
                 disabled={bulkTags.length === 0 || applyingTag}
-                className="flex-[2] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-xl py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-xl py-2.5 text-sm transition-colors"
               >
                 {applyingTag ? 'Applying…' : `Apply to ${selected.size} ${selected.size === 1 ? 'entry' : 'entries'}`}
               </button>

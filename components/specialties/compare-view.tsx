@@ -46,7 +46,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             </p>
             <Link
               href="/upgrade?source=compare"
-              className="mt-4 inline-flex min-h-[40px] items-center rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] transition-colors"
+              className="mt-4 inline-flex min-h-[40px] items-center rounded-lg bg-[var(--button-primary-bg)] px-4 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] transition-colors"
             >
               Upgrade to Pro
             </Link>

@@ -207,7 +207,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
         {([1, 2, 3, 4] as Step[]).map((s, idx) => (
           <div key={s} className="flex items-center gap-2">
             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-              step === s ? 'bg-[var(--accent)] text-white'
+              step === s ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]'
               : step > s ? 'bg-emerald-500 text-[var(--text-inverse)]'
               : 'bg-white/[0.06] text-[var(--text-secondary)]'
             }`}>
@@ -354,7 +354,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             <button
               onClick={() => setStep(3)}
               disabled={selectedCount === 0}
-              className="px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-40 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="px-5 py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-40 text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               Configure import ({selectedCount} rows)
             </button>
@@ -432,7 +432,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             <button
               onClick={handleImport}
               disabled={importing}
-              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               {importing ? (
                 <>
@@ -471,7 +471,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
           <div className="flex justify-center gap-3">
             <Link
               href="/portfolio"
-              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--accent)] hover:bg-[var(--accent-hover)] text-white font-semibold text-sm rounded-xl transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               View portfolio
             </Link>

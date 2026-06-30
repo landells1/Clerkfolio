@@ -31,7 +31,7 @@ export default async function SignupStatusPage({
     <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-8 text-center">
       <h1 className="text-lg font-semibold text-[var(--text-primary)] mb-2">{message.title}</h1>
       <p className="text-sm text-[var(--text-secondary)] mb-6">{message.text}</p>
-      <Link href="/signup" className="inline-flex min-h-[44px] items-center rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white">
+      <Link href="/signup" className="inline-flex min-h-[44px] items-center rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)]">
         Back to sign up
       </Link>
     </div>

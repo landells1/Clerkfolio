@@ -434,7 +434,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/30 rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/14 rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Career stage</h2>
@@ -780,7 +780,7 @@ export default function SettingsPage() {
       </section>
 
       {profile.referral_code && (
-        <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/25 rounded-2xl p-6 mb-6">
+        <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/12 rounded-2xl p-6 mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Referral code</p>
@@ -977,7 +977,7 @@ function ConfirmModal({
           <button onClick={onCancel} className="min-h-[44px] flex-1 border border-white/[0.08] text-[var(--text-secondary)] rounded-lg px-4 py-2.5 text-sm">
             Cancel
           </button>
-          <button disabled={disabled} onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 ${danger ? 'bg-red-500 text-white' : 'bg-[var(--accent)] text-white'}`}>
+          <button disabled={disabled} onClick={onConfirm} className={`min-h-[44px] flex-1 rounded-lg px-4 py-2.5 text-sm font-semibold disabled:opacity-40 ${danger ? 'bg-red-500 text-[var(--button-primary-text)]' : 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]'}`}>
             {confirmLabel}
           </button>
         </div>

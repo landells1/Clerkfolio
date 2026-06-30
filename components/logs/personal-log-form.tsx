@@ -86,7 +86,7 @@ export default function PersonalLogForm({ kind }: Props) {
         {(kind === 'oop' || kind === 'rotation' || kind === 'wba_received' || kind === 'teaching_observed') && <input value={meta} onChange={e => setMeta(e.target.value)} placeholder={kind === 'rotation' ? 'e.g. Geriatrics block, 4 weeks' : kind === 'oop' ? 'e.g. OOPR research year' : kind === 'wba_received' ? 'e.g. CBD with Dr Patel' : 'e.g. Teaching observed by Dr Khan'} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}
       </div>
       <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes" className="mt-3 min-h-[88px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] p-3 text-sm text-[var(--text-primary)]" />
-      <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[var(--accent)] px-4 text-sm font-semibold text-white disabled:opacity-50">
+      <button disabled={saving} className="mt-3 min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-4 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
           {saving ? 'Saving...' : `Save ${LABELS[kind].toLowerCase()}`}
       </button>
     </form>

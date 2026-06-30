@@ -97,7 +97,7 @@ export default async function CasesPage({
         actions={
           <Link
             href="/cases/new"
-            className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
+            className="min-h-[44px] flex items-center gap-2 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors"
           >
             <span className="text-lg leading-none">+</span>
             Log case
@@ -148,7 +148,7 @@ export default async function CasesPage({
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <p className="text-sm text-fg-1 mb-1">{cases?.length ? 'No cases match these filters' : 'No cases logged yet'}</p>
           <p className="text-xs text-fg-2 mb-6 max-w-xs">Start logging anonymised clinical cases. They will appear here as a journal timeline.</p>
-          <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors">
+          <Link href="/cases/new" className="min-h-[44px] flex items-center gap-2 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold rounded-lg px-4 py-2.5 text-sm transition-colors">
             Log your first case
           </Link>
         </div>

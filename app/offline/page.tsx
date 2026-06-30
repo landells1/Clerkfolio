@@ -26,7 +26,7 @@ export default function OfflinePage() {
         </p>
         <Link
           href="/dashboard"
-          className="inline-block rounded-lg bg-[var(--accent)] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]"
+          className="inline-block rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)]"
         >
           Try the dashboard
         </Link>

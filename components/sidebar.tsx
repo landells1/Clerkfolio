@@ -360,10 +360,10 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                     active
-                      ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                      ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                       : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
                   }`}
-                  style={active ? { background: 'rgba(27,111,217,0.12)' } : undefined}
+                  style={active ? { background: 'var(--nav-active-bg)' } : undefined}
                 >
                   <span className={active ? 'text-[var(--accent-text)]' : 'text-[var(--text-muted)]'}>
                     {item.icon}
@@ -413,10 +413,10 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               onClick={() => setMobileOpen(false)}
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                 pathname === '/upgrade'
-                  ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                  ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                   : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
               }`}
-              style={pathname === '/upgrade' ? { background: 'rgba(27,111,217,0.12)' } : undefined}
+              style={pathname === '/upgrade' ? { background: 'var(--nav-active-bg)' } : undefined}
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2v20" />
@@ -451,10 +451,10 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             onClick={() => setMobileOpen(false)}
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/settings' || pathname.startsWith('/settings/')
-                ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-blue-400'
+                ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                 : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
             }`}
-            style={(pathname === '/settings' || pathname.startsWith('/settings/')) ? { background: 'rgba(27,111,217,0.12)' } : undefined}
+            style={(pathname === '/settings' || pathname.startsWith('/settings/')) ? { background: 'var(--nav-active-bg)' } : undefined}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="3" />
@@ -560,7 +560,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                 <button
                   type="submit"
                   disabled={feedbackSending}
-                  className="w-full bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+                  className="w-full bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-lg py-2.5 text-sm transition-colors"
                 >
                   {feedbackSending ? 'Sending…' : 'Send feedback'}
                 </button>

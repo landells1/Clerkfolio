@@ -522,7 +522,7 @@ export default function QuickAddModal({
               <button
                 type="submit"
                 disabled={saving}
-                className="flex-[2] bg-blue-500 hover:bg-blue-600 disabled:opacity-50 text-white font-semibold rounded-lg py-2.5 text-sm transition-colors"
+                className="flex-[2] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-lg py-2.5 text-sm transition-colors"
               >
                 {saving ? 'Saving...' : `Save ${meta.label.toLowerCase()}`}
               </button>
