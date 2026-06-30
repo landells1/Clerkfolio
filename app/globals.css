@@ -34,13 +34,13 @@
   --blue: rgb(var(--accent-rgb));
 
   /* Surfaces — layered light to deep by elevation */
-  --bg-canvas:        #EDE6CE; /* page background (lightened; cards still read above it) */
-  --bg-surface:       #FBF8EC; /* cards, panels — nudged up so they stay distinct from the lighter canvas */
-  --bg-raised:        #FFFDF6; /* inputs, popovers, menus, elevated — near-white top of the ladder */
-  --bg-sidebar:       #E6DFC5; /* left navigation (a step under canvas) */
-  --bg-sunken:        #E2DBBF; /* search wells, insets, table headers */
-  --bg-hover:         #E5DEC3; /* row / nav hover */
-  --bg-active:        #DDD5B7; /* selected nav item */
+  --bg-canvas:        #F3EDDA; /* page background (lightened further so the oxblood pops) */
+  --bg-surface:       #FDFAF1; /* cards, panels — pushed near-white to stay distinct from the lighter canvas */
+  --bg-raised:        #FFFFFB; /* inputs, popovers, menus, elevated — white top of the ladder */
+  --bg-sidebar:       #ECE6D1; /* left navigation (a step under canvas) */
+  --bg-sunken:        #E9E2CA; /* search wells, insets, table headers */
+  --bg-hover:         #EBE4CD; /* row / nav hover */
+  --bg-active:        #E3DBC1; /* selected nav item */
 
   /* Sidebar "you are here" indicator — muted on cream (the dark-mode values
      of solid blue-400 + a 12% tint read as a vivid ring against the lighter

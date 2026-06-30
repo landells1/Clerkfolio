@@ -61,7 +61,7 @@ export default async function RootLayout({
             __html: `(function(){try{var t=localStorage.getItem('cf-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
           }}
         />
-        <meta name="theme-color" content="#EDE6CE" />
+        <meta name="theme-color" content="#F3EDDA" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <script
           nonce={nonce}
