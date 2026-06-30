@@ -34,13 +34,13 @@
   --blue: rgb(var(--accent-rgb));
 
   /* Surfaces — layered light to deep by elevation */
-  --bg-canvas:        #E4DDC1; /* page background (deepened so cards/panels stand out) */
-  --bg-surface:       #F5F1E1; /* cards, panels — kept light for contrast vs canvas */
-  --bg-raised:        #FBF8EF; /* inputs, popovers, menus, elevated */
-  --bg-sidebar:       #DED7B9; /* left navigation */
-  --bg-sunken:        #DAD2B0; /* search wells, insets, table headers */
-  --bg-hover:         #DCD5B6; /* row / nav hover */
-  --bg-active:        #D4CBA6; /* selected nav item */
+  --bg-canvas:        #EDE6CE; /* page background (lightened; cards still read above it) */
+  --bg-surface:       #FBF8EC; /* cards, panels — nudged up so they stay distinct from the lighter canvas */
+  --bg-raised:        #FFFDF6; /* inputs, popovers, menus, elevated — near-white top of the ladder */
+  --bg-sidebar:       #E6DFC5; /* left navigation (a step under canvas) */
+  --bg-sunken:        #E2DBBF; /* search wells, insets, table headers */
+  --bg-hover:         #E5DEC3; /* row / nav hover */
+  --bg-active:        #DDD5B7; /* selected nav item */
 
   /* Sidebar "you are here" indicator — muted on cream (the dark-mode values
      of solid blue-400 + a 12% tint read as a vivid ring against the lighter
@@ -55,7 +55,7 @@
 
   /* Borders & dividers */
   --border-subtle:    #DDD6BC; /* hairlines between rows */
-  --border-default:   #D2CAAC; /* card outlines, input borders */
+  --border-default:   #CCC3A0; /* card outlines, input borders (firmed up so boxes stay crisp on the lighter canvas) */
   --border-strong:    #C3BA98; /* emphasised / focused outlines */
 
   /* Text */
