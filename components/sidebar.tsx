@@ -361,11 +361,11 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                     active
                       ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
-                      : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
+                      : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
                   }`}
                   style={active ? { background: 'var(--nav-active-bg)' } : undefined}
                 >
-                  <span className={active ? 'text-[var(--accent-text)]' : 'text-[var(--text-muted)]'}>
+                  <span className={active ? 'text-[var(--accent-text)]' : 'text-[var(--text-emphasis)]'}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -378,7 +378,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <div className="mt-auto pt-3 space-y-0.5">
             <button
               onClick={() => { openSearch(); setMobileOpen(false) }}
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-secondary)] hover:text-[var(--text-secondary)] transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--text-emphasis)] hover:text-[var(--text-primary)] transition-colors"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
@@ -397,7 +397,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           {/* Send Feedback */}
           <button
             onClick={() => setFeedbackOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -414,7 +414,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
                 pathname === '/upgrade'
                   ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
-                  : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
+                  : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
               }`}
               style={pathname === '/upgrade' ? { background: 'var(--nav-active-bg)' } : undefined}
             >
@@ -430,7 +430,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
           >
             {loggingOut ? (
               <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full motion-safe:animate-spin flex-shrink-0" />
@@ -452,7 +452,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             className={`flex items-center gap-3 px-3 py-2 text-sm font-medium transition-colors relative ${
               pathname === '/settings' || pathname.startsWith('/settings/')
                 ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
-                : 'rounded-lg text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
+                : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
             }`}
             style={(pathname === '/settings' || pathname.startsWith('/settings/')) ? { background: 'var(--nav-active-bg)' } : undefined}
           >
@@ -600,7 +600,7 @@ function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
 }
 
 function NotificationBellSidebar() {
-  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors" sidebar />
+  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors" sidebar />
 }
 
 function NotificationBellMobile() {

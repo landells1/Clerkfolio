@@ -60,10 +60,11 @@
 
   /* Text */
   --text-primary:     #26241E; /* headings, primary copy (warm near-black) */
-  --text-secondary:   #595444; /* body, labels */
-  --text-muted:       #8B8470; /* captions, meta, placeholders */
+  --text-secondary:   #463F2B; /* body, labels (deepened so it doesn't blend) */
+  --text-muted:       #6B6450; /* captions, meta, placeholders (deepened) */
   --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
+  --text-emphasis:    #7A5320; /* punchy bronze for important text (sidebar nav, key labels) — sticks out, doesn't blend */
 
   /* Brand accent — primary blue fill stays brand blue in both themes.
      --accent / --focus-ring derive from --accent-rgb (above) so the brand
@@ -167,6 +168,7 @@ html[data-theme="dark"] {
   --text-muted:       rgba(245, 245, 242, 0.45);
   --text-faint:       rgba(245, 245, 242, 0.30);
   --text-on-accent:   #FFFFFF;
+  --text-emphasis:    rgba(245, 245, 242, 0.78); /* dark keeps a bright neutral (not bronze — dark accent stays blue) */
 
   --accent:           rgb(var(--accent-rgb));
   --accent-hover:     #155BB0;
