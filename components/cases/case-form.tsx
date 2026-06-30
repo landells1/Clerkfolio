@@ -266,7 +266,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
     >
       {/* Draft restored banner */}
       {draftRestored && (
-        <div className="flex items-center justify-between bg-[#1B6FD9]/10 border border-[#1B6FD9]/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
+        <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
           <span>Draft restored</span>
           <button
             type="button"
@@ -280,7 +280,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
               setImportance(null)
               setNotes('')
             }}
-            className="text-xs text-[#1B6FD9]/70 hover:text-[var(--accent-text)]"
+            className="text-xs text-accent/70 hover:text-[var(--accent-text)]"
           >
             Discard
           </button>
@@ -350,7 +350,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
                   key={tag}
                   type="button"
                   onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                  className="rounded border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 px-2 py-1 text-[10px] text-[var(--accent-text)]"
+                  className="rounded border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] text-[var(--accent-text)]"
                 >
                   + {formatSpecialtyLabel(tag)}
                 </button>
@@ -421,7 +421,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
             type="submit"
             onClick={() => { addAnotherRef.current = true }}
             disabled={saving || uploading}
-            className="flex-1 border border-[#1B6FD9]/40 text-[var(--accent-text)] hover:bg-[#1B6FD9]/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
+            className="flex-1 border border-accent/40 text-[var(--accent-text)] hover:bg-accent/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
           >
             Save & add another
           </button>

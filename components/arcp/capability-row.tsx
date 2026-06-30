@@ -91,7 +91,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
           )}
           <button
             onClick={e => { e.stopPropagation(); setModalOpen(true) }}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--accent-text)] hover:text-[var(--accent-bright)] bg-[#1B6FD9]/10 hover:bg-[#1B6FD9]/15 border border-[#1B6FD9]/20 rounded-lg transition-colors"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[var(--accent-text)] hover:text-[var(--accent-bright)] bg-accent/10 hover:bg-accent/15 border border-accent/20 rounded-lg transition-colors"
           >
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>

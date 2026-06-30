@@ -24,8 +24,14 @@
 :root {
   color-scheme: light;
 
+  /* Brand accent — SINGLE SOURCE OF TRUTH is the RGB channel triplet below.
+     Every brand-blue value derives from it: the solid --accent/--blue/--focus-ring
+     here, and the translucent tints app-wide (Tailwind `bg-accent/15` etc., which
+     compile to rgb(var(--accent-rgb) / .15)). Change this one line to rebrand. */
+  --accent-rgb: 27 111 217; /* #1B6FD9 */
+
   /* legacy alias kept for any direct var(--blue) reads */
-  --blue: #1B6FD9;
+  --blue: rgb(var(--accent-rgb));
 
   /* Surfaces — layered light to deep by elevation */
   --bg-canvas:        #EDE8D0; /* page background */
@@ -59,14 +65,17 @@
   --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
 
-  /* Brand accent — primary blue fill stays brand blue in both themes */
-  --accent:           #1B6FD9; /* button fill, active states */
+  /* Brand accent — primary blue fill stays brand blue in both themes.
+     --accent / --focus-ring derive from --accent-rgb (above) so the brand
+     colour has one source. --accent-bright/-text/-soft/-soft-text are distinct
+     tuned tokens (not pure brand blue) and stay independently adjustable. */
+  --accent:           rgb(var(--accent-rgb)); /* button fill, active states */
   --accent-hover:     #155BB0;
   --accent-bright:    #2563EB; /* brighter blue accents */
   --accent-text:      #1D4ED8; /* blue links / icon text on cream (AA) */
   --accent-soft:      #DCE6FA; /* soft blue chip / tag background */
   --accent-soft-text: #1E40AF; /* text inside soft blue chips */
-  --focus-ring:       #1B6FD9;
+  --focus-ring:       rgb(var(--accent-rgb));
 
   /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
   --accent-gradient:  linear-gradient(100deg, oklch(0.55 0.18 255) 0%, oklch(0.46 0.17 262) 100%);
@@ -122,7 +131,9 @@
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  --blue: #1B6FD9;
+  /* --accent-rgb is inherited from :root (brand blue is constant across themes);
+     --blue/--accent/--focus-ring derive from it here too. */
+  --blue: rgb(var(--accent-rgb));
 
   --bg-canvas:        #0B0B0C;
   --bg-surface:       #141416;
@@ -149,13 +160,13 @@ html[data-theme="dark"] {
   --text-faint:       rgba(245, 245, 242, 0.30);
   --text-on-accent:   #FFFFFF;
 
-  --accent:           #1B6FD9;
+  --accent:           rgb(var(--accent-rgb));
   --accent-hover:     #155BB0;
   --accent-bright:    #3884DD;
   --accent-text:      #6AA8FF;
-  --accent-soft:      rgba(27, 111, 217, 0.15);
+  --accent-soft:      rgb(var(--accent-rgb) / 0.15);
   --accent-soft-text: #93C5FD;
-  --focus-ring:       #1B6FD9;
+  --focus-ring:       rgb(var(--accent-rgb));
 
   --accent-gradient:  linear-gradient(100deg, oklch(0.82 0.13 250) 0%, oklch(0.70 0.13 255) 100%);
   --danger-gradient:  linear-gradient(100deg, oklch(0.75 0.15 30) 0%, oklch(0.65 0.15 20) 100%);

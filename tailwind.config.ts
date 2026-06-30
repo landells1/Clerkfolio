@@ -59,9 +59,13 @@ const config: Config = {
           3: 'var(--text-muted)',
           4: 'var(--text-faint)',
         },
-        // Accent === brand blue.
+        // Accent === brand blue. DEFAULT is the RGB-channel form so Tailwind
+        // opacity modifiers work: `bg-accent`, `bg-accent/15`, `border-accent/40`,
+        // `text-accent/80` all resolve to the single --accent-rgb source in
+        // globals.css. (soft/text are separate tuned tokens — plain var(), no
+        // opacity modifier.)
         accent: {
-          DEFAULT: 'var(--accent)',
+          DEFAULT: 'rgb(var(--accent-rgb) / <alpha-value>)',
           soft: 'var(--accent-soft)',
           text: 'var(--accent-text)',
         },

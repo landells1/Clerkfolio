@@ -331,7 +331,7 @@ export default function TermsPage() {
 
 function Notice({ children }: { children: React.ReactNode }) {
   return (
-    <div className="rounded-xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 px-4 py-4 text-sm leading-7 text-[var(--text-primary)]">
+    <div className="rounded-xl border border-accent/30 bg-accent/10 px-4 py-4 text-sm leading-7 text-[var(--text-primary)]">
       {children}
     </div>
   )

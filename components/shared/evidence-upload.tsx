@@ -145,8 +145,8 @@ export default function EvidenceUpload({
           disabled
             ? 'border-white/[0.05] cursor-not-allowed opacity-50'
             : dragOver
-              ? 'border-[var(--accent)] bg-[#1B6FD9]/10 cursor-copy'
-              : 'border-white/[0.1] hover:border-[#1B6FD9]/50 hover:bg-[#1B6FD9]/5 cursor-pointer'
+              ? 'border-[var(--accent)] bg-accent/10 cursor-copy'
+              : 'border-white/[0.1] hover:border-accent/50 hover:bg-accent/5 cursor-pointer'
         }`}
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

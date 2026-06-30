@@ -434,7 +434,7 @@ export default function SettingsPage() {
         </div>
       )}
 
-      <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/14 rounded-2xl p-6 mb-6">
+      <section className="bg-[var(--bg-surface)] border border-accent/14 rounded-2xl p-6 mb-6">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <h2 className="text-base font-semibold text-[var(--text-primary)] mb-1">Career stage</h2>
@@ -519,7 +519,7 @@ export default function SettingsPage() {
               )}
             </div>
             {emailChangeSentTo && !emailForm.open && (
-              <p role="status" className="mt-2 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-xs font-normal normal-case tracking-normal text-[var(--accent-soft-text)]">
+              <p role="status" className="mt-2 rounded-lg border border-accent/20 bg-accent/10 px-3 py-2 text-xs font-normal normal-case tracking-normal text-[var(--accent-soft-text)]">
                 We sent a confirmation link to {emailChangeSentTo}. Open it to finish changing your login email. Your current email stays active until you do.
               </p>
             )}
@@ -752,7 +752,7 @@ export default function SettingsPage() {
           Accepted domains include .ac.uk, nhs.net, nhs.uk, nhs.scot, wales.nhs.uk, and hscni.net.
         </p>
         {studentEmail.sentAt && !studentEmail.verified && (
-          <p role="status" className="mt-3 rounded-lg border border-[#1B6FD9]/20 bg-[#1B6FD9]/10 px-3 py-2 text-sm text-[var(--accent-soft-text)]">
+          <p role="status" className="mt-3 rounded-lg border border-accent/20 bg-accent/10 px-3 py-2 text-sm text-[var(--accent-soft-text)]">
             We sent a verification link to {studentEmail.email}. Check your institution inbox.
           </p>
         )}
@@ -780,7 +780,7 @@ export default function SettingsPage() {
       </section>
 
       {profile.referral_code && (
-        <section className="bg-[var(--bg-surface)] border border-[#1B6FD9]/12 rounded-2xl p-6 mb-6">
+        <section className="bg-[var(--bg-surface)] border border-accent/12 rounded-2xl p-6 mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Referral code</p>

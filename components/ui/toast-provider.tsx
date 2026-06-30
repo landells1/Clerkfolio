@@ -80,7 +80,7 @@ function ToastItem({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }
                                'var(--text-muted)'
 
   const bg =
-    toast.type === 'success' ? 'bg-[#1B6FD9]/10 border-[#1B6FD9]/20' :
+    toast.type === 'success' ? 'bg-accent/10 border-accent/20' :
     toast.type === 'error'   ? 'bg-red-500/10 border-red-500/20' :
                                'bg-[var(--bg-surface)] border-white/[0.1]'
 

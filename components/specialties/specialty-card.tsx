@@ -141,7 +141,7 @@ function PointsProgress({
         <span className="text-3xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
         <span className="text-sm text-[var(--text-muted)]">/ {config.totalMax} pts</span>
         {bonusScore > 0 && (
-          <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[var(--accent-text)] text-xs font-semibold border border-[#1B6FD9]/20">
+          <span className="ml-1 px-2 py-0.5 rounded-full bg-accent/15 text-[var(--accent-text)] text-xs font-semibold border border-accent/20">
             +{bonusScore} bonus
           </span>
         )}

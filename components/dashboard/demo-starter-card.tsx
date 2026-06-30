@@ -35,7 +35,7 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
   }
 
   return (
-    <div className="mb-6 rounded-2xl border border-[#1B6FD9]/25 bg-[#1B6FD9]/10 p-5">
+    <div className="mb-6 rounded-2xl border border-accent/25 bg-accent/10 p-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h2 className="text-base font-semibold text-[var(--text-primary)]">These are example entries</h2>

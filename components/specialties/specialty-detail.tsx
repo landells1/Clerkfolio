@@ -284,7 +284,7 @@ export function SpecialtyDetail({
                 </div>
                 <span className="text-sm text-[var(--text-secondary)]">{opt.label}</span>
                 {bonusClaimed && (
-                  <span className="ml-auto px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[var(--accent-text)] text-xs font-semibold border border-[#1B6FD9]/20">
+                  <span className="ml-auto px-2 py-0.5 rounded-full bg-accent/15 text-[var(--accent-text)] text-xs font-semibold border border-accent/20">
                     +{opt.points} pts
                   </span>
                 )}
@@ -487,7 +487,7 @@ function PointsHeader({
           <span className="text-4xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
           <span className="text-sm text-[var(--text-muted)]">/ {config.totalMax} pts</span>
           {bonusScore > 0 && (
-            <span className="ml-1 px-2 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[var(--accent-text)] text-xs font-semibold border border-[#1B6FD9]/20">
+            <span className="ml-1 px-2 py-0.5 rounded-full bg-accent/15 text-[var(--accent-text)] text-xs font-semibold border border-accent/20">
               +{bonusScore} bonus
             </span>
           )}
@@ -512,7 +512,7 @@ function PointsHeader({
           <span className="text-3xl font-bold text-[var(--text-primary)]">{domainsScore}</span>
           <span className="text-xs text-[var(--text-muted)]">/ {config.totalMax} pts</span>
           {bonusScore > 0 && (
-            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-[#1B6FD9]/15 text-[var(--accent-text)] text-[10px] font-semibold border border-[#1B6FD9]/20">
+            <span className="ml-1 px-1.5 py-0.5 rounded-full bg-accent/15 text-[var(--accent-text)] text-[10px] font-semibold border border-accent/20">
               +{bonusScore} bonus
             </span>
           )}
@@ -846,7 +846,7 @@ function DomainTabButton({
       onClick={onSelect}
       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
         isActive
-          ? 'bg-[#1B6FD9]/15 text-[var(--accent-text)] border border-[#1B6FD9]/25'
+          ? 'bg-accent/15 text-[var(--accent-text)] border border-accent/25'
           : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[var(--text-secondary)]'
       }`}
     >
@@ -856,7 +856,7 @@ function DomainTabButton({
       ) : (
         <span
           className={`px-1.5 py-0.5 rounded-md text-xs font-semibold ${
-            isActive ? 'bg-[#1B6FD9]/20 text-[var(--accent-text)]' : 'bg-white/[0.06] text-[var(--text-muted)]'
+            isActive ? 'bg-accent/20 text-[var(--accent-text)]' : 'bg-white/[0.06] text-[var(--text-muted)]'
           }`}
         >
           {score ?? 0}
@@ -871,7 +871,7 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
     return (
       <span
         className={`w-3.5 h-3.5 rounded-full border ${
-          isActive ? 'border-[#1B6FD9]/40' : 'border-white/[0.15]'
+          isActive ? 'border-accent/40' : 'border-white/[0.15]'
         }`}
       />
     )
@@ -880,7 +880,7 @@ function EvidenceStateBadge({ state, isActive }: { state: 'empty' | 'met' | 'evi
   return (
     <span
       className={`w-3.5 h-3.5 rounded-full flex items-center justify-center ${
-        isActive ? 'bg-[var(--accent)]' : 'bg-[#1B6FD9]/80'
+        isActive ? 'bg-[var(--accent)]' : 'bg-accent/80'
       }`}
     >
       <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">

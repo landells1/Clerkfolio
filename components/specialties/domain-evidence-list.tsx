@@ -53,7 +53,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               key={link.id}
               className={`relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 isCounting
-                  ? 'border-l-2 border-l-[var(--accent)] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-[#1B6FD9]/[0.05]'
+                  ? 'border-l-2 border-l-[var(--accent)] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-accent/[0.05]'
                   : 'border-white/[0.06] bg-white/[0.02]'
               }`}
             >
@@ -78,7 +78,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         isCounting
-                          ? 'bg-[#1B6FD9]/20 text-[var(--accent-text)]'
+                          ? 'bg-accent/20 text-[var(--accent-text)]'
                           : 'bg-white/[0.06] text-[var(--text-muted)]'
                       }`}
                     >

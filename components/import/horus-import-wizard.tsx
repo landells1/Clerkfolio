@@ -235,7 +235,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-12 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
-              dragging ? 'border-[var(--accent)] bg-[#1B6FD9]/5' : 'border-white/[0.08] hover:border-white/[0.2]'
+              dragging ? 'border-[var(--accent)] bg-accent/5' : 'border-white/[0.08] hover:border-white/[0.2]'
             }`}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -381,7 +381,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                     key={option.key}
                     type="button"
                     onClick={() => toggleTag(option.key)}
-                    className={`min-h-[36px] rounded-lg border px-3 text-xs font-medium ${selectedTags.includes(option.key) ? 'border-[var(--accent)] bg-[#1B6FD9]/15 text-[var(--text-primary)]' : 'border-white/[0.08] text-[var(--text-secondary)]'}`}
+                    className={`min-h-[36px] rounded-lg border px-3 text-xs font-medium ${selectedTags.includes(option.key) ? 'border-[var(--accent)] bg-accent/15 text-[var(--text-primary)]' : 'border-white/[0.08] text-[var(--text-secondary)]'}`}
                   >
                     {option.name}
                   </button>

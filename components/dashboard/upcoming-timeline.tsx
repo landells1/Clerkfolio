@@ -65,7 +65,7 @@ export default function UpcomingTimeline({ items }: { items: UpcomingTimelineIte
                   disabled={pendingId === item.id}
                   onClick={() => completeDeadline(item)}
                   aria-label={`Complete ${item.title}`}
-                  className="flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] text-[var(--text-muted)] hover:border-[#1B6FD9]/40 hover:text-[var(--accent-text)] disabled:opacity-50"
+                  className="flex h-7 w-7 items-center justify-center rounded-full border border-white/[0.08] text-[var(--text-muted)] hover:border-accent/40 hover:text-[var(--accent-text)] disabled:opacity-50"
                 >
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M20 6 9 17l-5-5" />

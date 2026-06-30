@@ -27,7 +27,7 @@ export default function CareerTimeline({ stage }: { stage: string | null | undef
                 index === activeIndex
                   ? 'border-[var(--accent)] bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]'
                   : index < activeIndex
-                    ? 'border-[#1B6FD9]/45 bg-[#1B6FD9]/15 text-[var(--text-primary)]'
+                    ? 'border-accent/45 bg-accent/15 text-[var(--text-primary)]'
                     : 'border-white/[0.12] bg-[var(--bg-canvas)] text-[var(--text-muted)]'
               }`}>
                 {item.label}

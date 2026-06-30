@@ -95,7 +95,7 @@ function filenameFromContentDisposition(header: string | null): string | null {
 function specialtyChipClass(active: boolean) {
   return `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/20 text-[var(--accent-text)]'
+      ? 'border-accent/40 bg-accent/20 text-[var(--accent-text)]'
       : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
   }`
 }
@@ -627,10 +627,10 @@ export default function ExportPage() {
             </div>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <Link href="/import" className="rounded-2xl border border-[#1B6FD9]/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-[#1B6FD9]/30 sm:col-span-2">
+            <Link href="/import" className="rounded-2xl border border-accent/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-accent/30 sm:col-span-2">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
-                <span className="rounded-full border border-[#1B6FD9]/30 bg-[#1B6FD9]/15 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">Recommended</span>
+                <span className="rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">Recommended</span>
               </div>
               <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
             </Link>
@@ -667,7 +667,7 @@ export default function ExportPage() {
               <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Format</p>
               <div className="flex gap-2">
                 {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
-                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[var(--accent-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
+                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
                     {f.toUpperCase()}
                   </button>
                 ))}
@@ -790,7 +790,7 @@ export default function ExportPage() {
                   const colour = CATEGORY_COLOURS[entry.category]
                   const label = CATEGORIES.find(c => c.value === entry.category)?.short ?? entry.category
                   return (
-                    <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
+                    <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-accent/5' : 'hover:bg-white/[0.02]'}`}>
                       <input type="checkbox" checked={checked} onChange={() => setSelectedEntryIds(prev => {
                         const next = new Set(prev)
                         next.has(entry.id) ? next.delete(entry.id) : next.add(entry.id)
@@ -823,7 +823,7 @@ export default function ExportPage() {
                   const checked = selectedCaseIds.has(c.id)
                   const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
                   return (
-                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-[#1B6FD9]/5' : 'hover:bg-white/[0.02]'}`}>
+                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-accent/5' : 'hover:bg-white/[0.02]'}`}>
                       <input type="checkbox" checked={checked} onChange={() => setSelectedCaseIds(prev => {
                         const next = new Set(prev)
                         next.has(c.id) ? next.delete(c.id) : next.add(c.id)
@@ -949,7 +949,7 @@ export default function ExportPage() {
                       onClick={() => setExpiryPreset(preset.days)}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         expiryPreset === preset.days
-                          ? 'border-[#1B6FD9]/40 bg-[#1B6FD9]/15 text-[var(--accent-text)]'
+                          ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]'
                           : 'border-white/[0.08] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >

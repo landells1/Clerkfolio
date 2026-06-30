@@ -26,7 +26,7 @@ export default async function UpgradePage() {
       </div>
 
       {subInfo.isMedStudent && (
-        <section className="mb-6 rounded-2xl border border-[#1B6FD9]/30 bg-[#1B6FD9]/10 p-5">
+        <section className="mb-6 rounded-2xl border border-accent/30 bg-accent/10 p-5">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">Pro is optional for medical students</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
             Pro is optional for medical students - most stay on the free / student tier until they graduate.
@@ -43,7 +43,7 @@ export default async function UpgradePage() {
             key={tier.name}
             className={`rounded-2xl border p-5 ${
               tier.highlight
-                ? 'border-[#1B6FD9]/45 bg-[#1B6FD9]/10'
+                ? 'border-accent/45 bg-accent/10'
                 : 'border-white/[0.08] bg-[var(--bg-surface)]'
             }`}
           >

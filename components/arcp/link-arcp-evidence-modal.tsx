@@ -100,7 +100,7 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
           {searching && <p className="py-4 text-xs text-[var(--text-secondary)]">Searching...</p>}
           <div className="mt-4 space-y-2">
             {results.map(result => (
-              <button key={result.id} onClick={() => handleLink(result)} disabled={linking} className="w-full min-h-[44px] rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] p-3 text-left hover:border-[#1B6FD9]/40 disabled:opacity-50">
+              <button key={result.id} onClick={() => handleLink(result)} disabled={linking} className="w-full min-h-[44px] rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] p-3 text-left hover:border-accent/40 disabled:opacity-50">
                 <p className="text-sm font-medium text-[var(--text-primary)]">{result.title}</p>
                 <p className="text-xs text-[var(--text-secondary)]">{new Date(result.date).toLocaleDateString('en-GB')}</p>
               </button>
@@ -115,7 +115,7 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
           {query && !searching && results.length === 0 && (
             <div className="py-8 text-center">
               <p className="text-xs text-[var(--text-secondary)]">No matching portfolio entries found.</p>
-              <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--accent-text)] hover:border-[#1B6FD9]/40">
+              <Link href="/portfolio/new?category=reflection" className="mt-3 inline-flex min-h-[40px] items-center rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--accent-text)] hover:border-accent/40">
                 Create portfolio entry
               </Link>
             </div>

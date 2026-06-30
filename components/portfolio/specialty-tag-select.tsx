@@ -123,7 +123,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
         {value.map(tag => (
           <span
             key={tag}
-            className="inline-flex items-center gap-1 bg-[#1B6FD9]/15 text-[var(--accent-text)] border border-[#1B6FD9]/25 rounded px-2 py-0.5 text-xs font-medium"
+            className="inline-flex items-center gap-1 bg-accent/15 text-[var(--accent-text)] border border-accent/25 rounded px-2 py-0.5 text-xs font-medium"
           >
             {getOptionLabel(tag)}
             <button
@@ -226,7 +226,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
                       onClick={() => toggle(s)}
                       className={`w-full flex items-center justify-between px-3 py-2 text-sm text-left transition-colors ${
                         isSelected
-                          ? 'bg-[#1B6FD9]/10 text-[var(--accent-text)]'
+                          ? 'bg-accent/10 text-[var(--accent-text)]'
                           : isActive
                             ? 'bg-white/[0.06] text-[var(--text-primary)]'
                             : 'text-[var(--text-secondary)] hover:bg-white/[0.04] hover:text-[var(--text-primary)]'

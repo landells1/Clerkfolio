@@ -263,7 +263,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               placeholder="Theme name"
               className="min-h-[36px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
             />
-            <button type="button" onClick={addTheme} className="rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-primary)] hover:border-[#1B6FD9]/40">
+            <button type="button" onClick={addTheme} className="rounded-lg border border-white/[0.08] px-3 text-xs font-medium text-[var(--text-primary)] hover:border-accent/40">
               + Add theme
             </button>
           </div>
