@@ -549,7 +549,7 @@ export default function SettingsPage() {
                     type="button"
                     onClick={handleEmailChange}
                     disabled={emailChangeLoading}
-                    className="min-h-[44px] rounded-lg bg-[var(--accent)] px-4 py-2.5 text-sm font-semibold normal-case tracking-normal text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+                    className="min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold normal-case tracking-normal text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50"
                   >
                     {emailChangeLoading ? 'Sending...' : 'Send confirmation'}
                   </button>
@@ -577,7 +577,7 @@ export default function SettingsPage() {
               Used to display deadlines and digest send times in your local time.
             </span>
           </label>
-          <button disabled={savingProfile} className="min-h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
+          <button disabled={savingProfile} className="min-h-[44px] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-lg px-5 py-2.5 text-sm">
             {savingProfile ? 'Saving...' : 'Save profile'}
           </button>
         </form>
@@ -607,7 +607,7 @@ export default function SettingsPage() {
             placeholder="dr-test"
             className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
           />
-          <button onClick={() => saveProfile()} disabled={savingProfile} className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+          <button onClick={() => saveProfile()} disabled={savingProfile} className="min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
             Save showcase
           </button>
         </div>
@@ -678,7 +678,7 @@ export default function SettingsPage() {
             />
           </label>
         </div>
-        <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white disabled:opacity-50">
+        <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
           Save display preferences
         </button>
         <p className="mt-4 text-xs text-[var(--text-secondary)]">Data encrypted at rest by Supabase, eu-west-2.</p>
@@ -711,7 +711,7 @@ export default function SettingsPage() {
                   <p>Share links used: {subInfo.usage.shareLinksUsed} / {shareAllowance}</p>
                 </div>
                 <div className="flex flex-col gap-2 sm:items-end">
-                  <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-center text-sm font-semibold text-white hover:bg-[var(--accent-hover)]">
+                  <Link href="/upgrade" className="min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-center text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)]">
                     View plans
                   </Link>
                   <BillingActionButton hasStripeBilling={provenance.hasStripeBilling} label={provenance.billingLabel} />
@@ -743,7 +743,7 @@ export default function SettingsPage() {
           />
           <button
             disabled={sendingStudentEmail}
-            className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)] disabled:opacity-50"
+            className="min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50"
           >
             {sendingStudentEmail ? 'Sending...' : studentEmail.verified ? 'Re-verify' : 'Send verification'}
           </button>
@@ -791,7 +791,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={copyReferralLink}
-                className="min-h-[44px] rounded-lg bg-[var(--accent)] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[var(--accent-hover)]"
+                className="min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)]"
               >
                 Copy link
               </button>
@@ -815,7 +815,7 @@ export default function SettingsPage() {
           <input type="password" autoComplete="current-password" placeholder="Current password" value={passwordForm.current} onChange={e => setPasswordForm(f => ({ ...f, current: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
           <input type="password" autoComplete="new-password" placeholder="New password" value={passwordForm.next} onChange={e => setPasswordForm(f => ({ ...f, next: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
           <input type="password" autoComplete="new-password" placeholder="Confirm new password" value={passwordForm.confirm} onChange={e => setPasswordForm(f => ({ ...f, confirm: e.target.value }))} className="w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)]" />
-          <button disabled={passwordLoading} className="min-h-[44px] bg-[var(--accent)] hover:bg-[var(--accent-hover)] disabled:opacity-50 text-white font-semibold rounded-lg px-5 py-2.5 text-sm">
+          <button disabled={passwordLoading} className="min-h-[44px] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold rounded-lg px-5 py-2.5 text-sm">
             {passwordLoading ? 'Updating...' : 'Update password'}
           </button>
         </form>
