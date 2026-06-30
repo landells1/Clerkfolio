@@ -468,7 +468,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
-            <span className="text-sm text-[var(--text-secondary)] truncate font-medium">{fullName}</span>
+            <span className="text-sm text-[var(--text-emphasis)] truncate font-medium">{fullName}</span>
           </div>
 
           {/* Legal links */}
@@ -526,7 +526,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
             <form onSubmit={handleFeedbackSubmit} className="space-y-3">
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Your name</label>
+                  <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Your name</label>
                   <input
                     required
                     value={feedback.name}
@@ -536,7 +536,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Email</label>
+                  <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Email</label>
                   <input
                     type="email"
                     required
@@ -547,7 +547,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Comment</label>
+                  <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Comment</label>
                   <textarea
                     required
                     rows={4}

@@ -262,7 +262,7 @@ export function SpecialtyDetail({
         {/* Bonus options - only for points-based with bonuses */}
         {!evidenceBased && config.bonusOptions && config.bonusOptions.length > 0 && (
           <div className="flex flex-col gap-2">
-            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Bonus Points</p>
+            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">Bonus Points</p>
             {config.bonusOptions.map(opt => (
               <label
                 key={opt.key}
@@ -505,7 +505,7 @@ function PointsHeader({
   return (
     <div className="grid grid-cols-2 gap-6 mt-2">
       <div>
-        <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
+        <p className="text-[10px] text-[var(--text-emphasis)] font-semibold uppercase tracking-wide mb-1">
           Score
         </p>
         <div className="flex items-baseline gap-1.5 mb-2">
@@ -583,7 +583,7 @@ function HeaderProgressBlock({
 }) {
   return (
     <div>
-      <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
+      <p className="text-[10px] text-[var(--text-emphasis)] font-semibold uppercase tracking-wide mb-1">
         {label}
       </p>
       <div className="flex items-baseline gap-1.5 mb-2">
@@ -683,7 +683,7 @@ function PointsLayoutTabs({
       />
       <div>
         <div className="flex items-center gap-2 mb-2 px-1">
-          <span className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wide shrink-0">
+          <span className="text-xs text-[var(--text-emphasis)] font-semibold uppercase tracking-wide shrink-0">
             Scoring
           </span>
           <span className="text-xs text-[var(--text-secondary)] flex-1">
@@ -786,7 +786,7 @@ function DomainGroup({
   return (
     <div>
       <div className="flex items-center gap-2 mb-2 px-1">
-        <span className="text-xs text-[var(--text-secondary)] font-semibold uppercase tracking-wide shrink-0">
+        <span className="text-xs text-[var(--text-emphasis)] font-semibold uppercase tracking-wide shrink-0">
           {title}
         </span>
         <span className="text-xs text-[var(--text-secondary)] flex-1">{subtitle}</span>

@@ -403,21 +403,21 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
           <form onSubmit={addGoal} className="w-full sm:max-w-md bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">Add goal</h2>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Portfolio category
               <select value={goalForm.category} onChange={e => setGoalForm(f => ({ ...f, category: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]">
                 {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
               </select>
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Target count
               <input type="number" min="1" value={goalForm.target_count} onChange={e => setGoalForm(f => ({ ...f, target_count: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Due date
               <input type="date" value={goalForm.due_date} onChange={e => setGoalForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Related specialty
               <select value={goalForm.specialty_application_id} onChange={e => setGoalForm(f => ({ ...f, specialty_application_id: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]">
                 <option value="">Other</option>
@@ -425,7 +425,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
               </select>
             </label>
             <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-muted)]">SMART detail</p>
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">SMART detail</p>
               {[
                 ['specific', 'Specific: what exactly will you complete?'],
                 ['measurable', 'Measurable: how will you know it is done?'],
@@ -454,23 +454,23 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
           <form onSubmit={addEvent} className="w-full sm:max-w-md bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">Add calendar event</h2>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Event title
               <input required value={eventForm.title} onChange={e => setEventForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. IMT application deadline" className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Date
               <input type="date" value={eventForm.due_date} onChange={e => setEventForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Location or link
               <input value={eventForm.location} onChange={e => setEventForm(f => ({ ...f, location: e.target.value }))} placeholder="e.g. Oriel, MS Teams, Royal College website" className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Details
               <textarea value={eventForm.details} onChange={e => setEventForm(f => ({ ...f, details: e.target.value }))} placeholder="What needs to happen before this date?" rows={4} className="mt-1.5 w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 py-2.5 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Related specialty
               <select value={eventForm.source_specialty_key} onChange={e => setEventForm(f => ({ ...f, source_specialty_key: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]">
                 <option value="">Other</option>
@@ -490,7 +490,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <div className="w-full sm:max-w-lg bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-wide text-[var(--text-secondary)]">{selectedItem.type}</p>
+                <p className="text-xs uppercase tracking-wide text-[var(--text-emphasis)]">{selectedItem.type}</p>
                 <h2 className="mt-1 text-lg font-semibold text-[var(--text-primary)]">{selectedItem.title}</h2>
               </div>
               <button type="button" onClick={() => setSelectedItem(null)} className="min-h-[36px] px-3 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Close</button>
@@ -568,7 +568,7 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: R
                 <div className="flex flex-col items-end gap-1">
                   <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-[var(--success)]' : 'border-amber-400/20 bg-amber-400/10 text-[var(--warning)]'}`}>{item.type}</span>
                   {item.isAuto && (
-                    <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[var(--text-secondary)]" title="Auto-loaded from your tracked specialty">Auto</span>
+                    <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[var(--text-emphasis)]" title="Auto-loaded from your tracked specialty">Auto</span>
                   )}
                 </div>
               </button>

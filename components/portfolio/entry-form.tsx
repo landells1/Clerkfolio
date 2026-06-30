@@ -34,7 +34,7 @@ type Props = {
 
 const INPUT ='w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
 const SELECT = 'w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
-const LABEL = 'block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide'
+const LABEL = 'block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide'
 const FIELD = 'flex flex-col gap-1'
 const GRID2 = 'grid grid-cols-1 gap-4 sm:grid-cols-2'
 const TOGGLE_BTN = (active: boolean) =>
@@ -702,7 +702,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Common fields */}
         <div className="space-y-4">
-          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">General</h3>
+          <h3 className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wider">General</h3>
           <Field label="Title *">
             <input type="text" required maxLength={200} value={title} onChange={e => { setTitle(e.target.value); markDirty() }} className={INPUT} placeholder={ph('title', 'Give this entry a clear title')} />
           </Field>
@@ -750,7 +750,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Category-specific fields */}
         <div className="space-y-4 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">
+          <h3 className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wider">
             {CATEGORIES.find(c => c.value === category)?.label} details
           </h3>
 
@@ -1071,7 +1071,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
-          <h3 className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wider">Evidence</h3>
+          <h3 className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wider">Evidence</h3>
           {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
           {mode === 'edit' && existingEvidence.length > 0 && (
             <EvidenceFiles initialFiles={existingEvidence} canDelete />
@@ -1146,7 +1146,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
               {/* Personal templates */}
               {personalTemplates.length > 0 && (
                 <div>
-                  <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Your templates</p>
+                  <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Your templates</p>
                   <div className="grid grid-cols-2 gap-2">
                     {personalTemplates.map(t => (
                       <button
@@ -1169,7 +1169,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 if (!ts || ts.length === 0) return null
                 return (
                   <div key={cat.value}>
-                    <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">{cat.label}</p>
+                    <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">{cat.label}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {ts.map(t => (
                         <button

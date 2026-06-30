@@ -82,7 +82,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
       {/* Selector row */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div>
-          <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+          <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
             Left specialty
           </label>
           <select
@@ -101,7 +101,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
           </select>
         </div>
         <div>
-          <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+          <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
             Right specialty
           </label>
           <select
@@ -133,7 +133,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             </p>
           </div>
           <div className="p-4 text-center border-x border-white/[0.06]">
-            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Domain</p>
+            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">Domain</p>
           </div>
           <div className="p-4 text-center">
             <p className="font-semibold text-[var(--text-primary)] text-sm">{rightConfig?.name ?? '-'}</p>
@@ -185,7 +185,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             <TotalCell config={leftConfig} app={leftApp} links={leftLinks} />
           </div>
           <div className="p-4 flex items-center justify-center border-x border-white/[0.06]">
-            <span className="text-xs text-[var(--text-muted)] font-semibold uppercase tracking-wide">Total</span>
+            <span className="text-xs text-[var(--text-emphasis)] font-semibold uppercase tracking-wide">Total</span>
           </div>
           <div className="p-4 flex items-center justify-center">
             <TotalCell config={rightConfig} app={rightApp} links={rightLinks} />

@@ -27,7 +27,7 @@ type Props = {
 }
 
 const INPUT = 'w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors'
-const LABEL = 'block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide'
+const LABEL = 'block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide'
 const WORD_COUNT_CLASS = 'text-[10px] text-[var(--text-secondary)] mt-1 text-right'
 const DRAFT_KEY = 'clerkfolio-case-draft'
 

@@ -72,14 +72,14 @@ export default function TagsSettingsPage() {
             Choose the specialty tag you want to merge, and the tag to merge it into. Clerkfolio keeps the internal key hidden.
           </p>
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Merge this tag
               <select required value={oldTag} onChange={event => setOldTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 <option value="">Select current tag</option>
                 {availableTags.map(tag => <option key={tag} value={tag}>{formatSpecialtyLabel(tag)}</option>)}
               </select>
             </label>
-            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Into this tag
               <select required value={newTag} onChange={event => setNewTag(event.target.value)} className="mt-1.5 min-h-[44px] w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 <option value="">Select destination tag</option>

@@ -190,7 +190,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
         <div className="absolute z-20 w-full mt-1 bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl shadow-2xl overflow-hidden">
           {/* Section header - only in non-tracked mode when there are user interests */}
           {!trackedOnly && userInterests.length > 0 && (
-            <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-b border-white/[0.06]">
+            <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider border-b border-white/[0.06]">
               Your specialties
             </div>
           )}
@@ -213,7 +213,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
                 return (
                   <div key={s}>
                     {showDivider && (
-                      <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider border-t border-white/[0.06]">
+                      <div className="px-3 py-1.5 text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider border-t border-white/[0.06]">
                         All specialties
                       </div>
                     )}

@@ -366,7 +366,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Optional supporting evidence */}
         <div className="mt-5">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
             <p className="text-xs text-[var(--text-secondary)]">Optional</p>
@@ -496,7 +496,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
         {/* Supporting evidence - optional upload */}
         <div>
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
               Supporting evidence
             </p>
             <p className="text-xs text-[var(--text-secondary)]">Optional</p>
@@ -590,7 +590,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       {/* Self-assessed */}
       {domain.isSelfAssessed && (
         <div>
-          <label className="text-xs text-[var(--text-muted)] font-medium mb-2 block uppercase tracking-wide">
+          <label className="text-xs text-[var(--text-emphasis)] font-medium mb-2 block uppercase tracking-wide">
             Self-assessment
           </label>
           <select
@@ -612,7 +612,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       {domain.isCheckbox && (
         <div className="space-y-2">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">
+            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
               Claimed items
             </p>
             <span className="text-xs text-[var(--text-muted)]">
@@ -661,7 +661,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
           {/* Scoring bands - tick to quick-claim, or link evidence below */}
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide">Scoring bands</p>
+              <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">Scoring bands</p>
               <p className="text-xs text-[var(--text-secondary)]">Tick to claim</p>
             </div>
             <div className="space-y-1">

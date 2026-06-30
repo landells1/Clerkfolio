@@ -229,7 +229,7 @@ export function LinkEvidenceModal({
                 </div>
               ) : (
                 <div>
-                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-2 block">
+                  <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-2 block">
                     Which scoring band does this evidence qualify for?
                   </label>
                   <select

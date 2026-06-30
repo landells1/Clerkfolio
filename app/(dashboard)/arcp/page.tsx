@@ -53,7 +53,7 @@ export default async function ARCPPage() {
     <div className="p-8 max-w-3xl mx-auto">
       <div className="mb-8">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">ARCP Evidence</h1>
-        <p className="text-xs uppercase tracking-wider text-[var(--text-muted)] mt-1">
+        <p className="text-xs uppercase tracking-wider text-[var(--text-emphasis)] mt-1">
           Annual Review of Competency Progression
         </p>
         <p className="text-sm text-[var(--text-secondary)] mt-2">

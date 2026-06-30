@@ -561,7 +561,7 @@ export default function ExportPage() {
 
       {tab !== 'backup' && tab !== 'import' && (
         <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Target specialty</p>
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Target specialty</p>
           <div className="mb-3 flex flex-wrap gap-2">
             {[
               { value: ALL_RECORDS, label: 'All records' },
@@ -574,7 +574,7 @@ export default function ExportPage() {
           </div>
           {trackedSpecialtyOptions.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">Tracked specialties</p>
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tracked specialties</p>
               <div className="flex flex-wrap gap-2">
                 {trackedSpecialtyOptions.map(({ key, count }) => (
                   <button key={key} onClick={() => setSpecialty(current => current === key ? '' : key)} className={specialtyChipClass(specialty === key)}>
@@ -586,7 +586,7 @@ export default function ExportPage() {
           )}
           {linkedOnlyOptions.length > 0 && (
             <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-muted)]">Tagged in your entries</p>
+              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tagged in your entries</p>
               <div className="flex flex-wrap gap-2">
                 {linkedOnlyOptions.map(({ tag, count }) => (
                   <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={specialtyChipClass(specialty === tag)}>
@@ -664,7 +664,7 @@ export default function ExportPage() {
             )}
 
             <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Format</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Format</p>
               <div className="flex gap-2">
                 {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
                   <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
@@ -681,7 +681,7 @@ export default function ExportPage() {
 
             {format === 'pdf' && (
               <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Template</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Template</p>
                 <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="default">Default</option>
                   <option value="foundation">Foundation portfolio</option>
@@ -699,7 +699,7 @@ export default function ExportPage() {
 
             {themes.length > 0 && (
               <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Theme filter</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme filter</p>
                 <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="">Any theme</option>
                 {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
@@ -709,7 +709,7 @@ export default function ExportPage() {
 
             {loadedSpecialty && (
               <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Category</p>
+                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Category</p>
                 <div className="flex flex-wrap gap-2">
                   <button onClick={() => setCategoryFilter('all')} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === 'all' ? 'border-white/[0.15] bg-white/[0.1] text-[var(--text-primary)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>All</button>
                   {CATEGORIES.filter(c => categoriesPresent.includes(c.value)).map(cat => (
@@ -720,7 +720,7 @@ export default function ExportPage() {
             )}
 
             <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Fields</p>
+              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Fields</p>
               <div className="space-y-2">
                 {EXPORT_FIELDS.map(field => (
                   <label key={field.value} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
@@ -737,7 +737,7 @@ export default function ExportPage() {
 
             {format === 'pdf' && (
               <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">Append PDF</p>
+                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Append PDF</p>
                 <p className="mb-3 text-[11px] text-[var(--text-muted)]">
                   Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
                 </p>
@@ -756,7 +756,7 @@ export default function ExportPage() {
 
           <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
             <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">
                 {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
               </p>
               {format === 'pdf' && visibleCases.length > 0 && (
@@ -912,7 +912,7 @@ export default function ExportPage() {
             )}
             <div className="mt-5 space-y-4">
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Scope</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Scope</span>
                 <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                   <option value="specialty">Tracked specialty</option>
                   <option value="theme">Competency theme</option>
@@ -924,7 +924,7 @@ export default function ExportPage() {
               </label>
               {shareScope === 'specialty' && (
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Specialty</span>
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Specialty</span>
                   <select value={shareSpecialty} onChange={e => setShareSpecialty(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
                     {trackedApps.length === 0 && <option value="">No tracked specialties</option>}
                     {trackedApps.map(app => <option key={app.id} value={app.specialty_key}>{formatSpecialtyLabel(app.specialty_key)}</option>)}
@@ -934,13 +934,13 @@ export default function ExportPage() {
               )}
               {shareScope === 'theme' && (
                 <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Theme</span>
+                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme</span>
                   <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
                   <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
                 </label>
               )}
               <div>
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">Expires</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Expires</span>
                 <div className="grid grid-cols-2 gap-2">
                   {EXPIRY_PRESETS.map(preset => (
                     <button
@@ -969,12 +969,12 @@ export default function ExportPage() {
                 )}
               </div>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">PIN</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN</span>
                 <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
                 <p className="mt-1 text-xs text-[var(--text-secondary)]">Optional PIN (4-8 digits)</p>
               </label>
               <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-muted)]">View webhook</span>
+                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">View webhook</span>
                 <input
                   value={viewWebhookUrl}
                   onChange={e => setViewWebhookUrl(e.target.value)}

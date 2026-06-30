@@ -83,7 +83,7 @@ export default async function UpgradePage() {
 
         <section className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
           <table className="min-w-[760px] w-full border-collapse text-left text-sm">
-            <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-[var(--text-muted)]">
+            <thead className="border-b border-white/[0.08] text-xs uppercase tracking-wide text-[var(--text-emphasis)]">
               <tr>
                 <th className="px-5 py-4 font-medium">Feature</th>
                 <th className="px-5 py-4 font-medium">Free</th>

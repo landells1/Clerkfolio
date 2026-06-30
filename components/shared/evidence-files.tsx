@@ -78,7 +78,7 @@ export default function EvidenceFiles({
 
   return (
     <div>
-      <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-3">
+      <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-3">
         Evidence ({files.length} {files.length === 1 ? 'file' : 'files'})
       </p>
       <ul className="space-y-2">

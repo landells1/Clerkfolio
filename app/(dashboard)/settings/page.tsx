@@ -453,7 +453,7 @@ export default function SettingsPage() {
           </select>
         </div>
         {subInfo?.isMedStudent && (
-          <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+          <label className="mt-5 block max-w-xs mx-auto text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
             Expected graduation date
             <input
               type="date"
@@ -487,7 +487,7 @@ export default function SettingsPage() {
           className="space-y-4"
         >
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+            <label className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide">
               First name
               <input
                 value={profile.first_name}
@@ -495,7 +495,7 @@ export default function SettingsPage() {
                 className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal"
               />
             </label>
-            <label className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+            <label className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide">
               Last name
               <input
                 value={profile.last_name}
@@ -504,7 +504,7 @@ export default function SettingsPage() {
               />
             </label>
           </div>
-          <div className="text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+          <div className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide">
             Email
             <div className="mt-1.5 flex flex-col gap-2 sm:flex-row sm:items-center">
               <input value={email} disabled className="w-full min-h-[44px] flex-1 bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-muted)] normal-case tracking-normal" />
@@ -565,7 +565,7 @@ export default function SettingsPage() {
               </div>
             )}
           </div>
-          <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+          <label className="block text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide">
             Timezone
             <select value={profile.timezone} onChange={e => setProfile(p => ({ ...p, timezone: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] normal-case tracking-normal">
               <option value="Europe/London">Europe/London</option>
@@ -783,7 +783,7 @@ export default function SettingsPage() {
         <section className="bg-[var(--bg-surface)] border border-accent/12 rounded-2xl p-6 mb-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Referral code</p>
+              <p className="text-xs uppercase tracking-wide text-[var(--text-emphasis)] mb-2">Referral code</p>
               <h2 className="text-3xl font-semibold tracking-[0.18em] text-[var(--text-primary)]">{profile.referral_code}</h2>
               <p className="mt-3 break-all text-sm text-[var(--text-muted)]">{origin ? `${origin}/r/${profile.referral_code}` : `/r/${profile.referral_code}`}</p>
             </div>

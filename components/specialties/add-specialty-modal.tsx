@@ -221,7 +221,7 @@ function SpecialtyGroup({
   return (
     <div className="space-y-2">
       <div className="flex items-baseline justify-between px-1">
-        <span className="text-[10px] font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+        <span className="text-[10px] font-semibold text-[var(--text-emphasis)] uppercase tracking-wider">
           {title}
         </span>
         <span className="text-[10px] text-[var(--text-secondary)]">

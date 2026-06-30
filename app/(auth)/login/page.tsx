@@ -109,7 +109,7 @@ function LoginForm() {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>
-          <label htmlFor="login-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="login-email" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
@@ -126,7 +126,7 @@ function LoginForm() {
 
         <div>
           <div className="flex items-center justify-between mb-1.5">
-            <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide">
+            <label htmlFor="login-password" className="block text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide">
               Password
             </label>
             <Link href="/reset-password" className="text-xs text-[var(--accent-text)] hover:text-accent/80 transition-colors">

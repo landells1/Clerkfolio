@@ -80,9 +80,9 @@ export default async function ReferralsPage() {
 
       {/* Code + link */}
       <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
-        <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Your referral code</p>
+        <p className="text-xs uppercase tracking-wide text-[var(--text-emphasis)] mb-2">Your referral code</p>
         <p className="mb-4 text-3xl font-semibold tracking-[0.18em] text-[var(--text-primary)]">{code}</p>
-        <p className="text-xs uppercase tracking-wide text-[var(--text-muted)] mb-2">Your referral link</p>
+        <p className="text-xs uppercase tracking-wide text-[var(--text-emphasis)] mb-2">Your referral link</p>
         <div className="rounded-xl bg-[var(--bg-canvas)] border border-white/[0.08] p-4 font-mono text-sm text-[var(--text-primary)] break-all">{url}</div>
       </section>
 

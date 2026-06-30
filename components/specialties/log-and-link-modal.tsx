@@ -154,7 +154,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Title */}
               <div>
-                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Title <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -170,7 +170,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Date */}
               <div>
-                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Date
                 </label>
                 <input
@@ -183,7 +183,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Entry type */}
               <div>
-                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Entry type
                 </label>
                 <div className="flex gap-2">
@@ -207,7 +207,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               {/* Category (portfolio only) */}
               {entryType === 'portfolio' && (
                 <div>
-                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                     Category
                   </label>
                   <select
@@ -224,7 +224,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Auto-tag */}
               <div>
-                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Auto-tagged
                 </label>
                 <div className="flex flex-wrap gap-1.5">
@@ -236,7 +236,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
               {/* Notes */}
               <div>
-                <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Notes <span className="text-[var(--text-secondary)]">(optional)</span>
                 </label>
                 <textarea
@@ -251,7 +251,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
               {/* Band selection - hidden for evidence-only domains */}
               {!noBands && (
                 <div>
-                  <label className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-1.5 block">
+                  <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                     Scoring band <span className="text-red-400">*</span>
                   </label>
                   <select

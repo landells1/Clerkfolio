@@ -180,7 +180,7 @@ export default function PublicShareClient({ token }: { token: string }) {
           <>
             <PrintHeader userName={payload.ownerName} />
             <section className="mb-8">
-              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-secondary)]">{scopeLabel(payload)}</p>
+              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">{scopeLabel(payload)}</p>
               <h1 className="mt-2 text-2xl font-semibold tracking-tight">{payload.ownerName}</h1>
               <p className="mt-2 text-sm text-[var(--text-muted)]">
                 {payload.entries.length} shared portfolio {payload.entries.length === 1 ? 'entry' : 'entries'}

@@ -262,11 +262,11 @@ export default function CasesListClient({ cases, userInterests }: Props) {
             <div className="space-y-4">
               <Select label="Clinical area" value={domain} onChange={setDomain} options={domains} />
               <Select label="Linked specialty" value={specialty} onChange={setSpecialty} options={userInterests} getOptionLabel={formatSpecialtyLabel} />
-              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
                 From
                 <input type="date" value={from} onChange={e => setFrom(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
               </label>
-              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
                 To
                 <input type="date" value={to} onChange={e => setTo(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
               </label>
@@ -306,7 +306,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
 
 function Select({ label, value, onChange, options, getOptionLabel = option => option }: { label: string; value: string; onChange: (value: string) => void; options: string[]; getOptionLabel?: (value: string) => string }) {
   return (
-    <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+    <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
       {label}
       <select value={value} onChange={e => onChange(e.target.value)} className="mt-1.5 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
         <option value="">Any</option>

@@ -169,7 +169,7 @@ export default function ActivityFeed({
                       <div className="grid grid-cols-2 gap-3">
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wide">Essentials</span>
+                            <span className="text-[10px] text-[var(--text-emphasis)] uppercase tracking-wide">Essentials</span>
                             <span className="text-[10px] font-mono text-[var(--text-secondary)]">{s.essentialsMet}/{s.essentialsTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">
@@ -181,7 +181,7 @@ export default function ActivityFeed({
                         </div>
                         <div>
                           <div className="flex items-center justify-between mb-1">
-                            <span className="text-[10px] text-[var(--text-secondary)] uppercase tracking-wide">Desirables</span>
+                            <span className="text-[10px] text-[var(--text-emphasis)] uppercase tracking-wide">Desirables</span>
                             <span className="text-[10px] font-mono text-[var(--text-secondary)]">{s.desirablesEvidenced}/{s.desirablesTotal}</span>
                           </div>
                           <div className="h-1 rounded-full bg-white/[0.06] overflow-hidden">

@@ -40,7 +40,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
 
   return (
     <div>
-      <p className="text-xs text-[var(--text-muted)] font-medium uppercase tracking-wide mb-2">
+      <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-2">
         {isEvidenceOnly ? 'Linked evidence' : 'Claimed & linked evidence'}
       </p>
       <div className="space-y-2">

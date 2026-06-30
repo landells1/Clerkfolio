@@ -95,7 +95,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
           return (
             <div key={cat}>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs font-semibold text-[var(--text-secondary)] uppercase tracking-wider">
+                <h2 className="text-xs font-semibold text-[var(--text-emphasis)] uppercase tracking-wider">
                   {ARCP_CATEGORY_LABELS[cat]}
                 </h2>
                 <span className="text-xs text-[var(--text-secondary)] font-mono">{catLinked}/{caps.length}</span>

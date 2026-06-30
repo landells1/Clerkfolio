@@ -28,7 +28,7 @@
      Every brand-blue value derives from it: the solid --accent/--blue/--focus-ring
      here, and the translucent tints app-wide (Tailwind `bg-accent/15` etc., which
      compile to rgb(var(--accent-rgb) / .15)). Change this one line to rebrand. */
-  --accent-rgb: 138 90 43; /* #8A5A2B warm bronze — cream brand accent (dark mode keeps blue) */
+  --accent-rgb: 110 30 43; /* #6E1E2B oxblood — cream brand accent (dark mode keeps blue, see dark block) */
 
   /* legacy alias kept for any direct var(--blue) reads */
   --blue: rgb(var(--accent-rgb));
@@ -71,15 +71,15 @@
      colour has one source. --accent-bright/-text/-soft/-soft-text are distinct
      tuned tokens (not pure brand blue) and stay independently adjustable. */
   --accent:           rgb(var(--accent-rgb)); /* button fill, active states */
-  --accent-hover:     #6F4521; /* darker bronze */
-  --accent-bright:    #A66A30; /* brighter bronze accents */
-  --accent-text:      #7A4A1C; /* bronze links / icon text on cream (AA) */
-  --accent-soft:      #EFE1C5; /* soft bronze chip / tag background */
-  --accent-soft-text: #6B4218; /* text inside soft bronze chips */
+  --accent-hover:     #581824; /* darker oxblood */
+  --accent-bright:    #8A2838; /* brighter oxblood accents */
+  --accent-text:      #6E1E2B; /* oxblood links / icon text on cream (AAA) */
+  --accent-soft:      #F1DCDF; /* soft oxblood chip / tag background */
+  --accent-soft-text: #5A1822; /* text inside soft oxblood chips */
   --focus-ring:       rgb(var(--accent-rgb));
 
   /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
-  --accent-gradient:  linear-gradient(100deg, oklch(0.55 0.09 75) 0%, oklch(0.45 0.085 62) 100%);
+  --accent-gradient:  linear-gradient(100deg, oklch(0.45 0.15 18) 0%, oklch(0.37 0.13 12) 100%);
   --danger-gradient:  linear-gradient(100deg, oklch(0.58 0.19 28) 0%, oklch(0.50 0.19 22) 100%);
 
   /* Informational panel ("example entries" banner) */
@@ -87,13 +87,13 @@
   --info-border:      #E0CEA8;
   --info-text:        #5A4620;
 
-  /* Month-calendar heatmap fills (1→3 entries). Cream: light bronze tints that
-     stay readable with the dark --text-primary. Dark: the original blue steps
-     (light --text-primary reads on them). Text uses var(--text-primary) so it
-     auto-contrasts per theme. */
-  --cal-fill-1:       #EAD9AE;
-  --cal-fill-2:       #D9BC7E;
-  --cal-fill-3:       #C29E54;
+  /* Month-calendar heatmap fills (1→3 entries). Cream: light oxblood/rose tints
+     that stay readable with the dark --text-primary. Dark: the original blue
+     steps (light --text-primary reads on them). Text uses var(--text-primary)
+     so it auto-contrasts per theme. */
+  --cal-fill-1:       #EFD8DB;
+  --cal-fill-2:       #DDB0B6;
+  --cal-fill-3:       #C68C94;
 
   /* Inverted surface (intentionally high-contrast buttons/chips that were a
      light block in dark mode — become a dark block on cream). */
@@ -140,8 +140,10 @@
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  /* --accent-rgb is inherited from :root (brand blue is constant across themes);
-     --blue/--accent/--focus-ring derive from it here too. */
+  /* Dark keeps the original brand BLUE — its own channel (cream's :root is now
+     oxblood, so dark MUST override here, not inherit). accent, blue, focus-ring,
+     nav-active and the bg-accent tints all derive from this. */
+  --accent-rgb: 27 111 217; /* #1B6FD9 brand blue */
   --blue: rgb(var(--accent-rgb));
 
   --bg-canvas:        #0B0B0C;

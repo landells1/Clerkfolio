@@ -132,7 +132,7 @@ export default function SignupPage() {
       <form action="/api/auth/signup" method="post" onSubmit={handleSignup} className="space-y-4">
         <input type="hidden" name="next" value={upgradeIntent ?? ''} />
         <div>
-          <label htmlFor="signup-email" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-email" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Email address
           </label>
           <input
@@ -166,7 +166,7 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="signup-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Password
           </label>
           <input
@@ -183,7 +183,7 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input
@@ -200,7 +200,7 @@ export default function SignupPage() {
         </div>
 
         <div>
-          <label htmlFor="signup-referral-code" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="signup-referral-code" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Referral code <span className="normal-case text-[var(--text-muted)]">(optional)</span>
           </label>
           <div className="relative">

@@ -101,7 +101,7 @@ export default async function CaseDetailPage({
         {/* Linked specialties */}
         {c.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Linked specialties</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {c.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-accent/10 text-[var(--accent-text)] border border-accent/20">
@@ -115,7 +115,7 @@ export default async function CaseDetailPage({
         {/* Importance */}
         {isImportance(importance) && (
           <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Importance</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Importance</p>
             <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[var(--bg-overlay-soft)] text-[var(--text-primary)] border border-white/[0.08]">
               {IMPORTANCE_LABELS[importance]}
             </span>
@@ -125,7 +125,7 @@ export default async function CaseDetailPage({
         {/* Notes */}
         {c.notes && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-3">Notes</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-3">Notes</p>
             <MarkdownRenderer value={c.notes} />
           </div>
         )}

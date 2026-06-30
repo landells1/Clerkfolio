@@ -98,7 +98,7 @@ export default function SaveTemplateButton({ entry }: Props) {
             <p className="text-xs text-[var(--text-muted)] mb-4">
               This will save the category and key field values as a personal template you can reuse when creating new entries.
             </p>
-            <label className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">Template name</label>
+            <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Template name</label>
             <input
               type="text"
               value={name}

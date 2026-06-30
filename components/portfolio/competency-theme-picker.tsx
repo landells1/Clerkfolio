@@ -195,7 +195,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5">
-        <label className="block text-xs font-medium text-[var(--text-secondary)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
+        <label className="block text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wide" style={{ marginBottom: 0 }}>
           Competency themes <span className="normal-case font-normal text-[var(--text-secondary)]">(optional)</span>
         </label>
         <div className="flex items-center gap-3">

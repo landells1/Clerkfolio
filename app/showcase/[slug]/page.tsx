@@ -72,7 +72,7 @@ export default async function ShowcasePage({ params }: { params: Promise<{ slug:
             <article key={entry.id} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">{categoryLabel(entry.category)}</p>
+                  <p className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">{categoryLabel(entry.category)}</p>
                   <h2 className="mt-1 text-lg font-semibold">{entry.title}</h2>
                 </div>
                 <time className="text-xs text-[var(--text-secondary)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</time>

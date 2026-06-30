@@ -35,7 +35,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | b
   const display = typeof value === 'boolean' ? (value ? 'Yes' : 'No') : String(value)
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider">{label}</span>
+      <span className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider">{label}</span>
       <span className="text-sm text-[var(--text-primary)]">{display}</span>
     </div>
   )
@@ -133,7 +133,7 @@ export default async function EntryDetailPage({
         {/* Linked specialties */}
         {entry.specialty_tags?.length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Linked specialties</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
                 <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-accent/10 text-[var(--accent-text)] border border-accent/20">
@@ -146,7 +146,7 @@ export default async function EntryDetailPage({
 
         {isImportance(importance) && (
           <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Importance</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Importance</p>
             <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[var(--bg-overlay-soft)] text-[var(--text-primary)] border border-white/[0.08]">
               {IMPORTANCE_LABELS[importance]}
             </span>
@@ -155,7 +155,7 @@ export default async function EntryDetailPage({
 
         {(entry.interview_themes ?? []).length > 0 && (
           <div>
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Competency themes</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Competency themes</p>
             <div className="flex flex-wrap gap-1.5">
               {(entry.interview_themes as string[]).map(theme => (
                 <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-[var(--cat-violet-text)] border border-violet-400/20">
@@ -168,7 +168,7 @@ export default async function EntryDetailPage({
 
         {/* Category-specific fields */}
         <div className="border-t border-white/[0.06] pt-5">
-          <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-4">Details</p>
+          <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-4">Details</p>
           <div className="grid grid-cols-2 gap-x-6 gap-y-4">
             {entry.category === 'audit_qip' && <>
               <DetailRow label="Type" value={entry.audit_type ? AUDIT_TYPE_LABELS[entry.audit_type] ?? entry.audit_type : null} />
@@ -227,25 +227,25 @@ export default async function EntryDetailPage({
         {/* Long-form text fields */}
         {entry.category === 'audit_qip' && entry.audit_outcome && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Outcome</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Outcome</p>
             <MarkdownRenderer value={entry.audit_outcome} />
           </div>
         )}
         {entry.category === 'prize' && entry.prize_description && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.prize_description} />
           </div>
         )}
         {entry.category === 'reflection' && entry.refl_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Reflection</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Reflection</p>
             <MarkdownRenderer value={entry.refl_free_text} />
           </div>
         )}
         {entry.category === 'custom' && entry.custom_free_text && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Description</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Description</p>
             <MarkdownRenderer value={entry.custom_free_text} />
           </div>
         )}
@@ -253,7 +253,7 @@ export default async function EntryDetailPage({
         {/* Notes */}
         {entry.notes && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Notes</p>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Notes</p>
             <MarkdownRenderer value={entry.notes} />
           </div>
         )}

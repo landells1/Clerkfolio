@@ -27,10 +27,10 @@ export default function MemberDiscountCard() {
       {member && (
         <div className="mt-4 grid gap-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:items-end">
           <div>
-            <p className="text-xs uppercase tracking-wide text-[var(--text-muted)]">Member price</p>
+            <p className="text-xs uppercase tracking-wide text-[var(--text-emphasis)]">Member price</p>
             <p className="mt-1 text-2xl font-semibold text-[var(--text-primary)]">£8/yr</p>
           </div>
-          <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+          <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
             Manual code
             <input
               placeholder="Enter code at Stripe checkout"

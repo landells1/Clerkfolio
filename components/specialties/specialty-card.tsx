@@ -223,7 +223,7 @@ function ProgressBlock({
 }) {
   return (
     <div>
-      <p className="text-[10px] text-[var(--text-muted)] font-semibold uppercase tracking-wide mb-1">
+      <p className="text-[10px] text-[var(--text-emphasis)] font-semibold uppercase tracking-wide mb-1">
         {label}
       </p>
       <div className="flex items-baseline gap-1.5 mb-1.5">

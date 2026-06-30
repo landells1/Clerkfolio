@@ -68,7 +68,7 @@ export default function UpdatePasswordPage() {
 
       <form onSubmit={handleUpdate} className="space-y-4">
         <div>
-          <label htmlFor="new-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="new-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             New password
           </label>
           <input
@@ -84,7 +84,7 @@ export default function UpdatePasswordPage() {
         </div>
 
         <div>
-          <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[var(--text-secondary)] mb-1.5 uppercase tracking-wide">
+          <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
           <input

@@ -277,7 +277,7 @@ export default function CsvImportFlow() {
 
       {step === 1 && (
         <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
-          <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+          <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
             CSV file
             <input
               type="file"
@@ -292,13 +292,13 @@ export default function CsvImportFlow() {
       {step === 2 && (
         <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
           <div className="grid gap-3 sm:grid-cols-2">
-            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Preset
               <select value={preset} onChange={e => applyPreset(e.target.value as PresetKey)} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 {Object.entries(PRESETS).map(([key, item]) => <option key={key} value={key}>{item.label}</option>)}
               </select>
             </label>
-            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+            <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Import as
               <select value={target} onChange={e => { const next = e.target.value as ImportTarget; setTarget(next); setMapping(autoMap(headers, preset, next)) }} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
                 <option value="portfolio">Portfolio entries</option>
@@ -309,7 +309,7 @@ export default function CsvImportFlow() {
 
           <div className="mt-5 grid gap-3 sm:grid-cols-2">
             {FIELD_OPTIONS[target].map(field => (
-              <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+              <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
                 {field.label}{field.required ? ' *' : ''}
                 <select
                   value={mapping[field.value] ?? ''}
