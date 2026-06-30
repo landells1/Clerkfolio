@@ -70,7 +70,7 @@ export default function ActivityFeed({
             >
               {tabCounts[t] !== null ? `${t} - ${tabCounts[t]}` : t}
               {tab === t && (
-                <span className="absolute bottom-0 left-0 right-0 h-px bg-blue-400 rounded-full" />
+                <span className="absolute bottom-0 left-0 right-0 h-px bg-accent rounded-full" />
               )}
             </button>
           ))}
@@ -128,7 +128,7 @@ export default function ActivityFeed({
               return (
                 <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
                   <span
-                    className="shrink-0 w-1.5 h-1.5 rounded-full bg-blue-400"
+                    className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent"
                     style={{ boxShadow: '0 0 0 3px #3884DD22' }}
                   />
                   <div className="flex-1 min-w-0">

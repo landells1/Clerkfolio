@@ -90,7 +90,7 @@ export function LegalContactButton() {
 
             {sent ? (
               <div style={{ textAlign: 'center', padding: '24px 0' }}>
-                <div style={{ width: 48, height: 48, borderRadius: 12, background: '#1B6FD9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <div style={{ width: 48, height: 48, borderRadius: 12, background: 'var(--accent)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
@@ -147,7 +147,7 @@ export function LegalContactButton() {
                 <button
                   type="submit"
                   disabled={sending}
-                  style={{ background: '#1B6FD9', border: 'none', borderRadius: 10, color: 'white', fontSize: 14, fontWeight: 600, padding: '11px 0', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.6 : 1, transition: 'opacity 0.15s' }}
+                  style={{ background: 'var(--button-primary-bg)', border: 'none', borderRadius: 10, color: 'var(--button-primary-text)', fontSize: 14, fontWeight: 600, padding: '11px 0', cursor: sending ? 'not-allowed' : 'pointer', opacity: sending ? 0.6 : 1, transition: 'opacity 0.15s' }}
                 >
                   {sending ? 'Sending...' : 'Send message'}
                 </button>

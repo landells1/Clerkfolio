@@ -204,7 +204,7 @@ export default function OnboardingPage() {
           </div>
           <div className="flex items-center gap-3 sm:gap-4">
             <div className="hidden sm:block h-1 w-28 overflow-hidden rounded-full bg-surface-3">
-              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${progress}%` }} />
+              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${progress}%` }} />
             </div>
             <span className="text-xs text-fg-2">{stepIndex + 1} / {steps.length}</span>
             <button
@@ -288,7 +288,7 @@ export default function OnboardingPage() {
                   <button key={config.key} onClick={() => toggleSpecialty(config.key)} className={`min-h-[92px] rounded-lg border p-4 text-left transition-colors ${selected ? 'border-pill-blue bg-pill-blue' : 'border-subtle bg-surface-1 hover:border-default'}`}>
                     <div className="flex items-start justify-between gap-3">
                       <span className="text-sm font-medium">{config.name}</span>
-                      <span className={`h-4 w-4 rounded-full border ${selected ? 'border-blue-500 bg-blue-500' : 'border-fg-3'}`} />
+                      <span className={`h-4 w-4 rounded-full border ${selected ? 'border-accent bg-accent' : 'border-fg-3'}`} />
                     </div>
                     <p className="mt-2 text-xs text-fg-2">{config.cycleYear}</p>
                   </button>

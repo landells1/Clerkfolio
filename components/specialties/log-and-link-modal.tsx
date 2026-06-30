@@ -137,7 +137,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
           {success ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="w-12 h-12 rounded-full bg-accent/20 flex items-center justify-center mb-3">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--accent)' }} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
               </div>

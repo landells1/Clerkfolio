@@ -28,7 +28,7 @@
      Every brand-blue value derives from it: the solid --accent/--blue/--focus-ring
      here, and the translucent tints app-wide (Tailwind `bg-accent/15` etc., which
      compile to rgb(var(--accent-rgb) / .15)). Change this one line to rebrand. */
-  --accent-rgb: 27 111 217; /* #1B6FD9 */
+  --accent-rgb: 138 90 43; /* #8A5A2B warm bronze — cream brand accent (dark mode keeps blue) */
 
   /* legacy alias kept for any direct var(--blue) reads */
   --blue: rgb(var(--accent-rgb));
@@ -45,8 +45,8 @@
   /* Sidebar "you are here" indicator — muted on cream (the dark-mode values
      of solid blue-400 + a 12% tint read as a vivid ring against the lighter
      canvas), kept exactly as-is in dark mode. */
-  --nav-active-border: rgba(27, 111, 217, 0.4);
-  --nav-active-bg:     rgba(27, 111, 217, 0.06);
+  --nav-active-border: rgb(var(--accent-rgb) / 0.4);
+  --nav-active-bg:     rgb(var(--accent-rgb) / 0.06);
 
   /* Translucent elevation overlays (white-on-dark today → warm raises on cream) */
   --bg-overlay-faint: rgba(72, 64, 38, 0.035); /* was bg-white/[<=0.04] */
@@ -70,21 +70,21 @@
      colour has one source. --accent-bright/-text/-soft/-soft-text are distinct
      tuned tokens (not pure brand blue) and stay independently adjustable. */
   --accent:           rgb(var(--accent-rgb)); /* button fill, active states */
-  --accent-hover:     #155BB0;
-  --accent-bright:    #2563EB; /* brighter blue accents */
-  --accent-text:      #1D4ED8; /* blue links / icon text on cream (AA) */
-  --accent-soft:      #DCE6FA; /* soft blue chip / tag background */
-  --accent-soft-text: #1E40AF; /* text inside soft blue chips */
+  --accent-hover:     #6F4521; /* darker bronze */
+  --accent-bright:    #A66A30; /* brighter bronze accents */
+  --accent-text:      #7A4A1C; /* bronze links / icon text on cream (AA) */
+  --accent-soft:      #EFE1C5; /* soft bronze chip / tag background */
+  --accent-soft-text: #6B4218; /* text inside soft bronze chips */
   --focus-ring:       rgb(var(--accent-rgb));
 
   /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
-  --accent-gradient:  linear-gradient(100deg, oklch(0.55 0.18 255) 0%, oklch(0.46 0.17 262) 100%);
+  --accent-gradient:  linear-gradient(100deg, oklch(0.55 0.09 75) 0%, oklch(0.45 0.085 62) 100%);
   --danger-gradient:  linear-gradient(100deg, oklch(0.58 0.19 28) 0%, oklch(0.50 0.19 22) 100%);
 
   /* Informational panel ("example entries" banner) */
-  --info-bg:          #E4ECF8;
-  --info-border:      #C6D6F1;
-  --info-text:        #2C3A57;
+  --info-bg:          #F2E8D3;
+  --info-border:      #E0CEA8;
+  --info-text:        #5A4620;
 
   /* Inverted surface (intentionally high-contrast buttons/chips that were a
      light block in dark mode — become a dark block on cream). */

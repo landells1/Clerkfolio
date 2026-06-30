@@ -333,7 +333,7 @@ function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, on
     <div className="group/row relative flex items-stretch">
       {/* Selection checkbox: hidden until hover unless selecting */}
       <button onClick={onToggle} className={`shrink-0 w-9 flex items-center justify-center transition-opacity ${selectMode || selected ? 'opacity-100' : 'opacity-0 group-hover/row:opacity-100'}`} aria-label={selected ? 'Deselect case' : 'Select case'}>
-        <span className={`flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-blue-500 bg-blue-500' : 'border-fg-3 bg-surface-1'}`}>
+        <span className={`flex h-4 w-4 items-center justify-center rounded border ${selected ? 'border-accent bg-accent' : 'border-fg-3 bg-surface-1'}`}>
           {selected && <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>}
         </span>
       </button>

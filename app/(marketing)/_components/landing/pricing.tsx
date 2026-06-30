@@ -19,7 +19,7 @@ export function Pricing() {
               key={tier.name}
               className={`relative rounded-2xl border p-7 ${
                 tier.highlight
-                  ? 'border-blue-500/45 bg-gradient-to-b from-blue-500/10 to-[var(--bg-surface)]'
+                  ? 'border-accent/45 bg-gradient-to-b from-accent/10 to-[var(--bg-surface)]'
                   : 'border-white/[0.08] bg-[var(--bg-surface)]'
               }`}
             >

@@ -319,7 +319,7 @@ export default async function DashboardPage({
         </div>
       )}
       {resolvedSearchParams?.referral === 'existing-account' && (
-        <div role="status" className="mb-6 rounded-2xl border border-blue-400/25 bg-blue-400/10 px-4 py-3 text-sm text-[var(--accent-soft-text)]">
+        <div role="status" className="mb-6 rounded-2xl border border-accent/25 bg-accent/10 px-4 py-3 text-sm text-[var(--accent-soft-text)]">
           Referral links only apply to brand-new signups, so this one couldn&apos;t be added to your existing account.
         </div>
       )}
@@ -509,7 +509,7 @@ function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; p
               </span>
             </div>
             <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
-              <div className="h-full rounded-full bg-blue-500 transition-all" style={{ width: `${row.percent}%` }} />
+              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${row.percent}%` }} />
             </div>
             <p className="text-[11px] text-fg-3">
               {row.entryCount} {row.entryCount === 1 ? 'entry' : 'entries'} linked

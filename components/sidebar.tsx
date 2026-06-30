@@ -465,7 +465,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
           {/* User name */}
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
             <span className="text-sm text-[var(--text-secondary)] truncate font-medium">{fullName}</span>
@@ -531,7 +531,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     required
                     value={feedback.name}
                     onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
-                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-accent transition-colors"
                     placeholder="Jane Smith"
                   />
                 </div>
@@ -542,7 +542,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     required
                     value={feedback.email}
                     onChange={e => setFeedback(f => ({ ...f, email: e.target.value }))}
-                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-accent transition-colors"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -553,7 +553,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                     rows={4}
                     value={feedback.comment}
                     onChange={e => setFeedback(f => ({ ...f, comment: e.target.value }))}
-                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-blue-500 transition-colors resize-none"
+                    className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-accent transition-colors resize-none"
                     placeholder="Tell us what's working, what isn't, or what you'd love to see…"
                   />
                 </div>
@@ -741,7 +741,7 @@ function NotifIcon({ type }: { type: string }) {
   )
   return (
     <span className={`${cls} bg-accent/15`}>
-      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1B6FD9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={{ stroke: 'var(--accent)' }} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
       </svg>
     </span>
