@@ -64,7 +64,7 @@
   --text-muted:       #6B6450; /* captions, meta, placeholders (deepened) */
   --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
-  --text-emphasis:    #7A5320; /* punchy bronze for important text (sidebar nav, key labels) — sticks out, doesn't blend */
+  --text-emphasis:    #6E1E2B; /* stark oxblood for important text (sidebar nav, key labels) — AAA on cream, sticks out */
 
   /* Brand accent — primary blue fill stays brand blue in both themes.
      --accent / --focus-ring derive from --accent-rgb (above) so the brand
