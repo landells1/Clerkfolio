@@ -230,7 +230,7 @@ export function SpecialtyDetail({
               title={isTarget ? 'This specialty is your current application target' : 'Mark as your application target to surface a deadline countdown on the dashboard'}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-50 ${
                 isTarget
-                  ? 'bg-pill-amber border-pill-amber text-amber-300'
+                  ? 'bg-pill-amber border-pill-amber text-[var(--warning)]'
                   : 'bg-surface-1 border-subtle text-fg-2 hover:border-default hover:text-fg'
               }`}
             >

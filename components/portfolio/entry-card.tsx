@@ -42,14 +42,14 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
             {importance && (
               <span className={`inline-flex items-center rounded px-2 py-0.5 text-[10px] font-medium border ${
                 importance === 'high'
-                  ? 'bg-amber-400/10 text-amber-300 border-amber-400/20'
+                  ? 'bg-amber-400/10 text-[var(--warning)] border-amber-400/20'
                   : 'bg-[var(--bg-overlay-soft)] text-[var(--text-secondary)] border-white/[0.08]'
               }`}>
                 {IMPORTANCE_LABELS[importance]}
               </span>
             )}
           </div>
-          <h3 className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-white transition-colors">{entry.title}</h3>
+          <h3 className="text-sm font-medium text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">{entry.title}</h3>
           {subtitle && <p className="text-xs text-[var(--text-muted)] mt-0.5 truncate">{subtitle}</p>}
         </div>
         <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">

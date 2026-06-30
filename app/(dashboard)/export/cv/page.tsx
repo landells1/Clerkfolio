@@ -80,7 +80,7 @@ export default async function CvGeneratorPage({
         <CvDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
       </div>
       {!subInfo.isPro && (
-        <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-amber-100">
+        <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
           {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining. ' : 'Your included PDF has been used. '}
           CV downloads share the PDF allowance with Application PDF and Year in review downloads.
         </p>

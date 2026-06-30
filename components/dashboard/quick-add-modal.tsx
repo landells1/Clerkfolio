@@ -93,14 +93,14 @@ const SUPERVISION_LEVELS: { id: string; label: string }[] = [
 // Pill colour name -> tailwind classes for the type-tile icon backgrounds.
 // Picked manually so JIT generates them; safelisted in tailwind.config.ts already.
 const TILE_BG: Record<TypeMeta['colour'], string> = {
-  blue: 'bg-pill-blue text-blue-300 border-pill-blue',
-  violet: 'bg-pill-violet text-violet-300 border-pill-violet',
-  green: 'bg-pill-green text-green-300 border-pill-green',
-  amber: 'bg-pill-amber text-amber-300 border-pill-amber',
-  rose: 'bg-pill-rose text-rose-300 border-pill-rose',
-  cyan: 'bg-pill-cyan text-cyan-300 border-pill-cyan',
-  pink: 'bg-pill-pink text-pink-300 border-pill-pink',
-  indigo: 'bg-pill-indigo text-indigo-300 border-pill-indigo',
+  blue: 'bg-pill-blue text-[var(--accent-text)] border-pill-blue',
+  violet: 'bg-pill-violet text-[var(--cat-violet-text)] border-pill-violet',
+  green: 'bg-pill-green text-[var(--cat-green-text)] border-pill-green',
+  amber: 'bg-pill-amber text-[var(--warning)] border-pill-amber',
+  rose: 'bg-pill-rose text-[var(--cat-rose-text)] border-pill-rose',
+  cyan: 'bg-pill-cyan text-[var(--cat-cyan-text)] border-pill-cyan',
+  pink: 'bg-pill-pink text-[var(--cat-pink-text)] border-pill-pink',
+  indigo: 'bg-pill-indigo text-[var(--cat-indigo-text)] border-pill-indigo',
 }
 
 export default function QuickAddModal({
@@ -322,7 +322,7 @@ export default function QuickAddModal({
             <div>
               <label className={LABEL}>
                 {type === 'case' ? 'Case title' : `${meta.label} title`}{' '}
-                <span className="text-rose-300">*</span>
+                <span className="text-[var(--cat-rose-text)]">*</span>
               </label>
               <input
                 autoFocus
@@ -363,7 +363,7 @@ export default function QuickAddModal({
                       key={t}
                       type="button"
                       onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
-                      className="px-2 py-0.5 rounded text-[10px] bg-pill-blue border border-pill-blue text-blue-300 hover:border-default transition-colors"
+                      className="px-2 py-0.5 rounded text-[10px] bg-pill-blue border border-pill-blue text-[var(--accent-text)] hover:border-default transition-colors"
                     >
                       + {t}
                     </button>
@@ -372,14 +372,14 @@ export default function QuickAddModal({
               )}
 
               {duplicateWarning && (
-                <div className="flex items-start gap-2 bg-pill-amber border border-pill-amber rounded-lg px-3 py-2 text-xs text-amber-300 mt-1.5">
+                <div className="flex items-start gap-2 bg-pill-amber border border-pill-amber rounded-lg px-3 py-2 text-xs text-[var(--warning)] mt-1.5">
                   <svg className="shrink-0 mt-0.5" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
                     <line x1="12" y1="9" x2="12" y2="13"/>
                     <line x1="12" y1="17" x2="12.01" y2="17"/>
                   </svg>
                   <span className="flex-1">Similar case already logged: &ldquo;{duplicateWarning.title}&rdquo;</span>
-                  <button type="button" onClick={() => setDuplicateWarning(null)} className="text-amber-300/60 hover:text-amber-300 ml-1">x</button>
+                  <button type="button" onClick={() => setDuplicateWarning(null)} className="text-[var(--warning)] hover:text-[var(--warning)] ml-1">x</button>
                 </div>
               )}
             </div>
@@ -468,7 +468,7 @@ export default function QuickAddModal({
                           onClick={() => setProcSupervision(s.id)}
                           className={`flex-1 py-2.5 text-xs font-medium transition-colors ${i > 0 ? 'border-l border-subtle' : ''} ${
                             procSupervision === s.id
-                              ? 'bg-pill-blue text-blue-300'
+                              ? 'bg-pill-blue text-[var(--accent-text)]'
                               : 'bg-surface-0 text-fg-2 hover:text-fg'
                           }`}
                         >
@@ -509,7 +509,7 @@ export default function QuickAddModal({
               />
             </div>
 
-            {error && <p className="text-sm text-rose-300">{error}</p>}
+            {error && <p className="text-sm text-[var(--cat-rose-text)]">{error}</p>}
 
             <div className="flex gap-3 pt-1">
               <button

@@ -5,7 +5,7 @@ export function DomainPill({ children }: { children: ReactNode }) {
 }
 
 export function SpecialtyPill({ children }: { children: ReactNode }) {
-  return <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-400">{children}</span>
+  return <span className="rounded border border-blue-500/20 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">{children}</span>
 }
 
 export function StatusDot({ status }: { status: 'green' | 'amber' }) {

@@ -111,13 +111,13 @@ export default async function EntryDetailPage({
       </div>
 
       {upload === 'failed' && (
-        <div className="mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-amber-100">
+        <div className="mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-[var(--warning)]">
           This entry was saved, but one or more evidence files could not be uploaded. Use Edit to retry the upload.
         </div>
       )}
 
       {uploadedCount > 0 && (
-        <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+        <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-[var(--success)]">
           {uploadedCount} evidence file{uploadedCount === 1 ? '' : 's'} uploaded successfully — listed below.
         </div>
       )}
@@ -158,7 +158,7 @@ export default async function EntryDetailPage({
             <p className="text-[10px] font-medium text-[var(--text-secondary)] uppercase tracking-wider mb-2">Competency themes</p>
             <div className="flex flex-wrap gap-1.5">
               {(entry.interview_themes as string[]).map(theme => (
-                <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-violet-300 border border-violet-400/20">
+                <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-[var(--cat-violet-text)] border border-violet-400/20">
                   {formatCompetencyTheme(theme)}
                 </span>
               ))}

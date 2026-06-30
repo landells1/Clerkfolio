@@ -303,7 +303,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               prefetch={false}
               aria-current={active ? 'page' : undefined}
               className={`flex flex-col items-center gap-1 py-1 px-3 min-w-[44px] min-h-[44px] justify-center rounded-lg transition-colors ${
-                active ? 'text-blue-400' : 'text-fg-2'
+                active ? 'text-[var(--accent-text)]' : 'text-fg-2'
               }`}
             >
               <span className="w-5 h-5 flex items-center justify-center">{item.icon}</span>
@@ -365,7 +365,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   }`}
                   style={active ? { background: 'rgba(27,111,217,0.12)' } : undefined}
                 >
-                  <span className={active ? 'text-blue-300' : 'text-[var(--text-muted)]'}>
+                  <span className={active ? 'text-[var(--accent-text)]' : 'text-[var(--text-muted)]'}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -465,7 +465,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
           {/* User name */}
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 text-xs font-semibold flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-blue-500/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
             <span className="text-sm text-[var(--text-secondary)] truncate font-medium">{fullName}</span>

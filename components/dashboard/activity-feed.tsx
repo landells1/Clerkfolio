@@ -100,7 +100,7 @@ export default function ActivityFeed({
                     style={{ boxShadow: `0 0 0 3px ${dotHex}22` }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-white transition-colors">{e.title}</p>
+                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">{e.title}</p>
                     {sub && <p className="text-xs text-[var(--text-muted)] truncate">{sub}</p>}
                   </div>
                   <div className="shrink-0 flex flex-col items-end gap-1">
@@ -132,7 +132,7 @@ export default function ActivityFeed({
                     style={{ boxShadow: '0 0 0 3px #3884DD22' }}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-white transition-colors">{c.title}</p>
+                    <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">{c.title}</p>
                     {domainStr && (
                       <p className="text-xs text-[var(--text-muted)] truncate">{domainStr}</p>
                     )}
@@ -230,7 +230,7 @@ function EmptyState({ icon, text, href, cta }: { icon: React.ReactNode; text: st
     <div className="flex flex-col items-center justify-center gap-3 py-12 px-6 text-center">
       <div className="text-[var(--text-faint)]">{icon}</div>
       <p className="text-sm text-[var(--text-secondary)]">{text}</p>
-      <Link href={href} className="text-xs text-blue-400 hover:text-blue-300 transition-colors">{cta}</Link>
+      <Link href={href} className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-text)] transition-colors">{cta}</Link>
     </div>
   )
 }

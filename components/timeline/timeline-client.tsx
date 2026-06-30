@@ -344,7 +344,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
 
       {calendarFallbackUrl && (
         <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
-          <p className="text-sm font-medium text-amber-100">Calendar feed URL</p>
+          <p className="text-sm font-medium text-[var(--warning)]">Calendar feed URL</p>
           <p className="mt-1 text-xs text-[var(--text-secondary)]">Select and copy this URL if your browser or calendar app cannot use the copy or handoff button.</p>
           <input
             readOnly
@@ -526,7 +526,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
                 <button
                   type="button"
                   onClick={completeSelectedItem}
-                  className="min-h-[44px] rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-300"
+                  className="min-h-[44px] rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 text-sm font-medium text-[var(--success)]"
                 >
                   Mark complete
                 </button>
@@ -535,7 +535,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
                 <button
                   type="button"
                   onClick={deleteSelectedItem}
-                  className="min-h-[44px] rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-sm font-medium text-red-300"
+                  className="min-h-[44px] rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-sm font-medium text-[var(--danger)]"
                 >
                   Delete
                 </button>
@@ -566,7 +566,7 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: R
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-300' : 'border-amber-400/20 bg-amber-400/10 text-amber-200'}`}>{item.type}</span>
+                  <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-[var(--success)]' : 'border-amber-400/20 bg-amber-400/10 text-[var(--warning)]'}`}>{item.type}</span>
                   {item.isAuto && (
                     <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[var(--text-secondary)]" title="Auto-loaded from your tracked specialty">Auto</span>
                   )}

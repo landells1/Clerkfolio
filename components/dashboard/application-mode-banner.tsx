@@ -45,14 +45,14 @@ export default function ApplicationModeBanner({ applicationId, specialtyLabel, d
   return (
     <div className="no-print mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-pill-amber bg-pill-amber px-5 py-4">
       <div className="flex items-center gap-3 min-w-0">
-        <span className="inline-flex h-8 w-8 items-center justify-center rounded bg-amber-500/20 text-amber-300">
+        <span className="inline-flex h-8 w-8 items-center justify-center rounded bg-amber-500/20 text-[var(--warning)]">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4">
             <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
           </svg>
         </span>
         <div className="min-w-0">
           <p className="text-sm font-semibold text-fg leading-tight">
-            Application mode: <span className="text-amber-300">{specialtyLabel}</span>
+            Application mode: <span className="text-[var(--warning)]">{specialtyLabel}</span>
           </p>
           <p className="mt-0.5 text-xs text-fg-2">
             {weeksRemaining === null

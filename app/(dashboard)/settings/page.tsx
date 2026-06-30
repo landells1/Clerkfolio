@@ -421,13 +421,13 @@ export default function SettingsPage() {
       </div>
 
       {settingsErrorMessage && (
-        <div role="alert" className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-amber-100">
+        <div role="alert" className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-400/10 px-4 py-3 text-sm text-[var(--warning)]">
           {settingsErrorMessage}
         </div>
       )}
 
       {returnedFromCheckout && subInfo && (
-        <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+        <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-[var(--success)]">
           {subInfo.isPro
             ? "You're now on Pro - enjoy unlimited exports, 5 GB storage, and unlimited share links."
             : 'Completing your upgrade. Pro access will appear here once payment confirmation has been processed.'}
@@ -757,7 +757,7 @@ export default function SettingsPage() {
           </p>
         )}
         {studentEmailError && (
-          <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+          <p role="alert" className="mt-3 rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-[var(--danger)]">
             {studentEmailError}
           </p>
         )}
@@ -829,8 +829,8 @@ export default function SettingsPage() {
       </section>
 
       <section className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
-        <h2 className="text-base font-semibold text-red-300 mb-3">Delete account</h2>
-        <button onClick={() => { setDeleteConfirmText(''); setDeleteConfirmPassword(''); setDeleteConfirm(true) }} className="min-h-[44px] border border-red-500/30 text-red-300 rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
+        <h2 className="text-base font-semibold text-[var(--danger)] mb-3">Delete account</h2>
+        <button onClick={() => { setDeleteConfirmText(''); setDeleteConfirmPassword(''); setDeleteConfirm(true) }} className="min-h-[44px] border border-red-500/30 text-[var(--danger)] rounded-lg px-5 py-2.5 text-sm hover:bg-red-500/10">
           Delete account
         </button>
       </section>
@@ -905,7 +905,7 @@ function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; v
   }
 
   if (!studentEmail.verified) {
-    return <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-amber-300">Unverified</span>
+    return <span className="rounded-full bg-amber-400/10 px-2.5 py-1 text-xs font-medium text-[var(--warning)]">Unverified</span>
   }
 
   const dueLabel = studentEmail.dueAt

@@ -105,7 +105,7 @@ export default function SnippetsPage() {
               <p className="font-mono text-sm text-[var(--text-primary)]">/{snippet.shortcut}</p>
               <p className="mt-1 text-sm text-[var(--text-secondary)]">{snippet.body}</p>
             </div>
-            <button onClick={() => remove(snippet.id)} className="text-sm text-red-300 hover:text-red-200">Delete</button>
+            <button onClick={() => remove(snippet.id)} className="text-sm text-[var(--danger)] hover:text-[var(--danger)]">Delete</button>
           </div>
         ))}
       </section>

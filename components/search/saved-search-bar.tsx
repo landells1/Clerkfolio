@@ -98,12 +98,12 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
       {hasActiveFilters && (
-        <span className="inline-flex min-h-[36px] items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 text-xs font-medium text-amber-200">
+        <span className="inline-flex min-h-[36px] items-center gap-2 rounded-lg border border-amber-400/20 bg-amber-400/10 px-3 text-xs font-medium text-[var(--warning)]">
           Filtered
           <button
             type="button"
             onClick={clearFilters}
-            className="rounded text-amber-100 underline underline-offset-2 hover:text-white"
+            className="rounded text-[var(--warning)] underline underline-offset-2 hover:text-[var(--text-primary)]"
           >
             Clear
           </button>

@@ -56,7 +56,7 @@ export default function ClinicalAreaSelect({ value, onChange, onFocus }: Props) 
             <button
               type="button"
               onClick={e => { e.stopPropagation(); remove(domain) }}
-              className="hover:text-white transition-colors ml-0.5 leading-none"
+              className="hover:text-[var(--text-primary)] transition-colors ml-0.5 leading-none"
             >
               &times;
             </button>

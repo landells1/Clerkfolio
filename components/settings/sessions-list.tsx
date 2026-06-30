@@ -79,9 +79,9 @@ export default function SessionsList({ initialRows, timezone }: { initialRows: S
               <p className="mt-1 font-mono text-xs text-[var(--text-secondary)]">{row.ip_hash.slice(0, 12)}... - last seen {formatSessionDate(row.last_seen_at, timezone)} ({relativeLastSeen(row.last_seen_at)})</p>
             </div>
             {row.revoked_at ? (
-              <span className="rounded bg-red-500/10 px-2 py-1 text-xs text-red-100">Revoked</span>
+              <span className="rounded bg-red-500/10 px-2 py-1 text-xs text-[var(--danger)]">Revoked</span>
             ) : (
-              <button onClick={() => revoke(row.id)} className="min-h-[36px] rounded-lg border border-red-500/20 px-3 text-xs font-medium text-red-100">Revoke</button>
+              <button onClick={() => revoke(row.id)} className="min-h-[36px] rounded-lg border border-red-500/20 px-3 text-xs font-medium text-[var(--danger)]">Revoke</button>
             )}
           </div>
         </article>

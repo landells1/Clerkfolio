@@ -27,7 +27,7 @@ export default async function SessionsPage() {
         on its next page load - including the device you&apos;re using right now if you revoke its row.
       </p>
       {error ? (
-        <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-sm text-red-100">
+        <p className="mt-6 rounded-2xl border border-red-500/20 bg-red-500/10 p-6 text-sm text-[var(--danger)]">
           Could not load sessions. Refresh the page or try again later.
         </p>
       ) : (

@@ -83,7 +83,7 @@ export default function LinkedInSnippets({ entries }: { entries: Entry[] }) {
                 readOnly
                 value={fallback.text}
                 onFocus={event => event.currentTarget.select()}
-                className="mt-3 w-full rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-amber-100"
+                className="mt-3 w-full rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-[var(--warning)]"
                 rows={3}
               />
             )}

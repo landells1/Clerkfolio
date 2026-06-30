@@ -269,7 +269,7 @@ export default function CsvImportFlow() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center gap-2">
         {([1, 2, 3, 4] as Step[]).map(s => (
-          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[var(--accent)] text-white' : step > s ? 'bg-emerald-500/15 text-emerald-300' : 'bg-white/[0.06] text-[var(--text-secondary)]'}`}>
+          <span key={s} className={`rounded-full px-3 py-1 text-xs font-medium ${step === s ? 'bg-[var(--accent)] text-white' : step > s ? 'bg-emerald-500/15 text-[var(--success)]' : 'bg-white/[0.06] text-[var(--text-secondary)]'}`}>
             {s === 1 ? 'Upload' : s === 2 ? 'Map' : s === 3 ? 'Preview' : 'Done'}
           </span>
         ))}
@@ -360,7 +360,7 @@ export default function CsvImportFlow() {
 
       {step === 4 && (
         <section className="rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6">
-          <p className="text-sm font-semibold text-emerald-200">Import complete</p>
+          <p className="text-sm font-semibold text-[var(--success)]">Import complete</p>
           <button onClick={() => router.push(target === 'portfolio' ? '/portfolio' : '/cases')} className="mt-4 min-h-[44px] rounded-xl bg-[var(--accent)] px-5 text-sm font-semibold text-white">
             Open imported records
           </button>

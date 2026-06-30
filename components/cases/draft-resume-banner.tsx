@@ -54,7 +54,7 @@ export default function DraftResumeBanner({ userId }: { userId: string }) {
         </button>
         <Link
           href="/cases/new"
-          className="text-xs font-semibold text-[var(--accent-text)] hover:text-white transition-colors"
+          className="text-xs font-semibold text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors"
         >
           Continue →
         </Link>

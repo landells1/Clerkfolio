@@ -78,7 +78,7 @@ export default function CategoryTileGrid({ entries }: Props) {
             </div>
             <div className="mt-1.5 text-xs text-fg-2 truncate">
               {isEmpty ? (
-                <span className="text-blue-300 group-hover:text-blue-400 transition-colors">+ Add first entry</span>
+                <span className="text-[var(--accent-text)] group-hover:text-[var(--accent-text)] transition-colors">+ Add first entry</span>
               ) : (
                 <>Last: {relativeDays(lastAdded)}</>
               )}

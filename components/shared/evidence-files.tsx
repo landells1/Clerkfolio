@@ -135,7 +135,7 @@ export default function EvidenceFiles({
                     <button
                       onClick={() => handleDelete(file)}
                       disabled={deleting === file.id}
-                      className="text-[10px] text-red-400 hover:text-red-300 font-medium disabled:opacity-50"
+                      className="text-[10px] text-red-400 hover:text-[var(--danger)] font-medium disabled:opacity-50"
                     >
                       {deleting === file.id ? '…' : 'Yes'}
                     </button>

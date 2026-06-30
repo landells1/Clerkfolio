@@ -20,7 +20,7 @@ export function MockCaseForm({ className = '' }: { className?: string }) {
           </label>
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium text-ink-soft">Linked specialties</span>
-            <span className={`block ${input}`}><span className="rounded bg-blue-500/10 px-2 py-1 text-blue-400">IMT ×</span></span>
+            <span className={`block ${input}`}><span className="rounded bg-blue-500/10 px-2 py-1 text-[var(--accent-text)]">IMT ×</span></span>
           </label>
         </div>
         <label className="block">

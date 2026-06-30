@@ -110,7 +110,7 @@ export default function SubprocessorsPage() {
                   <p className="text-xs text-[var(--text-secondary)] mt-0.5">{sp.location}</p>
                 </div>
                 {sp.transferMechanism && (
-                  <span className="shrink-0 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] text-amber-300">
+                  <span className="shrink-0 rounded-full border border-amber-400/30 bg-amber-400/10 px-2.5 py-1 text-[11px] text-[var(--warning)]">
                     International transfer
                   </span>
                 )}

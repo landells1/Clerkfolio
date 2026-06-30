@@ -86,7 +86,7 @@ export default async function CaseDetailPage({
       </div>
 
       {uploadedCount > 0 && (
-        <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-emerald-100">
+        <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-[var(--success)]">
           {uploadedCount} evidence file{uploadedCount === 1 ? '' : 's'} uploaded successfully — listed below.
         </div>
       )}

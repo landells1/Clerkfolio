@@ -76,7 +76,7 @@ function LoginForm() {
       <p className="text-sm text-[var(--text-secondary)] mb-6">Log in to your Clerkfolio account</p>
 
       {confirmationFailed && (
-        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100 mb-4">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--danger)] mb-4">
           {recoveryFailed
             ? 'This reset link has expired or is invalid. Please request a new password reset link.'
             : 'The confirmation link has expired or is invalid. Please sign up again or contact support.'}
@@ -84,19 +84,19 @@ function LoginForm() {
       )}
 
       {wrongAccountVerify && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--warning)] mb-4">
           That verification link belongs to a different Clerkfolio account. Sign in to the account that requested the link, then re-open the link from the email.
         </div>
       )}
 
       {sessionRevoked && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--warning)] mb-4">
           That session was revoked. Sign in again to continue.
         </div>
       )}
 
       {localLogout && (
-        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-amber-100 mb-4">
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--warning)] mb-4">
           You have been signed out on this device. Other active sessions could not be revoked; change your password if you need to invalidate them.
         </div>
       )}
@@ -146,7 +146,7 @@ function LoginForm() {
         </div>
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-red-100">
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--danger)]">
             {error}
           </div>
         )}

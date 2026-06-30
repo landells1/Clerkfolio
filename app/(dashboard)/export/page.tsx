@@ -527,7 +527,7 @@ export default function ExportPage() {
         actions={
           <>
             {subInfo && !subInfo.isPro && (
-              <Link href="/upgrade" className="rounded-lg border border-pill-amber bg-pill-amber px-4 py-2 text-sm font-medium text-amber-300 transition-colors hover:border-default">
+              <Link href="/upgrade" className="rounded-lg border border-pill-amber bg-pill-amber px-4 py-2 text-sm font-medium text-[var(--warning)] transition-colors hover:border-default">
                 Free plan limits active
               </Link>
             )}
@@ -554,7 +554,7 @@ export default function ExportPage() {
       </div>
 
       {error && (
-        <div ref={errorRef} role="alert" className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-red-300">
+        <div ref={errorRef} role="alert" className="mb-4 rounded-lg border border-red-500/20 bg-red-500/10 px-4 py-3 text-sm text-[var(--danger)]">
           {error}
         </div>
       )}
@@ -619,7 +619,7 @@ export default function ExportPage() {
         <section className="space-y-4">
           {subInfo && !subInfo.isPro && (
             <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
-              <p className="font-semibold text-amber-300">Bulk import is a Pro feature</p>
+              <p className="font-semibold text-[var(--warning)]">Bulk import is a Pro feature</p>
               <p className="mt-1 text-[var(--text-secondary)]">
                 Importing from Horus, a spreadsheet, or a backup is available on Pro. You can still add entries manually on Free.
                 {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
@@ -651,7 +651,7 @@ export default function ExportPage() {
           <aside className="space-y-4">
             {format === 'pdf' && subInfo && !subInfo.isPro && (
               <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
-                <p className="mb-1 font-semibold text-amber-300">
+                <p className="mb-1 font-semibold text-[var(--warning)]">
                   {subInfo.limits.canExportPdf
                     ? '1 of 1 PDF remaining on Free'
                     : 'PDF cap reached on Free'}
@@ -857,7 +857,7 @@ export default function ExportPage() {
             Include evidence files
           </label>
           {subInfo && !subInfo.isPro && (
-            <div className="mt-5 max-w-2xl rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-100">
+            <div className="mt-5 max-w-2xl rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
               <p className="font-semibold">
                 {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
               </p>
@@ -893,7 +893,7 @@ export default function ExportPage() {
           <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
             <h2 className="text-base font-semibold text-[var(--text-primary)]">Create protected link</h2>
             {subInfo && !subInfo.isPro && (
-              <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-amber-200">
+              <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
                 <p className="font-semibold">
                   {canCreateShareLink
                     ? '1 of 1 share link available on Free'
@@ -929,7 +929,7 @@ export default function ExportPage() {
                     {trackedApps.length === 0 && <option value="">No tracked specialties</option>}
                     {trackedApps.map(app => <option key={app.id} value={app.specialty_key}>{formatSpecialtyLabel(app.specialty_key)}</option>)}
                   </select>
-                  {trackedApps.length === 0 && <p className="mt-1 text-xs text-amber-200">Track a specialty before creating this type of link.</p>}
+                  {trackedApps.length === 0 && <p className="mt-1 text-xs text-[var(--warning)]">Track a specialty before creating this type of link.</p>}
                 </label>
               )}
               {shareScope === 'theme' && (
@@ -1016,7 +1016,7 @@ export default function ExportPage() {
                       <div>
                         <p className="text-sm font-medium text-[var(--text-primary)]">{shareLabel(link)}</p>
                         <p className="mt-1 text-xs text-[var(--text-muted)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
-                        {link.view_webhook_url && <p className="mt-1 text-xs text-emerald-300">Webhook enabled</p>}
+                        {link.view_webhook_url && <p className="mt-1 text-xs text-[var(--success)]">Webhook enabled</p>}
                       </div>
                       <div className="flex flex-wrap gap-2">
                         <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
@@ -1036,13 +1036,13 @@ export default function ExportPage() {
                               type="button"
                               onClick={() => revokeShareLink(link.id)}
                               disabled={revokingLink === link.id}
-                              className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-red-300 disabled:opacity-50"
+                              className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-[var(--danger)] disabled:opacity-50"
                             >
                               {revokingLink === link.id ? 'Revoking...' : 'Confirm revoke'}
                             </button>
                           </>
                         ) : (
-                          <button onClick={() => setConfirmRevoke(link.id)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300">Revoke</button>
+                          <button onClick={() => setConfirmRevoke(link.id)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-[var(--danger)]">Revoke</button>
                         )}
                       </div>
                     </div>

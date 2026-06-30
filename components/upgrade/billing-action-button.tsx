@@ -43,7 +43,7 @@ export default function BillingActionButton({
       >
         {loading ? 'Opening...' : buttonLabel}
       </button>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
     </div>
   )
 }

@@ -172,9 +172,9 @@ export default function LogList({ rows, kind }: { rows: PersonalLogListRow[]; ki
                     <p className="mt-1 text-xs text-[var(--text-muted)]">{new Date(row.date).toLocaleDateString('en-GB')}</p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    {row.expires_at && <span className="rounded bg-amber-400/10 px-2 py-1 text-xs text-amber-300">Expires {new Date(row.expires_at).toLocaleDateString('en-GB')}</span>}
+                    {row.expires_at && <span className="rounded bg-amber-400/10 px-2 py-1 text-xs text-[var(--warning)]">Expires {new Date(row.expires_at).toLocaleDateString('en-GB')}</span>}
                     <button type="button" onClick={() => beginEdit(row)} className="text-xs text-[var(--accent-text)] transition-colors hover:text-[var(--accent-bright)]">Edit</button>
-                    <button type="button" onClick={() => confirmDelete(row)} className="text-xs text-red-300 transition-colors hover:text-red-200">Delete</button>
+                    <button type="button" onClick={() => confirmDelete(row)} className="text-xs text-[var(--danger)] transition-colors hover:text-[var(--danger)]">Delete</button>
                   </div>
                 </div>
                 <p className="mt-2 text-sm text-[var(--text-secondary)]">

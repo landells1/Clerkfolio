@@ -61,7 +61,7 @@ function LinkRow({ title, meta }: { title: string; meta: string }) {
       <div className="mt-2 flex gap-1.5">
         <button className="rounded border border-white/[0.08] px-2 py-1 text-[10px] text-ink-soft">Copy</button>
         <button className="rounded border border-white/[0.08] px-2 py-1 text-[10px] text-ink-soft">Renew</button>
-        <button className="rounded border border-red-500/30 px-2 py-1 text-[10px] text-red-300">Revoke</button>
+        <button className="rounded border border-red-500/30 px-2 py-1 text-[10px] text-[var(--danger)]">Revoke</button>
       </div>
     </div>
   )

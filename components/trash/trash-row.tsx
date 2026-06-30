@@ -123,7 +123,7 @@ export default function TrashRow({ item }: { item: TrashItem }) {
             <button
               type="button"
               onClick={confirmPermanentDelete}
-              className="text-xs text-red-300 transition-colors hover:text-red-200"
+              className="text-xs text-[var(--danger)] transition-colors hover:text-[var(--danger)]"
             >
               Delete permanently
             </button>

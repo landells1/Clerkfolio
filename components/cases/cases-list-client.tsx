@@ -185,7 +185,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           <button
             type="button"
             onClick={() => setChipSpecialty('')}
-            className={`inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border transition-colors ${chipSpecialty === '' ? 'bg-pill-blue border-pill-blue text-blue-300' : 'bg-pill-neutral border-pill-neutral text-fg-1 hover:border-default'}`}
+            className={`inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border transition-colors ${chipSpecialty === '' ? 'bg-pill-blue border-pill-blue text-[var(--accent-text)]' : 'bg-pill-neutral border-pill-neutral text-fg-1 hover:border-default'}`}
           >
             All
             <span className="text-fg-3 tabular-nums">{cases.length}</span>
@@ -344,7 +344,7 @@ function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, on
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 {pinned && (
-                  <span className="text-[10px] font-medium text-blue-300 uppercase tracking-wide">Pinned</span>
+                  <span className="text-[10px] font-medium text-[var(--accent-text)] uppercase tracking-wide">Pinned</span>
                 )}
                 <span className="text-sm text-fg truncate min-w-0">{c.title}</span>
                 {primaryTag && <SpecialtyTag specialty={primaryTag} />}

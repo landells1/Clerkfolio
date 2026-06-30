@@ -155,7 +155,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               className="mt-5 w-full rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] px-4 py-3 text-center text-lg tracking-[0.35em] text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
               placeholder="0000"
             />
-            {error && <p className="mt-3 text-sm text-red-100">{error}</p>}
+            {error && <p className="mt-3 text-sm text-[var(--danger)]">{error}</p>}
             <button className="mt-5 w-full rounded-xl bg-[var(--accent)] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[var(--accent-hover)]">
               Unlock
             </button>
@@ -164,7 +164,7 @@ export default function PublicShareClient({ token }: { token: string }) {
 
         {!loading && error && !pinRequired && (
           <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-6">
-            <p className="text-sm text-red-100">{error}</p>
+            <p className="text-sm text-[var(--danger)]">{error}</p>
             <div className="mt-4 flex flex-wrap gap-3">
               <button type="button" onClick={() => history.back()} className="min-h-[40px] rounded-lg border border-red-200/20 px-4 text-sm font-medium text-white hover:bg-[var(--bg-overlay-soft)]">
                 Back

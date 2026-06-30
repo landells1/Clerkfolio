@@ -330,7 +330,7 @@ export default function OnboardingPage() {
           </section>
         )}
 
-        {error && <p className="mt-6 rounded-lg border border-pill-rose bg-pill-rose px-4 py-3 text-sm text-rose-300">{error}</p>}
+        {error && <p className="mt-6 rounded-lg border border-pill-rose bg-pill-rose px-4 py-3 text-sm text-[var(--cat-rose-text)]">{error}</p>}
 
         <div className="mt-10 flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <button onClick={back} disabled={stepIndex === 0 || saving} className="rounded-lg border border-subtle px-5 py-3 text-sm font-medium text-fg-2 transition-colors hover:text-fg disabled:opacity-30">
@@ -350,7 +350,7 @@ export default function OnboardingPage() {
                 Continue
               </button>
               {profileStepBlocked && profileContinueAttempted && (
-                <p id={profileHintId} className="mt-2 max-w-xs text-right text-xs text-amber-200">
+                <p id={profileHintId} className="mt-2 max-w-xs text-right text-xs text-[var(--warning)]">
                   Add your {missingProfileItems.join(', ')} to continue.
                 </p>
               )}

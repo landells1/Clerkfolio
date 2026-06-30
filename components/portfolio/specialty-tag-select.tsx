@@ -130,7 +130,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
               type="button"
               onClick={e => { e.stopPropagation(); removeTag(tag) }}
               aria-label={`Remove ${getOptionLabel(tag)}`}
-              className="hover:text-white transition-colors ml-0.5"
+              className="hover:text-[var(--text-primary)] transition-colors ml-0.5"
             >
               &times;
             </button>
@@ -180,7 +180,7 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
         />
       </div>
       {error && (
-        <p id="specialty-tag-select-error" role="alert" className="mt-1.5 text-xs text-amber-300">
+        <p id="specialty-tag-select-error" role="alert" className="mt-1.5 text-xs text-[var(--warning)]">
           {error}
         </p>
       )}

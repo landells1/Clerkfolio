@@ -9,7 +9,7 @@ export function AnonymisationBanner({ className = '' }: { className?: string }) 
   return (
     <div
       role="note"
-      className={`flex items-start gap-2.5 rounded-lg border border-amber-400/25 bg-amber-400/[0.07] px-3.5 py-2.5 text-xs leading-relaxed text-amber-200/90 ${className}`}
+      className={`flex items-start gap-2.5 rounded-lg border border-amber-400/25 bg-amber-400/[0.07] px-3.5 py-2.5 text-xs leading-relaxed text-[var(--warning)] ${className}`}
     >
       <svg
         width="15"

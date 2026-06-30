@@ -112,7 +112,7 @@ export default function EmptyTrashButton({
         <button
           onClick={() => setOpen(true)}
           disabled={eligibleCount === 0}
-          className="min-h-[44px] w-full rounded-xl border border-red-500/20 px-4 text-sm font-medium text-red-300 disabled:cursor-not-allowed disabled:opacity-45"
+          className="min-h-[44px] w-full rounded-xl border border-red-500/20 px-4 text-sm font-medium text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-45"
         >
           Empty trash
         </button>

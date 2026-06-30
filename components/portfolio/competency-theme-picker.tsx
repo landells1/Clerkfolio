@@ -224,7 +224,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               type="button"
               onClick={() => toggleTheme(theme)}
               style={colourByValue.has(theme) ? { borderColor: `${colourByValue.get(theme)}66`, backgroundColor: `${colourByValue.get(theme)}22`, color: 'var(--text-primary)' } : undefined}
-              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-violet-300 border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-medium bg-violet-500/15 text-[var(--cat-violet-text)] border border-violet-500/20 hover:bg-red-500/10 hover:text-red-400 hover:border-red-500/20 transition-colors"
             >
               {labelByValue.get(theme) ?? theme} x
             </button>
@@ -246,7 +246,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
                   style={theme.isCustom && active ? { borderColor: `${theme.colour}66`, backgroundColor: `${theme.colour}22`, color: 'var(--text-primary)' } : undefined}
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     active
-                      ? 'bg-violet-500/20 border-violet-500/40 text-violet-300'
+                      ? 'bg-violet-500/20 border-violet-500/40 text-[var(--cat-violet-text)]'
                       : 'bg-white/[0.04] border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15]'
                   }`}
                 >
@@ -267,7 +267,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
               + Add theme
             </button>
           </div>
-          {error && <p className="text-xs text-red-300">{error}</p>}
+          {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
         </div>
       )}
 
@@ -328,7 +328,7 @@ function ThemeManager({
           Add
         </button>
       </div>
-      {error && <p className="text-xs text-red-300">{error}</p>}
+      {error && <p className="text-xs text-[var(--danger)]">{error}</p>}
       <div className="divide-y divide-white/[0.06] rounded-xl border border-white/[0.08]">
         {customThemes.length === 0 ? (
           <p className="p-4 text-sm text-[var(--text-muted)]">No custom themes yet.</p>
@@ -349,7 +349,7 @@ function ThemeManager({
               <button type="button" onClick={() => renameTheme(theme)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:bg-white/[0.05]">
                 Rename
               </button>
-              <button type="button" onClick={() => removeTheme(theme)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-red-300 hover:bg-red-500/10">
+              <button type="button" onClick={() => removeTheme(theme)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-[var(--danger)] hover:bg-red-500/10">
                 Delete
               </button>
             </div>

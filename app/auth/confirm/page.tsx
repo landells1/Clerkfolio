@@ -134,7 +134,7 @@ function ConfirmContent() {
       {tokenHash && !error ? (
         <>
           {existingEmail && (
-            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-left text-sm text-amber-100">
+            <p className="mb-4 rounded-lg border border-amber-500/20 bg-amber-500/10 px-3 py-2.5 text-left text-sm text-[var(--warning)]">
               You are currently signed in as {existingEmail}. Continuing will sign out this account
               {type === 'recovery' ? ' before resetting the password for the account linked in this email.' : ' before confirming the email link.'}
             </p>
