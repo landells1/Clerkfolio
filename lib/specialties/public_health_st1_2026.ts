@@ -16,6 +16,13 @@ export const PUBLIC_HEALTH_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'multi_stage_selection_centre',
+    stages: [
+      { key: 'stage1_tests', label: 'Stage 1: cognitive tests', notes: 'Watson-Glaser critical reasoning + RANRA numerical + SJT' },
+      { key: 'stage2_selection_centre', label: 'Stage 2: selection centre' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

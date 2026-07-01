@@ -11,10 +11,30 @@ import { SPECIALTY_CONFIGS, isEvidenceBased } from '@/lib/specialties'
 // the official matrices, so totalMax must equal the sum of domain maxima and
 // must NOT include bonusOptions.
 
+// Higher-specialty (ST3/ST4) configs were removed - Clerkfolio's users are
+// FY1/FY2 doctors applying to ST1/CT1 entry-level programmes only. Pinning
+// this denylist (rather than an exact config count) catches an accidental
+// re-addition without being brittle against future entry-level additions.
+const REMOVED_HIGHER_SPECIALTY_KEYS = [
+  'plastic_surgery_st3_2026',
+  'cardiology_st4_2026',
+  'to_st3_2026',
+  'dermatology_st3_2026',
+  'em_st4_2026',
+  'general_surgery_st3_2026',
+]
+
 describe('specialty config invariants', () => {
   it('has unique specialty keys', () => {
     const keys = SPECIALTY_CONFIGS.map(c => c.key)
     expect(new Set(keys).size).toBe(keys.length)
+  })
+
+  it('does not contain any removed higher-specialty (ST3/ST4) configs', () => {
+    const keys = SPECIALTY_CONFIGS.map(c => c.key)
+    for (const removed of REMOVED_HIGHER_SPECIALTY_KEYS) {
+      expect(keys).not.toContain(removed)
+    }
   })
 
   it.each(SPECIALTY_CONFIGS.map(c => [c.key, c] as const))('%s is structurally valid', (_key, config) => {
@@ -66,6 +86,28 @@ describe('specialty config invariants', () => {
       expect(new Set(bonusKeys).size).toBe(bonusKeys.length)
       for (const bonus of config.bonusOptions) {
         expect(bonus.points).toBeGreaterThan(0)
+      }
+    }
+
+    if (config.selectionProcess) {
+      const sp = config.selectionProcess
+      const stageKeys = sp.stages.map(s => s.key)
+      expect(new Set(stageKeys).size, `${config.key}: duplicate selectionProcess stage keys`).toBe(stageKeys.length)
+
+      // If every stage declares a weightPct, they should sum to ~100 - a
+      // tolerance (not exact) because some official splits are derived from
+      // point totals rather than clean percentages, but this still catches a
+      // real typo (e.g. 30/60 instead of 33/67).
+      const allWeighted = sp.stages.length > 0 && sp.stages.every(s => s.weightPct !== undefined)
+      if (allWeighted) {
+        const sum = sp.stages.reduce((s, st) => s + (st.weightPct ?? 0), 0)
+        expect(sum, `${config.key}: selectionProcess stage weightPct sum should be ~100`).toBeGreaterThanOrEqual(95)
+        expect(sum).toBeLessThanOrEqual(105)
+      }
+
+      if (sp.recruitmentOffice) {
+        expect(sp.recruitmentOffice.url).toMatch(/^https?:\/\//)
+        expect(sp.recruitmentOffice.name.length).toBeGreaterThan(0)
       }
     }
   })

@@ -14,6 +14,16 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'assessor_scored_written',
+    stages: [
+      { key: 'written_application', label: 'Written application', weightLabel: 'Scored by 2 independent RCPCH assessors, up to 60 marks (30 each)' },
+    ],
+    recruitmentOffice: {
+      name: 'RCPCH',
+      url: 'https://www.rcpch.ac.uk/education-careers/apply-paediatrics/ST1',
+    },
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

@@ -15,17 +15,11 @@ import { HISTOPATHOLOGY_ST1_2026 } from './histopathology_st1_2026'
 import { NEUROSURGERY_ST1_2026 } from './neurosurgery_st1_2026'
 import { CARDIOTHORACIC_ST1_2026 } from './cardiothoracic_st1_2026'
 import { OMFS_ST1_2026 } from './omfs_st1_2026'
-import { PLASTIC_SURGERY_ST3_2026 } from './plastic_surgery_st3_2026'
-import { CARDIOLOGY_ST4_2026 } from './cardiology_st4_2026'
-import { TO_ST3_2026 } from './to_st3_2026'
-import { DERMATOLOGY_ST3_2026 } from './dermatology_st3_2026'
-import { EM_ST4_2026 } from './em_st4_2026'
-import { GENERAL_SURGERY_ST3_2026 } from './general_surgery_st3_2026'
 import { CHILD_ADOLESCENT_PSYCH_ST1_2026 } from './child_adolescent_psych_st1_2026'
 import { CSRH_ST1_2026 } from './csrh_st1_2026'
 import { PSYCH_LEARNING_DISABILITY_ST1_2026 } from './psych_learning_disability_st1_2026'
 import { PH_GP_DUAL_ST1_2026 } from './ph_gp_dual_st1_2026'
-import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink } from './types'
+import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink, SelectionProcess, SelectionProcessFamily } from './types'
 
 export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   IMT_2026,
@@ -49,12 +43,6 @@ export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   CSRH_ST1_2026,
   PSYCH_LEARNING_DISABILITY_ST1_2026,
   PH_GP_DUAL_ST1_2026,
-  PLASTIC_SURGERY_ST3_2026,
-  CARDIOLOGY_ST4_2026,
-  TO_ST3_2026,
-  DERMATOLOGY_ST3_2026,
-  EM_ST4_2026,
-  GENERAL_SURGERY_ST3_2026,
 ]
 
 export function getSpecialtyConfig(key: string): SpecialtyConfig | undefined {
@@ -72,11 +60,6 @@ export function formatSpecialtyLabel(key: string | null | undefined): string {
     .filter(Boolean)
     .map(part => acronyms.has(part.toLowerCase()) ? part.toUpperCase() : part.charAt(0).toUpperCase() + part.slice(1))
     .join(' ')
-}
-
-// Defaults to 'entry' when not set on the config.
-export function getTrainingLevel(config: SpecialtyConfig): 'entry' | 'higher' {
-  return config.trainingLevel ?? 'entry'
 }
 
 export function calculateDomainScore(domain: SpecialtyDomain, links: SpecialtyEntryLink[]): number {
@@ -161,6 +144,25 @@ export function getEvidenceProgress(config: SpecialtyConfig, links: SpecialtyEnt
     desirablesTotal: desirables.length,
     desirablesEvidenced: countDesirablesEvidenced(config, links),
   }
+}
+
+// ---------- Selection-process helpers ----------
+
+export function getSelectionProcess(config: SpecialtyConfig): SelectionProcess | undefined {
+  return config.selectionProcess
+}
+
+const SELECTION_FAMILY_LABELS: Record<SelectionProcessFamily, string> = {
+  self_assessment_points: 'Self-assessment points',
+  assessor_scored_written: 'Assessor-scored written application',
+  portfolio_graded_interview: 'Portfolio graded at interview',
+  msra_interview: 'MSRA + interview',
+  msra_only: 'MSRA only',
+  multi_stage_selection_centre: 'Multi-stage tests + selection centre',
+}
+
+export function getSelectionFamilyLabel(family: SelectionProcessFamily): string {
+  return SELECTION_FAMILY_LABELS[family]
 }
 
 export * from './types'

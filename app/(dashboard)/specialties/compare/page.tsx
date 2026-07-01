@@ -1,7 +1,7 @@
 ﻿import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
-import { calculateDomainScore, getSpecialtyConfig, type SpecialtyApplication, type SpecialtyEntryLink } from '@/lib/specialties'
+import { calculateDomainScore, getSpecialtyConfig, getSelectionFamilyLabel, type SpecialtyApplication, type SpecialtyEntryLink } from '@/lib/specialties'
 
 export default async function SpecialtyComparePage() {
   const supabase = await createClient()
@@ -44,7 +44,16 @@ export default async function SpecialtyComparePage() {
             <thead className="border-b border-white/[0.08] text-xs text-[var(--text-muted)]">
               <tr>
                 <th className="p-3">Domain</th>
-                {configs.map(({ app, config }) => <th key={app.id} className="p-3">{config!.name}</th>)}
+                {configs.map(({ app, config }) => (
+                  <th key={app.id} className="p-3">
+                    {config!.name}
+                    {config!.selectionProcess && (
+                      <p className="mt-0.5 text-[10px] font-normal normal-case text-[var(--text-muted)]">
+                        {getSelectionFamilyLabel(config!.selectionProcess.family)}
+                      </p>
+                    )}
+                  </th>
+                ))}
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.06]">

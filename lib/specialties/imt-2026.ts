@@ -10,6 +10,16 @@ export const IMT_2026: SpecialtyConfig = {
   sourceLabel: 'IMT Recruitment - Application Scoring',
   isOfficial: true,
   scoringType: 'points',
+  selectionProcess: {
+    family: 'self_assessment_points',
+    stages: [
+      { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '30 points across 6 domains' },
+    ],
+    recruitmentOffice: {
+      name: 'IMT Recruitment',
+      url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+    },
+  },
   bonusOptions: [
     {
       key: 'imt_only',

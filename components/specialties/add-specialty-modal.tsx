@@ -8,12 +8,48 @@ import {
   isEvidenceBased,
   getEssentialDomains,
   getDesirableDomains,
-  getTrainingLevel,
 } from '@/lib/specialties'
-import type { SpecialtyApplication, SpecialtyConfig } from '@/lib/specialties'
+import type { SpecialtyApplication, SpecialtyConfig, SelectionProcessFamily } from '@/lib/specialties'
+import { SelectionProcessStrip } from './selection-process-strip'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 const FREE_SPECIALTY_LIMIT = 1
+
+const FAMILY_ORDER: SelectionProcessFamily[] = [
+  'self_assessment_points',
+  'assessor_scored_written',
+  'portfolio_graded_interview',
+  'msra_interview',
+  'msra_only',
+  'multi_stage_selection_centre',
+]
+
+const FAMILY_META: Record<SelectionProcessFamily, { title: string; subtitle: string }> = {
+  self_assessment_points: {
+    title: 'Self-assessment points',
+    subtitle: 'Score yourself against a published points matrix.',
+  },
+  assessor_scored_written: {
+    title: 'Assessor-scored written application',
+    subtitle: 'Written answers scored by independent assessors - no self-scoring matrix.',
+  },
+  portfolio_graded_interview: {
+    title: 'Portfolio graded at interview',
+    subtitle: 'Portfolio graded A-E during the interview itself.',
+  },
+  msra_interview: {
+    title: 'MSRA + interview',
+    subtitle: 'A computer-based test (MSRA) shortlists candidates, then a structured interview scores you.',
+  },
+  msra_only: {
+    title: 'MSRA only (this cycle)',
+    subtitle: 'Shortlisting and scoring by MSRA alone for the current cycle - may change next cycle.',
+  },
+  multi_stage_selection_centre: {
+    title: 'Multi-stage tests + selection centre',
+    subtitle: 'Cognitive/situational tests followed by a simulated selection-centre stage.',
+  },
+}
 
 type Props = {
   onClose: () => void
@@ -57,8 +93,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
   }, [onClose])
 
   const available = SPECIALTY_CONFIGS.filter(c => !existingKeys.includes(c.key))
-  const entryLevel = available.filter(c => getTrainingLevel(c) === 'entry')
-  const higherLevel = available.filter(c => getTrainingLevel(c) === 'higher')
+  const familyGroups = FAMILY_ORDER.map(family => ({
+    family,
+    configs: available.filter(c => c.selectionProcess?.family === family),
+  })).filter(g => g.configs.length > 0)
+  const uncategorised = available.filter(c => !c.selectionProcess)
 
   async function handleSelect(key: string, cycleYear: number) {
     setLoading(true)
@@ -179,20 +218,21 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
                   </span>
                 )}
               </p>
-              {entryLevel.length > 0 && (
+              {familyGroups.map(({ family, configs }) => (
                 <SpecialtyGroup
-                  title="Entry training (ST1 / CT1)"
-                  subtitle="Apply directly from Foundation. ST1 = Specialty Training year 1, CT1 = Core Training year 1."
-                  configs={entryLevel}
+                  key={family}
+                  title={FAMILY_META[family].title}
+                  subtitle={FAMILY_META[family].subtitle}
+                  configs={configs}
                   loading={loading}
                   onSelect={handleSelect}
                 />
-              )}
-              {higherLevel.length > 0 && (
+              ))}
+              {uncategorised.length > 0 && (
                 <SpecialtyGroup
-                  title="Higher specialty (ST3 / ST4)"
-                  subtitle="Apply after core training: IMT (Internal Medicine), CST (Core Surgery) or ACCS (Acute Care Common Stem)."
-                  configs={higherLevel}
+                  title="Other"
+                  subtitle="Selection process not yet documented."
+                  configs={uncategorised}
                   loading={loading}
                   onSelect={handleSelect}
                 />
@@ -286,6 +326,7 @@ function SpecialtyCard({
             ? `${essentialsCount} essentials - ${desirablesCount} desirables`
             : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
         </p>
+        <SelectionProcessStrip process={config.selectionProcess} variant="compact" />
         {!config.isOfficial && (
           <p className="text-xs text-amber-400/70 mt-1">⚠️ Verify with official person spec</p>
         )}

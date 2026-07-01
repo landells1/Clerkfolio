@@ -10,6 +10,7 @@ import {
   calculateBonusScore,
   isEvidenceBased,
   getEvidenceProgress,
+  getSelectionFamilyLabel,
 } from '@/lib/specialties'
 import type {
   SpecialtyApplication,
@@ -130,6 +131,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {leftConfig?.cycleYear}
               {leftConfig && isEvidenceBased(leftConfig) && ' · Evidence-based'}
+              {leftConfig?.selectionProcess && ` · ${getSelectionFamilyLabel(leftConfig.selectionProcess.family)}`}
             </p>
           </div>
           <div className="p-4 text-center border-x border-white/[0.06]">
@@ -140,6 +142,7 @@ export function CompareView({ applications, links, isPro = false }: Props) {
             <p className="text-xs text-[var(--text-secondary)] mt-0.5">
               {rightConfig?.cycleYear}
               {rightConfig && isEvidenceBased(rightConfig) && ' · Evidence-based'}
+              {rightConfig?.selectionProcess && ` · ${getSelectionFamilyLabel(rightConfig.selectionProcess.family)}`}
             </p>
           </div>
         </div>

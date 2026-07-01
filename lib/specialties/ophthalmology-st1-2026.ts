@@ -14,6 +14,13 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'msra', label: 'MSRA' },
+      { key: 'interview', label: 'Interview' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

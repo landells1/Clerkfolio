@@ -20,6 +20,7 @@ import type {
   SpecialtyEntryLink,
 } from '@/lib/specialties'
 import { DomainTab } from './domain-tab'
+import { SelectionProcessStrip } from './selection-process-strip'
 
 type Props = {
   config: SpecialtyConfig
@@ -293,6 +294,8 @@ export function SpecialtyDetail({
           </div>
         )}
       </div>
+
+      <SelectionProcessStrip process={config.selectionProcess} variant="full" />
 
       {!evidenceBased && scoredDomains.length > 0 && (
         <SpecialtyScoreCharts domains={scoredDomains} />

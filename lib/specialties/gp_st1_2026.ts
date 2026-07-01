@@ -13,6 +13,17 @@ export const GP_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'multi_stage_selection_centre',
+    stages: [
+      { key: 'msra', label: 'MSRA' },
+      { key: 'selection_centre', label: 'Stage 3: simulated selection centre', notes: 'Simulated surgeries; competence assessed here, not via portfolio' },
+    ],
+    recruitmentOffice: {
+      name: 'GP National Recruitment Office',
+      url: 'https://gprecruitment.hee.nhs.uk/recruitment',
+    },
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

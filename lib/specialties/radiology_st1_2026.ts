@@ -10,6 +10,13 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   sourceLabel: 'NHS England - Clinical Radiology ST1 Portfolio Review Guidance',
   isOfficial: true,
   scoringType: 'points',
+  selectionProcess: {
+    family: 'self_assessment_points',
+    stages: [
+      { key: 'portfolio', label: 'Portfolio self-assessment', weightPct: 40, notes: '5 domains graded A-E; commitment domain double-weighted' },
+      { key: 'interview', label: 'Interview', weightPct: 60 },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
