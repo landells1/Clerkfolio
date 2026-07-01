@@ -1,5 +1,7 @@
 // Server component - no 'use client'
 
+import { Fragment } from 'react'
+
 interface ActivityHeatmapProps {
   dates: string[] // YYYY-MM-DD strings
 }
@@ -9,8 +11,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 const DAY_LABELS = ['Mon', '', 'Wed', '', 'Fri', '', '']
 
 const WEEKS     = 52
-const CELL      = 16  // px - cell width & height
-const GAP       = 3   // px - gap between cells
+const GAP       = 3   // px - gap between week columns/rows
 const LABEL_W   = 24  // px - day-label column width
 const LABEL_GAP = 8   // px - gap between day labels and the cell grid
 
@@ -74,6 +75,18 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
 
   const total = dates.length
 
+  // One unified CSS grid (label column + WEEKS columns, month-label row + 7
+  // weekday rows) so every row's columns are guaranteed to line up - no
+  // separate flex containers to keep in sync, no fixed pixel cell width to
+  // overflow or get clipped. Columns are `1fr` so the grid always fits its
+  // container width exactly; no horizontal scrollbar, nothing off-screen.
+  const gridStyle = {
+    display: 'grid',
+    gridTemplateColumns: `${LABEL_W}px repeat(${WEEKS}, minmax(0, 1fr))`,
+    columnGap: GAP,
+    rowGap: GAP,
+  } as const
+
   return (
     <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl">
       {/* Header */}
@@ -81,96 +94,68 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         <p className="text-[13px] font-semibold text-[var(--text-primary)]">Activity</p>
         <div className="flex items-center gap-1.5">
           <span className="text-[10px] text-[var(--text-secondary)]">Less</span>
-          {(['rgba(245,245,242,0.05)', 'rgba(34, 197, 94, 0.30)', 'rgba(34, 197, 94, 0.65)', 'rgba(245, 158, 11, 0.85)'] as const).map((color, i) => (
-            <div key={i} className="rounded-sm" style={{ width: CELL - 3, height: CELL - 3, background: color }} />
+          {([cellColor(0), cellColor(1), cellColor(2), cellColor(3)] as const).map((color, i) => (
+            <div key={i} className="rounded-sm" style={{ width: 13, height: 13, background: color }} />
           ))}
           <span className="text-[10px] text-[var(--text-secondary)]">More</span>
         </div>
       </div>
 
       <div className="px-5 pt-4 pb-5">
-        {/* The cell grid is wider than narrow viewports. `overflow-hidden` used
-            to hard-clip the oldest weeks off the left edge, which meant the
-            first visible month label sat flush against the clip boundary with
-            no leading space and no clear "this continues off-screen" cue - it
-            read as misplaced rather than clipped. A horizontally scrollable
-            region communicates the cutoff properly and keeps all 52 weeks of
-            data reachable. The direction:rtl/ltr pair is a pure-CSS trick to
-            make the scroll position default to the right edge (most recent
-            weeks) without needing a client component + onMount scrollLeft. */}
-        <div className="overflow-x-auto" style={{ direction: 'rtl' }}>
-          <div style={{ direction: 'ltr' }}>
-            {/* Month label row - offset by the label column so columns line up */}
-            <div
-              style={{
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: GAP,
-                paddingLeft: LABEL_W + LABEL_GAP,
-                marginBottom: 5,
-              }}
-            >
-              {monthLabels.map((label, i) => (
-                <div key={i} style={{ width: CELL, flexShrink: 0, overflow: 'visible' }}>
-                  {label ? (
-                    <span
-                      style={{
-                        fontSize: 10,
-                        color: 'var(--text-muted)',
-                        whiteSpace: 'nowrap',
-                        lineHeight: 1,
-                        letterSpacing: '0.02em',
-                      }}
-                    >
-                      {label}
-                    </span>
-                  ) : null}
-                </div>
-              ))}
+        <div style={gridStyle}>
+          {/* Row 1: spacer above the day-label column, then month labels */}
+          <div />
+          {monthLabels.map((label, i) => (
+            <div key={`m-${i}`} style={{ overflow: 'visible', alignSelf: 'end', paddingBottom: 5 }}>
+              {label ? (
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: 'var(--text-muted)',
+                    whiteSpace: 'nowrap',
+                    lineHeight: 1,
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  {label}
+                </span>
+              ) : null}
             </div>
+          ))}
 
-            {/* One row per weekday - label + that day's cell across every week */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
-              {DAY_LABELS.map((label, day) => (
-                <div key={day} style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
-                  {/* Day label - fixed width, right-aligned */}
+          {/* Rows 2-8: one per weekday - label + that day's cell across every week */}
+          {DAY_LABELS.map((dayLabel, day) => (
+            <Fragment key={day}>
+              <div
+                style={{
+                  textAlign: 'right',
+                  fontSize: 10,
+                  color: 'var(--text-secondary)',
+                  lineHeight: 1,
+                  letterSpacing: '0.02em',
+                  paddingRight: LABEL_GAP - GAP,
+                  alignSelf: 'center',
+                }}
+              >
+                {dayLabel}
+              </div>
+              {weeks.map((week, wi) => {
+                const { dateStr, count } = week[day]
+                return (
                   <div
+                    key={`c-${day}-${wi}`}
+                    title={cellTitle(count, dateStr)}
                     style={{
-                      width: LABEL_W,
-                      flexShrink: 0,
-                      textAlign: 'right',
-                      fontSize: 10,
-                      color: 'var(--text-secondary)',
-                      lineHeight: 1,
-                      letterSpacing: '0.02em',
+                      aspectRatio: '1',
+                      minWidth: 0,
+                      background: cellColor(count),
+                      borderRadius: 3,
                     }}
-                  >
-                    {label}
-                  </div>
-
-                  {/* Cells for this weekday across all weeks. */}
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: GAP, flex: 1, minWidth: 0 }}>
-                    {weeks.map((week, wi) => {
-                      const { dateStr, count } = week[day]
-                      return (
-                        <div
-                          key={wi}
-                          title={cellTitle(count, dateStr)}
-                          style={{
-                            width: CELL,
-                            height: CELL,
-                            flexShrink: 0,
-                            background: cellColor(count),
-                            borderRadius: 3,
-                          }}
-                        />
-                      )
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+                  />
+                )
+              })}
+            </Fragment>
+          ))}
         </div>
 
         <p
