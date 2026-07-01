@@ -14,7 +14,13 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
-  trainingLevel: 'entry',
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'portfolio', label: 'Portfolio' },
+      { key: 'interview', label: 'Interview' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

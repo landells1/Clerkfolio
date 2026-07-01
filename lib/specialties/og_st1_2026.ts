@@ -13,6 +13,13 @@ export const OG_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'msra', label: 'MSRA', weightPct: 33, notes: '50 of 150 total points; top 75 MSRA scorers bypass interview' },
+      { key: 'interview', label: 'Structured interview', weightPct: 67, notes: '100 of 150 total points, incl. an Ethics & Governance station' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

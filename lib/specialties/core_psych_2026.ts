@@ -1,8 +1,9 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Core Psychiatry CT1 2026 - selection is MSRA + interview.
-// No portfolio scoring at application stage; portfolio assessed at interview.
+// Core Psychiatry CT1 2026 - selection is MSRA only for the 2026 cycle, no
+// interview stage. No portfolio scoring at application stage. This is a
+// cycle-specific fact (may change next cycle) confirmed on the NHS person spec.
 export const CORE_PSYCH_2026: SpecialtyConfig = {
   key: 'core_psych_2026',
   name: 'Core Psychiatry CT1',
@@ -13,6 +14,13 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_only',
+    stages: [
+      { key: 'msra', label: 'MSRA' },
+    ],
+    cycleSpecific: true,
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

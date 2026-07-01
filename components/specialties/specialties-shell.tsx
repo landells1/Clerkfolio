@@ -249,13 +249,24 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               <div className="grid gap-4 sm:grid-cols-2">
                 {archivedApplications.map(app => {
                   const config = getSpecialtyConfig(app.specialty_key)
-                  if (!config) return null
+                  // A retired/removed specialty key (e.g. a config that's been
+                  // taken out of SPECIALTY_CONFIGS) must still show up here -
+                  // dropping it silently would look like the archived record
+                  // vanished, when the tracker + evidence links are still intact.
+                  const name = config?.name ?? formatSpecialtyLabel(app.specialty_key)
                   return (
                     <div key={app.id} className="bg-[var(--bg-surface)] border border-white/[0.06] rounded-2xl p-5 opacity-70">
                       <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-[var(--text-primary)] text-base">{config.name}</h3>
-                        <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[var(--text-muted)] text-xs font-medium">{config.cycleYear}</span>
+                        <h3 className="font-semibold text-[var(--text-primary)] text-base">{name}</h3>
+                        {config && (
+                          <span className="px-2 py-0.5 rounded-md bg-white/[0.06] text-[var(--text-muted)] text-xs font-medium">{config.cycleYear}</span>
+                        )}
                         <span className="px-2 py-0.5 rounded-md bg-white/[0.04] text-[var(--text-secondary)] text-xs font-medium border border-white/[0.06]">Archived</span>
+                        {!config && (
+                          <span className="px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20">
+                            Retired specialty
+                          </span>
+                        )}
                       </div>
                       {app.archived_at && (
                         <p className="text-xs text-[var(--text-secondary)] mb-2">

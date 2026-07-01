@@ -13,6 +13,17 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'msra', label: 'MSRA', weightPct: 15 },
+      { key: 'interview', label: 'Interview (two 15-min stations)', weightPct: 85 },
+    ],
+    recruitmentOffice: {
+      name: 'ANRO',
+      url: 'https://anro.wm.hee.nhs.uk/ct1',
+    },
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

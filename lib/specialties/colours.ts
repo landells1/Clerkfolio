@@ -12,15 +12,11 @@ const SPECIALTY_COLOURS: Record<string, PillColour> = {
   // Internal medicine / acute
   imt_2026: 'blue',
   accs_am_2026: 'blue',
-  cardiology_st4_2026: 'red',
 
   // Surgery family - rose
   cst_2026: 'rose',
-  general_surgery_st3_2026: 'rose',
   cardiothoracic_st1_2026: 'rose',
   neurosurgery_st1_2026: 'rose',
-  plastic_surgery_st3_2026: 'rose',
-  to_st3_2026: 'rose',
   omfs_st1_2026: 'rose',
 
   // GP - green
@@ -29,7 +25,6 @@ const SPECIALTY_COLOURS: Record<string, PillColour> = {
 
   // Emergency / acute - amber
   accs_em_2026: 'amber',
-  em_st4_2026: 'amber',
 
   // Anaesthetics - teal
   anaesthetics_ct1_2026: 'teal',
@@ -52,9 +47,8 @@ const SPECIALTY_COLOURS: Record<string, PillColour> = {
   // Paediatrics - pink
   paediatrics_st1_2026: 'pink',
 
-  // Eyes / skin
+  // Eyes
   ophthalmology_st1_2026: 'cyan',
-  dermatology_st3_2026: 'pink',
 }
 
 export function getSpecialtyColour(key: string | null | undefined): PillColour {

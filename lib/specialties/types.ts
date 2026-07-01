@@ -6,11 +6,6 @@ export type ScoringRule = 'highest' | 'cumulative_capped'
 //                users upload evidence against essential / desirable domains
 export type ScoringType = 'points' | 'evidence'
 
-// Training stage at which a programme is entered:
-//   'entry'  - F2-direct entry (ST1 / CT1 run-through or core training)
-//   'higher' - higher specialty entry post-IMT / post-CST / post-ACCS (ST3 / ST4)
-export type TrainingLevel = 'entry' | 'higher'
-
 // For evidence-based specialties, each domain is either:
 //   'essential' - entry requirement / gate (binary; must be met to apply)
 //   'desirable' - application/interview criterion (evidence accumulates)
@@ -19,6 +14,44 @@ export type CriteriaType = 'essential' | 'desirable'
 export type ScoringBand = {
   label: string
   points: number
+}
+
+// The selection-process family a specialty's shortlisting mechanism belongs to.
+// Orthogonal to ScoringType: describes HOW candidates are shortlisted/scored by
+// the recruiting body, not whether Clerkfolio can present a self-score matrix.
+export type SelectionProcessFamily =
+  | 'self_assessment_points'       // candidate self-scores against a published matrix
+  | 'assessor_scored_written'      // written application scored by external assessors, no self-score
+  | 'portfolio_graded_interview'   // portfolio graded A-E at interview, no pre-interview self-score
+  | 'msra_interview'               // MSRA shortlists, then a structured interview scores
+  | 'msra_only'                    // MSRA only, no interview, for the current cycle
+  | 'multi_stage_selection_centre' // cognitive/situational tests plus a selection-centre stage
+
+// One stage in a specialty's selection pipeline, in chronological order.
+export type SelectionStage = {
+  key: string
+  label: string
+  weightPct?: number    // omit when no published split exists - do not fabricate
+  weightLabel?: string  // free-text fallback, e.g. "Portfolio ~45% of final score"
+  notes?: string
+}
+
+// The body that actually runs recruitment/scoring for a specialty, when distinct
+// from the generic NHS England / HEE person-specification cited in `source`.
+export type RecruitmentOffice = {
+  name: string   // e.g. "RCPCH", "ANRO", "GP National Recruitment Office", "IMT Recruitment"
+  url: string
+  urlLabel?: string
+}
+
+// Full selection-process descriptor for a specialty. Optional on SpecialtyConfig;
+// absence means "not yet documented", not "no process exists" - UI must render
+// nothing when undefined, never a fabricated claim.
+export type SelectionProcess = {
+  family: SelectionProcessFamily
+  stages: SelectionStage[]   // empty array allowed if not yet modeled
+  recruitmentOffice?: RecruitmentOffice
+  cycleSpecific?: boolean    // true when the family/weights are a cycle snapshot that may change next cycle
 }
 
 export type SpecialtyDomain = {
@@ -56,11 +89,11 @@ export type SpecialtyConfig = {
   isOfficial: boolean
   scoringType?: ScoringType  // 'points' (default) or 'evidence'; UI uses this to pick layout
   isEvidenceOnly?: boolean   // deprecated alias; equivalent to scoringType === 'evidence'
-  trainingLevel?: TrainingLevel  // 'entry' (default; ST1/CT1) or 'higher' (ST3/ST4)
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
   applicationWindow?: ApplicationWindow  // auto-populated deadlines; must be verified before use
   supersededBy?: string                  // specialty_key of the next-cycle config e.g. 'imt_2027'
+  selectionProcess?: SelectionProcess     // how candidates are actually shortlisted/scored
 }
 
 export type SpecialtyApplication = {

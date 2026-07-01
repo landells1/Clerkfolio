@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { SPECIALTY_CONFIGS, getTrainingLevel } from '@/lib/specialties'
+import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 import { createClient } from '@/lib/supabase/client'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES, isMedicalStudentStage } from '@/lib/constants/career-stages'
@@ -58,7 +58,7 @@ export default function OnboardingPage() {
   const profileStepBlocked = step === 'profile' && missingProfileItems.length > 0
   const profileHintId = 'onboarding-profile-requirements'
   const entryLevelSpecialties = useMemo(
-    () => SPECIALTY_CONFIGS.filter(config => getTrainingLevel(config) === 'entry').slice(0, 18),
+    () => SPECIALTY_CONFIGS.slice(0, 18),
     []
   )
 

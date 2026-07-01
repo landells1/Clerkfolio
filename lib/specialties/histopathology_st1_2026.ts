@@ -13,6 +13,12 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
   sourceLabel: 'NHS England - Histopathology ST1 Self-Assessment Scoring Guidance',
   isOfficial: true,
   scoringType: 'points',
+  selectionProcess: {
+    family: 'self_assessment_points',
+    stages: [
+      { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '71 points across 10 domains' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

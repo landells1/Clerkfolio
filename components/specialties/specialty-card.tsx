@@ -10,6 +10,7 @@ import {
   getEvidenceProgress,
 } from '@/lib/specialties'
 import type { SpecialtyConfig, SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
+import { SelectionProcessStrip } from './selection-process-strip'
 
 type Props = {
   config: SpecialtyConfig
@@ -86,6 +87,8 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
           </svg>
         </button>
       </div>
+
+      <SelectionProcessStrip process={config.selectionProcess} variant="compact" />
 
       {evidenceBased ? (
         <EvidenceProgress config={config} links={links} />

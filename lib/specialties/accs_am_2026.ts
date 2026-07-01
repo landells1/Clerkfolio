@@ -5,15 +5,29 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 // framework for 2026. Total 30 points + 5 bonus for candidates applying only to
 // IMT / ACCS-IM. Internal `key` retained as 'accs_am_2026' for data compatibility
 // with existing user records; the official 2026 title is "ACCS Internal Medicine".
+// `source` points at IMT Recruitment's own scoring page (not the generic NHS
+// person-spec page) because that is where the actual 30-point matrix + 5pt
+// Round-1-only bonus are published - the generic HEE person-spec page for this
+// specialty carries no numeric scoring table at all (confirmed by direct fetch).
 export const ACCS_AM_2026: SpecialtyConfig = {
   key: 'accs_am_2026',
   name: 'ACCS (Internal Medicine) CT1',
   cycleYear: 2026,
   totalMax: 30,
-  source: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-internal-medicine-ct1-2026',
-  sourceLabel: 'NHS England - ACCS Internal Medicine CT1 2026 Person Specification',
+  source: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+  sourceLabel: 'IMT Recruitment - Application Scoring',
   isOfficial: true,
   scoringType: 'points',
+  selectionProcess: {
+    family: 'self_assessment_points',
+    stages: [
+      { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '30 points across 6 domains (shares the IMT framework)' },
+    ],
+    recruitmentOffice: {
+      name: 'IMT Recruitment',
+      url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+    },
+  },
   bonusOptions: [
     {
       key: 'imt_only',

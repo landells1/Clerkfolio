@@ -16,6 +16,13 @@ export const CST_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'portfolio_graded_interview',
+    stages: [
+      { key: 'portfolio_review', label: 'Portfolio review (A-E, at interview)', weightLabel: '~45% of final score', notes: '10-min review + 15-min discussion station; missing index page scores 0' },
+      { key: 'interview', label: 'Interview discussion' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

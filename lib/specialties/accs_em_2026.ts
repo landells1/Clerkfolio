@@ -13,6 +13,13 @@ export const ACCS_EM_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'msra', label: 'MSRA' },
+      { key: 'interview', label: 'Interview' },
+    ],
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

@@ -16,6 +16,17 @@ export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
   isOfficial: true,
   scoringType: 'evidence',
   isEvidenceOnly: true,
+  selectionProcess: {
+    family: 'msra_interview',
+    stages: [
+      { key: 'msra', label: 'MSRA', weightPct: 40, notes: 'Weight sourced from a Yorkshire & Humber deanery applicant pack, not medical.hee.nhs.uk directly - lower confidence' },
+      { key: 'interview', label: 'Portfolio-based interview', weightPct: 60 },
+    ],
+    recruitmentOffice: {
+      name: 'Yorkshire & Humber Deanery',
+      url: 'https://www.yorksandhumberdeanery.nhs.uk',
+    },
+  },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
