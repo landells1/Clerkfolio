@@ -28,13 +28,13 @@
      Every brand-blue value derives from it: the solid --accent/--blue/--focus-ring
      here, and the translucent tints app-wide (Tailwind `bg-accent/15` etc., which
      compile to rgb(var(--accent-rgb) / .15)). Change this one line to rebrand. */
-  --accent-rgb: 91 58 142; /* #5B3A8E deep plum — cool hue pops against warm cream via hue contrast, not just darkness (dark mode keeps blue, see dark block) */
+  --accent-rgb: 184 42 64; /* #B82A40 oxblood — luminous crimson so small accent text pops (dark mode keeps blue, see dark block) */
 
   /* legacy alias kept for any direct var(--blue) reads */
   --blue: rgb(var(--accent-rgb));
 
   /* Surfaces — layered light to deep by elevation */
-  --bg-canvas:        #F3EDDA; /* page background (lightened further so the accent pops) */
+  --bg-canvas:        #F3EDDA; /* page background (lightened further so the oxblood pops) */
   --bg-surface:       #FDFAF1; /* cards, panels — pushed near-white to stay distinct from the lighter canvas */
   --bg-raised:        #FFFFFB; /* inputs, popovers, menus, elevated — white top of the ladder */
   --bg-sidebar:       #ECE6D1; /* left navigation (a step under canvas) */
@@ -64,22 +64,22 @@
   --text-muted:       #6B6450; /* captions, meta, placeholders (deepened) */
   --text-faint:       rgba(38, 36, 30, 0.45); /* disabled / faint */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
-  --text-emphasis:    #5B3A8E; /* deep plum for important text (sidebar nav, key labels) — pops crisp on cream, AAA contrast */
+  --text-emphasis:    #B82A40; /* luminous oxblood for important text (sidebar nav, key labels) — pops crisp on cream */
 
   /* Brand accent — primary blue fill stays brand blue in both themes.
      --accent / --focus-ring derive from --accent-rgb (above) so the brand
      colour has one source. --accent-bright/-text/-soft/-soft-text are distinct
      tuned tokens (not pure brand blue) and stay independently adjustable. */
   --accent:           rgb(var(--accent-rgb)); /* button fill, active states */
-  --accent-hover:     #462C70; /* darker plum (pressed/hover) */
-  --accent-bright:    #7C56B5; /* brightest plum accents */
-  --accent-text:      #5B3A8E; /* plum links / icon text on cream */
-  --accent-soft:      #EBE4F5; /* soft plum chip / tag background */
-  --accent-soft-text: #4A2E75; /* text inside soft plum chips */
+  --accent-hover:     #952033; /* darker oxblood (pressed/hover) */
+  --accent-bright:    #D23A52; /* brightest oxblood accents */
+  --accent-text:      #B82A40; /* oxblood links / icon text on cream */
+  --accent-soft:      #F3D9DD; /* soft oxblood chip / tag background */
+  --accent-soft-text: #6E1E2B; /* text inside soft oxblood chips */
   --focus-ring:       rgb(var(--accent-rgb));
 
   /* Display-headline accent gradients (bg-clip-text). Deeper on cream for AA. */
-  --accent-gradient:  linear-gradient(100deg, oklch(0.48 0.17 300) 0%, oklch(0.38 0.16 296) 100%);
+  --accent-gradient:  linear-gradient(100deg, oklch(0.56 0.19 24) 0%, oklch(0.47 0.18 17) 100%);
   --danger-gradient:  linear-gradient(100deg, oklch(0.58 0.19 28) 0%, oklch(0.50 0.19 22) 100%);
 
   /* Informational panel ("example entries" banner) */
@@ -87,13 +87,13 @@
   --info-border:      #E0CEA8;
   --info-text:        #5A4620;
 
-  /* Month-calendar heatmap fills (1→3 entries). Cream: light plum/lavender tints
+  /* Month-calendar heatmap fills (1→3 entries). Cream: light oxblood/rose tints
      that stay readable with the dark --text-primary. Dark: the original blue
      steps (light --text-primary reads on them). Text uses var(--text-primary)
      so it auto-contrasts per theme. */
-  --cal-fill-1:       #E5DEF0;
-  --cal-fill-2:       #C7B8E0;
-  --cal-fill-3:       #A48FCB;
+  --cal-fill-1:       #EFD8DB;
+  --cal-fill-2:       #DDB0B6;
+  --cal-fill-3:       #C68C94;
 
   /* Inverted surface (intentionally high-contrast buttons/chips that were a
      light block in dark mode — become a dark block on cream). */
@@ -141,7 +141,7 @@ html[data-theme="dark"] {
   color-scheme: dark;
 
   /* Dark keeps the original brand BLUE — its own channel (cream's :root is now
-     plum, so dark MUST override here, not inherit). accent, blue, focus-ring,
+     oxblood, so dark MUST override here, not inherit). accent, blue, focus-ring,
      nav-active and the bg-accent tints all derive from this. */
   --accent-rgb: 27 111 217; /* #1B6FD9 brand blue */
   --blue: rgb(var(--accent-rgb));
