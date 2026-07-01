@@ -78,7 +78,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
                         isCounting
-                          ? 'bg-accent/20 text-[var(--accent-text)]'
+                          ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
                           : 'bg-white/[0.06] text-[var(--text-muted)]'
                       }`}
                     >

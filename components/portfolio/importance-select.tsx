@@ -24,7 +24,7 @@ export default function ImportanceSelect({
             onClick={() => onChange(active ? null : option.value)}
             className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
               active
-                ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]'
+                ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
                 : 'border-white/[0.08] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:border-white/[0.15] hover:text-[var(--text-primary)]'
             }`}
           >

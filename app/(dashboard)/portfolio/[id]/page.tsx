@@ -136,7 +136,7 @@ export default async function EntryDetailPage({
             <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Linked specialties</p>
             <div className="flex flex-wrap gap-1.5">
               {entry.specialty_tags.map((tag: string) => (
-                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-accent/10 text-[var(--accent-text)] border border-accent/20">
+                <span key={tag} className="px-2.5 py-1 rounded-lg text-xs bg-[var(--accent-soft)] text-[var(--accent-soft-text)] border border-accent/30">
                   {formatTag(tag)}
                 </span>
               ))}

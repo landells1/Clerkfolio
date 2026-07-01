@@ -194,7 +194,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                       onClick={() => setEntryType(t)}
                       className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${
                         entryType === t
-                          ? 'bg-accent/15 text-[var(--accent-text)] border-accent/25'
+                          ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)] border-accent/30'
                           : 'bg-[var(--bg-canvas)] text-[var(--text-secondary)] border-white/[0.08] hover:border-white/[0.16]'
                       }`}
                     >
@@ -228,7 +228,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                   Auto-tagged
                 </label>
                 <div className="flex flex-wrap gap-1.5">
-                  <span className="px-2.5 py-1 rounded-full bg-accent/15 text-[var(--accent-text)] text-xs font-medium border border-accent/20">
+                  <span className="px-2.5 py-1 rounded-full bg-[var(--accent-soft)] text-[var(--accent-soft-text)] text-xs font-medium border border-accent/30">
                     {specialtyName}
                   </span>
                 </div>

@@ -38,7 +38,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
           {filters.map((filter) => {
             const active = filter.startsWith('Reflection')
             return (
-              <span key={filter} className={`shrink-0 rounded border px-2 py-1 font-mono text-[10px] ${active ? 'border-accent/40 bg-accent/10 text-[var(--accent-text)]' : 'border-white/[0.08] text-ink-dim'}`}>
+              <span key={filter} className={`shrink-0 rounded border px-2 py-1 font-mono text-[10px] ${active ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'border-white/[0.08] text-ink-dim'}`}>
                 {filter}
               </span>
             )

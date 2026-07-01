@@ -24,7 +24,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
               <p className="mb-1.5 text-ink-dim">Expires</p>
               <div className="grid grid-cols-2 gap-1.5">
                 {['1 day', '1 week', '1 month', 'Custom'].map((item) => (
-                  <span key={item} className={`rounded border px-2 py-2 text-center ${item === '1 month' ? 'border-accent/40 bg-accent/10 text-[var(--accent-text)]' : 'border-white/[0.08] text-ink-soft'}`}>{item}</span>
+                  <span key={item} className={`rounded border px-2 py-2 text-center ${item === '1 month' ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'border-white/[0.08] text-ink-soft'}`}>{item}</span>
                 ))}
               </div>
             </div>

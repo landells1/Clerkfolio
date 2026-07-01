@@ -630,7 +630,7 @@ export default function ExportPage() {
             <Link href="/import" className="rounded-2xl border border-accent/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-accent/30 sm:col-span-2">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
-                <span className="rounded-full border border-accent/30 bg-accent/15 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">Recommended</span>
+                <span className="rounded-full border border-accent/30 bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent-soft-text)]">Recommended</span>
               </div>
               <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
             </Link>
@@ -667,7 +667,7 @@ export default function ExportPage() {
               <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Format</p>
               <div className="flex gap-2">
                 {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
-                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
+                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
                     {f.toUpperCase()}
                   </button>
                 ))}
@@ -949,7 +949,7 @@ export default function ExportPage() {
                       onClick={() => setExpiryPreset(preset.days)}
                       className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
                         expiryPreset === preset.days
-                          ? 'border-accent/40 bg-accent/15 text-[var(--accent-text)]'
+                          ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
                           : 'border-white/[0.08] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
                       }`}
                     >

@@ -267,7 +267,7 @@ function SpecialtyCard({
             {config.cycleYear}
           </span>
           {config.isOfficial ? (
-            <span className="px-1.5 py-0.5 rounded bg-accent/10 text-[var(--accent-text)] text-xs border border-accent/20">
+            <span className="px-1.5 py-0.5 rounded bg-[var(--accent-soft)] text-[var(--accent-soft-text)] text-xs border border-accent/30">
               Official
             </span>
           ) : (

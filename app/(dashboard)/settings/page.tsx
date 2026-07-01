@@ -913,7 +913,7 @@ function StudentEmailStatus({ studentEmail }: { studentEmail: { email: string; v
     : 'next year'
 
   return (
-    <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-xs font-medium text-[var(--accent-text)]">
+    <span className="rounded-full bg-[var(--accent)] px-2.5 py-1 text-xs font-medium text-[var(--text-on-accent)]">
       Verified until {dueLabel}
     </span>
   )

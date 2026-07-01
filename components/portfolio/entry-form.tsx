@@ -40,7 +40,7 @@ const GRID2 = 'grid grid-cols-1 gap-4 sm:grid-cols-2'
 const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
-      ? 'bg-accent/15 border-accent/40 text-[var(--accent-text)]'
+      ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
       : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
   }`
 
@@ -650,7 +650,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       >
         {/* Draft restored banner */}
         {draftRestored && (
-          <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
+          <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-soft-text)] mb-4">
             {/* Free text (notes, reflection content) is deliberately excluded
                 from the autosaved draft for privacy - say so, or a user who
                 drafted a Gibbs reflection finds the section open and every
@@ -689,7 +689,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   onClick={() => setCategory(c.value)}
                   className={`py-2.5 px-3 text-sm rounded-xl border text-left transition-colors ${
                     category === c.value
-                      ? 'bg-accent/15 border-accent/40 text-[var(--accent-text)]'
+                      ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
                       : 'bg-[var(--bg-surface)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                   }`}
                 >
@@ -723,7 +723,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       key={tag}
                       type="button"
                       onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                      className="rounded border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] text-[var(--accent-text)]"
+                      className="rounded border border-accent/30 bg-[var(--accent-soft)] px-2 py-1 text-[10px] text-[var(--accent-soft-text)]"
                     >
                       + {formatSpecialtyLabel(tag)}
                     </button>
@@ -986,7 +986,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       }}
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         reflFramework === fw
-                          ? 'bg-accent/15 border-accent/40 text-[var(--accent-text)]'
+                          ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
                           : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
                       }`}
                     >

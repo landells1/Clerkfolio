@@ -266,7 +266,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
     >
       {/* Draft restored banner */}
       {draftRestored && (
-        <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-text)] mb-4">
+        <div className="flex items-center justify-between bg-accent/10 border border-accent/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--accent-soft-text)] mb-4">
           <span>Draft restored</span>
           <button
             type="button"
@@ -350,7 +350,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
                   key={tag}
                   type="button"
                   onClick={() => { setSpecialtyTags(current => [...current, tag]); markDirty() }}
-                  className="rounded border border-accent/25 bg-accent/10 px-2 py-1 text-[10px] text-[var(--accent-text)]"
+                  className="rounded border border-accent/30 bg-[var(--accent-soft)] px-2 py-1 text-[10px] text-[var(--accent-soft-text)]"
                 >
                   + {formatSpecialtyLabel(tag)}
                 </button>

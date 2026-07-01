@@ -32,7 +32,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
               {catMeta?.short}
             </span>
             {entry.specialty_tags.slice(0, 2).map(tag => (
-              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-accent/10 text-[var(--accent-text)] border border-accent/20">
+              <span key={tag} className="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-[var(--accent-soft)] text-[var(--accent-soft-text)] border border-accent/30">
                 {formatTag(tag)}
               </span>
             ))}

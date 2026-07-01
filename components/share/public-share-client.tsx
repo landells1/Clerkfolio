@@ -221,7 +221,7 @@ export default function PublicShareClient({ token }: { token: string }) {
                             {entry.specialty_tag_labels && entry.specialty_tag_labels.length > 0 && (
                               <div className="mt-3 flex flex-wrap gap-1.5">
                                 {entry.specialty_tag_labels.map(label => (
-                                  <span key={label} className="rounded bg-accent/10 px-2 py-0.5 text-[10px] font-medium text-[var(--accent-text)]">
+                                  <span key={label} className="rounded bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent-soft-text)]">
                                     {label}
                                   </span>
                                 ))}

@@ -465,7 +465,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
 
           {/* User name */}
           <div className="flex items-center gap-3 px-3 py-2.5 mt-1">
-            <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-[var(--accent-soft)] flex items-center justify-center text-[var(--accent-soft-text)] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
             <span className="text-sm text-[var(--text-emphasis)] truncate font-bold">{fullName}</span>

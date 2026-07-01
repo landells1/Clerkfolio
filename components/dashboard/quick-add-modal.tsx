@@ -93,7 +93,7 @@ const SUPERVISION_LEVELS: { id: string; label: string }[] = [
 // Pill colour name -> tailwind classes for the type-tile icon backgrounds.
 // Picked manually so JIT generates them; safelisted in tailwind.config.ts already.
 const TILE_BG: Record<TypeMeta['colour'], string> = {
-  blue: 'bg-pill-blue text-[var(--accent-text)] border-pill-blue',
+  blue: 'bg-pill-blue text-[var(--cat-blue-text)] border-pill-blue',
   violet: 'bg-pill-violet text-[var(--cat-violet-text)] border-pill-violet',
   green: 'bg-pill-green text-[var(--cat-green-text)] border-pill-green',
   amber: 'bg-pill-amber text-[var(--warning)] border-pill-amber',
@@ -363,7 +363,7 @@ export default function QuickAddModal({
                       key={t}
                       type="button"
                       onClick={() => { setTags(prev => [...prev, t]); setSuggestedTags(prev => prev.filter(s => s !== t)) }}
-                      className="px-2 py-0.5 rounded text-[10px] bg-pill-blue border border-pill-blue text-[var(--accent-text)] hover:border-default transition-colors"
+                      className="px-2 py-0.5 rounded text-[10px] bg-pill-blue border border-pill-blue text-[var(--cat-blue-text)] hover:border-default transition-colors"
                     >
                       + {t}
                     </button>
@@ -468,7 +468,7 @@ export default function QuickAddModal({
                           onClick={() => setProcSupervision(s.id)}
                           className={`flex-1 py-2.5 text-xs font-medium transition-colors ${i > 0 ? 'border-l border-subtle' : ''} ${
                             procSupervision === s.id
-                              ? 'bg-pill-blue text-[var(--accent-text)]'
+                              ? 'bg-pill-blue text-[var(--cat-blue-text)]'
                               : 'bg-surface-0 text-fg-2 hover:text-fg'
                           }`}
                         >

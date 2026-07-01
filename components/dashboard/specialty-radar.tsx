@@ -181,7 +181,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
             <button
               onClick={() => handleSetView('bar')}
               title="Bar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-accent/20 text-[var(--accent-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'bar' ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
@@ -190,7 +190,7 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
             <button
               onClick={() => handleSetView('radar')}
               title="Radar view"
-              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-accent/20 text-[var(--accent-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
+              className={`p-1.5 rounded-lg transition-colors ${view === 'radar' ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-secondary)]'}`}
             >
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polygon points="12 2 19 7 19 17 12 22 5 17 5 7"/><line x1="12" y1="2" x2="12" y2="22"/><line x1="5" y1="7" x2="19" y2="17"/><line x1="19" y1="7" x2="5" y2="17"/>
