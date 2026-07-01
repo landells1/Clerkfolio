@@ -95,7 +95,7 @@ function filenameFromContentDisposition(header: string | null): string | null {
 function specialtyChipClass(active: boolean) {
   return `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
     active
-      ? 'border-accent/40 bg-accent/20 text-[var(--accent-text)]'
+      ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
       : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
   }`
 }
