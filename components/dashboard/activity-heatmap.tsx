@@ -15,9 +15,11 @@ const LABEL_W   = 24  // px - day-label column width
 const LABEL_GAP = 8   // px - gap between day labels and the cell grid
 
 // Warm green-to-amber ramp - empty days fade, light activity reads as healthy
-// green, heavy activity tilts amber to draw the eye.
+// green, heavy activity tilts amber to draw the eye. Empty cells use the
+// theme-aware overlay token (not a raw white-tinted rgba) so they read as a
+// faint but visible square against the cream surface, not an invisible one.
 function cellColor(count: number): string {
-  if (count === 0) return 'rgba(245,245,242,0.05)'
+  if (count === 0) return 'var(--bg-overlay-soft)'
   if (count === 1) return 'rgba(34, 197, 94, 0.30)'   // green-500 @ 30%
   if (count === 2) return 'rgba(34, 197, 94, 0.65)'   // green-500 @ 65%
   return 'rgba(245, 158, 11, 0.85)'                    // amber-500
@@ -86,81 +88,89 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
         </div>
       </div>
 
-      {/* The cell grid is wider than narrow viewports. Hide horizontal overflow
-          and right-align so the most recent weeks are always visible; oldest
-          weeks scroll off the left. flexbox `justify-content: flex-end` does
-          the right-anchoring; `overflow-hidden` does the clip. */}
-      <div className="overflow-hidden px-5 pt-4 pb-5">
-        {/* Month label row - offset by the label column so columns line up */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'flex-end',
-            gap: GAP,
-            paddingLeft: LABEL_W + LABEL_GAP,
-            marginBottom: 5,
-          }}
-        >
-          {monthLabels.map((label, i) => (
-            <div key={i} style={{ width: CELL, flexShrink: 0, overflow: 'visible' }}>
-              {label ? (
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--text-muted)',
-                    whiteSpace: 'nowrap',
-                    lineHeight: 1,
-                    letterSpacing: '0.02em',
-                  }}
-                >
-                  {label}
-                </span>
-              ) : null}
-            </div>
-          ))}
-        </div>
-
-        {/* One row per weekday - label + that day's cell across every week */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
-          {DAY_LABELS.map((label, day) => (
-            <div key={day} style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
-              {/* Day label - fixed width, right-aligned */}
-              <div
-                style={{
-                  width: LABEL_W,
-                  flexShrink: 0,
-                  textAlign: 'right',
-                  fontSize: 10,
-                  color: 'var(--text-secondary)',
-                  lineHeight: 1,
-                  letterSpacing: '0.02em',
-                }}
-              >
-                {label}
-              </div>
-
-              {/* Cells for this weekday across all weeks - right-anchored so the
-                  most recent weeks always show; oldest clip off the left edge. */}
-              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: GAP, flex: 1, minWidth: 0 }}>
-                {weeks.map((week, wi) => {
-                  const { dateStr, count } = week[day]
-                  return (
-                    <div
-                      key={wi}
-                      title={cellTitle(count, dateStr)}
+      <div className="px-5 pt-4 pb-5">
+        {/* The cell grid is wider than narrow viewports. `overflow-hidden` used
+            to hard-clip the oldest weeks off the left edge, which meant the
+            first visible month label sat flush against the clip boundary with
+            no leading space and no clear "this continues off-screen" cue - it
+            read as misplaced rather than clipped. A horizontally scrollable
+            region communicates the cutoff properly and keeps all 52 weeks of
+            data reachable. The direction:rtl/ltr pair is a pure-CSS trick to
+            make the scroll position default to the right edge (most recent
+            weeks) without needing a client component + onMount scrollLeft. */}
+        <div className="overflow-x-auto" style={{ direction: 'rtl' }}>
+          <div style={{ direction: 'ltr' }}>
+            {/* Month label row - offset by the label column so columns line up */}
+            <div
+              style={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: GAP,
+                paddingLeft: LABEL_W + LABEL_GAP,
+                marginBottom: 5,
+              }}
+            >
+              {monthLabels.map((label, i) => (
+                <div key={i} style={{ width: CELL, flexShrink: 0, overflow: 'visible' }}>
+                  {label ? (
+                    <span
                       style={{
-                        width: CELL,
-                        height: CELL,
-                        flexShrink: 0,
-                        background: cellColor(count),
-                        borderRadius: 3,
+                        fontSize: 10,
+                        color: 'var(--text-muted)',
+                        whiteSpace: 'nowrap',
+                        lineHeight: 1,
+                        letterSpacing: '0.02em',
                       }}
-                    />
-                  )
-                })}
-              </div>
+                    >
+                      {label}
+                    </span>
+                  ) : null}
+                </div>
+              ))}
             </div>
-          ))}
+
+            {/* One row per weekday - label + that day's cell across every week */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: GAP }}>
+              {DAY_LABELS.map((label, day) => (
+                <div key={day} style={{ display: 'flex', alignItems: 'center', gap: LABEL_GAP }}>
+                  {/* Day label - fixed width, right-aligned */}
+                  <div
+                    style={{
+                      width: LABEL_W,
+                      flexShrink: 0,
+                      textAlign: 'right',
+                      fontSize: 10,
+                      color: 'var(--text-secondary)',
+                      lineHeight: 1,
+                      letterSpacing: '0.02em',
+                    }}
+                  >
+                    {label}
+                  </div>
+
+                  {/* Cells for this weekday across all weeks. */}
+                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: GAP, flex: 1, minWidth: 0 }}>
+                    {weeks.map((week, wi) => {
+                      const { dateStr, count } = week[day]
+                      return (
+                        <div
+                          key={wi}
+                          title={cellTitle(count, dateStr)}
+                          style={{
+                            width: CELL,
+                            height: CELL,
+                            flexShrink: 0,
+                            background: cellColor(count),
+                            borderRadius: 3,
+                          }}
+                        />
+                      )
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
         <p
