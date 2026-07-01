@@ -358,7 +358,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
                   href={item.href}
                   prefetch={false}
                   onClick={() => setMobileOpen(false)}
-                  className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors relative ${
+                  className={`flex items-center gap-3 px-3 py-2 text-sm font-bold transition-colors relative ${
                     active
                       ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                       : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
@@ -397,7 +397,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           {/* Send Feedback */}
           <button
             onClick={() => setFeedbackOpen(true)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -411,7 +411,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               href="/upgrade"
               prefetch={false}
               onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors relative ${
+              className={`flex items-center gap-3 px-3 py-2 text-sm font-bold transition-colors relative ${
                 pathname === '/upgrade'
                   ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                   : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
@@ -430,7 +430,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           <button
             onClick={handleLogout}
             disabled={loggingOut}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors disabled:opacity-50"
           >
             {loggingOut ? (
               <div className="w-4 h-4 border-2 border-current/30 border-t-current rounded-full motion-safe:animate-spin flex-shrink-0" />
@@ -449,7 +449,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             href="/settings"
             prefetch={false}
             onClick={() => setMobileOpen(false)}
-            className={`flex items-center gap-3 px-3 py-2 text-sm font-semibold transition-colors relative ${
+            className={`flex items-center gap-3 px-3 py-2 text-sm font-bold transition-colors relative ${
               pathname === '/settings' || pathname.startsWith('/settings/')
                 ? 'rounded-r-lg text-[var(--text-primary)] border-l-2 border-[var(--nav-active-border)]'
                 : 'rounded-lg text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05]'
@@ -468,7 +468,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
             <div className="w-7 h-7 rounded-full bg-accent/20 flex items-center justify-center text-[var(--accent-text)] text-xs font-semibold flex-shrink-0">
               {initials}
             </div>
-            <span className="text-sm text-[var(--text-emphasis)] truncate font-semibold">{fullName}</span>
+            <span className="text-sm text-[var(--text-emphasis)] truncate font-bold">{fullName}</span>
           </div>
 
           {/* Legal links */}
@@ -600,7 +600,7 @@ function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
 }
 
 function NotificationBellSidebar() {
-  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-semibold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors" sidebar />
+  return <NotificationBell className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors" sidebar />
 }
 
 function NotificationBellMobile() {
