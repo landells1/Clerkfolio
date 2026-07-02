@@ -2,8 +2,14 @@ import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Paediatrics ST1 2026 - RCPCH application is scored against 5 official domains.
-// Per-band point breakdown is in non-public PDF guidance, so this config presents
-// the official domain structure for evidence upload only.
+// Verified 2026-07-02 against the RCPCH ST1 page and the RCPCH 2026-27 shortlisting
+// scoring guidance PDF (rcpch.ac.uk/sites/default/files/2025-10/st1_scoring_guidance_
+// glossary_for_shortlisting_2026-27_v.4_jac_271025.pdf): each application is scored by
+// two assessors, 30 marks per assessor (Transferable clinical capabilities /8, Personal
+// achievements & reflection /8, QIP-Audit /5, Academic achievements /3+1, Teaching /5;
+// answers max 50 words per section). Shortlisting scores are not carried into the
+// interview (two 20-min virtual stations via Qpercom). Per-band descriptors exist but
+// this config presents the official domain structure for evidence upload only.
 export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   key: 'paediatrics_st1_2026',
   name: 'Paediatrics ST1',
@@ -17,7 +23,8 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'assessor_scored_written',
     stages: [
-      { key: 'written_application', label: 'Written application', weightLabel: 'Scored by 2 independent RCPCH assessors, up to 60 marks (30 each)' },
+      { key: 'written_application', label: 'Written application', weightLabel: 'Scored by 2 independent assessors, up to 60 marks (30 each)', notes: 'Five 50-word sections: clinical capabilities /8, personal achievements /8, QI-audit /5, academic /3(+1), teaching /5. Shortlisting scores are not carried over to interview' },
+      { key: 'interview', label: 'Interview (two 20-min virtual stations)', notes: 'Multi-scenario format via the Qpercom platform' },
     ],
     recruitmentOffice: {
       name: 'RCPCH',
@@ -33,7 +40,7 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Whole-time-equivalent experience in Paediatrics must not exceed 24 months at point of application. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
+      notes: 'Whole-time-equivalent experience in Paediatrics (excluding Foundation posts) must not exceed 24 months at point of application. Direct-from-Foundation applicants meet this trivially; relevant mainly for IMGs, LAT/trust-grade, or returners.',
     },
     {
       key: 'paeds_safeguarding',

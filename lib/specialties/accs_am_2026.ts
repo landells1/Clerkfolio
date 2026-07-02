@@ -45,7 +45,7 @@ export const ACCS_AM_2026: SpecialtyConfig = {
       bands: [
         { label: 'PhD/MD by research', points: 4 },
         { label: 'Masters (MSc/MA/MRes, 8+ months)', points: 3 },
-        { label: 'PG diploma/certificate', points: 1 },
+        { label: 'PG diploma/certificate (1–10 months WTE)', points: 1 },
       ],
       notes: 'Intercalated degrees excluded. Teaching qualifications belong in Training in Teaching.',
     },
@@ -58,7 +58,8 @@ export const ACCS_AM_2026: SpecialtyConfig = {
         { label: 'Oral 1st/2nd author national/international', points: 6 },
         { label: 'Poster 1st/2nd author national/international', points: 4 },
         { label: 'Oral 1st/2nd author regional', points: 3 },
-        { label: 'Oral or poster 1st/2nd author local', points: 2 },
+        { label: 'Oral 1st/2nd author local', points: 2 },
+        { label: 'Poster 1st/2nd author regional/local', points: 2 },
       ],
     },
     {

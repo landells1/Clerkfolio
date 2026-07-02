@@ -3,9 +3,13 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Core Surgical Training 2026 - for the 2026 cycle, NHS England transitioned from
 // numerical self-assessment scoring to letter-grade (A–E) evidence assessment.
-// No Oriel self-assessment; portfolio is uploaded and assessed at interview
-// (45% of overall score). No per-band point values are officially published.
-// Configured as evidence-based for the 2026 cycle.
+// No Oriel self-assessment; portfolio is uploaded and assessed at interview.
+// No per-band point values are officially published, so configured as evidence-based.
+// Weights verified 2026-07-02 on the NHS England core surgery Applying page
+// (medical.hee.nhs.uk/.../surgery/core-surgery/overview-of-core-surgery-training/
+// applying-for-core-training): "The total score will be a combination of MSRA (10%),
+// portfolio station score (45%) and management and clinical station score (45%)",
+// combined to an overall selection score out of 100 (MSRA scaled to 0-10).
 export const CST_2026: SpecialtyConfig = {
   key: 'cst_2026',
   name: 'Core Surgical Training (CST)',
@@ -19,8 +23,9 @@ export const CST_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'portfolio_graded_interview',
     stages: [
-      { key: 'portfolio_review', label: 'Portfolio review (A-E, at interview)', weightLabel: '~45% of final score', notes: '10-min review + 15-min discussion station; missing index page scores 0' },
-      { key: 'interview', label: 'Interview discussion' },
+      { key: 'msra', label: 'MSRA', weightPct: 10, notes: 'Scaled onto a 0-10 point scale within the overall selection score' },
+      { key: 'portfolio_review', label: 'Portfolio station (A-E, at interview)', weightPct: 45, notes: 'Assessors review evidence for 15 minutes, then question candidates on two domains of their choosing; missing index page scores 0' },
+      { key: 'interview', label: 'Management and clinical station', weightPct: 45 },
     ],
   },
   domains: [
@@ -82,7 +87,7 @@ export const CST_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Organised formal teaching with full evidence pack - programme outline, timetable, sign-off letters, feedback forms, attendance logs. Mandatory index page for all evidence - submissions without an index page score 0. Portfolio reviewed at interview (10-min review + 15-min discussion station).',
+      notes: 'Organised formal teaching with full evidence pack - programme outline, timetable, sign-off letters, feedback forms, attendance logs. Mandatory index page for all evidence - submissions without an index page score 0. Portfolio assessed at interview as a separate station (15-min assessor review, then questions on two domains).',
     },
   ],
 }

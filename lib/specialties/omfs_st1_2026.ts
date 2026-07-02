@@ -1,11 +1,17 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// OMFS ST1 2026 - Oral and Maxillofacial Surgery. Unique among UK specialties in
-// requiring full dual qualification: applicants must hold BOTH a registerable
-// medical degree (MBBS) AND a registerable dental qualification (BDS) with full
-// GDC registration by post start date. Selection: MSRA + portfolio-based interview.
-// No publicly published per-band numeric scoring matrix, so configured as evidence-based.
+// OMFS ST1 2026 - Oral and Maxillofacial Surgery. Requires dual qualification:
+// a registerable medical degree AND "full General Dental Council registration or a
+// fully UK registerable dental qualification at the advertised post start date"
+// (2026 person spec, verified 2026-07-02).
+// Selection re-verified 2026-07-02: OMFS ST1 does NOT use the MSRA - it is absent
+// from NHS England's official list of MSRA-recruiting specialties. Selection is a
+// portfolio-based interview (2 Feb 2026 per the NHS England specialty recruitment
+// interview schedule), nationally coordinated by NHS England South West (Severn);
+// the Severn self-assessment/evidence detail pages are currently unreachable
+// (broken redirects severndeanery.nhs.uk -> southwest.pgmdeducation.nhs.uk), so no
+// self-assessment mechanics are asserted here. Evidence-based config.
 export const OMFS_ST1_2026: SpecialtyConfig = {
   key: 'omfs_st1_2026',
   name: 'OMFS ST1',
@@ -17,10 +23,9 @@ export const OMFS_ST1_2026: SpecialtyConfig = {
   scoringType: 'evidence',
   isEvidenceOnly: true,
   selectionProcess: {
-    family: 'msra_interview',
+    family: 'portfolio_graded_interview',
     stages: [
-      { key: 'msra', label: 'MSRA' },
-      { key: 'interview', label: 'Portfolio-based interview' },
+      { key: 'interview', label: 'Portfolio-based interview', notes: 'No MSRA for OMFS ST1; portfolio evidence assessed as part of the national interview process' },
     ],
   },
   domains: [
@@ -32,7 +37,7 @@ export const OMFS_ST1_2026: SpecialtyConfig = {
       scoringRule: 'highest',
       bands: [],
       criteriaType: 'essential',
-      notes: 'Hold full General Dental Council registration, or a fully UK-registerable dental qualification (BDS or equivalent), by post start date. OMFS is the only specialty requiring dual medical + dental registration.',
+      notes: 'Hold full General Dental Council registration, or a fully UK-registerable dental qualification (BDS or equivalent), by post start date - required on top of the medical degree and GMC registration.',
     },
     {
       key: 'qualifications',

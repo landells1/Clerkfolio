@@ -3,8 +3,12 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Child and Adolescent Psychiatry ST1 2026 - run-through psychiatry programme.
 // F2-direct entry; alternative to Core Psychiatry CT1 for candidates committed
-// to working with children and young people. Selection: MSRA + interview;
-// no public per-band numeric matrix, so configured as evidence-based.
+// to working with children and young people. Selection re-verified 2026-07-02 on
+// the NHS England psychiatry Applying for Core Training page: "There is a single
+// application process for CT1 Core Psychiatry, ST1 Child and Adolescent Psychiatry
+// and ST1 Psychiatry of Learning Disability... there will be no face-to-face or
+// online interviews for this round of recruitment. Offers will be based on MSRA
+// scores only" (Round 1, August 2026 intake). Cycle-specific; may change next cycle.
 export const CHILD_ADOLESCENT_PSYCH_ST1_2026: SpecialtyConfig = {
   key: 'child_adolescent_psych_st1_2026',
   name: 'Child and Adolescent Psychiatry ST1',
@@ -16,11 +20,11 @@ export const CHILD_ADOLESCENT_PSYCH_ST1_2026: SpecialtyConfig = {
   scoringType: 'evidence',
   isEvidenceOnly: true,
   selectionProcess: {
-    family: 'msra_interview',
+    family: 'msra_only',
     stages: [
-      { key: 'msra', label: 'MSRA' },
-      { key: 'interview', label: 'Interview' },
+      { key: 'msra', label: 'MSRA', notes: 'Single application shared with Core Psychiatry CT1; no interview this cycle - offers based on MSRA scores only' },
     ],
+    cycleSpecific: true,
   },
   domains: [
     ...UNIVERSAL_ESSENTIALS,

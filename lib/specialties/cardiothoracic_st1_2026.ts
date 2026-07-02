@@ -1,9 +1,17 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Cardiothoracic Surgery ST1 2026 - national run-through programme. Selection is
-// MSRA + portfolio-based interview. No publicly published per-band numeric scoring
-// matrix, so configured as evidence-based for users to upload supporting evidence.
+// Cardiothoracic Surgery ST1 2026 - national run-through programme, nationally
+// recruited by NHS England Wessex. Selection re-verified 2026-07-02 from the official
+// 2026 applicant guide (wessex.hee.nhs.uk/wp-content/uploads/sites/6/2025/10/
+// Applicant-Guide-2026-Cardiothoracic-ST1-National-Recruitment-FINAL.pdf): the MSRA
+// is NOT used (also absent from NHS England's MSRA specialty list). Applications are
+// longlisted by self-assessment score ("We will be processing applications by
+// self-assessment score initially for 2026"); applicants above the cut-off (or within
+// 6 points below it) upload evidence to a verification portal, assessors verify the
+// scores, and the final shortlist is interviewed (2-3 Feb 2026). Wessex publishes the
+// self-assessment criteria as a separate PDF; the numeric matrix is not yet modelled
+// here, so the config remains evidence-based for uploads.
 export const CARDIOTHORACIC_ST1_2026: SpecialtyConfig = {
   key: 'cardiothoracic_st1_2026',
   name: 'Cardiothoracic Surgery ST1',
@@ -15,11 +23,16 @@ export const CARDIOTHORACIC_ST1_2026: SpecialtyConfig = {
   scoringType: 'evidence',
   isEvidenceOnly: true,
   selectionProcess: {
-    family: 'msra_interview',
+    family: 'self_assessment_points',
     stages: [
-      { key: 'msra', label: 'MSRA' },
-      { key: 'interview', label: 'Portfolio-based interview' },
+      { key: 'self_assessment', label: 'Self-assessment at application', notes: 'Applications longlisted by self-assessment score; cut-off set by MDRS. No MSRA for Cardiothoracic ST1' },
+      { key: 'evidence_verification', label: 'Evidence upload & verification', notes: 'Applicants above the cut-off (or within 6 points below it) upload evidence; assessors verify the self-assessment scores' },
+      { key: 'interview', label: 'Interview' },
     ],
+    recruitmentOffice: {
+      name: 'NHS England Wessex (Cardiothoracic National Recruitment)',
+      url: 'https://wessex.hee.nhs.uk/medical-dental-training-recruitment/core-and-specialty/cardiothoracic-surgery-st1-st4-national-recruitment/',
+    },
   },
   domains: [
     ...UNIVERSAL_ESSENTIALS,

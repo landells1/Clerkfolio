@@ -2,8 +2,12 @@ import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Core Psychiatry CT1 2026 - selection is MSRA only for the 2026 cycle, no
-// interview stage. No portfolio scoring at application stage. This is a
-// cycle-specific fact (may change next cycle) confirmed on the NHS person spec.
+// interview stage. No portfolio scoring at application stage. Re-verified
+// 2026-07-02 on the NHS England psychiatry Applying for Core Training page
+// (Round 1, August 2026 intake): "there will be no face-to-face or online
+// interviews for this round of recruitment. Offers will be based on MSRA scores
+// only" - minimum 186 raw score in each MSRA paper to be appointable.
+// Cycle-specific fact; re-check every cycle.
 export const CORE_PSYCH_2026: SpecialtyConfig = {
   key: 'core_psych_2026',
   name: 'Core Psychiatry CT1',

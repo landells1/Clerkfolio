@@ -1,11 +1,14 @@
 import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
-// Neurosurgery ST1 2026 - national run-through programme (Yorks & Humber lead).
-// Selection: MSRA (40%) + portfolio-based interview (60%). The detailed shortlisting
-// matrix is published only via the Oriel applicant pack and not as a public per-band
-// numeric scheme, so configured as evidence-based for users to upload supporting
-// evidence against each domain.
+// Neurosurgery ST1 2026 - national run-through programme.
+// Selection re-verified 2026-07-02: MSRA use is confirmed on NHS England's official
+// MSRA specialty list ("Neurosurgery ST1/ST2/ST3") and interviews (16-17 Mar 2026)
+// on the NHS England specialty recruitment interview schedule. The previously-cited
+// "MSRA 40% / interview 60%" split and the Yorkshire & Humber lead-office claim live
+// only on yorksandhumberdeanery.nhs.uk, which is behind bot protection and could not
+// be fetched - both removed as UNVERIFIABLE rather than asserted. Configured as
+// evidence-based for users to upload supporting evidence against each domain.
 export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
   key: 'neurosurgery_st1_2026',
   name: 'Neurosurgery ST1',
@@ -19,13 +22,9 @@ export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'msra_interview',
     stages: [
-      { key: 'msra', label: 'MSRA', weightPct: 40, notes: 'Weight sourced from a Yorkshire & Humber deanery applicant pack, not medical.hee.nhs.uk directly - lower confidence' },
-      { key: 'interview', label: 'Portfolio-based interview', weightPct: 60 },
+      { key: 'msra', label: 'MSRA', notes: 'No officially published MSRA/interview weighting could be verified for 2026' },
+      { key: 'interview', label: 'Portfolio-based interview' },
     ],
-    recruitmentOffice: {
-      name: 'Yorkshire & Humber Deanery',
-      url: 'https://www.yorksandhumberdeanery.nhs.uk',
-    },
   },
   domains: [
     ...UNIVERSAL_ESSENTIALS,
@@ -65,7 +64,7 @@ export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Up to five peer-reviewed publications can be listed on the application. PubMed-indexed first/joint-first author original research scores highest. Neurosurgery-related publications particularly valued.',
+      notes: 'PubMed-indexed peer-reviewed publications; first/joint-first author original research carries the most weight. Neurosurgery-related publications particularly valued.',
     },
     {
       key: 'presentations',

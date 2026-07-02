@@ -2,8 +2,14 @@ import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Public Health and General Practice Dual Programme ST1 2026 - combined run-through
-// programme leading to dual CCT in PH and GP. F2-direct entry. Selection: portfolio
-// + interview; no public per-band numeric matrix, so configured as evidence-based.
+// programme. "Dual CCT" verified 2026-07-02: NHS England's own section is titled
+// "General Practice (GP) and Public Health (PH) Dual Certificate of Completion of
+// Training (CCT) Programme". Selection verified on its Applying page: candidates
+// "will need to be assessed through the full selection process for both General
+// Practice and Public Health" - the MSRA for GP, plus for PH "the assessment centre
+// (Rust Advanced Numerical Reasoning Appraisal (RANRA), Watson Glaser and
+// situational judgement tests) and the selection centre". Final ranking: "equally
+// weighted between Public Health and General Practice". Evidence-based config.
 export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
   key: 'ph_gp_dual_st1_2026',
   name: 'Public Health & GP Dual Programme ST1',
@@ -15,10 +21,11 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
   scoringType: 'evidence',
   isEvidenceOnly: true,
   selectionProcess: {
-    family: 'msra_interview',
+    family: 'multi_stage_selection_centre',
     stages: [
-      { key: 'portfolio', label: 'Portfolio' },
-      { key: 'interview', label: 'Interview' },
+      { key: 'msra', label: 'MSRA (General Practice component)', weightLabel: 'Full GP selection process; final ranking equally weighted between GP and PH' },
+      { key: 'ph_assessment_centre', label: 'PH assessment centre', notes: 'Watson-Glaser critical reasoning + RANRA numerical reasoning + situational judgement test' },
+      { key: 'ph_selection_centre', label: 'PH selection centre', weightLabel: 'Full PH selection process; final ranking equally weighted between GP and PH' },
     ],
   },
   domains: [

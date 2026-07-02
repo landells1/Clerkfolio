@@ -4,6 +4,15 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 // ACCS Anaesthetics CT1 2026 - shares the Anaesthetics CT1 person specification.
 // Selection is MSRA + interview (two 15-min stations); no per-band points published.
 // ACCS variant rotates through Anaesthetics, EM, Acute Medicine and ICM in CT1–CT2.
+// Verified 2026-07-02 from the official ANRO "CT1 Core Anaesthetics/ACCS Anaesthetics
+// Applicant Guidance R1 Aug 2026" PDF: "Anaesthetics and ACCS (Anaesthetics)
+// applicants are recruited in one process and therefore require only one application";
+// "an applicant's MSRA score will contribute 15% towards their total selection score"
+// (PD and CPS papers 7.5% each); interview = Clinical Judgement + General stations,
+// 15 min each via Qpercom - the only other component, hence 85%.
+// The previous "Advanced life support skills" domain claimed ALS was "listed as
+// desirable in the 2026 person spec" - it is not (absent from both the fetched person
+// spec and the ANRO guidance), so that unsourced domain was removed 2026-07-02.
 export const ACCS_ANAES_2026: SpecialtyConfig = {
   key: 'accs_anaes_2026',
   name: 'ACCS (Anaesthetics) CT1',
@@ -17,8 +26,8 @@ export const ACCS_ANAES_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'msra_interview',
     stages: [
-      { key: 'msra', label: 'MSRA', weightPct: 15 },
-      { key: 'interview', label: 'Interview (two 15-min stations)', weightPct: 85 },
+      { key: 'msra', label: 'MSRA', weightPct: 15, notes: 'Professional Dilemmas and Clinical Problem Solving papers weighted equally at 7.5% each; no MSRA cut-off, but interview invitations are ranked on it' },
+      { key: 'interview', label: 'Interview: Clinical Judgement + General stations (15 min each)', weightPct: 85, notes: 'Two-station online format via Qpercom; single joint process with Core Anaesthetics CT1' },
     ],
     recruitmentOffice: {
       name: 'ANRO',
@@ -85,16 +94,6 @@ export const ACCS_ANAES_2026: SpecialtyConfig = {
       criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions with feedback, teaching qualifications.',
-    },
-    {
-      key: 'als_certified',
-      label: 'Advanced life support skills',
-      maxPoints: 0,
-      scoringRule: 'highest',
-      bands: [],
-      criteriaType: 'desirable',
-      isEvidenceOnly: true,
-      notes: 'Up-to-date ALS (Resuscitation Council UK or equivalent). Listed as desirable in the 2026 person spec; many Schools still require it by post start date.',
     },
     {
       key: 'commitment_acute_care',
