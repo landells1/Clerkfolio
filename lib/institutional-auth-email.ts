@@ -60,8 +60,14 @@ export async function claimVerifiedInstitutionalAuthEmail(
 
   if (updateError) throw updateError
 
+  // Log-and-continue, matching every other recompute_profile_tier call site
+  // (settings/profile, onboarding/complete, stripe/webhook): the tier label is
+  // non-entitlement-bearing (entitlements come from get_profile_entitlements,
+  // which fails closed), so an RPC outage must not block verification.
   const { error: tierError } = await service.rpc('recompute_profile_tier', { p_user_id: user.id })
-  if (tierError) throw tierError
+  if (tierError) {
+    console.error('recompute_profile_tier failed after institutional verification:', tierError.message)
+  }
 
   // Bind the address in the recycled-email ledger so it can't be re-verified by
   // a different account after this user later releases it (F-037).

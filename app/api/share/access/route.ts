@@ -92,7 +92,9 @@ async function sendShareViewWebhook(
       clearTimeout(timeout)
     }
   } catch (err) {
-    console.error('share view webhook failed:', err)
+    // Message only - a fetch error can embed the request body, which carries
+    // the plaintext share token.
+    console.error('share view webhook failed:', err instanceof Error ? err.message : 'unknown')
   }
 }
 
@@ -286,7 +288,9 @@ export async function POST(req: NextRequest) {
           })
         }
       } catch (err) {
-        console.error('auto-revoke email failed:', err)
+        // Message only - the raw Resend error can embed the send payload,
+        // which carries the owner's email address.
+        console.error('auto-revoke email failed:', err instanceof Error ? err.message : 'unknown')
       }
     }
     return NextResponse.json({ error: 'This share link has been paused after unusual traffic.' }, { status: 429 })

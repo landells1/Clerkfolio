@@ -113,23 +113,36 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
     setCustomThemes(prev => prev.filter(item => item.id !== theme.id))
     onChange?.(value.filter(item => item !== theme.slug))
 
-    const [{ data: portfolioRows }, { data: caseRows }] = await Promise.all([
+    // The theme row is gone; now strip its slug from any entries/cases still
+    // carrying it. Every leg is error-checked - a silent failure here leaves
+    // orphaned slugs that no longer resolve to a label anywhere.
+    const [portfolioSelect, caseSelect] = await Promise.all([
       supabase.from('portfolio_entries').select('id, interview_themes').contains('interview_themes', [theme.slug]),
       supabase.from('cases').select('id, interview_themes').contains('interview_themes', [theme.slug]),
     ])
+    if (portfolioSelect.error || caseSelect.error) {
+      setError('The theme was deleted, but it could not be removed from some existing entries. Refresh and delete the tag from those entries manually.')
+      return
+    }
 
-    await Promise.all([
-      ...((portfolioRows ?? []) as { id: string; interview_themes: string[] | null }[]).map(row =>
+    const updateResults = await Promise.allSettled([
+      ...((portfolioSelect.data ?? []) as { id: string; interview_themes: string[] | null }[]).map(row =>
         supabase.from('portfolio_entries').update({
           interview_themes: (row.interview_themes ?? []).filter(item => item !== theme.slug),
         }).eq('id', row.id)
       ),
-      ...((caseRows ?? []) as { id: string; interview_themes: string[] | null }[]).map(row =>
+      ...((caseSelect.data ?? []) as { id: string; interview_themes: string[] | null }[]).map(row =>
         supabase.from('cases').update({
           interview_themes: (row.interview_themes ?? []).filter(item => item !== theme.slug),
         }).eq('id', row.id)
       ),
     ])
+    const failedUpdates = updateResults.filter(
+      result => result.status === 'rejected' || (result.status === 'fulfilled' && result.value.error)
+    ).length
+    if (failedUpdates > 0) {
+      setError(`The theme was deleted, but it could not be removed from ${failedUpdates} existing ${failedUpdates === 1 ? 'entry' : 'entries'}. Refresh and delete the tag from those entries manually.`)
+    }
   }
 
   async function renameTheme(theme: CustomTheme) {

@@ -4,11 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-
-// 5 imports per hour — each batch can be up to 500 rows so this caps at
-// 2,500 rows/hour per Pro user, well above realistic usage.
-const IMPORT_RATE_MAX = 5
-const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
+import { IMPORT_RATE_MAX, IMPORT_RATE_WINDOW_SECONDS } from '@/lib/import/shared'
 
 function parseDate(raw: string): string | null {
   if (!raw) return null
@@ -18,9 +14,14 @@ function parseDate(raw: string): string | null {
   // Try YYYY-MM-DD
   const iso = raw.match(/^\d{4}-\d{2}-\d{2}$/)
   if (iso) return raw
-  // Try D Month YYYY
+  // Try D Month YYYY. new Date(raw) parses free text in the server's LOCAL
+  // timezone, so read the calendar date back with local getters - never via
+  // toISOString(), whose UTC conversion rolls "5 July 2025" back to July 4th
+  // whenever the runtime isn't TZ=UTC (self-hosting, local dev imports).
   const mdy = new Date(raw)
-  if (!isNaN(mdy.getTime())) return mdy.toISOString().split('T')[0]
+  if (!isNaN(mdy.getTime())) {
+    return `${mdy.getFullYear()}-${String(mdy.getMonth() + 1).padStart(2, '0')}-${String(mdy.getDate()).padStart(2, '0')}`
+  }
   return null
 }
 

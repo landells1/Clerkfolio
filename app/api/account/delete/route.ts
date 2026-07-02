@@ -49,7 +49,22 @@ export async function POST(request: NextRequest) {
       .single()
     if (profileError) throw profileError
 
-    if (profile?.stripe_subscription_id && process.env.STRIPE_SECRET_KEY) {
+    // A live subscription with no way to cancel it must block deletion, the
+    // same as a Stripe API failure below - otherwise a missing/renamed env var
+    // would silently skip cancellation, delete the account, and leave Stripe
+    // charging a user that no longer exists with no DB pointer to reconcile.
+    if (profile?.stripe_subscription_id && !process.env.STRIPE_SECRET_KEY) {
+      console.error('Account delete blocked: STRIPE_SECRET_KEY missing with active subscription')
+      return NextResponse.json(
+        {
+          error:
+            'Could not cancel your subscription. Account deletion is paused so you are not charged for a service you cannot access. Please email admin@clerkfolio.co.uk and we will cancel and refund manually.',
+        },
+        { status: 422 }
+      )
+    }
+
+    if (profile?.stripe_subscription_id) {
       const { getStripe } = await import('@/lib/stripe')
       const stripe = getStripe()
       // Cancel at period end rather than immediately so we honour the paid
@@ -100,7 +115,24 @@ export async function POST(request: NextRequest) {
       for (let offset = 0; offset < paths.length; offset += CHUNK) {
         const slice = paths.slice(offset, offset + CHUNK)
         const { error: storageError } = await service.storage.from('evidence').remove(slice)
-        if (storageError) throw storageError
+        if (storageError) {
+          // By this point the Stripe cancellation has committed and some
+          // evidence chunks may already be gone, but the auth user survives.
+          // Return a message support can recognise as the half-deleted state
+          // (a retry is safe: cancel-at-period-end is idempotent and
+          // re-removing missing paths is tolerated).
+          console.error(
+            'Account deletion storage removal failed:',
+            storageError instanceof Error ? storageError.message : 'unknown error'
+          )
+          return NextResponse.json(
+            {
+              error:
+                'Some of your files could not be removed, so account deletion did not complete. Your account still exists - please retry, or contact admin@clerkfolio.co.uk quoting "partial deletion".',
+            },
+            { status: 500 }
+          )
+        }
       }
     }
 

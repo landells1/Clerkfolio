@@ -4,9 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-
-const IMPORT_RATE_MAX = 5
-const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
+import { IMPORT_RATE_MAX, IMPORT_RATE_WINDOW_SECONDS, copyInsertable, isRecord } from '@/lib/import/shared'
 
 const MAX_ROWS = 2000
 
@@ -20,18 +18,6 @@ const CASE_ALLOWED = new Set([
   'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
   'interview_themes', 'notes',
 ])
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
-
-function copyInsertable(row: Record<string, unknown>, userId: string, allowed: Set<string>) {
-  const next: Record<string, unknown> = { user_id: userId }
-  Object.entries(row).forEach(([key, value]) => {
-    if (allowed.has(key)) next[key] = value
-  })
-  return next
-}
 
 export async function POST(req: NextRequest) {
   const originError = validateOrigin(req)

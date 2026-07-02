@@ -5,9 +5,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-
-const IMPORT_RATE_MAX = 5
-const IMPORT_RATE_WINDOW_SECONDS = 60 * 60
+import { IMPORT_RATE_MAX, IMPORT_RATE_WINDOW_SECONDS, copyInsertable, isRecord } from '@/lib/import/shared'
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 
@@ -54,10 +52,6 @@ const DEADLINE_ALLOWED = new Set([
 const GOAL_ALLOWED = new Set([
   'category', 'target_count', 'due_date',
 ])
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return Boolean(value) && typeof value === 'object' && !Array.isArray(value)
-}
 
 function safeArray(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : []
@@ -132,20 +126,20 @@ async function readBackup(file: File) {
   }
 }
 
-function copyInsertable(row: Record<string, unknown>, userId: string, allowed: Set<string>) {
-  const next: Record<string, unknown> = { user_id: userId }
-  Object.entries(row).forEach(([key, value]) => {
-    if (allowed.has(key)) next[key] = value
-  })
-  return next
-}
-
 function entryKey(row: Record<string, unknown>) {
   return `${String(row.title ?? '').trim().toLowerCase()}|${String(row.date ?? '')}|${String(row.category ?? '')}`
 }
 
 function caseKey(row: Record<string, unknown>) {
   return `${String(row.title ?? '').trim().toLowerCase()}|${String(row.date ?? '')}|case`
+}
+
+function deadlineKey(row: Record<string, unknown>) {
+  return `${String(row.title ?? '').trim().toLowerCase()}|${String(row.due_date ?? '')}|deadline`
+}
+
+function goalKey(row: Record<string, unknown>) {
+  return `${String(row.category ?? '')}|${String(row.target_count ?? '')}|${String(row.due_date ?? '')}|goal`
 }
 
 export async function POST(req: NextRequest) {
@@ -211,13 +205,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const [{ data: existingEntries }, { data: existingCases }] = await Promise.all([
+  // Deadlines and goals are deduped too (not just entries/cases): the four
+  // inserts below are independent Supabase calls, not a transaction, so a
+  // retry after a partial failure must not double-insert whatever already
+  // landed.
+  const [{ data: existingEntries }, { data: existingCases }, { data: existingDeadlines }, { data: existingGoals }] = await Promise.all([
     supabase.from('portfolio_entries').select('title, date, category').eq('user_id', user.id).is('deleted_at', null),
     supabase.from('cases').select('title, date').eq('user_id', user.id).is('deleted_at', null),
+    supabase.from('deadlines').select('title, due_date').eq('user_id', user.id),
+    supabase.from('goals').select('category, target_count, due_date').eq('user_id', user.id),
   ])
   const existing = new Set([
     ...(existingEntries ?? []).map(entryKey),
     ...(existingCases ?? []).map(caseKey),
+    ...(existingDeadlines ?? []).map(deadlineKey),
+    ...(existingGoals ?? []).map(goalKey),
   ])
 
   // `skipped` counts duplicates of already-imported rows (expected on
@@ -259,6 +261,7 @@ export async function POST(req: NextRequest) {
         errors.push({ table: 'deadlines', row: index + 1, error: !row.title ? 'Missing title' : 'Missing due date' })
         return false
       }
+      if (existing.has(deadlineKey(row))) { skipped++; return false }
       return true
     })
     .map(row => copyInsertable(row, user.id, DEADLINE_ALLOWED))
@@ -268,6 +271,7 @@ export async function POST(req: NextRequest) {
         errors.push({ table: 'goals', row: index + 1, error: 'Missing category' })
         return false
       }
+      if (existing.has(goalKey(row))) { skipped++; return false }
       return true
     })
     .map(row => copyInsertable(row, user.id, GOAL_ALLOWED))
@@ -279,8 +283,26 @@ export async function POST(req: NextRequest) {
     goalRows.length ? supabase.from('goals').insert(goalRows).select('id') : Promise.resolve({ data: [], error: null }),
   ])
 
+  // The four inserts are independent calls, not a transaction: on any failure,
+  // report per-table what actually landed so the user is never shown a bare
+  // "import failed" while three of four tables committed. A retry is safe -
+  // every table is deduped against existing rows above.
+  const tableResults = {
+    portfolio_entries: { inserted: portfolioResult.data?.length ?? 0, error: portfolioResult.error?.message ?? null },
+    cases: { inserted: caseResult.data?.length ?? 0, error: caseResult.error?.message ?? null },
+    deadlines: { inserted: deadlineResult.data?.length ?? 0, error: deadlineResult.error?.message ?? null },
+    goals: { inserted: goalResult.data?.length ?? 0, error: goalResult.error?.message ?? null },
+  }
   const firstError = [portfolioResult.error, caseResult.error, deadlineResult.error, goalResult.error].find(Boolean)
-  if (firstError) return NextResponse.json({ error: firstError.message }, { status: 500 })
+  if (firstError) {
+    return NextResponse.json(
+      {
+        error: `Import partially failed: ${firstError.message}. Tables that imported successfully are recorded below; re-running the import is safe (already-imported rows are skipped as duplicates).`,
+        results: tableResults,
+      },
+      { status: 500 }
+    )
+  }
 
   return NextResponse.json({
     portfolio_entries: portfolioResult.data?.length ?? 0,

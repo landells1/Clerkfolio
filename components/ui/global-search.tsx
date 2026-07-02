@@ -69,13 +69,22 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
 
   useEffect(() => { inputRef.current?.focus() }, [])
 
+  // Sequence the debounced live-search requests: the timer cleanup handles
+  // re-typing, but an earlier query's async body can still be in flight when a
+  // later one fires - if the slower response resolves last it would overwrite
+  // the results with stale data. Completions from a superseded generation no-op.
+  const searchGeneration = useRef(0)
+
   useEffect(() => {
     if (q.trim().length < 2) { setResults([]); setSearchError(false); return }
     const timer = setTimeout(async () => {
+      const generation = ++searchGeneration.current
+      const isStale = () => searchGeneration.current !== generation
       setLoading(true)
       setSearchError(false)
       try {
         const { data: { user } } = await supabase.auth.getUser()
+        if (isStale()) return
         if (!user) {
           setSearchError(true)
           setResults([])
@@ -87,6 +96,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
           supabase.from('cases').select('id, title, clinical_domain, clinical_domains').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
           supabase.from('evidence_files').select('entry_id, entry_type, file_name').eq('user_id', user.id).ilike('file_name', `%${q.trim()}%`).limit(5),
         ])
+        if (isStale()) return
         if (entriesResult.error || casesResult.error || filesResult.error) {
           setSearchError(true)
           setResults([])
@@ -102,6 +112,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
               ? supabase.from('cases').select('id').eq('user_id', user.id).in('id', caseFileIds).is('deleted_at', null)
               : Promise.resolve({ data: [], error: null }),
           ])
+          if (isStale()) return
           if (activeFileEntries.error || activeFileCases.error) {
             setSearchError(true)
             setResults([])
@@ -136,6 +147,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
           setSelected(0)
         }
       } catch {
+        if (isStale()) return
         setSearchError(true)
         setResults([])
       }

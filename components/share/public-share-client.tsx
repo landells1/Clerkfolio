@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { CATEGORIES, CATEGORY_COLOURS, type Category } from '@/lib/types/portfolio'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
@@ -57,7 +57,16 @@ export default function PublicShareClient({ token }: { token: string }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Requests are sequenced by generation: load() fires on mount and on every
+  // PIN submit, and whichever response resolves LAST would otherwise win
+  // regardless of send order - a double-submit on a slow connection could
+  // leave "PIN required" showing after a successful unlock. Stale completions
+  // no-op instead.
+  const loadGeneration = useRef(0)
+
   async function load(nextPin = '') {
+    const generation = ++loadGeneration.current
+    const isStale = () => loadGeneration.current !== generation
     setLoading(true)
     setError(null)
     let res: Response
@@ -68,11 +77,13 @@ export default function PublicShareClient({ token }: { token: string }) {
         body: JSON.stringify({ token, pin: nextPin }),
       })
     } catch {
+      if (isStale()) return
       setLoading(false)
       setError('Could not reach Clerkfolio. Check your connection and try again.')
       return
     }
     const json = await res.json().catch(() => ({} as { error?: string; pinRequired?: boolean }))
+    if (isStale()) return
     setLoading(false)
 
     if (res.status === 401 && json.pinRequired) {
@@ -156,7 +167,7 @@ export default function PublicShareClient({ token }: { token: string }) {
               placeholder="0000"
             />
             {error && <p className="mt-3 text-sm text-[var(--danger)]">{error}</p>}
-            <button className="mt-5 w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-3 text-sm font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)]">
+            <button disabled={loading} className="mt-5 w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-3 text-sm font-semibold text-[var(--button-primary-text)] transition-colors hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-60">
               Unlock
             </button>
           </form>

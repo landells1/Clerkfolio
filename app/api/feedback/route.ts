@@ -103,7 +103,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true })
   } catch (err) {
-    console.error('Feedback send error:', err)
+    // Message only - the raw error object can embed the request payload
+    // (submitter email + comment), which must never reach platform logs.
+    console.error('Feedback send error:', err instanceof Error ? err.message : 'unknown')
     return NextResponse.json({ error: 'Failed to send' }, { status: 500 })
   }
 }

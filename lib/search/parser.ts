@@ -26,6 +26,28 @@ function normaliseDate(value: string) {
   return value
 }
 
+/**
+ * Hand-rolled grammar for the saved-search / list-filter query language:
+ * quoted phrases, AND / OR / NOT operators, and `field:value` filters
+ * (specialty|tag, theme, since, category, missing, has:notes; the removed
+ * completeness grammar complete:/min:/max: parses as a recognised no-op).
+ *
+ * Buckets: plain terms default to `terms` (all must match), `OR` moves terms
+ * into `anyTerms` (at least one must match), `NOT` puts the next term in
+ * `notTerms` (none may match).
+ *
+ * The subtle part is the RETROACTIVE OR-grouping fixup
+ * (movePreviousPlainTermIntoOrGroup): by the time we see `OR` in `a OR b`,
+ * `a` was already committed to the AND bucket, so the previous plain term is
+ * moved from `terms` into `anyTerms` before `b` is parsed. `plainTermBuckets`
+ * records where each plain term landed so only the LAST occurrence moves
+ * (`a a OR b` keeps the first `a` in the AND bucket). Field filters and
+ * NOT-terms never participate in OR groups - the lookback deliberately
+ * ignores them.
+ *
+ * Grammar changes risk disturbing that OR-lookback: keep
+ * tests/lib/search/parser.test.ts green and extend it with the new grammar.
+ */
 export function parseSearchQuery(input: string): ParsedSearchQuery {
   const parsed: ParsedSearchQuery = {
     raw: input,

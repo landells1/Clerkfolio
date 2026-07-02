@@ -57,7 +57,17 @@ export async function POST(req: NextRequest) {
   if (capabilityError) return NextResponse.json({ error: capabilityError.message }, { status: 500 })
   if (!capability) return NextResponse.json({ error: 'Capability not found' }, { status: 404 })
 
-  const ownsEntry = await userOwnsEntry(supabase, user.id, entry_id, entry_type)
+  // userOwnsEntry throws on a Supabase error; keep the route's JSON error
+  // shape instead of letting it bubble to Next's default 500 page.
+  let ownsEntry: boolean
+  try {
+    ownsEntry = await userOwnsEntry(supabase, user.id, entry_id, entry_type)
+  } catch (err) {
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : 'Ownership check failed' },
+      { status: 500 }
+    )
+  }
   if (!ownsEntry) return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
 
   const { data, error } = await supabase

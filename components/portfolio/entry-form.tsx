@@ -516,6 +516,16 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
+  // The create path's insert → upload → profile-update chain outlives the
+  // component if the user navigates away mid-upload. Server-side work still
+  // completes; only the trailing state writes and forced navigation are
+  // skipped once unmounted.
+  const mountedRef = useRef(true)
+  useEffect(() => {
+    mountedRef.current = true
+    return () => { mountedRef.current = false }
+  }, [])
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault()
     // The form sets noValidate so we surface our own inline messages (in the
@@ -557,17 +567,17 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       if (pendingFiles.length > 0) {
         setSaving(false); setUploading(true)
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'portfolio')
-        setUploading(false)
+        if (mountedRef.current) setUploading(false)
         if (uploadErrors.length > 0) {
           clearPortfolioDrafts()
-          setIsDirty(false)
+          if (mountedRef.current) setIsDirty(false)
           addToast('Entry saved, but some files failed to upload.', 'error')
-          router.push(`/portfolio/${data.id}?upload=failed`)
+          if (mountedRef.current) router.push(`/portfolio/${data.id}?upload=failed`)
           return
         }
       }
       clearPortfolioDrafts()
-      setIsDirty(false)
+      if (mountedRef.current) setIsDirty(false)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
         const { data: profileRow } = await supabase
@@ -587,11 +597,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       addToast(uploaded > 0 ? `Entry saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Entry saved', 'success')
       if (addAnotherRef.current) {
         addAnotherRef.current = false
-        setSaving(false)
-        window.location.assign(`/portfolio/new?category=${category}&fresh=${Date.now()}`)
+        if (mountedRef.current) {
+          setSaving(false)
+          window.location.assign(`/portfolio/new?category=${category}&fresh=${Date.now()}`)
+        }
         return
       }
-      router.push(uploaded > 0 ? `/portfolio/${data.id}?uploaded=${uploaded}` : `/portfolio/${data.id}`)
+      if (mountedRef.current) router.push(uploaded > 0 ? `/portfolio/${data.id}?uploaded=${uploaded}` : `/portfolio/${data.id}`)
     } else {
       const { error } = await supabase
         .from('portfolio_entries')

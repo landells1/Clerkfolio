@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { badJson } from '@/lib/safe-json'
 import JSZip from 'jszip'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
@@ -55,7 +56,18 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const body = await req.json().catch(() => ({}))
+  // An entirely empty body is a valid "use the defaults" request (the settings
+  // page POSTs with no body at all), but *malformed* JSON is a client bug and
+  // gets the standard 400 rather than silently defaulting includeEvidence on.
+  const rawBody = await req.text()
+  let body: { includeEvidence?: boolean } = {}
+  if (rawBody.trim()) {
+    try {
+      body = JSON.parse(rawBody)
+    } catch {
+      return badJson()
+    }
+  }
   const includeEvidence = body?.includeEvidence !== false
 
   const zip = new JSZip()
@@ -155,6 +167,59 @@ export async function POST(req: NextRequest) {
       ])
     : [{ data: [] }, { data: [] }]
 
+  // Download evidence files from Supabase Storage in small batches so peak
+  // memory is bounded by the byte budget, not the account's file count. Runs
+  // before the manifest is built so the manifest can report what was actually
+  // written into the ZIP, not the pre-download budgeted count - a transient
+  // Storage failure must leave a trace, not a 200 ZIP that silently claims
+  // completeness (GDPR Art. 20).
+  const failedEvidence: string[] = []
+  let downloadedEvidenceCount = 0
+  if (evidenceToDownload.length > 0 || skippedEvidence.length > 0) {
+    const evidenceFolder = root.folder('evidence')!
+    if (skippedEvidence.length > 0) {
+      evidenceFolder.file('SKIPPED.txt', [
+        `${skippedEvidence.length} file(s) were skipped because evidence exceeds the 500 MB per-export cap.`,
+        'Download these individually from the app, or re-run with includeEvidence=false.',
+        '',
+        ...skippedEvidence,
+      ].join('\n'))
+    }
+    for (let i = 0; i < evidenceToDownload.length; i += DOWNLOAD_CONCURRENCY) {
+      await Promise.allSettled(
+        evidenceToDownload.slice(i, i + DOWNLOAD_CONCURRENCY).map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
+          const label = `${ef.entry_id}/${ef.file_name ?? ef.file_path}`
+          try {
+            const { data: blob, error: downloadError } = await supabase.storage
+              .from('evidence')
+              .download(ef.file_path)
+            if (blob && !downloadError) {
+              const entryFolder = evidenceFolder.folder(ef.entry_id)!
+              const filename = ef.file_name ?? ef.file_path.split('/').pop() ?? 'file'
+              const arrayBuffer = await blob.arrayBuffer()
+              entryFolder.file(filename, arrayBuffer)
+              downloadedEvidenceCount++
+            } else {
+              failedEvidence.push(label)
+            }
+          } catch {
+            // Don't block the whole export on one bad file, but never lose the
+            // trace either - the failure is recorded in FAILED.txt + manifest.
+            failedEvidence.push(label)
+          }
+        })
+      )
+    }
+    if (failedEvidence.length > 0) {
+      evidenceFolder.file('FAILED.txt', [
+        `${failedEvidence.length} file(s) could not be downloaded from storage and are NOT in this export.`,
+        'Retry the export, or download these individually from the app.',
+        '',
+        ...failedEvidence,
+      ].join('\n'))
+    }
+  }
+
   const manifest = {
     schema_version: BACKUP_SCHEMA_VERSION,
     exported_at: new Date().toISOString(),
@@ -169,8 +234,9 @@ export async function POST(req: NextRequest) {
       specialty_entry_links: filteredLinks.length,
       arcp_links: filteredArcpLinks.length,
       templates: templates?.length ?? 0,
-      evidence_files: evidenceToDownload.length,
+      evidence_files: downloadedEvidenceCount,
       evidence_files_skipped_over_size_cap: skippedEvidence.length,
+      evidence_files_failed_download: failedEvidence.length,
       personal_log: personalLog?.length ?? 0,
       audit_log: auditLog?.length ?? 0,
       share_links: shareLinks?.length ?? 0,
@@ -189,6 +255,9 @@ export async function POST(req: NextRequest) {
       : 'Files in raw/ preserve database-shaped records. Evidence binaries were excluded from this export.',
     ...(skippedEvidence.length > 0 && {
       evidence_notes: `Evidence exceeds the 500 MB per-export cap; ${skippedEvidence.length} file(s) listed in evidence/SKIPPED.txt were not included. Download them individually from the app, or re-run with includeEvidence=false for a data-only backup.`,
+    }),
+    ...(failedEvidence.length > 0 && {
+      evidence_download_failures: `${failedEvidence.length} file(s) listed in evidence/FAILED.txt could not be downloaded from storage and are missing from this export. Retry the export, or download them individually from the app.`,
     }),
   }
 
@@ -232,39 +301,6 @@ export async function POST(req: NextRequest) {
     'Use readable/*.json for manual inspection and support.',
     'Evidence files are stored under evidence/<entry_id>/ when available.',
   ].join('\n'))
-
-  // Download evidence files from Supabase Storage in small batches so peak
-  // memory is bounded by the byte budget, not the account's file count
-  if (evidenceToDownload.length > 0 || skippedEvidence.length > 0) {
-    const evidenceFolder = root.folder('evidence')!
-    if (skippedEvidence.length > 0) {
-      evidenceFolder.file('SKIPPED.txt', [
-        `${skippedEvidence.length} file(s) were skipped because evidence exceeds the 500 MB per-export cap.`,
-        'Download these individually from the app, or re-run with includeEvidence=false.',
-        '',
-        ...skippedEvidence,
-      ].join('\n'))
-    }
-    for (let i = 0; i < evidenceToDownload.length; i += DOWNLOAD_CONCURRENCY) {
-      await Promise.allSettled(
-        evidenceToDownload.slice(i, i + DOWNLOAD_CONCURRENCY).map(async (ef: { entry_id: string; file_path: string; file_name?: string }) => {
-          try {
-            const { data: blob } = await supabase.storage
-              .from('evidence')
-              .download(ef.file_path)
-            if (blob) {
-              const entryFolder = evidenceFolder.folder(ef.entry_id)!
-              const filename = ef.file_name ?? ef.file_path.split('/').pop() ?? 'file'
-              const arrayBuffer = await blob.arrayBuffer()
-              entryFolder.file(filename, arrayBuffer)
-            }
-          } catch {
-            // Skip files that fail to download - don't block the whole export
-          }
-        })
-      )
-    }
-  }
 
   // Generate ZIP as ArrayBuffer - directly accepted as BodyInit
   const zipBuffer: ArrayBuffer = await zip.generateAsync({

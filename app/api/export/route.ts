@@ -82,6 +82,15 @@ export async function POST(request: NextRequest) {
   const { entryIds, caseIds, specialty, format, template, theme, fields } = body
   const selectedFields = parseFields(fields)
 
+  // safeJsonBody is a type cast, not runtime validation: a string entryIds
+  // passes the .length checks below (strings have .length) and reaches
+  // .in('id', ...) - reject malformed shapes with a 400, not a builder 500.
+  const isStringArray = (value: unknown): value is string[] =>
+    Array.isArray(value) && value.every(item => typeof item === 'string')
+  if ((entryIds !== undefined && !isStringArray(entryIds)) || (caseIds !== undefined && !isStringArray(caseIds))) {
+    return NextResponse.json({ error: 'entryIds and caseIds must be arrays of ids.' }, { status: 400 })
+  }
+
   // PDF-only lifetime cap: do not block CSV / JSON exports.
   if ((!format || format === 'pdf') && !subInfo.limits.canExportPdf) {
     return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })

@@ -5,6 +5,8 @@ Use this as a compact map, not as the source of truth. Verify details with `rg`,
 
 Pre-release review (2026-06-22) confirmed: build green (287/287 tests, clean typecheck/lint), production = reviewed commit `3b48934`, RLS on all 25 public tables, no schema drift, no new advisors, GDPR export leaks nothing, entitlement gating enforced server-side everywhere. Two HIGH issues found: legal-page company/ICO disclosure gap, and a calendar-feed bug (see Known Gotchas). Full findings: `C:\Users\SRL20\Documents\Clerkfolio_Review_Findings.md`.
 
+Security & architecture audit (2026-07-02, report: `C:\Users\SRL20\Documents\AUDIT_REPORT.md`, baseline `fa96be5`): 0 Critical, 1 High, 4 Medium, 8 Low, 10 Info; authz/secrets/injection/crypto/headers all clean. **All High + Medium + Low fixes plus the actionable Info items (I-1 `scan:secrets:all`, I-5 startup env check, I-6 parser tests+comment, I-7 arcp error shape) were implemented and shipped the same day** (326 tests green). Key behaviour changes are folded into the relevant sections below. Deliberately NOT fixed: I-2/I-3/I-4 (ESLint 9 / eslint-config-next / resend version bumps — the known deferred-migrations backlog), I-8/I-9/I-10 (accepted/informational).
+
 **Now in the pre-launch IMPLEMENTATION phase (started 2026-06-23).** All 47 review findings have agreed dispositions (the "Stage-13 owner decision log" in the findings file is the authoritative spec). Fixes are being built in batches per `C:\Users\SRL20\Documents\Clerkfolio_Build_Prompt.md`. **Several architecture facts described below are scheduled to change — verify against the findings file's decision log before relying on the current description of: tiers/entitlements, the public API, completeness scoring, the specialty tagger, the demo seed, and the calendar feed.** See "Pre-Launch Implementation Phase" below for the incoming changes and their owning batch.
 
 ## What This File Is
@@ -45,9 +47,10 @@ npm run lint
 npm run test
 npm run e2e
 npm run scan:secrets
+npm run scan:secrets:all
 ```
 
-Notes: `npm run build` is the main compile gate. Hooks inject placeholder public env vars for build verification. CI has lint/typecheck/build/unit/e2e jobs; E2E self-skips when required secrets are absent.
+Notes: `npm run build` is the main compile gate. Hooks inject placeholder public env vars for build verification. CI has lint/typecheck/build/unit/e2e jobs; E2E self-skips when required secrets are absent. `scan:secrets` only diff-scans git-STAGED files (pre-commit hook design) — a clean run on a clean tree certifies nothing; use `scan:secrets:all` to scan every tracked file when auditing.
 
 ## Non-Negotiables
 
@@ -77,6 +80,8 @@ Documented in `.env.example`: Supabase public URL/anon key/service role, Resend,
 `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN` enable **cluster-wide** sliding-window rate limiting. Without them every `checkRateLimit` caller falls back to a per-instance (per-lambda) in-memory bucket — weaker, but it **fails soft**. There is no longer a fail-closed path: the public API (the only `requireDistributed` caller) was removed in Batch 5. **F-047 (owner action):** provision an EU-region Upstash Redis in the prod Vercel project to move all limiters off the per-instance fallback — zero code change.
 
 `next.config.mjs` derives `NEXT_PUBLIC_SENTRY_ENVIRONMENT` from Vercel's `VERCEL_ENV` at build time. Do not configure the client environment as the literal string `$VERCEL_ENV`.
+
+`instrumentation.ts` runs a **warn-only** startup presence check for the required-secrets set (`lib/env-check.ts`, audit I-5): in Vercel production only, missing vars are `console.error`ed by name at boot instead of surfacing when a user first hits the degraded route. It must never throw (builds run on placeholder public vars; a lambda that crashes on boot is worse than the degraded behaviour) — keep it warn-only, and add new required secrets to `REQUIRED_PRODUCTION_ENV_VARS`.
 
 ## Live Supabase State
 
@@ -219,6 +224,9 @@ Imports:
 
 - `/api/import/csv`, `/api/import/json`, `/api/import/horus`.
 - Bulk import requires Pro, is rate-limited, has file/row caps, allowlisted columns, duplicate handling.
+- Shared import boilerplate lives in `lib/import/shared.ts` (audit L-7): `IMPORT_RATE_MAX`/`IMPORT_RATE_WINDOW_SECONDS`, `isRecord`, `copyInsertable`. Change the shared budget/shaping there, not per-route; the per-format column allowlists rightly stay in each route.
+- JSON import (audit M-3): the four table inserts are independent calls, not a transaction. ALL four tables (incl. deadlines + goals) are deduped against existing rows so retry-after-partial-failure never double-inserts, and any insert failure returns per-table `results` (inserted count + error) instead of a bare 500.
+- Horus date parsing (audit M-4): the free-text date fallback reads the calendar date back with LOCAL getters, never `toISOString()` — the UTC round-trip rolls dates back a day on any non-UTC runtime (masked today only by Vercel's TZ=UTC).
 
 ## Specialties And ARCP
 
@@ -253,7 +261,9 @@ The read-only public developer API was **removed entirely on 2026-06-26**. It ha
 ## Privacy And Account Lifecycle
 
 - GDPR export ZIP includes profile, portfolio, cases, deadlines, goals, specialties, ARCP links, templates, clean evidence, personal logs, audit, share links, notifications, revisions, custom themes, snippets, searches, sessions without IP hash, referrals, API key metadata.
-- Account deletion requires exact `DELETE`, attempts Stripe cancel-at-period-end first, swallows only Stripe `resource_missing`, chunks evidence storage deletes, then deletes Supabase auth user.
+- GDPR export evidence failures are never silent (audit M-1): the download loop runs BEFORE the manifest is built, `manifest.contents.evidence_files` counts files actually written into the ZIP (not the pre-download budget), download failures are listed in `evidence/FAILED.txt` + a manifest note (over-size-cap skips stay in `SKIPPED.txt`). Keep the manifest honest if the download flow changes. Malformed JSON bodies get a 400 via the standard `badJson` (L-8); a fully EMPTY body still means "defaults" because the settings page POSTs with no body.
+- Account deletion requires exact `DELETE` + current-password reauth, attempts Stripe cancel-at-period-end first, swallows only Stripe `resource_missing`, chunks evidence storage deletes, then deletes Supabase auth user.
+- Account deletion fails LOUD on billing risk (audit H-1): a live `stripe_subscription_id` with **no `STRIPE_SECRET_KEY` configured** blocks deletion with the same 422 as a Stripe API failure — never let deletion proceed past an uncancellable subscription (silent billing orphan, no DB pointer left). A mid-sequence storage-removal failure returns a distinct "partial deletion" message (Stripe cancel already committed, auth user survives; retry is safe/idempotent) so support can recognise the half-deleted state.
 - Offline cache/service worker are cleared on logout.
 
 ## Legal Entity & Site Content
@@ -281,6 +291,8 @@ The read-only public developer API was **removed entirely on 2026-06-26**. It ha
 - For SECURITY DEFINER functions in exposed schema, inspect grants and auth checks before changing.
 - Never log patient-like text, full tokens, IPs, customer IDs, secrets, or clinical notes.
 - Keep share webhook SSRF guards and no-redirect fetch behavior.
+- `console.error` with `err instanceof Error ? err.message : 'unknown'`, never the raw error object (audit L-1): SDK/fetch errors can carry `.config`/`.request`/`.response` embedding the original payload (emails, share tokens) into platform logs.
+- Client components with overlapping async requests (mount + resubmit, debounced search) need a generation counter so stale completions no-op instead of last-write-wins (audit L-3/L-4 pattern: `public-share-client.tsx`, `global-search.tsx`).
 
 ## Testing Guidance
 

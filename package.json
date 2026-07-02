@@ -11,6 +11,7 @@
     "lint": "eslint app components lib --ext .js,.jsx,.ts,.tsx",
     "typecheck": "tsc --noEmit",
     "scan:secrets": "node scripts/scan-secrets.mjs",
+    "scan:secrets:all": "node scripts/scan-secrets.mjs --all",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
