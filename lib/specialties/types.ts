@@ -27,6 +27,41 @@ export type SelectionProcessFamily =
   | 'msra_only'                    // MSRA only, no interview, for the current cycle
   | 'multi_stage_selection_centre' // cognitive/situational tests plus a selection-centre stage
 
+// Which pre-interview gate stands between an eligible application and an
+// interview invitation (or, for msra_is_selection, an offer). This is the
+// "getting in the door" taxonomy - orthogonal to SelectionProcessFamily, which
+// describes the overall mechanism; the gate isolates the shortlisting step so
+// the UI can say honestly whether portfolio work moves the needle before
+// interview. One update recipe per gate group at annual refresh (see
+// SPECIALTY-REFRESH.md).
+export type PreInterviewGate =
+  | 'self_assessment_rank'     // Group A: your self-assessment score ranks you for interview
+  | 'assessor_scored_written'  // Group B: assessors score written answers to shortlist
+  | 'msra_rank'                // Group C: MSRA ranks candidates to interview
+  | 'msra_is_selection'        // Group D: MSRA is the entire selection, no interview this cycle
+  | 'cognitive_tests'          // Group E: specialty-specific tests gate a selection centre
+  | 'none_all_eligible'        // Group F: no gate, every eligible applicant is interviewed
+
+// The pre-interview ("getting an interview") half of a selection process.
+export type PreInterview = {
+  gate: PreInterviewGate
+  // True when portfolio/application content affects whether you reach
+  // interview (groups A and B); false when shortlisting ignores it entirely
+  // (MSRA-gated / test-gated / no-gate specialties).
+  portfolioCountsPreInterview: boolean
+  // Officially published cut-off/threshold mechanics only - never fabricate.
+  cutoffNotes?: string
+}
+
+// One verifiable citation backing a config's facts. Replaces prose comments as
+// the machine-readable provenance record; lastVerified drives the staleness
+// check in SPECIALTY-REFRESH.md.
+export type SourceCitation = {
+  url: string
+  claim: string
+  lastVerified: string  // ISO date e.g. "2026-07-02"
+}
+
 // One stage in a specialty's selection pipeline, in chronological order.
 export type SelectionStage = {
   key: string
@@ -50,6 +85,7 @@ export type RecruitmentOffice = {
 export type SelectionProcess = {
   family: SelectionProcessFamily
   stages: SelectionStage[]   // empty array allowed if not yet modeled
+  preInterview?: PreInterview // the shortlisting gate; absence means "not yet documented"
   recruitmentOffice?: RecruitmentOffice
   cycleSpecific?: boolean    // true when the family/weights are a cycle snapshot that may change next cycle
 }
@@ -94,6 +130,7 @@ export type SpecialtyConfig = {
   applicationWindow?: ApplicationWindow  // auto-populated deadlines; must be verified before use
   supersededBy?: string                  // specialty_key of the next-cycle config e.g. 'imt_2027'
   selectionProcess?: SelectionProcess     // how candidates are actually shortlisted/scored
+  sources?: SourceCitation[]              // official citations backing this config's facts
 }
 
 export type SpecialtyApplication = {

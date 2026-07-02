@@ -19,7 +19,7 @@ import { CHILD_ADOLESCENT_PSYCH_ST1_2026 } from './child_adolescent_psych_st1_20
 import { CSRH_ST1_2026 } from './csrh_st1_2026'
 import { PSYCH_LEARNING_DISABILITY_ST1_2026 } from './psych_learning_disability_st1_2026'
 import { PH_GP_DUAL_ST1_2026 } from './ph_gp_dual_st1_2026'
-import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink, SelectionProcess, SelectionProcessFamily } from './types'
+import type { SpecialtyConfig, SpecialtyDomain, SpecialtyApplication, SpecialtyEntryLink, SelectionProcess, SelectionProcessFamily, PreInterview, PreInterviewGate } from './types'
 
 export const SPECIALTY_CONFIGS: SpecialtyConfig[] = [
   IMT_2026,
@@ -163,6 +163,69 @@ const SELECTION_FAMILY_LABELS: Record<SelectionProcessFamily, string> = {
 
 export function getSelectionFamilyLabel(family: SelectionProcessFamily): string {
   return SELECTION_FAMILY_LABELS[family]
+}
+
+// ---------- Pre-interview gate helpers ----------
+
+export function getPreInterview(config: SpecialtyConfig): PreInterview | undefined {
+  return config.selectionProcess?.preInterview
+}
+
+// Display order for the six gate groups: portfolio-counts-pre-interview groups
+// first, then MSRA-gated, then the outliers.
+export const PRE_INTERVIEW_GATE_ORDER: PreInterviewGate[] = [
+  'self_assessment_rank',
+  'assessor_scored_written',
+  'msra_rank',
+  'msra_is_selection',
+  'cognitive_tests',
+  'none_all_eligible',
+]
+
+const PRE_INTERVIEW_GATE_META: Record<PreInterviewGate, { label: string; description: string }> = {
+  self_assessment_rank: {
+    label: 'Your self-assessment score gets you the interview',
+    description: 'You score yourself against a published points matrix; that score ranks applications for interview.',
+  },
+  assessor_scored_written: {
+    label: 'Assessors score your written application',
+    description: 'Independent assessors score your written answers; that score decides who is interviewed.',
+  },
+  msra_rank: {
+    label: 'The MSRA gets you the interview',
+    description: 'The MSRA exam ranks candidates for interview; portfolio evidence counts at the interview itself.',
+  },
+  msra_is_selection: {
+    label: 'The MSRA is the whole selection this cycle',
+    description: 'No interview this cycle; offers are ranked on MSRA scores alone.',
+  },
+  cognitive_tests: {
+    label: 'Cognitive tests gate a selection centre',
+    description: 'Specialty-specific reasoning and judgement tests decide who reaches the selection centre.',
+  },
+  none_all_eligible: {
+    label: 'No shortlisting gate',
+    description: 'Every eligible applicant is invited to interview.',
+  },
+}
+
+export function getPreInterviewGateMeta(gate: PreInterviewGate): { label: string; description: string } {
+  return PRE_INTERVIEW_GATE_META[gate]
+}
+
+// The subtle "portfolio does not move the shortlisting needle" note for gates
+// where portfolioCountsPreInterview is false. Deliberately low-key (no banner):
+// users broadly know this; the note just keeps the framing honest.
+export function getPortfolioTimingNote(preInterview: PreInterview): string | null {
+  if (preInterview.portfolioCountsPreInterview) return null
+  switch (preInterview.gate) {
+    case 'msra_is_selection':
+      return 'Portfolio evidence does not affect selection this cycle, though it still strengthens interviews and future applications.'
+    case 'none_all_eligible':
+      return 'There is no shortlisting stage; portfolio evidence counts at the interview itself.'
+    default:
+      return 'Portfolio evidence does not affect shortlisting; it counts at the interview itself.'
+  }
 }
 
 export * from './types'

@@ -335,22 +335,48 @@ export function SpecialtyDetail({
       )}
 
       {/* Source citation */}
-      <div className="mt-6 pt-4 border-t border-white/[0.06] flex items-center gap-2">
-        {!config.isOfficial && <span className="text-amber-400">⚠️</span>}
-        <p className="text-xs text-[var(--text-secondary)]">
-          {evidenceBased ? 'Person specification: ' : 'Scoring criteria: '}
-          <a
-            href={config.source}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline hover:text-[var(--text-secondary)] transition-colors"
-          >
-            {config.sourceLabel}
-          </a>
-          {!config.isOfficial && (
-            <span className="ml-1 text-amber-400/70">- Unofficial, verify with official person spec</span>
-          )}
-        </p>
+      <div className="mt-6 pt-4 border-t border-white/[0.06]">
+        <div className="flex items-center gap-2">
+          {!config.isOfficial && <span className="text-amber-400">⚠️</span>}
+          <p className="text-xs text-[var(--text-secondary)]">
+            {evidenceBased ? 'Person specification: ' : 'Scoring criteria: '}
+            <a
+              href={config.source}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-[var(--text-secondary)] transition-colors"
+            >
+              {config.sourceLabel}
+            </a>
+            {!config.isOfficial && (
+              <span className="ml-1 text-amber-400/70">- Unofficial, verify with official person spec</span>
+            )}
+          </p>
+        </div>
+        {config.sources && config.sources.length > 0 && (
+          <details className="mt-2">
+            <summary className="text-[10px] text-[var(--text-muted)] cursor-pointer hover:text-[var(--text-secondary)] transition-colors w-fit">
+              Where these facts come from ({config.sources.length} official {config.sources.length === 1 ? 'source' : 'sources'})
+            </summary>
+            <ul className="mt-2 space-y-1.5">
+              {config.sources.map(source => (
+                <li key={source.url} className="text-[10px] text-[var(--text-muted)] leading-relaxed">
+                  <a
+                    href={source.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="underline hover:text-[var(--text-secondary)] transition-colors break-all"
+                  >
+                    {source.url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}
+                  </a>
+                  <span className="mx-1">&middot;</span>
+                  <span>{source.claim}</span>
+                  <span className="ml-1 text-[var(--text-faint)]">(verified {source.lastVerified})</span>
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
       </div>
     </div>
   )

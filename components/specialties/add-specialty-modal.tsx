@@ -8,46 +8,41 @@ import {
   isEvidenceBased,
   getEssentialDomains,
   getDesirableDomains,
+  PRE_INTERVIEW_GATE_ORDER,
 } from '@/lib/specialties'
-import type { SpecialtyApplication, SpecialtyConfig, SelectionProcessFamily } from '@/lib/specialties'
+import type { SpecialtyApplication, SpecialtyConfig, PreInterviewGate } from '@/lib/specialties'
 import { SelectionProcessStrip } from './selection-process-strip'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 const FREE_SPECIALTY_LIMIT = 1
 
-const FAMILY_ORDER: SelectionProcessFamily[] = [
-  'self_assessment_points',
-  'assessor_scored_written',
-  'portfolio_graded_interview',
-  'msra_interview',
-  'msra_only',
-  'multi_stage_selection_centre',
-]
-
-const FAMILY_META: Record<SelectionProcessFamily, { title: string; subtitle: string }> = {
-  self_assessment_points: {
-    title: 'Self-assessment points',
-    subtitle: 'Score yourself against a published points matrix.',
+// Groups follow the pre-interview gate ("how do you get in the door"), not the
+// broader selection-process family: specialties in one group share the same
+// shortlisting mechanism and the same annual-refresh recipe.
+const GATE_GROUP_META: Record<PreInterviewGate, { title: string; subtitle: string }> = {
+  self_assessment_rank: {
+    title: 'Your self-assessment score gets you the interview',
+    subtitle: 'Score yourself against a published points matrix; the score ranks you.',
   },
   assessor_scored_written: {
-    title: 'Assessor-scored written application',
-    subtitle: 'Written answers scored by independent assessors - no self-scoring matrix.',
+    title: 'Assessors score your written application',
+    subtitle: 'Independent assessors score written answers to decide who is interviewed.',
   },
-  portfolio_graded_interview: {
-    title: 'Portfolio graded at interview',
-    subtitle: 'Portfolio graded A-E during the interview itself.',
+  msra_rank: {
+    title: 'The MSRA gets you the interview',
+    subtitle: 'The MSRA ranks candidates for interview; portfolio evidence counts at the interview.',
   },
-  msra_interview: {
-    title: 'MSRA + interview',
-    subtitle: 'A computer-based test (MSRA) shortlists candidates, then a structured interview scores you.',
+  msra_is_selection: {
+    title: 'The MSRA is the whole selection (this cycle)',
+    subtitle: 'No interview this cycle; offers ranked on MSRA scores alone. May change next cycle.',
   },
-  msra_only: {
-    title: 'MSRA only (this cycle)',
-    subtitle: 'Shortlisting and scoring by MSRA alone for the current cycle - may change next cycle.',
+  cognitive_tests: {
+    title: 'Cognitive tests then a selection centre',
+    subtitle: 'Specialty-specific reasoning and judgement tests gate a selection-centre stage.',
   },
-  multi_stage_selection_centre: {
-    title: 'Multi-stage tests + selection centre',
-    subtitle: 'Cognitive/situational tests followed by a simulated selection-centre stage.',
+  none_all_eligible: {
+    title: 'No shortlisting gate',
+    subtitle: 'Every eligible applicant is invited to interview.',
   },
 }
 
@@ -93,11 +88,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
   }, [onClose])
 
   const available = SPECIALTY_CONFIGS.filter(c => !existingKeys.includes(c.key))
-  const familyGroups = FAMILY_ORDER.map(family => ({
-    family,
-    configs: available.filter(c => c.selectionProcess?.family === family),
+  const gateGroups = PRE_INTERVIEW_GATE_ORDER.map(gate => ({
+    gate,
+    configs: available.filter(c => c.selectionProcess?.preInterview?.gate === gate),
   })).filter(g => g.configs.length > 0)
-  const uncategorised = available.filter(c => !c.selectionProcess)
+  const uncategorised = available.filter(c => !c.selectionProcess?.preInterview)
 
   async function handleSelect(key: string, cycleYear: number) {
     setLoading(true)
@@ -218,11 +213,11 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
                   </span>
                 )}
               </p>
-              {familyGroups.map(({ family, configs }) => (
+              {gateGroups.map(({ gate, configs }) => (
                 <SpecialtyGroup
-                  key={family}
-                  title={FAMILY_META[family].title}
-                  subtitle={FAMILY_META[family].subtitle}
+                  key={gate}
+                  title={GATE_GROUP_META[gate].title}
+                  subtitle={GATE_GROUP_META[gate].subtitle}
                   configs={configs}
                   loading={loading}
                   onSelect={handleSelect}
@@ -231,7 +226,7 @@ export function AddSpecialtyModal({ onClose, onAdd, existingKeys, activeCount, c
               {uncategorised.length > 0 && (
                 <SpecialtyGroup
                   title="Other"
-                  subtitle="Selection process not yet documented."
+                  subtitle="Shortlisting gate not yet documented."
                   configs={uncategorised}
                   loading={loading}
                   onSelect={handleSelect}
@@ -260,13 +255,13 @@ function SpecialtyGroup({
 }) {
   return (
     <div className="space-y-2">
-      <div className="flex items-baseline justify-between px-1">
-        <span className="text-[10px] font-semibold text-[var(--text-emphasis)] uppercase tracking-wider">
+      <div className="px-1">
+        <p className="text-[10px] font-semibold text-[var(--text-emphasis)] uppercase tracking-wider">
           {title}
-        </span>
-        <span className="text-[10px] text-[var(--text-secondary)]">
+        </p>
+        <p className="text-[10px] text-[var(--text-secondary)] mt-0.5">
           {subtitle}
-        </span>
+        </p>
       </div>
       <div className="space-y-2">
         {configs.map(config => (

@@ -2,8 +2,11 @@ import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Community Sexual and Reproductive Health (CSRH) ST1 2026 - small run-through
-// programme. F2-direct entry. Selection: portfolio + interview; no public
-// per-band numeric matrix, so configured as evidence-based.
+// programme. F2-direct entry. Selection re-verified 2026-07-02: CSRH ST1 appears on
+// NHS England's official list of MSRA-recruiting specialties, and interviews are
+// scheduled 17-18 March 2026 on the NHS England specialty recruitment interview
+// schedule - so MSRA + interview, not portfolio + interview. No public per-band
+// numeric matrix, so configured as evidence-based.
 export const CSRH_ST1_2026: SpecialtyConfig = {
   key: 'csrh_st1_2026',
   name: 'Community Sexual & Reproductive Health ST1',
@@ -17,10 +20,21 @@ export const CSRH_ST1_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'msra_interview',
     stages: [
-      { key: 'portfolio', label: 'Portfolio' },
+      { key: 'msra', label: 'MSRA' },
       { key: 'interview', label: 'Interview' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/community-sexual-and-reproductive-health-st1-2026',
+      claim: 'Entry requirements (essentials) and desirable domains. CSRH ST1 appears on the NHS England MSRA specialty list, with interviews 17-18 Mar 2026 on the NHS England interview schedule - MSRA + interview, not portfolio + interview. No public per-band numeric matrix.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

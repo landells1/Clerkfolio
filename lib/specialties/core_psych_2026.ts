@@ -2,8 +2,12 @@ import type { SpecialtyConfig } from './types'
 import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Core Psychiatry CT1 2026 - selection is MSRA only for the 2026 cycle, no
-// interview stage. No portfolio scoring at application stage. This is a
-// cycle-specific fact (may change next cycle) confirmed on the NHS person spec.
+// interview stage. No portfolio scoring at application stage. Re-verified
+// 2026-07-02 on the NHS England psychiatry Applying for Core Training page
+// (Round 1, August 2026 intake): "there will be no face-to-face or online
+// interviews for this round of recruitment. Offers will be based on MSRA scores
+// only". The 186-per-paper appointability threshold lives on the separate
+// psychiatry MSRA subpage (see sources). Cycle-specific fact; re-check every cycle.
 export const CORE_PSYCH_2026: SpecialtyConfig = {
   key: 'core_psych_2026',
   name: 'Core Psychiatry CT1',
@@ -19,8 +23,30 @@ export const CORE_PSYCH_2026: SpecialtyConfig = {
     stages: [
       { key: 'msra', label: 'MSRA' },
     ],
+    preInterview: {
+      gate: 'msra_is_selection',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'No interview this cycle: offers are based on MSRA scores only. A raw score of at least 186 in each MSRA paper is required to be appointable; ties are broken by weighting the Professional Dilemmas paper more heavily.',
+    },
     cycleSpecific: true,
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/psychiatry/core-psychiatry-training/overview-of-core-psychiatry-training/applying-for-core-training',
+      claim: 'Quote: "There is a single application process for CT1 Core Psychiatry, ST1 Child and Adolescent Psychiatry and ST1 Psychiatry of Learning Disability... there will be no face-to-face or online interviews for this round of recruitment. Offers will be based on MSRA scores only." (Round 1, August 2026 intake.)',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/psychiatry/core-psychiatry-training/overview-of-core-psychiatry-training/msra',
+      claim: 'A raw score of at least 186 in each of the two MSRA papers is required to be considered appointable; tied scores weight the Professional Dilemmas paper more heavily than Clinical Problem Solving.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/core-psychiatry-training-ct1-2026',
+      claim: 'Entry requirements (essentials), including the driving licence / alternative transport requirement.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

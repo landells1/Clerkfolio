@@ -19,7 +19,18 @@ export const ACCS_EM_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA' },
       { key: 'interview', label: 'Interview' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/acute-care-common-stem-accs-emergency-medicine-ct1-2026',
+      claim: 'Entry requirements (essentials) and the application/interview desirable domains. Selection is MSRA + interview; no portfolio scoring at application stage.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

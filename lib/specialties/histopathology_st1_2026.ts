@@ -18,7 +18,23 @@ export const HISTOPATHOLOGY_ST1_2026: SpecialtyConfig = {
     stages: [
       { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '71 points across 10 domains' },
     ],
+    preInterview: {
+      gate: 'self_assessment_rank',
+      portfolioCountsPreInterview: true,
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/pathology/histopathology/histopathology-st1-training-self-assessment-scoring-guidance-for-applicants',
+      claim: 'The 71-point self-assessment matrix across 10 domains with per-band points, scored at application stage.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/histopathology-st1-2026',
+      claim: 'Entry requirements (essentials), including awareness of autopsy practice.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

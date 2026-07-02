@@ -19,10 +19,22 @@ export const PUBLIC_HEALTH_ST1_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'multi_stage_selection_centre',
     stages: [
-      { key: 'stage1_tests', label: 'Stage 1: cognitive tests', notes: 'Watson-Glaser critical reasoning + RANRA numerical + SJT' },
-      { key: 'stage2_selection_centre', label: 'Stage 2: selection centre' },
+      { key: 'stage1_tests', label: 'Stage 1: assessment centre tests', notes: 'Watson-Glaser critical reasoning + RANRA numerical reasoning + situational judgement test; minimum standard required to proceed' },
+      { key: 'stage2_selection_centre', label: 'Stage 2: selection centre', notes: 'Top-ranked applicants from the tests invited; held virtually as a digital interview' },
     ],
+    preInterview: {
+      gate: 'cognitive_tests',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'Stage 1 computer-based tests (Watson-Glaser critical reasoning, RANRA numerical reasoning and a situational judgement test) require a minimum standard, and top-ranked applicants are invited to the Stage 2 selection centre.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/public-health-st1-2026',
+      claim: 'Entry requirements (essentials; the GMC/UKMLA items apply to the medical route only - Public Health also accepts non-medical applicants) and the face-to-face attendance requirement. Selection is Stage 1 assessment-centre tests (Watson-Glaser + RANRA + SJT) then a Stage 2 selection centre; no portfolio self-assessment at application.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

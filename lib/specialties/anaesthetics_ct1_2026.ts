@@ -3,6 +3,15 @@ import { UNIVERSAL_ESSENTIALS } from './shared'
 
 // Anaesthetics CT1 2026 - selection is MSRA + interview (two 15-min stations).
 // No specialty-specific application questions for 2026; portfolio assessed at interview.
+// Weights verified 2026-07-02 from the official ANRO "CT1 Core Anaesthetics/ACCS
+// Anaesthetics Applicant Guidance R1 Aug 2026" PDF: "an applicant's MSRA score will
+// contribute 15% towards their total selection score. The PD and CPS elements will be
+// weighted equally at 7.5%." Interview = the only other component (Clinical Judgement
+// station + General Interview station, 15 min each, via Qpercom), hence 85%.
+// The previous "Advanced life support skills" domain claimed ALS was "listed as
+// desirable in the 2026 person spec" - it is not: ALS appears in neither the fetched
+// 2026 person spec nor the ANRO guidance, so that unsourced domain was removed
+// 2026-07-02.
 export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   key: 'anaesthetics_ct1_2026',
   name: 'Anaesthetics CT1',
@@ -16,14 +25,31 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
   selectionProcess: {
     family: 'msra_interview',
     stages: [
-      { key: 'msra', label: 'MSRA', weightPct: 15 },
-      { key: 'interview', label: 'Interview (two 15-min stations)', weightPct: 85 },
+      { key: 'msra', label: 'MSRA', weightPct: 15, notes: 'Professional Dilemmas and Clinical Problem Solving papers weighted equally at 7.5% each; no MSRA cut-off, but interview invitations are ranked on it' },
+      { key: 'interview', label: 'Interview: Clinical Judgement + General stations (15 min each)', weightPct: 85, notes: 'Two-station online format via Qpercom' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'No fixed MSRA cut-off, but interview invitations are ranked on MSRA performance. The MSRA then contributes 15% of the total selection score.',
+    },
     recruitmentOffice: {
       name: 'ANRO',
       url: 'https://anro.wm.hee.nhs.uk/ct1',
     },
   },
+  sources: [
+    {
+      url: 'https://anro.wm.hee.nhs.uk/ct1',
+      claim: 'From the ANRO CT1 Core Anaesthetics/ACCS Anaesthetics Applicant Guidance (Round 1, August 2026): the MSRA contributes 15% of the total selection score (Professional Dilemmas and Clinical Problem Solving weighted equally at 7.5% each); the interview is two 15-minute stations (Clinical Judgement + General) via Qpercom and is the only other component.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
+      claim: 'Entry requirements (essentials), including the 24-month anaesthetics experience cap. ALS is not listed as a desirable in the 2026 person spec.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
@@ -84,16 +110,6 @@ export const ANAESTHETICS_CT1_2026: SpecialtyConfig = {
       criteriaType: 'desirable',
       isEvidenceOnly: true,
       notes: 'Formal teaching programmes, regular teaching sessions, teaching qualifications.',
-    },
-    {
-      key: 'als_certified',
-      label: 'Advanced life support skills',
-      maxPoints: 0,
-      scoringRule: 'highest',
-      bands: [],
-      criteriaType: 'desirable',
-      isEvidenceOnly: true,
-      notes: 'Up-to-date and demonstrable advanced life support skills (e.g. Resuscitation Council UK ALS). Listed as desirable in the 2026 person spec; many Schools of Anaesthesia require ALS by post start date.',
     },
     {
       key: 'commitment_anaesthetics',

@@ -10,13 +10,43 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
   sourceLabel: 'NHS England - Clinical Radiology ST1 Portfolio Review Guidance',
   isOfficial: true,
   scoringType: 'points',
+  // Selection pipeline verified 2026-07-02 on the NHS England Core Clinical Radiology
+  // 2026 pages: MSRA (minimum 201 in each of the 2 components), then approximately
+  // the top 850 invited to upload portfolio evidence and the top 700 invited to
+  // interview (two Qpercom stations of up to 15 minutes). "A combination of your
+  // MSRA, verified evidence score and total score at interview will be used to
+  // determine your final total score and ranking" - NO percentage split is published
+  // anywhere on the official pages, so none is asserted here.
   selectionProcess: {
     family: 'self_assessment_points',
     stages: [
-      { key: 'portfolio', label: 'Portfolio self-assessment', weightPct: 40, notes: '5 domains graded A-E; commitment domain double-weighted' },
-      { key: 'interview', label: 'Interview', weightPct: 60 },
+      { key: 'msra', label: 'MSRA', notes: 'Minimum cut-off score in each component; ranks candidates for evidence upload and interview invitations' },
+      { key: 'portfolio', label: 'Portfolio self-assessment & verified evidence', notes: '5 domains graded A-E; Commitment to Specialty double-weighted' },
+      { key: 'interview', label: 'Interview (two stations, up to 15 min each)', notes: 'Final ranking combines MSRA, verified evidence score and interview; no published split' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'Minimum MSRA cut-off of 201 in each of the 2 components. In 2025 approximately the top 850 applicants were longlisted and invited to upload evidence, and the top 700 ranked candidates invited to interview.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/clinical-radiology/core-clinical-radiology/overview-of-core-training/applying-for-st1-training',
+      claim: 'MSRA minimum cut-off is 201 on each of the 2 components; in 2025 approximately the top 850 applicants were longlisted and invited to upload evidence and the top 700 invited to interview. Final ranking combines MSRA, verified evidence score and interview score; no percentage split is published.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/clinical-radiology/core-clinical-radiology/clinical-radiology-st1-portfolio-review-guidance',
+      claim: 'Portfolio review domains and A-E grade descriptors, with Commitment to Specialty double-weighted (max 8 points vs 4 for the other domains).',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/clinical-radiology-st1-2026',
+      claim: 'Entry requirements (essentials), including the 18-month experience cap and documented time observing in a radiology or nuclear medicine department.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
@@ -49,7 +79,7 @@ export const RADIOLOGY_ST1_2026: SpecialtyConfig = {
         { label: 'Grade D: Limited - single activity showing specific interest in radiology', points: 2 },
         { label: 'Grade E: No evidence of commitment to radiology', points: 0 },
       ],
-      notes: 'Double-weighted domain (max 8 pts vs 4 for others). Portfolio accounts for 40% of final ranking; interview 60%. 2026 cycle reduced portfolio from 7 domains to 5.',
+      notes: 'Double-weighted domain (max 8 pts vs 4 for others). Final ranking combines MSRA, verified evidence score and interview score; NHS England publishes no percentage split between them.',
     },
     {
       key: 'leadership_management',

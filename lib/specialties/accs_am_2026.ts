@@ -23,11 +23,22 @@ export const ACCS_AM_2026: SpecialtyConfig = {
     stages: [
       { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '30 points across 6 domains (shares the IMT framework)' },
     ],
+    preInterview: {
+      gate: 'self_assessment_rank',
+      portfolioCountsPreInterview: true,
+    },
     recruitmentOffice: {
       name: 'IMT Recruitment',
       url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
     },
   },
+  sources: [
+    {
+      url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+      claim: 'ACCS Internal Medicine shares the IMT 30-point self-assessment matrix and the 5-point Round 1 IMT/ACCS-IM-only bonus. The generic NHS England person-spec page for this specialty carries no numeric scoring table.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   bonusOptions: [
     {
       key: 'imt_only',
@@ -45,7 +56,7 @@ export const ACCS_AM_2026: SpecialtyConfig = {
       bands: [
         { label: 'PhD/MD by research', points: 4 },
         { label: 'Masters (MSc/MA/MRes, 8+ months)', points: 3 },
-        { label: 'PG diploma/certificate', points: 1 },
+        { label: 'PG diploma/certificate (1–10 months WTE)', points: 1 },
       ],
       notes: 'Intercalated degrees excluded. Teaching qualifications belong in Training in Teaching.',
     },
@@ -58,7 +69,8 @@ export const ACCS_AM_2026: SpecialtyConfig = {
         { label: 'Oral 1st/2nd author national/international', points: 6 },
         { label: 'Poster 1st/2nd author national/international', points: 4 },
         { label: 'Oral 1st/2nd author regional', points: 3 },
-        { label: 'Oral or poster 1st/2nd author local', points: 2 },
+        { label: 'Oral 1st/2nd author local', points: 2 },
+        { label: 'Poster 1st/2nd author regional/local', points: 2 },
       ],
     },
     {
