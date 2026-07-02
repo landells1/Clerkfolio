@@ -27,7 +27,24 @@ export const OMFS_ST1_2026: SpecialtyConfig = {
     stages: [
       { key: 'interview', label: 'Portfolio-based interview', notes: 'No MSRA for OMFS ST1; portfolio evidence assessed as part of the national interview process' },
     ],
+    preInterview: {
+      gate: 'none_all_eligible',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'No MSRA and no published shortlisting gate: eligible applicants proceed to the nationally coordinated portfolio-based interview. The lead office (NHS England South West / Severn) detail pages are currently unreachable, so no self-assessment mechanics are asserted.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/oral-and-maxillofacial-surgery-st1-2026',
+      claim: 'Entry requirements (essentials), including dual qualification: full GDC registration or a fully UK-registerable dental qualification on top of the medical degree. OMFS ST1 is absent from the NHS England MSRA specialty list; interview 2 Feb 2026 per the NHS England interview schedule.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://www.severndeanery.nhs.uk/',
+      claim: 'UNREACHABLE: the Severn (NHS England South West) OMFS self-assessment/evidence detail pages 301-redirect to a broken host (southwest.pgmdeducation.nhs.uk), so no self-assessment mechanics are asserted. Re-check at annual refresh.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

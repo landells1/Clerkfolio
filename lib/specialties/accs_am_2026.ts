@@ -23,11 +23,22 @@ export const ACCS_AM_2026: SpecialtyConfig = {
     stages: [
       { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '30 points across 6 domains (shares the IMT framework)' },
     ],
+    preInterview: {
+      gate: 'self_assessment_rank',
+      portfolioCountsPreInterview: true,
+    },
     recruitmentOffice: {
       name: 'IMT Recruitment',
       url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
     },
   },
+  sources: [
+    {
+      url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+      claim: 'ACCS Internal Medicine shares the IMT 30-point self-assessment matrix and the 5-point Round 1 IMT/ACCS-IM-only bonus. The generic NHS England person-spec page for this specialty carries no numeric scoring table.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   bonusOptions: [
     {
       key: 'imt_only',

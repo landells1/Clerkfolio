@@ -23,7 +23,18 @@ export const CSRH_ST1_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA' },
       { key: 'interview', label: 'Interview' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/community-sexual-and-reproductive-health-st1-2026',
+      claim: 'Entry requirements (essentials) and desirable domains. CSRH ST1 appears on the NHS England MSRA specialty list, with interviews 17-18 Mar 2026 on the NHS England interview schedule - MSRA + interview, not portfolio + interview. No public per-band numeric matrix.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

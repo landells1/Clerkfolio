@@ -26,11 +26,28 @@ export const PAEDIATRICS_ST1_2026: SpecialtyConfig = {
       { key: 'written_application', label: 'Written application', weightLabel: 'Scored by 2 independent assessors, up to 60 marks (30 each)', notes: 'Five 50-word sections: clinical capabilities /8, personal achievements /8, QI-audit /5, academic /3(+1), teaching /5. Shortlisting scores are not carried over to interview' },
       { key: 'interview', label: 'Interview (two 20-min virtual stations)', notes: 'Multi-scenario format via the Qpercom platform' },
     ],
+    preInterview: {
+      gate: 'assessor_scored_written',
+      portfolioCountsPreInterview: true,
+      cutoffNotes: 'Each written application is scored by two independent RCPCH assessors (30 marks each, 60 total) across five 50-word sections. Shortlisting scores are not carried into the interview.',
+    },
     recruitmentOffice: {
       name: 'RCPCH',
       url: 'https://www.rcpch.ac.uk/education-careers/apply-paediatrics/ST1',
     },
   },
+  sources: [
+    {
+      url: 'https://www.rcpch.ac.uk/education-careers/apply-paediatrics/ST1',
+      claim: 'RCPCH runs ST1 recruitment; the application is scored against 5 official domains, then interviews run as two 20-minute virtual stations via Qpercom.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://www.rcpch.ac.uk/sites/default/files/2025-10/st1_scoring_guidance_glossary_for_shortlisting_2026-27_v.4_jac_271025.pdf',
+      claim: 'Shortlisting scoring for 2026-27: two assessors at 30 marks each (Transferable clinical capabilities /8, Personal achievements & reflection /8, QIP-Audit /5, Academic achievements /3+1, Teaching /5; answers max 50 words per section); shortlisting scores are not carried into the interview.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

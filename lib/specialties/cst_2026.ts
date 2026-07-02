@@ -27,7 +27,24 @@ export const CST_2026: SpecialtyConfig = {
       { key: 'portfolio_review', label: 'Portfolio station (A-E, at interview)', weightPct: 45, notes: 'Assessors review evidence for 15 minutes, then question candidates on two domains of their choosing; missing index page scores 0' },
       { key: 'interview', label: 'Management and clinical station', weightPct: 45 },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'The MSRA forms the basis of the shortlisting score; the portfolio is not scored until the interview itself. The MSRA then carries 10% of the final selection score.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/surgery/core-surgery/overview-of-core-surgery-training/applying-for-core-training',
+      claim: 'The total selection score is a combination of MSRA (10%), portfolio station score (45%) and management and clinical station score (45%), with the MSRA forming the basis of the shortlisting score.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/surgery/core-surgery/core-surgical-training-portfolio-guidance-for-candidates',
+      claim: 'For 2026 the portfolio is assessed at interview against letter grades (A-E) rather than a numeric self-assessment; evidence needs an index page (submissions without one score 0), assessors review for 15 minutes then question candidates on two domains.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

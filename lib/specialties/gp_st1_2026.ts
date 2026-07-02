@@ -26,8 +26,25 @@ export const GP_ST1_2026: SpecialtyConfig = {
     stages: [
       { key: 'msra', label: 'MSRA', notes: 'No interview or selection centre; offers ranked on MSRA performance UK-wide via Single Transferable Score' },
     ],
+    preInterview: {
+      gate: 'msra_is_selection',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'No interview or selection centre this cycle: offers are ranked UK-wide on MSRA performance alone via the Single Transferable Score.',
+    },
     cycleSpecific: true,
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/general-practice-gp/how-to-apply-for-gp-specialty-training/gp-specialty-training-recruitment/general-practice-overview',
+      claim: 'Quote: "A subsequent face-to-face or virtual assessment at a Selection Centre will not occur. Successful applicants will be considered for appointment across the whole of the UK, based on their performance in the MSRA." The old Stage 3 selection centre no longer runs; gprecruitment.hee.nhs.uk now redirects into medical.hee.nhs.uk.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/general-practice-st1-2026',
+      claim: 'Entry requirements (essentials), including UK Performers List eligibility.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

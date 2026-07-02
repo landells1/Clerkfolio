@@ -26,7 +26,18 @@ export const OPHTHALMOLOGY_ST1_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA' },
       { key: 'interview', label: 'Interview' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/ophthalmology-st1-2026',
+      claim: 'Entry requirements (essentials), including the 30-month ophthalmology experience cap measured at interview date. MSRA + interview selection confirmed via the NHS England MSRA specialty list and the 2026 interview schedule (16-17 Mar 2026).',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

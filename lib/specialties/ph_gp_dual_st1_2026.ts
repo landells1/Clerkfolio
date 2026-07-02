@@ -27,7 +27,24 @@ export const PH_GP_DUAL_ST1_2026: SpecialtyConfig = {
       { key: 'ph_assessment_centre', label: 'PH assessment centre', notes: 'Watson-Glaser critical reasoning + RANRA numerical reasoning + situational judgement test' },
       { key: 'ph_selection_centre', label: 'PH selection centre', weightLabel: 'Full PH selection process; final ranking equally weighted between GP and PH' },
     ],
+    preInterview: {
+      gate: 'cognitive_tests',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'Candidates are assessed through the full selection process for both parent specialties: the MSRA for GP, plus the PH assessment-centre tests (RANRA, Watson-Glaser, SJT) and selection centre. Final ranking is equally weighted between Public Health and General Practice.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/public-health-and-general-practice-dual-programme-st1-2026',
+      claim: 'Entry requirements (essentials) for the dual programme, including Performers List eligibility and the PH technical essentials.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/general-practice-gp',
+      claim: 'The NHS England dual-CCT section ("General Practice (GP) and Public Health (PH) Dual Certificate of Completion of Training (CCT) Programme") states candidates are assessed through the full selection process for both specialties - the MSRA for GP plus the PH assessment centre (RANRA, Watson-Glaser, SJT) and selection centre - with final ranking equally weighted between the two.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

@@ -26,7 +26,29 @@ export const OG_ST1_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA', notes: 'Shortlists for interview; a bypass exists for top MSRA scorers (threshold not published). No published 2026 weighting' },
       { key: 'interview', label: 'Structured interview (two online stations, ~30 min)', notes: 'Clinical prioritisation + an ethical and governance question, then structured interview questions' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'The MSRA shortlists for interview, and a bypass exists for top MSRA scorers (threshold and count not published). The only page publishing an MSRA/interview weighting is the stale August 2023 intake scoring overview, so no 2026 weighting is asserted.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/obstetrics-and-gynaecology/st1-obstetrics-and-gynaecology/overview-of-st1-obstetrics-and-gynaecology/interviews',
+      claim: 'Current interview format: two online stations (~30 min total) - Station 1 clinical prioritisation (6 min) plus an ethical and governance question (4 min), Station 2 structured interview (10 min).',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/obstetrics-and-gynaecology/st1-obstetrics-and-gynaecology/scoring-overview',
+      claim: 'KNOWN-STALE reference: this scoring overview is titled for the August 2023 intake (MSRA 50 + interview 100 of 150, top-75 MSRA bypass). Not asserted for 2026; kept here so the annual refresh checks whether it has been updated.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/obstetrics-and-gynaecology-st1-2026',
+      claim: 'Entry requirements (essentials), including the 24-month O&G experience cap.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

@@ -29,11 +29,28 @@ export const ACCS_ANAES_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA', weightPct: 15, notes: 'Professional Dilemmas and Clinical Problem Solving papers weighted equally at 7.5% each; no MSRA cut-off, but interview invitations are ranked on it' },
       { key: 'interview', label: 'Interview: Clinical Judgement + General stations (15 min each)', weightPct: 85, notes: 'Two-station online format via Qpercom; single joint process with Core Anaesthetics CT1' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'No fixed MSRA cut-off, but interview invitations are ranked on MSRA performance. The MSRA then contributes 15% of the total selection score. Single joint application with Core Anaesthetics CT1.',
+    },
     recruitmentOffice: {
       name: 'ANRO',
       url: 'https://anro.wm.hee.nhs.uk/ct1',
     },
   },
+  sources: [
+    {
+      url: 'https://anro.wm.hee.nhs.uk/ct1',
+      claim: 'From the ANRO CT1 Core Anaesthetics/ACCS Anaesthetics Applicant Guidance (Round 1, August 2026): Anaesthetics and ACCS (Anaesthetics) applicants are recruited in one process requiring only one application; the MSRA contributes 15% of the total selection score (PD and CPS papers 7.5% each); the interview is two 15-minute stations via Qpercom.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/anaesthetics-and-acute-care-common-stem-accs-anaesthetics-ct1-2026',
+      claim: 'Entry requirements (essentials), including the 24-month anaesthetics experience cap. ALS is not listed as a desirable in the 2026 person spec.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

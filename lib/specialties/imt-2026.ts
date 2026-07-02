@@ -15,11 +15,22 @@ export const IMT_2026: SpecialtyConfig = {
     stages: [
       { key: 'self_assessment', label: 'Self-assessment scoring', weightLabel: '30 points across 6 domains' },
     ],
+    preInterview: {
+      gate: 'self_assessment_rank',
+      portfolioCountsPreInterview: true,
+    },
     recruitmentOffice: {
       name: 'IMT Recruitment',
       url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
     },
   },
+  sources: [
+    {
+      url: 'https://www.imtrecruitment.org.uk/recruitment-process/applying/application-scoring',
+      claim: 'The 30-point self-assessment matrix across 6 domains (per-band points, including the corrected presentations bands splitting local oral from regional/local poster) and the 5-point bonus for applying only to IMT/ACCS-IM in Round 1.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   bonusOptions: [
     {
       key: 'imt_only',

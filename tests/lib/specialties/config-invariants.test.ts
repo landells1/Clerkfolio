@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import { SPECIALTY_CONFIGS, isEvidenceBased } from '@/lib/specialties'
+import type { PreInterviewGate } from '@/lib/specialties'
 
 // Structural invariants over every specialty config (AUDIT-38). These ran as
 // a scratch suite during the 2026-06-10 audit and caught the only two config
@@ -24,6 +25,45 @@ const REMOVED_HIGHER_SPECIALTY_KEYS = [
   'general_surgery_st3_2026',
 ]
 
+// Pre-interview gate group membership (the six-group "getting in the door"
+// taxonomy, 2026 cycle). Pinned exactly so a config cannot silently change
+// shortlisting group without the test being updated alongside the re-verified
+// official source.
+const EXPECTED_GATE_GROUPS: Record<PreInterviewGate, string[]> = {
+  self_assessment_rank: ['imt_2026', 'accs_am_2026', 'histopathology_st1_2026', 'cardiothoracic_st1_2026'],
+  assessor_scored_written: ['paediatrics_st1_2026'],
+  msra_rank: [
+    'radiology_st1_2026',
+    'cst_2026',
+    'anaesthetics_ct1_2026',
+    'accs_anaes_2026',
+    'og_st1_2026',
+    'ophthalmology_st1_2026',
+    'neurosurgery_st1_2026',
+    'accs_em_2026',
+    'csrh_st1_2026',
+  ],
+  msra_is_selection: ['gp_st1_2026', 'core_psych_2026', 'child_adolescent_psych_st1_2026', 'psych_learning_disability_st1_2026'],
+  cognitive_tests: ['public_health_st1_2026', 'ph_gp_dual_st1_2026'],
+  none_all_eligible: ['omfs_st1_2026'],
+}
+
+// Official points totals pinned per matrix so a band edit that shifts a
+// domain maximum cannot slip through the generic sum check unnoticed.
+const EXPECTED_TOTAL_MAX: Record<string, number> = {
+  imt_2026: 30,
+  accs_am_2026: 30,
+  histopathology_st1_2026: 71,
+  radiology_st1_2026: 24,
+  cardiothoracic_st1_2026: 59,
+}
+
+// The staleness tripwire window. Sources are re-verified once per recruitment
+// cycle (see SPECIALTY-REFRESH.md); 18 months leaves headroom for one annual
+// refresh, so this failing means a full cycle's re-verification was skipped.
+// That failure is deliberate - refresh the data, don't widen the window.
+const STALENESS_LIMIT_MONTHS = 18
+
 describe('specialty config invariants', () => {
   it('has unique specialty keys', () => {
     const keys = SPECIALTY_CONFIGS.map(c => c.key)
@@ -35,6 +75,37 @@ describe('specialty config invariants', () => {
     for (const removed of REMOVED_HIGHER_SPECIALTY_KEYS) {
       expect(keys).not.toContain(removed)
     }
+  })
+
+  it('assigns every config to exactly its expected pre-interview gate group', () => {
+    const expectedAll = Object.values(EXPECTED_GATE_GROUPS).flat().sort()
+    const actualAll = SPECIALTY_CONFIGS.map(c => c.key).sort()
+    // Every config is in exactly one expected group, and no group names a
+    // config that no longer exists.
+    expect(actualAll).toEqual(expectedAll)
+
+    for (const [gate, keys] of Object.entries(EXPECTED_GATE_GROUPS)) {
+      for (const key of keys) {
+        const config = SPECIALTY_CONFIGS.find(c => c.key === key)
+        expect(config?.selectionProcess?.preInterview?.gate, `${key} gate`).toBe(gate)
+      }
+    }
+  })
+
+  it('marks portfolioCountsPreInterview true only for the self-scored and assessor-scored gates', () => {
+    for (const config of SPECIALTY_CONFIGS) {
+      const pre = config.selectionProcess?.preInterview
+      expect(pre, `${config.key} missing preInterview`).toBeDefined()
+      if (!pre) continue
+      const shouldCount = pre.gate === 'self_assessment_rank' || pre.gate === 'assessor_scored_written'
+      expect(pre.portfolioCountsPreInterview, `${config.key} portfolioCountsPreInterview`).toBe(shouldCount)
+    }
+  })
+
+  it.each(Object.entries(EXPECTED_TOTAL_MAX))('%s keeps its official totalMax of %d', (key, totalMax) => {
+    const config = SPECIALTY_CONFIGS.find(c => c.key === key)
+    expect(config?.totalMax).toBe(totalMax)
+    expect(config && isEvidenceBased(config)).toBe(false)
   })
 
   it.each(SPECIALTY_CONFIGS.map(c => [c.key, c] as const))('%s is structurally valid', (_key, config) => {
@@ -88,6 +159,35 @@ describe('specialty config invariants', () => {
         expect(bonus.points).toBeGreaterThan(0)
       }
     }
+
+    // Provenance: every config must carry at least one official citation, and
+    // lastVerified must be a real, past, non-stale date (the annual-refresh
+    // tripwire - see SPECIALTY-REFRESH.md before touching STALENESS_LIMIT_MONTHS).
+    expect(config.sources, `${config.key} missing sources`).toBeDefined()
+    expect(config.sources!.length).toBeGreaterThan(0)
+    const staleCutoff = new Date()
+    staleCutoff.setMonth(staleCutoff.getMonth() - STALENESS_LIMIT_MONTHS)
+    for (const source of config.sources!) {
+      expect(source.url, `${config.key} source url`).toMatch(/^https:\/\//)
+      expect(source.claim.length, `${config.key} source claim`).toBeGreaterThan(0)
+      expect(source.lastVerified).toMatch(/^\d{4}-\d{2}-\d{2}$/)
+      const verified = new Date(source.lastVerified)
+      expect(Number.isNaN(verified.getTime()), `${config.key} lastVerified parses`).toBe(false)
+      expect(verified.getTime(), `${config.key} lastVerified is in the future`).toBeLessThanOrEqual(Date.now())
+      expect(verified.getTime(), `${config.key}/${source.url} lastVerified is stale (>${STALENESS_LIMIT_MONTHS} months) - run the SPECIALTY-REFRESH.md playbook`).toBeGreaterThanOrEqual(staleCutoff.getTime())
+    }
+
+    // Owner decision (2026-07-02): no em dashes in any user-visible copy.
+    const visibleText = [
+      config.name,
+      config.sourceLabel,
+      ...config.domains.flatMap(d => [d.label, d.notes ?? '', ...d.bands.map(b => b.label)]),
+      ...(config.bonusOptions?.map(b => b.label) ?? []),
+      ...(config.selectionProcess?.stages.flatMap(s => [s.label, s.notes ?? '', s.weightLabel ?? '']) ?? []),
+      config.selectionProcess?.preInterview?.cutoffNotes ?? '',
+      ...(config.sources?.map(s => s.claim) ?? []),
+    ].join('\n')
+    expect(visibleText.includes('—'), `${config.key} contains an em dash`).toBe(false)
 
     if (config.selectionProcess) {
       const sp = config.selectionProcess

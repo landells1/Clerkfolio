@@ -25,7 +25,24 @@ export const NEUROSURGERY_ST1_2026: SpecialtyConfig = {
       { key: 'msra', label: 'MSRA', notes: 'No officially published MSRA/interview weighting could be verified for 2026' },
       { key: 'interview', label: 'Portfolio-based interview' },
     ],
+    preInterview: {
+      gate: 'msra_rank',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'MSRA use is confirmed on the official NHS England MSRA specialty list, but no MSRA/interview weighting or cut-off is verifiable: the previously-cited 40/60 split lives only on the bot-protected Yorkshire & Humber deanery site.',
+    },
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/neurosurgery-st1-2026',
+      claim: 'Entry requirements (essentials), including the 24-month experience cap and validated surgical logbook. MSRA use confirmed via the NHS England MSRA specialty list; interviews 16-17 Mar 2026 per the NHS England interview schedule.',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://www.yorksandhumberdeanery.nhs.uk/',
+      claim: 'UNVERIFIABLE: the Yorkshire & Humber deanery (national lead office) pages carrying the previously-cited MSRA 40% / interview 60% split are behind bot protection and could not be fetched, so that split is not asserted.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {

@@ -1,6 +1,13 @@
 import { describe, it, expect } from 'vitest'
-import { getSelectionProcess, getSelectionFamilyLabel } from '@/lib/specialties'
-import type { SelectionProcessFamily, SpecialtyConfig } from '@/lib/specialties'
+import {
+  getSelectionProcess,
+  getSelectionFamilyLabel,
+  getPreInterview,
+  getPreInterviewGateMeta,
+  getPortfolioTimingNote,
+  PRE_INTERVIEW_GATE_ORDER,
+} from '@/lib/specialties'
+import type { PreInterview, SelectionProcessFamily, SpecialtyConfig } from '@/lib/specialties'
 
 const ALL_FAMILIES: SelectionProcessFamily[] = [
   'self_assessment_points',
@@ -28,4 +35,38 @@ describe('getSelectionProcess', () => {
     const config = { key: 'x', domains: [], selectionProcess } as unknown as SpecialtyConfig
     expect(getSelectionProcess(config)).toBe(selectionProcess)
   })
+})
+
+describe('pre-interview gate helpers', () => {
+  it('covers all six gates exactly once in the display order', () => {
+    expect(new Set(PRE_INTERVIEW_GATE_ORDER).size).toBe(6)
+  })
+
+  it.each(PRE_INTERVIEW_GATE_ORDER)('returns non-empty meta without em dashes for %s', gate => {
+    const meta = getPreInterviewGateMeta(gate)
+    expect(meta.label.length).toBeGreaterThan(0)
+    expect(meta.description.length).toBeGreaterThan(0)
+    expect(meta.label.includes('—')).toBe(false)
+    expect(meta.description.includes('—')).toBe(false)
+  })
+
+  it('returns undefined preInterview when a config has no selectionProcess', () => {
+    const config = { key: 'x', domains: [] } as unknown as SpecialtyConfig
+    expect(getPreInterview(config)).toBeUndefined()
+  })
+
+  it('returns no timing note when portfolio counts pre-interview', () => {
+    const pre: PreInterview = { gate: 'self_assessment_rank', portfolioCountsPreInterview: true }
+    expect(getPortfolioTimingNote(pre)).toBeNull()
+  })
+
+  it.each(['msra_rank', 'msra_is_selection', 'cognitive_tests', 'none_all_eligible'] as const)(
+    'returns a subtle timing note for %s',
+    gate => {
+      const note = getPortfolioTimingNote({ gate, portfolioCountsPreInterview: false })
+      expect(note).not.toBeNull()
+      expect(note!.length).toBeGreaterThan(0)
+      expect(note!.includes('—')).toBe(false)
+    }
+  )
 })

@@ -24,8 +24,25 @@ export const CHILD_ADOLESCENT_PSYCH_ST1_2026: SpecialtyConfig = {
     stages: [
       { key: 'msra', label: 'MSRA', notes: 'Single application shared with Core Psychiatry CT1; no interview this cycle - offers based on MSRA scores only' },
     ],
+    preInterview: {
+      gate: 'msra_is_selection',
+      portfolioCountsPreInterview: false,
+      cutoffNotes: 'Single application shared with Core Psychiatry CT1. No interview this cycle: offers are based on MSRA scores only, with a raw score of at least 186 in each paper required to be appointable.',
+    },
     cycleSpecific: true,
   },
+  sources: [
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/psychiatry/core-psychiatry-training/overview-of-core-psychiatry-training/applying-for-core-training',
+      claim: 'Quote: "There is a single application process for CT1 Core Psychiatry, ST1 Child and Adolescent Psychiatry and ST1 Psychiatry of Learning Disability... there will be no face-to-face or online interviews for this round of recruitment. Offers will be based on MSRA scores only." (Round 1, August 2026 intake.)',
+      lastVerified: '2026-07-02',
+    },
+    {
+      url: 'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/person-specifications/person-specifications-2026/child-and-adolescent-psychiatry-st1-2026',
+      claim: 'Entry requirements (essentials): driving licence/transport, core knowledge, critical appraisal, communication with children and families, and commitment to working with children and young people; plus the desirable domains.',
+      lastVerified: '2026-07-02',
+    },
+  ],
   domains: [
     ...UNIVERSAL_ESSENTIALS,
     {
