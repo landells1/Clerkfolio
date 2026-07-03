@@ -461,10 +461,11 @@ body.theme-high-contrast button {
   }
 }
 
-/* Phones: any form control under 16px makes iOS Safari auto-zoom on focus, which the
-   user can't dismiss. Force 16px below the sm breakpoint (!important because Tailwind
-   text-xs/text-sm classes outrank an element selector); desktop keeps its dense 13-14px. */
-@media (max-width: 639.98px) {
+/* Touch devices: any form control under 16px makes iOS/iPadOS Safari auto-zoom on
+   focus, which the user can't dismiss. Force 16px below the lg breakpoint (the mobile
+   app shell's breakpoint — covers phones and iPad portrait; !important because Tailwind
+   text-xs/text-sm classes outrank an element selector). Desktop keeps its dense 13-14px. */
+@media (max-width: 1023.98px) {
   input,
   select,
   textarea {
