@@ -58,12 +58,12 @@ export function MockCasesList({ className = '' }: { className?: string }) {
           <button className="rounded-md bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">+ Log case</button>
         </div>
         <p className="mb-3 font-mono text-[11px] text-ink-dim">9 Acute medicine · 5 Cardiology · 4 General surgery · 3 Renal</p>
-        <div className="mb-3 rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-xs leading-5 text-ink-soft">
+        <div className="mb-3 rounded-lg border border-default bg-[var(--bg-canvas)] px-3.5 py-2.5 text-xs leading-5 text-ink-soft">
           All case entries must be anonymised. Do not include patient names, dates of birth or NHS numbers.
         </div>
         <div className="space-y-2.5">
           {cases.map((item) => (
-            <article key={item.title} className="rounded-xl border border-white/[0.06] bg-[var(--bg-surface)] p-3.5">
+            <article key={item.title} className="rounded-xl border border-subtle bg-[var(--bg-surface)] p-3.5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="mb-2 flex flex-wrap items-center gap-2">

@@ -1,6 +1,6 @@
 import { WindowChrome } from './window-chrome'
 
-const input = 'h-[38px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2 text-xs text-ink'
+const input = 'h-[38px] rounded-lg border border-default bg-[var(--bg-canvas)] px-3.5 py-2 text-xs text-ink'
 
 export function MockCaseForm({ className = '' }: { className?: string }) {
   return (
@@ -29,14 +29,14 @@ export function MockCaseForm({ className = '' }: { className?: string }) {
         </label>
         <label className="block">
           <span className="mb-1.5 block text-xs font-medium text-ink-soft">Notes</span>
-          <span className="block h-[92px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2 text-xs leading-5 text-ink-soft">
+          <span className="block h-[92px] rounded-lg border border-default bg-[var(--bg-canvas)] px-3.5 py-2 text-xs leading-5 text-ink-soft">
             Presented with ketones, acidosis and dehydration. Managed with fluids, fixed-rate insulin infusion and potassium replacement under senior review.
           </span>
         </label>
       </div>
-      <div className="mt-5 grid grid-cols-3 gap-3 border-t border-white/[0.08] pt-4">
-        <button className="rounded-lg border border-white/[0.08] px-3 py-2 text-xs text-ink-soft">Cancel</button>
-        <button className="col-span-2 rounded-lg bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">Save case</button>
+      <div className="mt-5 flex flex-col-reverse gap-3 border-t border-default pt-4 sm:grid sm:grid-cols-3">
+        <button className="rounded-lg border border-default px-3 py-2 text-xs text-ink-soft">Cancel</button>
+        <button className="rounded-lg bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)] sm:col-span-2">Save case</button>
       </div>
     </WindowChrome>
   )

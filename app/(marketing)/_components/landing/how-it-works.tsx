@@ -9,13 +9,13 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="bg-[var(--bg-surface)] px-6 py-24 md:px-14 lg:py-32">
+    <section id="how" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-24 md:px-14 lg:py-32">
       <SectionHeader number="004" label="How it works" title="Four moves. Repeat forever." />
-      <div className="mt-16 grid overflow-hidden rounded-xl border border-white/[0.06] bg-white/[0.06] md:grid-cols-2 md:gap-px lg:grid-cols-4">
+      <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-subtle bg-[var(--border-subtle)] sm:mt-16 md:grid-cols-2 lg:grid-cols-4">
         {steps.map(([number, title, body]) => (
-          <article key={number} className="min-h-[240px] bg-[var(--bg-surface)] p-8">
-            <p className="mb-7 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{number}</p>
-            <h3 className="text-4xl font-medium tracking-[-0.03em]">{title}</h3>
+          <article key={number} className="bg-[var(--bg-surface)] p-6 sm:p-8 md:min-h-[240px]">
+            <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.14em] text-accent sm:mb-7">{number}</p>
+            <h3 className="text-3xl font-medium tracking-[-0.03em] sm:text-4xl">{title}</h3>
             <p className="mt-4 text-sm leading-[1.6] text-ink-soft">{body}</p>
           </article>
         ))}
