@@ -10,7 +10,7 @@ export function Audience() {
   return (
     <section id="audience" className="px-6 py-16 sm:py-24 md:px-14 lg:py-32">
       <SectionHeader number="003" label="Who it's for" title="Designed for every stage of UK medical training." />
-      <div className="mt-10 grid gap-6 sm:mt-16 md:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 md:grid-cols-3">
         {cards.map(([tag, title, body, bullets]) => (
           <article key={tag} className="rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7">
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>

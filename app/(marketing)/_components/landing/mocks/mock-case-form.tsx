@@ -13,7 +13,7 @@ export function MockCaseForm({ className = '' }: { className?: string }) {
           <span className={`block ${input}`}>DKA in newly-diagnosed T1DM</span>
           <span className="mt-1.5 block text-[11px] text-ink-dim">Do not include patient names, dates of birth, or NHS numbers.</span>
         </label>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium text-ink-soft">Date</span>
             <span className={`block font-mono ${input}`}>14/03/2026</span>

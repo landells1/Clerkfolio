@@ -11,7 +11,7 @@ export function HowItWorks() {
   return (
     <section id="how" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-24 md:px-14 lg:py-32">
       <SectionHeader number="004" label="How it works" title="Four moves. Repeat forever." />
-      <div className="mt-10 grid gap-px overflow-hidden rounded-xl border border-subtle bg-[var(--border-subtle)] sm:mt-16 md:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-subtle bg-[var(--border-subtle)] sm:mt-16 md:grid-cols-2 lg:grid-cols-4">
         {steps.map(([number, title, body]) => (
           <article key={number} className="bg-[var(--bg-surface)] p-6 sm:p-8 md:min-h-[240px]">
             <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.14em] text-accent sm:mb-7">{number}</p>

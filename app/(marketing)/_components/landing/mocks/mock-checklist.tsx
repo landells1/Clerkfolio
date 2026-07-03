@@ -34,7 +34,7 @@ export function MockChecklist({ className = '' }: { className?: string }) {
         </div>
         <div className="overflow-hidden rounded-2xl border border-subtle bg-[var(--bg-surface)]">
           {rows.map(([domain, box, evidence, done, priority]) => (
-            <div key={domain} className="grid grid-cols-[20px_1fr_auto] items-center gap-3 border-b border-subtle px-3 py-2.5 last:border-b-0">
+            <div key={domain} className="grid grid-cols-[20px_minmax(0,1fr)_auto] items-center gap-3 border-b border-subtle px-3 py-2.5 last:border-b-0">
               <span className={`flex h-4 w-4 items-center justify-center rounded border text-[10px] ${done ? 'border-accent bg-accent text-surface' : 'border-strong text-ink-dim'}`}>{box}</span>
               <div className="min-w-0">
                 <span className="block truncate text-xs text-ink-soft">{domain}</span>

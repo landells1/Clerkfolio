@@ -11,7 +11,7 @@ export function Pricing() {
         title="Free forever. Pro when you need it."
         sub={`No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about the price of a coffee per academic term.`}
       />
-      <div className="mt-10 grid gap-6 sm:mt-16 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {
           const features = MARKETING_PRICING_FEATURES[tier.name]
           return (

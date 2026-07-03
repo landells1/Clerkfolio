@@ -10,7 +10,7 @@ export function Hero() {
       <div className="mb-6 sm:mb-10">
         <MonoLabel className="text-accent">◉ Portfolio · built like a reference</MonoLabel>
       </div>
-      <div className="grid items-center gap-10 sm:gap-[60px] lg:grid-cols-[minmax(0,1fr)_600px]">
+      <div className="grid grid-cols-1 items-center gap-10 sm:gap-[60px] lg:grid-cols-[minmax(0,1fr)_600px]">
         <div>
           <h1 className="text-[clamp(36px,9.5vw,54px)] font-medium leading-[1.02] tracking-[-0.055em] text-ink lg:text-[clamp(54px,6vw,84px)]">
             Every case,<br />

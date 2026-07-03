@@ -15,7 +15,7 @@ export function MockShareLink({ className = '' }: { className?: string }) {
           <span className="rounded bg-[var(--button-primary-bg)] px-2 py-1 text-[var(--button-primary-text)]">Share links</span>
         </div>
       </div>
-      <div className="grid gap-3 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-xl border border-default bg-[var(--bg-canvas)] p-4">
           <h4 className="mb-3 text-sm font-medium">Create protected link</h4>
           <div className="space-y-3 text-xs">
