@@ -19,9 +19,9 @@ const COPY = {
   },
   specialty: {
     title: 'Application-ready portfolio',
-    body: 'Compare specialties, mark interview-ready entries, and export tailored bundles.',
-    cta: 'Compare specialties',
-    href: '/specialties/compare',
+    body: 'Track the specialties you are applying to, tag your evidence to each, and export tailored bundles.',
+    cta: 'View your specialties',
+    href: '/specialties',
   },
 }
 

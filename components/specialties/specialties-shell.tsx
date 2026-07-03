@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
@@ -10,9 +9,8 @@ import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/l
 import { SpecialtyCard } from './specialty-card'
 import { SpecialtyDetail } from './specialty-detail'
 import { AddSpecialtyModal } from './add-specialty-modal'
-import { CompareView } from './compare-view'
 
-type Tab = 'my_specialties' | 'compare' | 'archive'
+type Tab = 'my_specialties' | 'archive'
 
 const FREE_SPECIALTY_LIMIT = 1
 
@@ -106,11 +104,6 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           <p className="mt-1 text-sm text-fg-2">Your tracked application programmes.</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          {activeApplications.length >= 2 && (
-            <Link href="/specialties/compare" className="inline-flex min-h-[40px] items-center rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg hover:border-default transition-colors">
-              Compare specialties
-            </Link>
-          )}
           {activeTab === 'my_specialties' && (
             <button
               onClick={() => setShowAddModal(true)}
@@ -133,7 +126,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
       {/* Tab bar */}
       <div className="mb-6 flex items-center">
         <div className="flex gap-1 bg-surface-1 border border-subtle rounded-lg p-1">
-          {(['my_specialties', 'compare', 'archive'] as Tab[]).map(tab => (
+          {(['my_specialties', 'archive'] as Tab[]).map(tab => (
             <button
               key={tab}
               onClick={() => { setActiveTab(tab); selectApp(null) }}
@@ -143,7 +136,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                   : 'text-fg-2 hover:bg-surface-3 hover:text-fg'
               }`}
             >
-              {tab === 'my_specialties' ? 'My specialties' : tab === 'compare' ? 'Compare' : (
+              {tab === 'my_specialties' ? 'My specialties' : (
                 <span className="flex items-center gap-1.5">
                   Archive
                   {archivedApplications.length > 0 && (
@@ -302,11 +295,6 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
             </div>
           )}
         </div>
-      )}
-
-      {/* Compare tab */}
-      {activeTab === 'compare' && (
-        <CompareView applications={activeApplications} links={links} isPro={isPro} />
       )}
 
       {/* Add Specialty Modal */}
