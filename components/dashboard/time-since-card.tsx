@@ -24,7 +24,7 @@ export default function TimeSinceCard({ rows }: { rows: Row[] }) {
         <p className="text-sm font-semibold text-[var(--text-primary)]">Time since last entry</p>
         <p className="mt-0.5 text-xs text-[var(--text-muted)]">By portfolio category and cases</p>
       </div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {rows.map(row => (
           <div key={row.category} className="flex items-center justify-between rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-3 py-2">
             <span className="truncate text-xs text-[var(--text-secondary)]">{row.label}</span>

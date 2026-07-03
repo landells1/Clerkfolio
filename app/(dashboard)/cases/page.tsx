@@ -105,7 +105,7 @@ export default async function CasesPage({
         }
       />
 
-      <div className={`grid ${showAvgPerWeek ? 'grid-cols-3' : 'grid-cols-2'} gap-3 mb-6`}>
+      <div className={`grid ${showAvgPerWeek ? 'grid-cols-2 sm:grid-cols-3' : 'grid-cols-2'} gap-3 mb-6`}>
         <StatTile label="Total cases" value={total} sub="all time" barColour="blue" />
         <StatTile label="This month" value={thisMonthCount} sub={now.toLocaleDateString('en-GB', { month: 'long' })} barColour="violet" />
         {showAvgPerWeek && (

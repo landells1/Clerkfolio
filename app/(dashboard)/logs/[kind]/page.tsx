@@ -117,7 +117,7 @@ export default async function LogsKindPage({
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_minmax(0,1fr)]">
         <PersonalLogForm kind={tab.kind} />
         <section className="rounded-lg border border-subtle bg-surface-1">
           {logRows.length === 0 ? (

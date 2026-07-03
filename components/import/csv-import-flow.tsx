@@ -291,7 +291,7 @@ export default function CsvImportFlow() {
 
       {step === 2 && (
         <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <label className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Preset
               <select value={preset} onChange={e => applyPreset(e.target.value as PresetKey)} className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]">
@@ -307,7 +307,7 @@ export default function CsvImportFlow() {
             </label>
           </div>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
             {FIELD_OPTIONS[target].map(field => (
               <label key={field.value} className="text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
                 {field.label}{field.required ? ' *' : ''}

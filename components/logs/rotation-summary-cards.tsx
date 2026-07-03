@@ -18,7 +18,7 @@ function addMonths(date: Date, months: number) {
 export default function RotationSummaryCards({ rotations, entries, cases }: { rotations: Rotation[]; entries: DatedEntry[]; cases: DatedEntry[] }) {
   if (rotations.length === 0) return null
   return (
-    <div className="grid gap-3 md:grid-cols-2">
+    <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
       {rotations.slice(0, 4).map(rotation => {
         const start = new Date(rotation.date)
         const end = addMonths(start, 4)

@@ -29,7 +29,7 @@ export default function NewAccountQuickStart({ hasFirstPortfolio, hasFirstCase, 
       <p className="mt-1 text-sm text-[var(--text-secondary)]">
         Three steps to get your portfolio off the ground. Charts and trends will fill in as you log entries.
       </p>
-      <div className="mt-4 grid gap-3 sm:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Card
           done={hasFirstPortfolio}
           title="Log your first entry"

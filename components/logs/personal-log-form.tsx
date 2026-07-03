@@ -75,7 +75,7 @@ export default function PersonalLogForm({ kind }: Props) {
   return (
     <form onSubmit={submit} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
       <h2 className="mb-4 text-base font-semibold text-[var(--text-primary)]">Add {LABELS[kind]}</h2>
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <input required value={title} onChange={e => setTitle(e.target.value)} placeholder="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
         <input type="date" value={date} onChange={e => setDate(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
         {kind === 'mandatory_training' && <input type="date" value={expiresAt} onChange={e => setExpiresAt(e.target.value)} className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" aria-label="Expiry date" />}

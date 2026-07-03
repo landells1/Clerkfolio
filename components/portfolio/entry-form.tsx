@@ -780,7 +780,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <Field label="Trust / hospital"><input type="text" value={auditTrust} onChange={e => setAuditTrust(e.target.value)} className={INPUT} placeholder="e.g. Royal London" /></Field>
               </div>
               <Field label="Cycle stage">
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {[
                     { value: '1st_cycle', label: 'Round 1', hint: 'Baseline audit' },
                     { value: 're_audit', label: 'Round 2', hint: 'Re-audit after change' },

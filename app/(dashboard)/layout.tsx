@@ -33,7 +33,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <DashboardProviders userInterests={specialtyKeys} careerStage={profile.career_stage}>
       <div className="flex h-screen bg-surface-0 overflow-hidden">
         <Sidebar profile={profile} userEmail={user.email ?? ''} />
-        <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0 pb-[calc(5.5rem+env(safe-area-inset-bottom))] lg:pb-0">
+        {/* Mobile bottom padding must clear the FAB (which floats above the bottom nav), not just the nav itself. */}
+        <main className="flex-1 lg:ml-[240px] overflow-y-auto pt-14 lg:pt-0 pb-[calc(9.5rem+env(safe-area-inset-bottom))] lg:pb-0">
           <PrintHeader userName={userName} />
           {children}
         </main>

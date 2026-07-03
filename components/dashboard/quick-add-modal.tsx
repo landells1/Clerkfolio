@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
+import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
@@ -115,6 +116,8 @@ export default function QuickAddModal({
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
+  const panelRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(true, panelRef, onClose)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -260,7 +263,7 @@ export default function QuickAddModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
-      <div className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-subtle bg-surface-2 p-6 shadow-modal transition-transform sm:rounded-2xl">
+      <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Quick log" tabIndex={-1} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-subtle bg-surface-2 p-6 shadow-modal transition-transform sm:rounded-2xl">
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3 min-w-0">

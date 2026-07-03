@@ -231,14 +231,14 @@ export default function OnboardingPage() {
         </div>
 
         {step === 'profile' && (
-          <section className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_1.1fr]">
             <div className="rounded-lg border border-subtle bg-surface-1 p-5">
               <p className="text-sm leading-relaxed text-fg-2">
                 These details appear in your portfolio exports and help tailor ARCP and application tracking.
               </p>
             </div>
             <div className="space-y-4">
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <label>
                   <span className="mb-1.5 block text-xs font-medium uppercase tracking-wide text-fg-2">First name</span>
                   <input value={firstName} onChange={e => setFirstName(e.target.value)} autoFocus className="w-full rounded-lg border border-subtle bg-surface-1 px-4 py-3 text-sm outline-none focus:border-strong" />
@@ -248,7 +248,7 @@ export default function OnboardingPage() {
                   <input value={lastName} onChange={e => setLastName(e.target.value)} className="w-full rounded-lg border border-subtle bg-surface-1 px-4 py-3 text-sm outline-none focus:border-strong" />
                 </label>
               </div>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {CAREER_STAGES.map(stage => (
                   <button key={stage.value} onClick={() => setCareerStage(stage.value)} className={`rounded-lg border px-4 py-3 text-left text-sm transition-colors ${careerStage === stage.value ? 'border-pill-blue bg-pill-blue text-fg' : 'border-subtle bg-surface-1 text-fg-1 hover:border-default'}`}>
                     {stage.label}
@@ -281,7 +281,7 @@ export default function OnboardingPage() {
             <p className="mb-4 max-w-2xl text-sm text-fg-2">
               Free accounts track one specialty at a time. You can change this later from the specialty tracker.
             </p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {entryLevelSpecialties.map(config => {
                 const selected = selectedSpecialties.includes(config.key)
                 return (
@@ -299,7 +299,7 @@ export default function OnboardingPage() {
         )}
 
         {step === 'arcp' && (
-          <section className="grid gap-4 lg:grid-cols-2">
+          <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <div className={`rounded-lg border p-5 ${careerStage === 'FY1' || careerStage === 'FY2' ? 'border-pill-blue bg-pill-blue' : 'border-subtle bg-surface-1'}`}>
               <h2 className="text-base font-semibold">ARCP timeline</h2>
               <p className="mt-2 text-sm leading-relaxed text-fg-2">
@@ -316,7 +316,7 @@ export default function OnboardingPage() {
         )}
 
         {step === 'first-entry' && (
-          <section className="grid gap-3 sm:grid-cols-3">
+          <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
             {[
               { value: 'portfolio' as const, title: 'Portfolio entry', body: 'Best for audits, teaching, courses, publications, prizes, reflections, and procedures.' },
               { value: 'case' as const, title: 'Clinical case', body: 'Best for memorable clinical stories, interview examples, and reflection prompts.' },

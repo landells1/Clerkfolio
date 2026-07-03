@@ -51,7 +51,7 @@ export default async function CaseDetailPage({
   return (
     <div className="p-8 max-w-2xl">
       {/* Back + actions */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-y-3 mb-8">
         <div className="flex items-center gap-3">
           <Link href="/cases" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -64,7 +64,7 @@ export default async function CaseDetailPage({
             </span>
           ))}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <LogSimilarButton
             domains={c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []}
             tags={c.specialty_tags}

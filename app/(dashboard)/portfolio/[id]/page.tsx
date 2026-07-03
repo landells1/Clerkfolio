@@ -80,7 +80,7 @@ export default async function EntryDetailPage({
   return (
     <div className="p-8 max-w-2xl">
       {/* Back + actions */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex flex-wrap items-center justify-between gap-y-3 mb-8">
         <div className="flex items-center gap-3">
           <Link href="/portfolio" className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -91,7 +91,7 @@ export default async function EntryDetailPage({
             {catMeta?.label}
           </span>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <LogSimilarButton category={entry.category} tags={entry.specialty_tags} />
           <Link
             href={`/portfolio/${entry.id}/edit`}

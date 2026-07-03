@@ -213,7 +213,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                     )
                   })}
 
-                  <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                     {activeApplications.map(app => {
                       const config = getSpecialtyConfig(app.specialty_key)
                       if (!config) {
@@ -265,7 +265,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               <p className="text-xs text-[var(--text-muted)]">
                 Archived applications are read-only. Evidence links are preserved for reference.
               </p>
-              <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                 {archivedApplications.map(app => {
                   const config = getSpecialtyConfig(app.specialty_key)
                   // A retired/removed specialty key (e.g. a config that's been

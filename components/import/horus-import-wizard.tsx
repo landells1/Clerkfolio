@@ -213,10 +213,10 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             }`}>
               {step > s ? 'OK' : s}
             </div>
-            <span className={`text-xs font-medium ${step === s ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+            <span className={`text-xs font-medium ${step === s ? 'text-[var(--text-primary)]' : 'hidden text-[var(--text-secondary)] sm:inline'}`}>
               {['Upload', 'Preview', 'Configure', 'Done'][idx]}
             </span>
-            {idx < 3 && <div className="w-8 h-px bg-white/[0.08] mx-1" />}
+            {idx < 3 && <div className="w-3 sm:w-8 h-px bg-white/[0.08] mx-1" />}
           </div>
         ))}
       </div>

@@ -144,7 +144,7 @@ export default function LogList({ rows, kind }: { rows: PersonalLogListRow[]; ki
           <div className="bg-[var(--bg-surface)] p-4">
             {editingId === row.id && editDraft ? (
               <div className="space-y-3">
-                <div className="grid gap-3 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <input required value={editDraft.title} onChange={event => updateDraft('title', event.target.value)} aria-label="Title" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
                   <input type="date" required value={editDraft.date} onChange={event => updateDraft('date', event.target.value)} aria-label="Date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
                   {kind === 'mandatory_training' && <input type="date" value={editDraft.expiresAt} onChange={event => updateDraft('expiresAt', event.target.value)} aria-label="Expiry date" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />}

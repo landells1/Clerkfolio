@@ -79,7 +79,7 @@ export default function SnippetsPage() {
       </div>
 
       <form onSubmit={save} className="mb-6 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-        <div className="grid gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-[160px_minmax(0,1fr)]">
           <input value={shortcut} onChange={e => setShortcut(e.target.value)} placeholder="/reflection" className="min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 text-sm text-[var(--text-primary)]" />
           <textarea value={body} onChange={e => setBody(e.target.value)} placeholder="Key learning: " rows={4} className="min-h-[96px] rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
         </div>

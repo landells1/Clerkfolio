@@ -626,7 +626,7 @@ export default function ExportPage() {
               </p>
             </div>
           )}
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Link href="/import" className="rounded-2xl border border-accent/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-accent/30 sm:col-span-2">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
@@ -647,7 +647,7 @@ export default function ExportPage() {
       )}
 
       {tab === 'pdf' && (
-        <div className="grid gap-4 lg:grid-cols-[280px_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
           <aside className="space-y-4">
             {format === 'pdf' && subInfo && !subInfo.isPro && (
               <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
@@ -889,7 +889,7 @@ export default function ExportPage() {
       )}
 
       {tab === 'share' && (
-        <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
+        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
           <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
             <h2 className="text-base font-semibold text-[var(--text-primary)]">Create protected link</h2>
             {subInfo && !subInfo.isPro && (
