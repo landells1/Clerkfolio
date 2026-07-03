@@ -76,7 +76,7 @@ export function SelectionProcessStrip({ process, variant }: Props) {
           )}
           <div className="flex flex-wrap items-center gap-2">
             {process.stages.map((stage, i) => (
-              <div key={stage.key} className="flex items-center gap-2">
+              <div key={stage.key} className="flex flex-nowrap items-center gap-2">
                 {i > 0 && (
                   <span className="text-[var(--text-muted)] text-xs" aria-hidden>&rarr;</span>
                 )}

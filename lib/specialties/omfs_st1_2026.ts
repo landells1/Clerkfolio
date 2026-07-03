@@ -40,9 +40,9 @@ export const OMFS_ST1_2026: SpecialtyConfig = {
       lastVerified: '2026-07-02',
     },
     {
-      url: 'https://www.severndeanery.nhs.uk/',
-      claim: 'UNREACHABLE: the Severn (NHS England South West) OMFS self-assessment/evidence detail pages 301-redirect to a broken host (southwest.pgmdeducation.nhs.uk), so no self-assessment mechanics are asserted. Re-check at annual refresh.',
-      lastVerified: '2026-07-02',
+      url: 'https://www.specialty-applications.co.uk/specialty-training-application-form/supporting-information-self-assessment/oral-and-maxillofacial-surgery/',
+      claim: 'Supporting-information self-assessment guidance for OMFS ST1, used in place of the Severn (NHS England South West) pages, which 301-redirect to a broken host (southwest.pgmdeducation.nhs.uk). Re-check at annual refresh.',
+      lastVerified: '2026-07-03',
     },
   ],
   domains: [

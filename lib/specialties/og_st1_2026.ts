@@ -118,7 +118,7 @@ export const OG_ST1_2026: SpecialtyConfig = {
       bands: [],
       criteriaType: 'desirable',
       isEvidenceOnly: true,
-      notes: 'Demonstrable interest in O&G as practiced in the UK. MRCOG Part 1, O&G taster/elective, BPSiOG / ultrasound / ALSO / MOET / PROMPT obstetric emergency courses, RCOG membership, O&G conferences attended.',
+      notes: 'Demonstrable interest in O&G as practised in the UK. MRCOG Part 1, O&G taster/elective, BPSiOG / ultrasound / ALSO / MOET / PROMPT obstetric emergency courses, RCOG membership, O&G conferences attended.',
     },
   ],
 }

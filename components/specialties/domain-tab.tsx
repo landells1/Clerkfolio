@@ -22,6 +22,10 @@ type Props = {
 
 type ModalType = 'link' | 'log' | null
 
+function pts(n: number): string {
+  return `${n} ${n === 1 ? 'pt' : 'pts'}`
+}
+
 export function DomainTab({ domain, links, applicationId, specialtyName, specialtyKey, onLinksChange }: Props) {
   const supabase = createClient()
   const { addToast } = useToast()
@@ -565,7 +569,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
       <div className="flex items-center justify-between mb-2">
         <h2 className="font-semibold text-[var(--text-primary)] text-sm">{domain.label}</h2>
         <span className="text-sm font-semibold text-[var(--text-primary)]">
-          {score} <span className="text-[var(--text-muted)] font-normal">/ {domain.maxPoints} pts</span>
+          {score} <span className="text-[var(--text-muted)] font-normal">/ {pts(domain.maxPoints)}</span>
         </span>
       </div>
 
@@ -601,7 +605,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
             <option value="">Not assessed</option>
             {domain.bands.map(band => (
               <option key={band.label} value={band.label}>
-                {band.label} ({band.points} pts)
+                {band.label} ({pts(band.points)})
               </option>
             ))}
           </select>
@@ -616,7 +620,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
               Claimed items
             </p>
             <span className="text-xs text-[var(--text-muted)]">
-              {score} / {domain.maxPoints} pts claimed
+              {score} / {pts(domain.maxPoints)} claimed
             </span>
           </div>
           {domain.bands.map(band => {
@@ -646,7 +650,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                     {band.label}
                   </span>
                   <span className="ml-3 shrink-0 text-xs font-semibold text-[var(--text-muted)]">
-                    {band.points} pts
+                    {pts(band.points)}
                   </span>
                 </div>
               </label>
@@ -689,7 +693,7 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
                       {band.label}
                     </span>
                     <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
-                      {band.points} pts
+                      {pts(band.points)}
                     </span>
                   </div>
                 )

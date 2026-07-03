@@ -319,7 +319,7 @@ function SpecialtyCard({
         <p className="text-xs text-[var(--text-muted)]">
           {evidenceBased
             ? `${essentialsCount} essentials - ${desirablesCount} desirables`
-            : `Up to ${config.totalMax} pts - ${config.domains.length} domains`}
+            : `Up to ${config.totalMax} pts - ${config.domains.filter(d => d.criteriaType !== 'essential').length} domains`}
         </p>
         <SelectionProcessStrip process={config.selectionProcess} variant="compact" />
         {!config.isOfficial && (
