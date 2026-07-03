@@ -8,15 +8,15 @@ const cards = [
 
 export function Audience() {
   return (
-    <section id="audience" className="px-6 py-24 md:px-14 lg:py-32">
+    <section id="audience" className="px-6 py-16 sm:py-24 md:px-14 lg:py-32">
       <SectionHeader number="003" label="Who it's for" title="Designed for every stage of UK medical training." />
-      <div className="mt-16 grid gap-6 md:grid-cols-3">
+      <div className="mt-10 grid gap-6 sm:mt-16 md:grid-cols-3">
         {cards.map(([tag, title, body, bullets]) => (
-          <article key={tag} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-7">
+          <article key={tag} className="rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7">
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
             <h3 className="text-[22px] font-medium leading-tight tracking-[-0.02em]">{title}</h3>
             <p className="mt-3 text-[13px] leading-[1.6] text-ink-soft">{body}</p>
-            <div className="my-5 h-px bg-white/[0.08]" />
+            <div className="my-5 h-px bg-[var(--border-default)]" />
             <ul className="space-y-3">
               {bullets.map((bullet) => <li key={bullet} className="text-sm text-ink-soft"><span className="mr-2 text-accent">→</span>{bullet}</li>)}
             </ul>

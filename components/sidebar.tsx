@@ -242,7 +242,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
   return (
     <>
       {/* Mobile header bar */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[var(--bg-canvas)] border-b border-white/[0.06] flex items-center justify-between px-4">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-40 h-14 bg-[var(--bg-canvas)] border-b border-subtle flex items-center justify-between px-4">
         <button
           onClick={() => setMobileOpen(true)}
           className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-1 min-w-[44px] min-h-[44px] flex items-center justify-center"

@@ -11,11 +11,11 @@ const faqs = [
 
 export function FAQ() {
   return (
-    <section id="faq" className="bg-[var(--bg-surface)] px-6 py-24 md:px-14 lg:py-32">
+    <section id="faq" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-24 md:px-14 lg:py-32">
       <SectionHeader number="006" label="FAQ" title="The questions doctors actually ask." />
-      <div className="mt-16 grid gap-4 md:grid-cols-2">
+      <div className="mt-10 grid gap-4 sm:mt-16 md:grid-cols-2">
         {faqs.map(([question, answer]) => (
-          <details key={question} className="group rounded-[10px] border border-white/[0.08] bg-[var(--bg-canvas)] px-5 py-4">
+          <details key={question} className="group rounded-[10px] border border-default bg-[var(--bg-canvas)] px-5 py-4">
             <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-[15px] font-medium text-ink">
               {question}
               <span className="text-accent group-open:rotate-45" aria-hidden>+</span>
