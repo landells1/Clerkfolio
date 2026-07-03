@@ -39,7 +39,7 @@ Building the decided fixes in batches (`Clerkfolio_Build_Prompt.md`); spec = the
 - Node engine: `24.x`.
 
 ## Commands
-
+Do not try and run a localhost server for claude in chrome testing, use the live website in claude in chrome. 
 ```bash
 npm run build
 npm run typecheck

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
@@ -24,6 +25,16 @@ type Props = {
 }
 
 export function SpecialtiesShell({ applications: initialApplications, links: initialLinks, isPro = false, canTrackAnotherSpecialty = false, initialAppKey }: Props) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const searchParams = useSearchParams()
+  // The `?app=` param is the single source of truth for which specialty is
+  // selected - each browser tab has its own URL, so this is inherently
+  // per-tab (no cross-tab state leak), and a plain `<Link href="/specialties">`
+  // (e.g. the sidebar nav item) correctly clears the selection because the
+  // param genuinely disappears from that tab's URL.
+  const urlAppKey = searchParams.get('app') ?? undefined
+
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
   const [links, setLinks] = useState<SpecialtyEntryLink[]>(initialLinks)
@@ -34,18 +45,26 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
   )
   const [showAddModal, setShowAddModal] = useState(false)
 
+  // Re-sync selection only on genuine URL navigation (urlAppKey changing) -
+  // not on every `applications` update (e.g. a score change inside the open
+  // detail view), which previously fought with this effect and masked the
+  // "no app param = show the list" case.
   useEffect(() => {
-    if (initialAppKey) {
-      setSelectedAppId(applications.find(a => a.specialty_key === initialAppKey)?.id ?? null)
-      return
+    setSelectedAppId(urlAppKey ? (applications.find(a => a.specialty_key === urlAppKey)?.id ?? null) : null)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [urlAppKey])
+
+  function selectApp(id: string | null, specialtyKey?: string) {
+    setSelectedAppId(id)
+    const params = new URLSearchParams(searchParams.toString())
+    if (id && specialtyKey) {
+      params.set('app', specialtyKey)
+    } else {
+      params.delete('app')
     }
-    const activeApps = applications.filter(app => app.is_active !== false)
-    setSelectedAppId(current => {
-      if (current && activeApps.some(app => app.id === current)) return current
-      return null
-    })
-    setActiveTab('my_specialties')
-  }, [applications, initialAppKey])
+    const qs = params.toString()
+    router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false })
+  }
 
   function handleAddApplication(app: SpecialtyApplication) {
     setApplications(prev => [...prev, app])
@@ -54,7 +73,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
   function handleRemoveApplication(appId: string) {
     setApplications(prev => prev.filter(a => a.id !== appId))
     setLinks(prev => prev.filter(l => l.application_id !== appId))
-    if (selectedAppId === appId) setSelectedAppId(null)
+    if (selectedAppId === appId) selectApp(null)
   }
 
   function handleArchiveApplication(oldAppId: string, newApp: SpecialtyApplication) {
@@ -62,7 +81,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
       prev.map(a => a.id === oldAppId ? { ...a, is_active: false, archived_at: new Date().toISOString() } : a)
         .concat(newApp)
     )
-    setSelectedAppId(null)
+    selectApp(null)
   }
 
   function handleLinksChange(update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) {
@@ -117,7 +136,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
           {(['my_specialties', 'compare', 'archive'] as Tab[]).map(tab => (
             <button
               key={tab}
-              onClick={() => { setActiveTab(tab); setSelectedAppId(null) }}
+              onClick={() => { setActiveTab(tab); selectApp(null) }}
               className={`px-4 py-2 rounded text-sm font-medium transition-colors ${
                 activeTab === tab
                   ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]'
@@ -147,7 +166,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               links={links.filter(l => l.application_id === selectedApp.id)}
               onLinksChange={handleLinksChange}
               onApplicationUpdate={handleApplicationUpdate}
-              onBack={() => setSelectedAppId(null)}
+              onBack={() => selectApp(null)}
               isPro={isPro}
             />
           ) : (
@@ -218,7 +237,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                           application={app}
                           links={links.filter(l => l.application_id === app.id)}
                           isSelected={selectedAppId === app.id}
-                          onSelect={() => setSelectedAppId(app.id)}
+                          onSelect={() => selectApp(app.id, app.specialty_key)}
                           onRemove={() => handleRemoveApplication(app.id)}
                         />
                       )
