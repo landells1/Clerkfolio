@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { isAcUkEmail, isNhsEmail } from '@/lib/institutional-email'
+import PasswordInput from '@/components/ui/password-input'
 
 function safeUpgradeIntent(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -169,10 +170,9 @@ export default function SignupPage() {
           <label htmlFor="signup-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Password
           </label>
-          <input
+          <PasswordInput
             id="signup-password"
             name="password"
-            type="password"
             required
             autoComplete="new-password"
             value={password}
@@ -186,10 +186,9 @@ export default function SignupPage() {
           <label htmlFor="signup-confirm-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
-          <input
+          <PasswordInput
             id="signup-confirm-password"
             name="confirmPassword"
-            type="password"
             required
             autoComplete="off"
             value={confirm}

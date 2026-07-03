@@ -183,6 +183,11 @@ export default function Sidebar({ profile, userEmail = '' }: { profile: Profile;
   // the client. We render no shortcut hint until the component has mounted.
   const [platformHint, setPlatformHint] = useState<string | null>(null)
   useEffect(() => {
+    // A keyboard-shortcut hint is meaningless on touch devices - and a phone or
+    // iPad reports as "Mac-ish" via navigator.platform, so it wrongly showed
+    // ⌘K there. Suppress the hint on coarse-pointer (touch) devices; search
+    // stays reachable by tapping the button itself.
+    if (window.matchMedia('(pointer: coarse)').matches) return
     const isMac = /Mac|iPhone|iPod|iPad/.test(navigator.platform)
     setPlatformHint(isMac ? '⌘K' : 'Ctrl K')
   }, [])

@@ -329,7 +329,6 @@ export default async function DashboardPage({
 
       {showOnboardingChecklist && (
         <OnboardingChecklist
-          userId={user!.id}
           completedItems={(profile as { onboarding_checklist_completed_items?: string[] }).onboarding_checklist_completed_items ?? []}
           accountCreatedAt={user!.created_at}
           autoCompleted={[

@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { apiFetch } from '@/lib/api-fetch'
+import PasswordInput from '@/components/ui/password-input'
 
 export default function UpdatePasswordPage() {
   const [password, setPassword] = useState('')
@@ -71,9 +72,8 @@ export default function UpdatePasswordPage() {
           <label htmlFor="new-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             New password
           </label>
-          <input
+          <PasswordInput
             id="new-password"
-            type="password"
             required
             autoComplete="new-password"
             value={password}
@@ -87,9 +87,8 @@ export default function UpdatePasswordPage() {
           <label htmlFor="confirm-new-password" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">
             Confirm password
           </label>
-          <input
+          <PasswordInput
             id="confirm-new-password"
-            type="password"
             required
             autoComplete="new-password"
             value={confirm}

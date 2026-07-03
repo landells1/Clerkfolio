@@ -4,9 +4,23 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
 
+/* OpenDyslexic for the accessibility "dyslexic-friendly font" toggle. Served
+   from Fontsource on jsDelivr (font-src is allowlisted in middleware.ts). The
+   previous open-dyslexic@1.0.3 path 404'd, so the toggle silently fell back to
+   Inter and appeared to do nothing. */
 @font-face {
   font-family: 'OpenDyslexic';
-  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/open-dyslexic-regular.woff') format('woff');
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-400-normal.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/@fontsource/opendyslexic/files/opendyslexic-latin-700-normal.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -323,18 +337,21 @@ html[data-theme="dark"] body.theme-high-contrast {
 }
 
 html:not([data-theme="dark"]) body.theme-high-contrast {
-  --bg-canvas: #FFFDF5;
-  --bg-surface: #FFFDF5;
+  /* Light-grey canvas so white cards stay clearly separated (many card borders
+     are white-alpha literals that vanish on a pure-white canvas), with pure
+     black text for maximum readability. */
+  --bg-canvas: #E6E6E6;
+  --bg-surface: #FFFFFF;
   --bg-raised: #FFFFFF;
-  --bg-sidebar: #FFFDF5;
-  --bg-sunken: #F4EFDD;
-  --text-primary: #1A1814;
-  --text-secondary: #2E2A20;
-  --text-muted: #4A4534;
-  --text-faint: rgba(26, 24, 20, 0.7);
-  --border-subtle: rgba(26, 24, 20, 0.4);
-  --border-default: rgba(26, 24, 20, 0.55);
-  --border-strong: rgba(26, 24, 20, 0.7);
+  --bg-sidebar: #F5F5F5;
+  --bg-sunken: #D8D8D8;
+  --text-primary: #000000;
+  --text-secondary: #1A1A1A;
+  --text-muted: #333333;
+  --text-faint: rgba(0, 0, 0, 0.6);
+  --border-subtle: rgba(0, 0, 0, 0.45);
+  --border-default: rgba(0, 0, 0, 0.6);
+  --border-strong: rgba(0, 0, 0, 0.75);
 }
 
 body.theme-high-contrast a,

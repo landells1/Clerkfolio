@@ -76,6 +76,10 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   // because they return different values on server (no window) vs client (with
   // window + client clock), which triggers React hydration error #418.
   const [view, setView] = useState<'calendar' | 'list'>('calendar')
+  // Gates mobile calendar visibility: pre-hydration the view defaults to
+  // 'calendar', so without this the calendar grid would flash on mobile before
+  // the effect below switches small screens to 'list'.
+  const [mounted, setMounted] = useState(false)
   // initialMonthIso is computed once on the server and passed in, so SSR HTML
   // and the first client render see the same Date value even across midnight.
   const [month, setMonth] = useState<Date>(() => new Date(initialMonthIso))
@@ -97,6 +101,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   // Fill in client-only defaults after hydration so SSR HTML and first client
   // render agree.
   useEffect(() => {
+    setMounted(true)
     if (window.matchMedia('(max-width: 640px)').matches) setView('list')
     const today = iso(new Date())
     setGoalForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
@@ -365,21 +370,21 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       </div>
 
       {view === 'calendar' ? (
-        <section className="hidden sm:block bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl overflow-hidden">
+        <section className={`${mounted ? '' : 'hidden sm:block'} bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl overflow-hidden`}>
           <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
             <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Previous</button>
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">{month.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</h2>
             <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Next</button>
           </div>
           <div className="grid grid-cols-7 border-b border-white/[0.08] text-xs text-[var(--text-secondary)]">
-            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <div key={day} className="p-3">{day}</div>)}
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <div key={day} className="p-2 text-center sm:p-3 sm:text-left">{day}</div>)}
           </div>
           <div className="grid grid-cols-7">
             {days.map(day => {
               const dayItems = items.filter(item => item.date === iso(day))
               const muted = monthKey(day) !== monthKey(month)
               return (
-                <div key={day.toISOString()} className={`min-h-28 border-r border-b border-white/[0.06] p-2 ${muted ? 'bg-black/10' : ''}`}>
+                <div key={day.toISOString()} className={`min-h-20 sm:min-h-28 border-r border-b border-white/[0.06] p-1 sm:p-2 ${muted ? 'bg-black/10' : ''}`}>
                   <p className={`text-xs mb-2 ${muted ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)]'}`}>{day.getDate()}</p>
                   <div className="space-y-1">
                     {dayItems.slice(0, 3).map(item => (
@@ -397,7 +402,10 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         <TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} />
       )}
 
-      {view === 'calendar' && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} /></div>}
+      {/* Pre-hydration the view is 'calendar' but the calendar grid is hidden on
+          mobile; show the list there until the effect resolves the real view, so
+          mobile users never see a blank/flashing timeline on first paint. */}
+      {view === 'calendar' && !mounted && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} /></div>}
 
       {showGoalForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">

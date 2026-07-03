@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 import { isProtectedPagePath } from '@/lib/auth/protected-paths'
+import PasswordInput from '@/components/ui/password-input'
 
 function safeNextPath(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return '/dashboard'
@@ -133,9 +134,8 @@ function LoginForm() {
               Forgot password?
             </Link>
           </div>
-          <input
+          <PasswordInput
             id="login-password"
-            type="password"
             required
             autoComplete="current-password"
             value={password}

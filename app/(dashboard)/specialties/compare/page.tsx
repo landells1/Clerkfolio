@@ -27,7 +27,20 @@ export default async function SpecialtyComparePage() {
     (links ?? []) as SpecialtyEntryLink[]
   )
   const configs = apps.map(app => ({ app, config: getSpecialtyConfig(app.specialty_key) })).filter(item => item.config)
-  const domainLabels = Array.from(new Set(configs.flatMap(item => item.config!.domains.map(domain => domain.label))))
+  // Count how many of the compared specialties include each domain label, then
+  // keep only labels shared by 2+ of them. Every specialty has its own unique
+  // scoring criteria, so unioning all labels produced a long tail of rows where
+  // every other column was just "-" (compare-table sprawl); a side-by-side is
+  // only meaningful on the dimensions the specialties actually have in common.
+  // Presentation-only: the configs and scoring math are untouched.
+  const orderedLabels = Array.from(new Set(configs.flatMap(item => item.config!.domains.map(domain => domain.label))))
+  const labelCounts = new Map<string, number>()
+  configs.forEach(item => {
+    new Set(item.config!.domains.map(domain => domain.label)).forEach(label => {
+      labelCounts.set(label, (labelCounts.get(label) ?? 0) + 1)
+    })
+  })
+  const domainLabels = orderedLabels.filter(label => (labelCounts.get(label) ?? 0) >= 2)
 
   return (
     <div className="max-w-6xl mx-auto p-6 lg:p-8">
@@ -38,7 +51,11 @@ export default async function SpecialtyComparePage() {
       </div>
       {configs.length < 2 ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8 text-sm text-[var(--text-muted)]">Track at least two active specialties to compare them.</div>
+      ) : domainLabels.length === 0 ? (
+        <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8 text-sm text-[var(--text-muted)]">These specialties don&apos;t share any scoring criteria, so there&apos;s nothing to line up side by side. Open each specialty from the list to see its own scoring.</div>
       ) : (
+        <>
+        <p className="mb-3 text-xs text-[var(--text-muted)]">Showing criteria shared by two or more of these specialties. Each specialty also has its own criteria - open it from the list to see them.</p>
         <div className="overflow-x-auto rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
           <table className="min-w-[720px] w-full text-left text-sm">
             <thead className="border-b border-white/[0.08] text-xs text-[var(--text-muted)]">
@@ -83,6 +100,7 @@ export default async function SpecialtyComparePage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
     </div>
   )

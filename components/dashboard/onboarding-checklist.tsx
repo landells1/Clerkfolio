@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api-fetch'
 
 type Props = {
-  userId: string
   completedItems: string[]
   accountCreatedAt: string
   autoCompleted?: string[]
@@ -19,14 +18,26 @@ const ITEMS = [
   { key: 'export',          label: 'Preview export options', href: '/export' },
 ]
 
-export default function OnboardingChecklist({ userId, completedItems: initialCompleted, accountCreatedAt, autoCompleted = [] }: Props) {
-  const supabase = createClient()
+export default function OnboardingChecklist({ completedItems: initialCompleted, accountCreatedAt, autoCompleted = [] }: Props) {
   const [completed, setCompleted] = useState<string[]>(() => {
     return Array.from(new Set([...initialCompleted, ...autoCompleted]))
   })
   const [dismissed, setDismissed] = useState(false)
+  const [confirmingDismiss, setConfirmingDismiss] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [celebrating, setCelebrating] = useState(false)
+
+  // The two checklist columns (dismissed flag + ticked items) are protected by
+  // the guard_profile_writes DB trigger, which reverts them on any browser-side
+  // (authenticated-role) UPDATE. Persist through the service-role API route
+  // instead, or the change is silently lost on the next refresh.
+  function persistChecklist(payload: { dismissed?: boolean; completedItems?: string[] }) {
+    return apiFetch('/api/onboarding/checklist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+  }
 
   // Auto-persist newly-derived completions (e.g. user just logged their first
   // entry in another tab) so the checklist reflects reality without the user
@@ -35,11 +46,9 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
     const newlyAuto = autoCompleted.filter(key => !initialCompleted.includes(key))
     if (newlyAuto.length === 0) return
     const next = Array.from(new Set([...initialCompleted, ...autoCompleted]))
-    supabase
-      .from('profiles')
-      .update({ onboarding_checklist_completed_items: next })
-      .eq('id', userId)
-      .then(({ error }) => { if (error) console.error('checklist auto-tick:', error.message) })
+    persistChecklist({ completedItems: next }).then(res => {
+      if (!res.ok) console.error('checklist auto-tick failed to persist')
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -50,37 +59,58 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
   if (dismissed) return null
   if (accountAge > 30 && allDone) return null
 
+  // Two-step confirm before dismiss: dismissing the checklist is not reversible
+  // from the dashboard (only from Settings), so make the user opt in.
+  if (confirmingDismiss) {
+    return (
+      <div
+        className="bg-[var(--bg-surface)] border border-[var(--border-subtle)] rounded-2xl mb-6 px-5 py-4"
+        role="group"
+        aria-label="Skip tutorial confirmation"
+      >
+        <p className="text-sm font-semibold text-fg">Skip the tutorial?</p>
+        <p className="text-xs text-[var(--text-secondary)] mt-1">You can&apos;t get it back.</p>
+        <div className="flex items-center gap-2 mt-4">
+          <button
+            onClick={handleDismiss}
+            className="px-4 min-h-[32px] rounded-lg text-sm font-medium bg-[var(--button-primary-bg)] text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] transition-colors"
+          >
+            Skip
+          </button>
+          <button
+            onClick={() => setConfirmingDismiss(false)}
+            className="px-4 min-h-[32px] rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] border border-[var(--border-default)] transition-colors"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   async function toggleItem(key: string) {
     const next = completed.includes(key)
       ? completed.filter(k => k !== key)
       : [...completed, key]
     setCompleted(next)
 
-    await supabase
-      .from('profiles')
-      .update({ onboarding_checklist_completed_items: next })
-      .eq('id', userId)
+    await persistChecklist({ completedItems: next })
 
     // All done - celebrate then auto-dismiss
     if (next.length === ITEMS.length) {
       setCelebrating(true)
       setTimeout(() => {
         setDismissed(true)
-        supabase
-          .from('profiles')
-          .update({ onboarding_checklist_dismissed: true })
-          .eq('id', userId)
-          .then(({ error }) => { if (error) console.error('checklist dismiss:', error.message) })
+        persistChecklist({ dismissed: true }).then(res => {
+          if (!res.ok) console.error('checklist dismiss failed to persist')
+        })
       }, 3000)
     }
   }
 
   async function handleDismiss() {
     setDismissed(true)
-    await supabase
-      .from('profiles')
-      .update({ onboarding_checklist_dismissed: true })
-      .eq('id', userId)
+    await persistChecklist({ dismissed: true })
   }
 
   const progress = completed.length
@@ -129,7 +159,7 @@ export default function OnboardingChecklist({ userId, completedItems: initialCom
             </div>
           )}
           <button
-            onClick={e => { e.stopPropagation(); handleDismiss() }}
+            onClick={e => { e.stopPropagation(); setConfirmingDismiss(true) }}
             className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-1 min-w-[32px] min-h-[32px] flex items-center justify-center"
             aria-label="Dismiss checklist"
           >

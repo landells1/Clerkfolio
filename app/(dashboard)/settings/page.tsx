@@ -681,7 +681,6 @@ export default function SettingsPage() {
         <button onClick={() => saveProfile()} disabled={savingProfile} className="mt-5 min-h-[44px] rounded-lg bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
           Save display preferences
         </button>
-        <p className="mt-4 text-xs text-[var(--text-secondary)]">Data encrypted at rest by Supabase, eu-west-2.</p>
       </section>
 
       <section className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-6 mb-6">
@@ -826,6 +825,7 @@ export default function SettingsPage() {
         <button onClick={handleDataExport} disabled={exportLoading} className="min-h-[44px] bg-white/[0.05] hover:bg-white/[0.08] disabled:opacity-50 text-[var(--text-primary)] font-medium rounded-lg px-5 py-2.5 text-sm">
           {exportLoading ? 'Preparing backup...' : 'Download personal data backup'}
         </button>
+        <p className="mt-4 text-xs text-[var(--text-secondary)]">Data encrypted at rest by Supabase, eu-west-2.</p>
       </section>
 
       <section className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6">
