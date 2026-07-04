@@ -1,6 +1,13 @@
+import type { Metadata } from 'next'
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
+
+export const metadata: Metadata = {
+  title: 'Subprocessors - Clerkfolio',
+  description: 'The third-party subprocessors Clerkfolio uses to operate the service, their locations, and data-transfer safeguards.',
+  alternates: { canonical: '/subprocessors' },
+}
 
 const lastUpdated = '28 June 2026'
 

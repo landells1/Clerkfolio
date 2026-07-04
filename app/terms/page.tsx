@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
@@ -10,6 +11,12 @@ import {
   REFERRAL_STORAGE_BONUS_AT,
   formatStorageQuota,
 } from '@/lib/entitlements/limits'
+
+export const metadata: Metadata = {
+  title: 'Terms of service - Clerkfolio',
+  description: 'The terms governing your use of Clerkfolio, including plans, referrals, acceptable use, and liability.',
+  alternates: { canonical: '/terms' },
+}
 
 const lastUpdated = '28 June 2026'
 

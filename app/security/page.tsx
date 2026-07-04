@@ -1,5 +1,12 @@
+import type { Metadata } from 'next'
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
+
+export const metadata: Metadata = {
+  title: 'Security policy - Clerkfolio',
+  description: 'How Clerkfolio protects your data and how to responsibly disclose a security vulnerability.',
+  alternates: { canonical: '/security' },
+}
 
 const lastUpdated = '26 May 2026'
 
