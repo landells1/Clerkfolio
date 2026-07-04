@@ -4,14 +4,14 @@ import { isMedicalStudentStage } from '@/lib/constants/career-stages'
 // Entitlement tiers collapsed to free vs pro (Batch 1). Institutional
 // verification and FY1/FY2 are no longer entitlement tiers - they are a
 // verification flag and a career stage respectively. `tier` reflects the
-// BILLING tier only: 'pro' means a real (Stripe) subscription, never a
-// referral/gift grant (those surface as isPro=true with tier='free').
+// BILLING tier only, and Pro is buy-only: 'pro' means a real (Stripe)
+// subscription, and isPro is true iff tier is 'pro' (referral/gift Pro is gone).
 export type Tier = 'free' | 'pro'
 
 export interface SubscriptionInfo {
   tier: Tier
   isPro: boolean
-  /** Institutionally verified (a .ac.uk student OR an NHS doctor email), not expired. Grants +500 MB. */
+  /** Institutionally verified (a .ac.uk student OR an NHS doctor email), not expired. Grants +400 MB (500 MB total). */
   isVerified: boolean
   isMedStudent: boolean
   storageQuotaMB: number
@@ -22,7 +22,6 @@ export interface SubscriptionInfo {
     shareLinksUsed: number
     specialtiesTracked: number
     storageUsedMB: number
-    referralProUntil: string | null
     studentGraduationDate: string | null
   }
   limits: {
@@ -72,7 +71,6 @@ type EntitlementRow = {
   share_links_used: number | null
   specialties_tracked: number | null
   storage_used_mb: number | null
-  referral_pro_until: string | null
   student_graduation_date: string | null
   can_export_pdf: boolean | null
   can_create_share_link: boolean | null
@@ -97,7 +95,6 @@ function mapEntitlements(row: EntitlementRow | null, careerStage?: string | null
       shareLinksUsed: row?.share_links_used ?? 0,
       specialtiesTracked: row?.specialties_tracked ?? 0,
       storageUsedMB: row?.storage_used_mb ?? 0,
-      referralProUntil: row?.referral_pro_until ?? null,
       studentGraduationDate: row?.student_graduation_date ?? null,
     },
     // Fail-closed defaults: if the entitlement row exists but a particular

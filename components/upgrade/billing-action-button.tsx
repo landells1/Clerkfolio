@@ -3,9 +3,10 @@
 import { useState } from 'react'
 
 // hasStripeBilling distinguishes a real (Stripe) subscriber - who gets the
-// billing portal - from a referral/gift Pro holder or a free user, who get
-// Stripe Checkout instead. F-029: never send a non-Stripe holder to the portal
-// (it dead-ends with no customer); show "Make permanent" and route to checkout.
+// billing portal - from a non-subscriber (free user), who gets Stripe Checkout
+// instead. Pro is buy-only, so there is no referral/gift Pro holder to consider.
+// F-029: never send a non-subscriber to the portal (it dead-ends with no
+// customer); route them to checkout instead.
 export default function BillingActionButton({
   hasStripeBilling,
   label,
