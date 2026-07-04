@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export function LegalContactButton() {
   const [open, setOpen] = useState(false)
@@ -28,20 +29,15 @@ export function LegalContactButton() {
       return
     }
     setSending(true)
-    try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, comment }),
-      })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Failed to send')
-      setSent(true)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Something went wrong')
-    } finally {
-      setSending(false)
-    }
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/feedback', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, comment }),
+    })
+    if (status === null) setError(NETWORK_ERROR_MESSAGE)
+    else if (!ok) setError(data?.error ?? 'Failed to send')
+    else setSent(true)
+    setSending(false)
   }
 
   function handleClose() {

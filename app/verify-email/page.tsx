@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api-fetch'
 
 function VerifyEmailContent() {
   const router = useRouter()
@@ -27,34 +28,33 @@ function VerifyEmailContent() {
     setError(null)
     // Keep confirmation as POST: link-preview GET requests cannot consume a
     // token, and the route rejects requests without the owning auth session.
-    try {
-      const res = await fetch('/api/student-email/confirm', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token }),
-      })
-      const body = await res.json().catch(() => ({}))
-      const status = body?.status ?? (res.ok ? 'verified' : 'invalid')
-      // Wrong-account flow: confirm route did NOT consume the token because
-      // the current browser session is logged in as a different user than
-      // the token's owner. Sign the current user out and bounce to login so
-      // they can sign in as the right account and re-open the link.
-      if (status === 'wrong_account') {
-        try {
-          const supabase = createClient()
-          await supabase.auth.signOut()
-        } catch {}
-        router.push('/login?verify=wrong_account')
-        router.refresh()
-        return
-      }
-      const target = `/settings?student_email=${encodeURIComponent(status)}`
-      router.push(target)
-      router.refresh()
-    } catch {
+    const { ok, status: httpStatus, data } = await apiFetch<{ status?: string }>('/api/student-email/confirm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token }),
+    })
+    if (httpStatus === null) {
       setError('Could not reach the verification service. Please try again.')
       setLoading(false)
+      return
     }
+    const status = data?.status ?? (ok ? 'verified' : 'invalid')
+    // Wrong-account flow: confirm route did NOT consume the token because
+    // the current browser session is logged in as a different user than
+    // the token's owner. Sign the current user out and bounce to login so
+    // they can sign in as the right account and re-open the link.
+    if (status === 'wrong_account') {
+      try {
+        const supabase = createClient()
+        await supabase.auth.signOut()
+      } catch {}
+      router.push('/login?verify=wrong_account')
+      router.refresh()
+      return
+    }
+    const target = `/settings?student_email=${encodeURIComponent(status)}`
+    router.push(target)
+    router.refresh()
   }
 
   return (

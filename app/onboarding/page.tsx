@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
 import { createClient } from '@/lib/supabase/client'
+import { apiFetch } from '@/lib/api-fetch'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES, isMedicalStudentStage } from '@/lib/constants/career-stages'
 
@@ -159,29 +160,25 @@ export default function OnboardingPage() {
     if (saving) return
     setSaving(true)
     setError(null)
-    let res: Response
-    try {
-      res = await fetch('/api/onboarding/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          firstName,
-          lastName,
-          careerStage,
-          studentGraduationDate,
-          specialties: selectedSpecialties,
-        }),
-      })
-    } catch {
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/onboarding/complete', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName,
+        lastName,
+        careerStage,
+        studentGraduationDate,
+        specialties: selectedSpecialties,
+      }),
+    })
+    if (status === null) {
       setSaving(false)
       setError('Could not finish onboarding. Check your connection and try again.')
       return
     }
-
-    if (!res.ok) {
-      const json = await res.json().catch(() => ({}))
+    if (!ok) {
       setSaving(false)
-      setError(json.error ?? 'Could not finish onboarding.')
+      setError(data?.error ?? 'Could not finish onboarding.')
       return
     }
 

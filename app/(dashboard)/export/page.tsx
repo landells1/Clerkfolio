@@ -392,13 +392,17 @@ export default function ExportPage() {
     setMarkdownLoading(true)
     setError(null)
     try {
-      const res = await fetch('/api/export/markdown')
-      if (!res.ok) {
-        const json = await res.json().catch(() => ({}))
+      const { ok, status, response } = await apiFetch('/api/export/markdown', { parse: 'none' })
+      if (status === null) {
+        setError(NETWORK_ERROR_MESSAGE)
+        return
+      }
+      if (!ok || !response) {
+        const json = (await response?.json().catch(() => ({}))) ?? {}
         setError(json.error ?? 'Could not export reflections. Please try again.')
         return
       }
-      await downloadBlob(res, `clerkfolio-reflections-${new Date().toISOString().split('T')[0]}.md`)
+      await downloadBlob(response, `clerkfolio-reflections-${new Date().toISOString().split('T')[0]}.md`)
     } catch {
       setError('Could not export reflections. Please try again.')
     } finally {
@@ -440,32 +444,28 @@ export default function ExportPage() {
       return
     }
 
-    let res: Response
-    let json: Partial<ShareLink> & { error?: string; limit?: number } = {}
-    try {
-      res = await fetch('/api/share', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify({
-          scope: shareScope,
-          specialty_key: shareScope === 'specialty' ? shareSpecialty : null,
-          theme_slug: shareScope === 'theme' ? shareTheme : null,
-          expires_at: expiresAt,
-          pin: trimmedPin || null,
-          hide_notes: hideNotes,
-          hide_reflection: hideReflection,
-          redact_tags: redactTags,
-          view_webhook_url: viewWebhookUrl.trim() || null,
-        }),
-      })
-      json = await res.json().catch(() => ({}))
-    } catch {
-      setShareLoading(false)
+    const { ok, status, data } = await apiFetch<Partial<ShareLink> & { error?: string; limit?: number }>('/api/share', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({
+        scope: shareScope,
+        specialty_key: shareScope === 'specialty' ? shareSpecialty : null,
+        theme_slug: shareScope === 'theme' ? shareTheme : null,
+        expires_at: expiresAt,
+        pin: trimmedPin || null,
+        hide_notes: hideNotes,
+        hide_reflection: hideReflection,
+        redact_tags: redactTags,
+        view_webhook_url: viewWebhookUrl.trim() || null,
+      }),
+    })
+    setShareLoading(false)
+    if (status === null) {
       setError('Could not create share link. Check your connection and try again.')
       return
     }
-    setShareLoading(false)
-    if (!res.ok) {
+    const json = data ?? {}
+    if (!ok) {
       setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
       return
     }

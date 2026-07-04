@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 // hasStripeBilling distinguishes a real (Stripe) subscriber - who gets the
 // billing portal - from a non-subscriber (free user), who gets Stripe Checkout
@@ -23,15 +24,17 @@ export default function BillingActionButton({
     setLoading(true)
     setError(null)
 
-    try {
-      const res = await fetch(hasStripeBilling ? '/api/stripe/portal' : '/api/stripe/checkout', { method: 'POST' })
-      const body = await res.json()
-      if (!res.ok || !body.url) throw new Error(body.error ?? 'Billing unavailable')
-      window.location.href = body.url
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Billing unavailable')
-      setLoading(false)
+    const { ok, status, data } = await apiFetch<{ url?: string; error?: string }>(
+      hasStripeBilling ? '/api/stripe/portal' : '/api/stripe/checkout',
+      { method: 'POST' },
+    )
+    if (ok && data?.url) {
+      // Navigating away, so intentionally leave `loading` true.
+      window.location.href = data.url
+      return
     }
+    setError(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Billing unavailable'))
+    setLoading(false)
   }
 
   return (

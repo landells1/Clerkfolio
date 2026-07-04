@@ -280,9 +280,9 @@ export default function SettingsPage() {
   async function handleDataExport() {
     setExportLoading(true)
     try {
-      const res = await fetch('/api/account/export', { method: 'POST' })
-      if (!res.ok) throw new Error('Export failed')
-      const blob = await res.blob()
+      const { ok, response } = await apiFetch('/api/account/export', { method: 'POST', parse: 'none' })
+      if (!ok || !response) throw new Error('Export failed')
+      const blob = await response.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
@@ -302,14 +302,12 @@ export default function SettingsPage() {
     e.preventDefault()
     setSendingStudentEmail(true)
     setStudentEmailError(null)
-    try {
-      const res = await fetch('/api/student-email/send-verification', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: studentEmail.email }),
-      })
-      const body = await res.json().catch(() => ({}))
-      if (!res.ok) throw new Error(body.error ?? 'Could not send verification link')
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/student-email/send-verification', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: studentEmail.email }),
+    })
+    if (ok) {
       setStudentEmail(current => ({
         ...current,
         verified: false,
@@ -319,13 +317,12 @@ export default function SettingsPage() {
       }))
       addToast('Verification link sent', 'success')
       router.refresh()
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Could not send verification link'
+    } else {
+      const message = status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Could not send verification link')
       setStudentEmailError(message)
       addToast(message, 'error')
-    } finally {
-      setSendingStudentEmail(false)
     }
+    setSendingStudentEmail(false)
   }
 
   async function restartTutorial() {
