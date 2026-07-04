@@ -21,6 +21,7 @@ import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
+import { GIBBS_FIELDS, ROLFE_FIELDS, DRISCOLL_FIELDS, buildFrameworkText, parseFrameworkText, detectFramework } from '@/lib/portfolio/reflection-frameworks'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -48,57 +49,6 @@ const WORD_COUNT_CLASS = 'text-[10px] text-[var(--text-secondary)] mt-1 text-rig
 const LONG_TEXT_MAX = 10000
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
-
-// Reflection framework delimiters
-const GIBBS_FIELDS = [
-  { key: 'description', label: 'Description', hint: 'What happened?' },
-  { key: 'feelings', label: 'Feelings', hint: 'What were you thinking and feeling?' },
-  { key: 'evaluation', label: 'Evaluation', hint: 'What was good and bad about the experience?' },
-  { key: 'analysis', label: 'Analysis', hint: 'What sense can you make of the situation?' },
-  { key: 'conclusion', label: 'Conclusion', hint: 'What else could you have done?' },
-  { key: 'action_plan', label: 'Action Plan', hint: 'If it arose again, what would you do?' },
-]
-const ROLFE_FIELDS = [
-  { key: 'what', label: 'What?', hint: 'Describe the event' },
-  { key: 'so_what', label: 'So What?', hint: 'What does this mean for you/the patient?' },
-  { key: 'now_what', label: 'Now What?', hint: 'What will you do differently?' },
-]
-const DRISCOLL_FIELDS = [
-  { key: 'what', label: 'What?', hint: 'What happened?' },
-  { key: 'so_what', label: 'So What?', hint: 'Why was this significant?' },
-  { key: 'now_what', label: 'Now What?', hint: 'What action will you take?' },
-]
-
-function buildFrameworkText(framework: string, parts: Record<string, string>): string {
-  const fields = framework === 'gibbs' ? GIBBS_FIELDS : framework === 'driscoll' ? DRISCOLL_FIELDS : ROLFE_FIELDS
-  return fields
-    .map(f => `**${f.label}:**\n${parts[f.key] ?? ''}`)
-    .join('\n\n')
-}
-
-function parseFrameworkText(framework: string, text: string): Record<string, string> {
-  const fields = framework === 'gibbs' ? GIBBS_FIELDS : framework === 'driscoll' ? DRISCOLL_FIELDS : ROLFE_FIELDS
-  const result: Record<string, string> = {}
-  fields.forEach((f, i) => {
-    const start = text.indexOf(`**${f.label}:**\n`)
-    if (start === -1) { result[f.key] = ''; return }
-    const contentStart = start + `**${f.label}:**\n`.length
-    const nextField = fields[i + 1]
-    const end = nextField ? text.indexOf(`\n\n**${nextField.label}:**`) : text.length
-    result[f.key] = text.slice(contentStart, end === -1 ? text.length : end).trim()
-  })
-  return result
-}
-
-// Fallback for legacy rows saved before refl_framework was persisted. Rolfe
-// and Driscoll serialize identical field labels (What? / So What? / Now
-// What?), so they are indistinguishable from text alone - 'rolfe' is the
-// deliberate fallback for both; the parsed fields are the same either way.
-function detectFramework(text: string): 'gibbs' | 'rolfe' | 'none' {
-  if (text.includes('**Description:**') && text.includes('**Action Plan:**')) return 'gibbs'
-  if (text.includes('**What?:**') && text.includes('**Now What?:**')) return 'rolfe'
-  return 'none'
-}
 
 function draftKeyForCategory(category: Category, userId: string) {
   return `clerkfolio-${category}-draft:${userId}`
