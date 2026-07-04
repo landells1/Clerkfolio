@@ -46,10 +46,15 @@ export default async function DashboardPage({
 
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - 364) // 52 weeks to match heatmap window
-  const today = new Date().toISOString().split('T')[0]
+  // The deadline window is a calendar-date comparison against due_date (a bare
+  // YYYY-MM-DD), so bucket "today"/"+30d" by the UK calendar (Europe/London),
+  // not UTC. toISOString() here mis-bucketed a due-today deadline for a BST user
+  // in the ~00:00-01:00 local hour (same class as the Horus M-4 bug). This also
+  // matches the London-keyed heatmap logic further down this page.
+  const today = londonDateKey(new Date())
   const in30 = new Date()
   in30.setDate(in30.getDate() + 30)
-  const in30Str = in30.toISOString().split('T')[0]
+  const in30Str = londonDateKey(in30)
 
   const [
     { data: profile },
