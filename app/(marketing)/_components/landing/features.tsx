@@ -9,7 +9,7 @@ import { MockShareLink } from './mocks/mock-share-link'
 const features = [
   {
     tag: '01 / CASES',
-    title: 'Log it between patients.',
+    title: 'Quick to log between patients.',
     body: 'Anonymised case entries with clinical area, application tags, notes and evidence files. Drafts auto-save while you write.',
     mock: <MockCasesList className="h-auto lg:h-[420px]" />,
   },
@@ -21,21 +21,21 @@ const features = [
   },
   {
     tag: '03 / SPECIALTIES',
-    title: 'See the gaps before ARCP does.',
-    body: "Map portfolio evidence onto each specialty's self-assessment domains. Watch your scoring sheet fill itself in as you log.",
+    title: 'See where your evidence is thin, before ARCP.',
+    body: "Map portfolio evidence onto each specialty's self-assessment domains, and see which ones still need evidence.",
     mock: <MockChecklist className="h-auto lg:h-[420px]" />,
     wide: true,
   },
   {
     tag: '04 / SHARE',
-    title: 'A link your consultant can open.',
+    title: 'A link you can share with your supervisor.',
     body: 'Filtered by specialty or theme. Optional 4-8 digit PIN. Set it to expire in a day, a week, a month - or revoke it now. Every view audited.',
     mock: <MockShareLink className="h-auto lg:h-[400px]" />,
   },
   {
     tag: '05 / EXPORT',
-    title: 'The exact slice you need, for any application.',
-    body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand - your data never gets locked in.',
+    title: 'Export exactly what an application needs.',
+    body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand - your data is never locked in.',
     mock: <MockCaseForm className="h-auto lg:h-[400px]" />,
   },
 ] as const
@@ -46,8 +46,8 @@ export function Features() {
       <SectionHeader
         number="002"
         label="What you can do with it"
-        title="Built like a reference system."
-        sub="Every entry indexed, tagged, retrievable. Five core surfaces - all working off the same anonymised log."
+        title="One organised record of your evidence."
+        sub="Every entry is tagged and searchable. Five tools, all built on the same anonymised record."
       />
       <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-2">
         {features.map((feature) => <FeatureCard key={feature.tag} {...feature} />)}

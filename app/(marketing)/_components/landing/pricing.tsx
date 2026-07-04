@@ -8,8 +8,8 @@ export function Pricing() {
       <SectionHeader
         number="005"
         label="Pricing"
-        title="Free forever. Pro when you need it."
-        sub={`No card required to start. Free tier is genuinely useful, not a teaser. Pro is \u00A39.99 a year - about the price of a coffee per academic term.`}
+        title="Free to use. Upgrade to Pro when you need more."
+        sub={`No card needed to start. The free plan is fully usable on its own. Pro is \u00A39.99 a year.`}
       />
       <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {

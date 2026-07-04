@@ -8,9 +8,9 @@ export function CtaFooter() {
       <div className="mx-auto max-w-4xl text-center">
         <p className="mb-6 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">◉ Begin</p>
         <h2 className="text-[clamp(34px,9vw,56px)] font-medium leading-none tracking-[-0.055em] lg:text-[clamp(56px,7vw,96px)]">
-          Start the<br />
+          Start building<br />
           <span className="bg-[image:var(--accent-gradient)] bg-clip-text font-normal italic text-transparent">
-            record you&apos;ll keep.
+            your portfolio.
           </span>
         </h2>
         <p className="mx-auto mt-5 max-w-xl text-base leading-[1.55] text-ink-soft sm:mt-8 sm:text-lg">

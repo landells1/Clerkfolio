@@ -10,10 +10,10 @@ import { Pricing } from './(marketing)/_components/landing/pricing'
 
 export const metadata: Metadata = {
   title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-  description: 'Log clinical cases, audits, teaching and reflections. Anonymised, indexed and exportable. Built around the actual evidence you need for ARCP, IMT, CST, GP and beyond.',
+  description: 'Log clinical cases, audits, teaching and reflections. Anonymised, searchable and exportable, organised around the evidence you need for ARCP, IMT, CST, GP and beyond.',
   openGraph: {
     title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-    description: 'Log clinical cases, audits, teaching and reflections. Anonymised, indexed and exportable.',
+    description: 'Log clinical cases, audits, teaching and reflections. Anonymised, searchable and exportable.',
     url: 'https://clerkfolio.co.uk',
     siteName: 'Clerkfolio',
     locale: 'en_GB',
@@ -22,7 +22,7 @@ export const metadata: Metadata = {
   twitter: {
     card: 'summary_large_image',
     title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-    description: 'Anonymised, indexed and exportable portfolios for UK doctors and medical students.',
+    description: 'Anonymised, searchable and exportable portfolios for UK doctors and medical students.',
   },
 }
 

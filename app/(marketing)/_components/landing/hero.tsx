@@ -8,20 +8,20 @@ export function Hero() {
   return (
     <section className="px-6 py-12 sm:py-16 md:px-14 lg:py-20">
       <div className="mb-6 sm:mb-10">
-        <MonoLabel className="text-accent">◉ Portfolio · built like a reference</MonoLabel>
+        <MonoLabel className="text-accent">◉ Your portfolio, in one place</MonoLabel>
       </div>
       <div className="grid grid-cols-1 items-center gap-10 sm:gap-[60px] lg:grid-cols-[minmax(0,1fr)_600px]">
         <div>
           <h1 className="text-[clamp(36px,9.5vw,54px)] font-medium leading-[1.02] tracking-[-0.055em] text-ink lg:text-[clamp(54px,6vw,84px)]">
-            Every case,<br />
-            Every audit,<br />
-            Every reflection -<br />
+            Your cases,<br />
+            your audits,<br />
+            your reflections -<br />
             <span className="bg-[image:var(--accent-gradient)] bg-clip-text font-normal italic text-transparent">
-              In one place.
+              in one place.
             </span>
           </h1>
           <p className="mt-5 max-w-[540px] text-base leading-[1.55] text-ink-soft sm:mt-9 sm:text-lg">
-            Anonymised case logging. Portfolio entries that map cleanly onto every specialty&apos;s self-assessment. ARCP-ready exports the moment you need them.
+            Anonymised case logging. Portfolio entries that map cleanly onto every specialty&apos;s self-assessment. Exports ready for ARCP and specialty applications.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
             <Link href="/signup" className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3.5 text-sm font-semibold text-white">Create your portfolio</Link>
