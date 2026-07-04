@@ -8,7 +8,7 @@ Live site: <https://clerkfolio.co.uk>
 
 ## Stack
 
-- **Next.js** App Router (webpack build), **React 18**, strict **TypeScript**, **Tailwind CSS**
+- **Next.js** App Router (webpack build), **React 19**, strict **TypeScript**, **Tailwind CSS**
 - **Supabase** (Postgres + Auth + Storage, SSR/JS) with row-level security
 - **Stripe** (subscriptions), **Resend** (email), **Sentry** (monitoring), Vercel Analytics
 - Upstash-backed rate limiting; `@react-pdf/renderer` / `pdf-lib` / `jszip` for exports

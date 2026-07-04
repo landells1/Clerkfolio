@@ -35,8 +35,10 @@ Building the decided fixes in batches (`Clerkfolio_Build_Prompt.md`); spec = the
 - Product: Clerkfolio, a UK doctor / medical student portfolio app.
 - Live site: `https://clerkfolio.co.uk`.
 - GitHub: `https://github.com/landells1/Clerkfolio`.
-- Stack: Next.js App Router 16.2.x (webpack build), React 18.3.x, strict TypeScript, Tailwind, Supabase SSR/JS, Stripe, Resend, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
+- Stack: Next.js App Router 16.2.x (webpack build), React 19.x, strict TypeScript 6.x, Tailwind 3.4.x, Supabase SSR/JS, Stripe, Resend 6.x, Sentry, Vercel Analytics, Upstash-backed rate limits, `@react-pdf/renderer`, `pdf-lib`, `jszip`.
 - Node engine: `24.x`.
+- Linting: **ESLint 9 flat config** (`eslint.config.mjs`, spreads eslint-config-next 16's native flat `core-web-vitals`). Pinned to ESLint **9** (not 10) because config-next 16's bundled `eslint-plugin-react` still calls `context.getFilename()`, removed in ESLint 10. config-next 16's new React-Compiler rules (`react-hooks/purity`/`set-state-in-effect`/`immutability`/`refs`) are disabled there — adopting them is a separate effort. `npm run lint` = `eslint app components lib` (no `--ext`).
+- **Deferred major migration: Tailwind 3 → 4** (needs a full visual pass of the cream/dark token system; do in a dedicated session, not blind against prod).
 
 ## Commands
 Do not try and run a localhost server for claude in chrome testing, use the live website in claude in chrome. 
