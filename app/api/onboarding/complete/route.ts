@@ -188,37 +188,6 @@ export async function POST(req: NextRequest) {
         .upsert(appRows, { onConflict: 'user_id,specialty_key', ignoreDuplicates: true })
       if (error) return NextResponse.json({ error: error.message }, { status: 500 })
     }
-
-    // Deterministic existence check: only auto-create deadlines for specialties
-    // that have no deadlines yet. The previous 60-second heuristic dropped
-    // deadlines when the user spent more than a minute on the page; the
-    // (user_id, source_specialty_key, title, due_date) partial unique index
-    // on deadlines makes duplicate inserts safe so we no longer need the
-    // freshness gate.
-    const { data: existingDeadlines } = await supabase
-      .from('deadlines')
-      .select('source_specialty_key')
-      .eq('user_id', user.id)
-      .eq('is_auto', true)
-      .in('source_specialty_key', validSpecialties)
-
-    const have = new Set((existingDeadlines ?? []).map(d => d.source_specialty_key))
-    const need = validSpecialties.filter(key => !have.has(key))
-
-    const deadlineRows = need.flatMap(key => {
-      const config = SPECIALTY_CONFIGS.find(s => s.key === key)
-      if (!config?.applicationWindow) return []
-      return [
-        { user_id: user.id, title: `${config.name} applications open`, due_date: config.applicationWindow.opensDate, completed: false, is_auto: true, source_specialty_key: key },
-        { user_id: user.id, title: `${config.name} applications close`, due_date: config.applicationWindow.closesDate, completed: false, is_auto: true, source_specialty_key: key },
-      ]
-    })
-    if (deadlineRows.length > 0) {
-      // Tolerate duplicate-key races against the partial unique index
-      // (user_id, source_specialty_key, title, due_date) WHERE is_auto = true.
-      const { error } = await supabase.from('deadlines').insert(deadlineRows)
-      if (error && error.code !== '23505') return NextResponse.json({ error: error.message }, { status: 500 })
-    }
   }
 
   if (profile?.referred_by && profile.referred_by !== user.id && process.env.SUPABASE_SERVICE_ROLE_KEY) {

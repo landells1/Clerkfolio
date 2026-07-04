@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/types/portfolio'
-import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { NHS_ROUND_3_2026_DEADLINES, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
 
@@ -108,13 +108,13 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // F-020: the prior select listed `updated_at` (and unused `created_at`), but
   // `deadlines` has no `updated_at` column, so the query errored and the route
   // silently dropped EVERY user-created Timeline deadline from the ICS while
-  // still returning 200 with config deadlines only. The VEVENT builder only
-  // reads id/title/due_date/details/location, and source_specialty_key feeds
-  // the auto-dedupe set - so select exactly those. Any query error now fails
-  // loud (500) instead of partial-200, so a future schema drift is caught.
+  // still returning 200 with config deadlines only. Select exactly what the
+  // VEVENT builder reads (id/title/due_date/details/location) - nothing more.
+  // Any query error now fails loud (500) instead of partial-200, so a future
+  // schema drift is caught.
   const { data: deadlines, error: deadlinesError } = await supabase
     .from('deadlines')
-    .select('id, title, due_date, details, location, source_specialty_key')
+    .select('id, title, due_date, details, location')
     .eq('user_id', profile.id)
     .eq('completed', false)
     .order('due_date', { ascending: true })
@@ -127,58 +127,34 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     .not('due_date', 'is', null)
     .order('due_date', { ascending: true })
 
-  const { data: specialties, error: specialtiesError } = await supabase
-    .from('specialty_applications')
-    .select('id, specialty_key')
-    .eq('user_id', profile.id)
-    .eq('is_active', true)
-
-  if (deadlinesError || goalsError || specialtiesError) {
+  if (deadlinesError || goalsError) {
     console.error(
       'calendar feed: event query failed:',
-      deadlinesError?.message ?? goalsError?.message ?? specialtiesError?.message
+      deadlinesError?.message ?? goalsError?.message
     )
     return NextResponse.json({ error: 'Calendar feed temporarily unavailable' }, { status: 500 })
   }
 
   const host = req.nextUrl.host
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
-  const persistedAutoKeys = new Set(
-    (deadlines ?? [])
-      .filter(deadline => deadline.source_specialty_key)
-      .map(deadline => `${deadline.source_specialty_key}|${deadline.title}|${deadline.due_date}`)
-  )
   // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
   // grace), these dates sit in the subscriber's real calendar as misleading
   // past events. Flag them in-place (a stale event a user can see is annotated
   // is safer than one that silently looks live) until the owner refreshes the
   // pinned round; the deadlines-freshness tripwire test forces that refresh.
   const recruitmentStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
-  const configuredDeadlines = [
-    ...NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
-      id: `nhs-round-3-${deadline.kind}`,
-      title: recruitmentStale ? `[Past round] ${deadline.label}` : deadline.label,
-      due_date: deadline.date,
-      details: [
-        recruitmentStale ? 'This recruitment round has closed - check the current round at the source link below.' : null,
-        deadline.details,
-        deadline.sourceLabel,
-        deadline.sourceUrl,
-      ].filter(Boolean).join('\n'),
-      location: deadline.sourceUrl,
-    })),
-    ...(specialties ?? []).flatMap(specialty =>
-      getDeadlinesForSpecialty(specialty.specialty_key)
-        .filter(deadline => !persistedAutoKeys.has(`${specialty.specialty_key}|${deadline.label}|${deadline.date}`))
-        .map(deadline => ({
-          id: `${specialty.id}-${deadline.kind}`,
-          title: deadline.label,
-          due_date: deadline.date,
-          details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
-          location: deadline.sourceUrl,
-        }))
-    ),
-  ]
+  const configuredDeadlines = NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
+    id: `nhs-round-3-${deadline.kind}`,
+    title: recruitmentStale ? `[Past round] ${deadline.label}` : deadline.label,
+    due_date: deadline.date,
+    details: [
+      recruitmentStale ? 'This recruitment round has closed - check the current round at the source link below.' : null,
+      deadline.details,
+      deadline.sourceLabel,
+      deadline.sourceUrl,
+    ].filter(Boolean).join('\n'),
+    location: deadline.sourceUrl,
+  }))
 
   const goalEvents = (goals ?? []).map(goal => ({
     id: `goal-${goal.id}`,

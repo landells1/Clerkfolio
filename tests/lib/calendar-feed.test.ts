@@ -20,13 +20,11 @@ const state: {
   profile: QueryResult
   deadlines: QueryResult
   goals: QueryResult
-  specialties: QueryResult
   selects: Record<string, string>
 } = {
   profile: { data: { id: 'user-1' }, error: null },
   deadlines: { data: [], error: null },
   goals: { data: [], error: null },
-  specialties: { data: [], error: null },
   selects: {},
 }
 
@@ -60,7 +58,6 @@ vi.mock('@/lib/supabase/server', () => ({
       if (table === 'profiles') return makeQuery('profiles', state.profile)
       if (table === 'deadlines') return makeQuery('deadlines', state.deadlines)
       if (table === 'goals') return makeQuery('goals', state.goals)
-      if (table === 'specialty_applications') return makeQuery('specialty_applications', state.specialties)
       return makeQuery(table, { data: [], error: null })
     },
   }),
@@ -79,20 +76,19 @@ describe('GET /api/calendar/feed/[token]', () => {
     state.profile = { data: { id: 'user-1' }, error: null }
     state.deadlines = { data: [], error: null }
     state.goals = { data: [], error: null }
-    state.specialties = { data: [], error: null }
     state.selects = {}
   })
 
   it('selects exactly the columns the VEVENT builder reads (F-020 guard)', async () => {
     await callFeed()
     // Must be exactly these — re-adding updated_at/created_at is what broke it.
-    expect(state.selects.deadlines).toBe('id, title, due_date, details, location, source_specialty_key')
+    expect(state.selects.deadlines).toBe('id, title, due_date, details, location')
   })
 
   it('includes user-created deadlines in the ICS body', async () => {
     state.deadlines = {
       data: [
-        { id: 'd1', title: 'Portfolio review meeting', due_date: '2026-09-01', details: 'Bring evidence', location: null, source_specialty_key: null },
+        { id: 'd1', title: 'Portfolio review meeting', due_date: '2026-09-01', details: 'Bring evidence', location: null },
       ],
       error: null,
     }

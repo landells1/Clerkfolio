@@ -143,15 +143,6 @@ describe('specialty config invariants', () => {
       expect(domainSum, `${config.key}: totalMax should equal scored-domain sum (bonus excluded)`).toBe(config.totalMax)
     }
 
-    if (config.applicationWindow) {
-      const opens = new Date(config.applicationWindow.opensDate)
-      const closes = new Date(config.applicationWindow.closesDate)
-      expect(Number.isNaN(opens.getTime())).toBe(false)
-      expect(Number.isNaN(closes.getTime())).toBe(false)
-      expect(opens.getTime(), `${config.key}: window opens after it closes`).toBeLessThan(closes.getTime())
-      expect(config.applicationWindow.source).toMatch(/^https?:\/\//)
-    }
-
     if (config.bonusOptions) {
       const bonusKeys = config.bonusOptions.map(b => b.key)
       expect(new Set(bonusKeys).size).toBe(bonusKeys.length)

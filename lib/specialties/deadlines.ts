@@ -1,5 +1,3 @@
-import { SPECIALTY_CONFIGS } from '@/lib/specialties'
-
 export const NHS_RECRUITMENT_TIMELINE_URL =
   'https://medical.hee.nhs.uk/medical-training-recruitment/medical-specialty-training/overview-of-specialty-training/recruitment-timelines'
 
@@ -95,36 +93,6 @@ export const NHS_ROUND_3_2026_DEADLINES: SpecialtyDeadline[] = [
     details: 'NHS specialty recruitment Round 3 hierarchical deadline. Hierarchical deadline is 5pm UK local time.',
   },
 ]
-
-export const SPECIALTY_DEADLINES: Record<string, SpecialtyDeadline[]> = Object.fromEntries(
-  SPECIALTY_CONFIGS
-    .filter(config => config.applicationWindow)
-    .map(config => [
-      config.key,
-      [
-        {
-          specialtyKey: config.key,
-          label: `${config.name} applications open`,
-          date: config.applicationWindow!.opensDate,
-          kind: 'applicationOpens' as const,
-          sourceUrl: config.applicationWindow!.source,
-          sourceLabel: config.sourceLabel,
-        },
-        {
-          specialtyKey: config.key,
-          label: `${config.name} applications close`,
-          date: config.applicationWindow!.closesDate,
-          kind: 'applicationCloses' as const,
-          sourceUrl: config.applicationWindow!.source,
-          sourceLabel: config.sourceLabel,
-        },
-      ],
-    ])
-)
-
-export function getDeadlinesForSpecialty(specialtyKey: string) {
-  return SPECIALTY_DEADLINES[specialtyKey] ?? []
-}
 
 // Cycle dates above are pinned to the 2026 recruitment round. After the
 // round closes the dates will be in the past and the figures we surface

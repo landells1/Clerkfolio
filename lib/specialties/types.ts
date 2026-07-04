@@ -109,12 +109,6 @@ export type BonusOption = {
   points: number
 }
 
-export type ApplicationWindow = {
-  opensDate: string   // ISO date e.g. "2026-10-01" - verify at NHS England recruitment pages
-  closesDate: string  // ISO date e.g. "2026-11-14"
-  source: string      // URL to the NHS England / ORIEL source page
-}
-
 export type SpecialtyConfig = {
   key: string
   name: string
@@ -127,7 +121,6 @@ export type SpecialtyConfig = {
   isEvidenceOnly?: boolean   // deprecated alias; equivalent to scoringType === 'evidence'
   bonusOptions?: BonusOption[]
   domains: SpecialtyDomain[]
-  applicationWindow?: ApplicationWindow  // auto-populated deadlines; must be verified before use
   supersededBy?: string                  // specialty_key of the next-cycle config e.g. 'imt_2027'
   selectionProcess?: SelectionProcess     // how candidates are actually shortlisted/scored
   sources?: SourceCitation[]              // official citations backing this config's facts

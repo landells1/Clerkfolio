@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
-import { NHS_ROUND_3_2026_DEADLINES, NHS_RECRUITMENT_TIMELINE_URL, getDeadlinesForSpecialty, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { NHS_ROUND_3_2026_DEADLINES, NHS_RECRUITMENT_TIMELINE_URL, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
@@ -30,7 +30,7 @@ export default async function TimelinePage({
       .eq('is_active', true),
     supabase
       .from('deadlines')
-      .select('id, title, due_date, details, location, source_specialty_key, is_auto')
+      .select('id, title, due_date, details, location, source_specialty_key')
       .eq('user_id', user!.id)
       .eq('completed', false)
       .order('due_date', { ascending: true }),
@@ -46,30 +46,6 @@ export default async function TimelinePage({
     key: row.specialty_key,
     name: formatSpecialtyLabel(row.specialty_key),
   }))
-
-  const persistedAutoKeys = new Set(
-    (deadlines ?? [])
-      .filter(deadline => deadline.is_auto && deadline.source_specialty_key)
-      .map(deadline => `${deadline.source_specialty_key}|${deadline.title}|${deadline.due_date}`)
-  )
-
-  const configuredDeadlines = specialtyRows.flatMap(specialty =>
-    getDeadlinesForSpecialty(specialty.key)
-      .filter(item => !persistedAutoKeys.has(`${specialty.key}|${item.label}|${item.date}`))
-      .map(item => ({
-        id: `${specialty.id}-${item.kind}`,
-        title: item.label,
-        date: item.date,
-        details: item.details ?? null,
-        location: null,
-        sourceUrl: item.sourceUrl,
-        sourceLabel: item.sourceLabel,
-        specialtyApplicationId: specialty.id,
-        specialtyKey: specialty.key,
-        specialtyName: specialty.name,
-        source: 'config' as const,
-      }))
-  )
 
   const manualDeadlines: TimelineSpecialtyDeadline[] = (deadlines ?? []).map(deadline => {
     const specialty = specialtyRows.find(row => row.key === deadline.source_specialty_key)
@@ -88,8 +64,7 @@ export default async function TimelinePage({
     }
   })
 
-  const hasSpecialtySpecificDeadlines =
-    configuredDeadlines.length > 0 || manualDeadlines.some(deadline => deadline.specialtyKey)
+  const hasSpecialtySpecificDeadlines = manualDeadlines.some(deadline => deadline.specialtyKey)
 
   const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = hasSpecialtySpecificDeadlines
     ? []
@@ -113,7 +88,7 @@ export default async function TimelinePage({
     date: goal.due_date,
     category: goal.category,
   }, parsedQuery))
-  const filteredDeadlines = [...nationalRecruitmentDeadlines, ...configuredDeadlines, ...manualDeadlines].filter(deadline => matchesParsedQuery({
+  const filteredDeadlines = [...nationalRecruitmentDeadlines, ...manualDeadlines].filter(deadline => matchesParsedQuery({
     title: deadline.title,
     notes: deadline.details,
     date: deadline.date,
