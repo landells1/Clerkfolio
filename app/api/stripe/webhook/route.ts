@@ -195,19 +195,26 @@ async function handleStripeEvent(
         .maybeSingle()
 
       if (profile?.id) {
+        // Audit every dunning attempt for the full billing trail.
         await supabase.from('audit_log').insert({
           user_id: profile.id,
           action: 'stripe_payment_failed',
           metadata: { invoice_id: invoice.id, attempt_count: invoice.attempt_count },
         })
-        // Insert an in-app notification so the user sees the failure on next login
-        await supabase.from('notifications').insert({
-          user_id: profile.id,
-          type: 'payment_failed',
-          title: 'Payment failed - please update your billing details',
-          body: 'Your subscription payment could not be processed. Visit Settings to update your payment method.',
-          link: '/settings',
-        })
+        // ...but only notify the user on the FIRST failure. Stripe fires
+        // invoice.payment_failed on each retry (~4 over 7 days); without this
+        // guard the user gets a burst of near-identical "payment failed"
+        // notifications. attempt_count is 1 on the first attempt; guard
+        // defensively in case it is ever absent.
+        if ((invoice.attempt_count ?? 1) <= 1) {
+          await supabase.from('notifications').insert({
+            user_id: profile.id,
+            type: 'payment_failed',
+            title: 'Payment failed - please update your billing details',
+            body: 'Your subscription payment could not be processed. Visit Settings to update your payment method.',
+            link: '/settings',
+          })
+        }
       }
       break
     }
@@ -303,7 +310,12 @@ export async function POST(request: NextRequest) {
       if (existing?.processed_at) {
         return NextResponse.json({ received: true, duplicate: true })
       }
-      // Reprocess in place.
+      // Reprocess in place. Edge case (accepted): if Stripe delivers the SAME
+      // event twice concurrently, both deliveries can pass this
+      // processed_at IS NULL check and reprocess. The tier writes are
+      // idempotent, but recordSubscriptionChange could insert duplicate
+      // audit/notification rows. Probability is very low; revisit with a
+      // per-event advisory lock only if exact audit-row counts ever matter.
     } else {
       console.error('Webhook: failed to record Stripe event:', eventInsertError.message)
       return NextResponse.json({ error: 'Webhook idempotency write failed' }, { status: 500 })
