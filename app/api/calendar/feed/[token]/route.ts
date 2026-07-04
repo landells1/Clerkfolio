@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/types/portfolio'
-import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
+import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
 
@@ -148,12 +148,23 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
       .filter(deadline => deadline.source_specialty_key)
       .map(deadline => `${deadline.source_specialty_key}|${deadline.title}|${deadline.due_date}`)
   )
+  // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
+  // grace), these dates sit in the subscriber's real calendar as misleading
+  // past events. Flag them in-place (a stale event a user can see is annotated
+  // is safer than one that silently looks live) until the owner refreshes the
+  // pinned round; the deadlines-freshness tripwire test forces that refresh.
+  const recruitmentStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
   const configuredDeadlines = [
     ...NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
       id: `nhs-round-3-${deadline.kind}`,
-      title: deadline.label,
+      title: recruitmentStale ? `[Past round] ${deadline.label}` : deadline.label,
       due_date: deadline.date,
-      details: [deadline.details, deadline.sourceLabel, deadline.sourceUrl].filter(Boolean).join('\n'),
+      details: [
+        recruitmentStale ? 'This recruitment round has closed - check the current round at the source link below.' : null,
+        deadline.details,
+        deadline.sourceLabel,
+        deadline.sourceUrl,
+      ].filter(Boolean).join('\n'),
       location: deadline.sourceUrl,
     })),
     ...(specialties ?? []).flatMap(specialty =>

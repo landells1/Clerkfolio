@@ -68,7 +68,7 @@ function monthKey(date: Date) {
 // across SSR/CSR (BUG-004 placement + BUG-010 hydration #418).
 const iso = localIsoDate
 
-export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, filterBar }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; filterBar?: React.ReactNode }) {
+export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, filterBar, banner }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; filterBar?: React.ReactNode; banner?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -359,6 +359,8 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           />
         </div>
       )}
+
+      {banner}
 
       {filterBar}
 

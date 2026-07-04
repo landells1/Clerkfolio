@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
-import { NHS_ROUND_3_2026_DEADLINES, getDeadlinesForSpecialty } from '@/lib/specialties/deadlines'
+import { NHS_ROUND_3_2026_DEADLINES, NHS_RECRUITMENT_TIMELINE_URL, getDeadlinesForSpecialty, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
@@ -120,6 +120,15 @@ export default async function TimelinePage({
     category: 'deadline',
   }, parsedQuery))
 
+  // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
+  // grace, per isSpecialtyCycleStale), the national dates we surface become
+  // misleading past-dated events. Only warn when those national deadlines are
+  // actually on screen (they're suppressed when the user has specialty-specific
+  // ones). The owner refreshes NHS_ROUND_3_2026_DEADLINES before the round
+  // closes; the deadlines-freshness tripwire test fails ahead of that.
+  const recruitmentDeadlinesStale =
+    nationalRecruitmentDeadlines.length > 0 && isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
+
   // Compute the calendar's initial month once on the server. Passing this in as
   // a stable prop avoids the new Date() / hydration mismatch the client would
   // otherwise hit if the page renders straddling midnight UTC.
@@ -133,6 +142,20 @@ export default async function TimelinePage({
       deadlines={filteredDeadlines}
       calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
       initialMonthIso={initialMonthIso}
+      banner={
+        recruitmentDeadlinesStale ? (
+          <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">
+            <p className="text-sm font-medium text-[var(--warning)]">These NHS recruitment dates may be out of date</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              The recruitment round shown below has closed. Confirm the current round&apos;s dates at the{' '}
+              <a href={NHS_RECRUITMENT_TIMELINE_URL} target="_blank" rel="noopener noreferrer" className="underline text-[var(--accent-text)]">
+                NHS England recruitment timeline
+              </a>
+              .
+            </p>
+          </div>
+        ) : null
+      }
       filterBar={
         <div className="mb-6">
         <form className="mb-3 flex flex-wrap gap-2">
