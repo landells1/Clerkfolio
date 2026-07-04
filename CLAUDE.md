@@ -313,6 +313,8 @@ Known test gotcha: check `e2e/fixtures/global-setup.ts` before relying on cleanu
 
 Dense, professional medical dashboard. **Two themes via CSS custom properties (cream default · dark opt-in) — see "Theming" below.** Brand blue `#1B6FD9`. Use existing `components/ui`, feature folders, dashboard providers, sidebar/mobile nav/FAB/command palette patterns. Avoid patient-identifiable example copy.
 
+**"Competency themes" is the single user-facing term** for the cross-cutting tags on a portfolio entry (Leadership, Teaching, etc.). Presets live in `lib/constants/competency-themes.ts` (`COMPETENCY_THEMES`); custom ones in the `custom_competency_themes` table; the picker is `components/portfolio/competency-theme-picker.tsx`; the formatter is `formatCompetencyTheme` (`lib/types/portfolio-labels.ts`). They are **persisted on the legacy-named `interview_themes` column** (on `portfolio_entries` + `cases`) and the matching `PortfolioEntry.interview_themes` / `Case.interview_themes` type field — the DB column keeps its original name to avoid a live-column rename migration, but nothing user-facing (labels, help, settings) should say "interview themes". Theme-scoped share links, the `/portfolio` theme filter, the saved-search `theme:` grammar, and the export theme filter all key off `interview_themes`.
+
 ## Theming (cream default · dark opt-in)
 
 Added in the colour-scheme migration (2026-06-29; from the Claude Design "Clerkfolio Theme Handover" bundle). **Cream is the default theme for everyone (app + marketing); dark is opt-in from Settings → Appearance.** Driven entirely by CSS custom properties — **never hard-code a raw colour again; always use a token.**

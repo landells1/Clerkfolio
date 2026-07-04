@@ -93,8 +93,8 @@ export const REFL_FRAMEWORK_LABELS: Record<string, string> = {
 // Competency themes: stored values can be either preset display names
 // (e.g. "Leadership") or custom slugs (e.g. "gbr_safe_working"). Use this
 // helper everywhere a stored value is rendered to the user.
-import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
-const PRESET_THEMES = new Set<string>(INTERVIEW_THEMES)
+import { COMPETENCY_THEMES } from '@/lib/constants/competency-themes'
+const PRESET_THEMES = new Set<string>(COMPETENCY_THEMES)
 
 export function formatCompetencyTheme(value: string): string {
   if (PRESET_THEMES.has(value)) return value

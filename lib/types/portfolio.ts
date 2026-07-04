@@ -111,7 +111,8 @@ export type PortfolioEntry = {
   // Custom
   custom_free_text?: string | null
 
-  // Interview themes
+  // Competency themes (user-facing term). Stored on the legacy-named
+  // interview_themes column - kept to avoid a live-column rename migration.
   interview_themes?: string[]
 }
 

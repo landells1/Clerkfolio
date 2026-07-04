@@ -29,7 +29,7 @@ const ACRONYMS: Term[] = [
 
 const CONCEPTS: Term[] = [
   { term: 'Linked specialties', description: 'Specialties from your tracked applications that an entry can support (e.g. an audit might count for both IMT and GP). Stored as `specialty_tags`.' },
-  { term: 'Competency themes', description: 'Cross-cutting interview themes (Leadership, Teaching, Communication, Audit & Quality Improvement, etc.) that an entry demonstrates. Add custom themes in Settings.' },
+  { term: 'Competency themes', description: 'Cross-cutting competency themes (Leadership, Teaching, Communication, Audit & Quality Improvement, etc.) that an entry demonstrates. Add custom themes in Settings.' },
   { term: 'Clinical area', description: 'The medical setting an entry sits in (Cardiology, Geriatrics, A&E). Cases-only field, used for filtering.' },
   { term: 'Categories', description: 'Top-level entry types: Audit & QIP, Teaching & Presentations, Conferences & Courses, Publications & Research, Leadership & Societies, Prizes & Awards, Procedures & Clinical Skills, Reflections & CBDs/DOPs, Custom.' },
   { term: 'Snippets', description: 'Short reusable phrases you can drop into any portfolio note via a slash shortcut (e.g. /reflection).' },

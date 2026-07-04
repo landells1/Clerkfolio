@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import EntryCard from '@/components/portfolio/entry-card'
 import PortfolioListClient from '@/components/portfolio/portfolio-list-client'
-import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
+import { COMPETENCY_THEMES } from '@/lib/constants/competency-themes'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
 import SectionHeader from '@/components/ui/section-header'
@@ -83,7 +83,7 @@ export default async function PortfolioPage({
   }, {})
 
   const themes = [
-    ...INTERVIEW_THEMES.map(name => ({ name, slug: normaliseTheme(name), colour: null as string | null })),
+    ...COMPETENCY_THEMES.map(name => ({ name, slug: normaliseTheme(name), colour: null as string | null })),
     ...(customThemes ?? []).map(theme => ({ name: theme.name, slug: normaliseTheme(theme.slug), colour: theme.colour ?? '#1B6FD9' })),
   ]
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)

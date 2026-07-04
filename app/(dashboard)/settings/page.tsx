@@ -401,7 +401,7 @@ export default function SettingsPage() {
     ['/settings/referrals', 'Referrals', 'Invite a colleague, both get Pro'],
     ['/settings/snippets', 'Snippets', 'Reusable phrases for portfolio notes'],
     ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
-    ['/settings/themes', 'Competency themes', 'Custom interview themes (Leadership, Teaching, etc.)'],
+    ['/settings/themes', 'Competency themes', 'Custom competency themes (Leadership, Teaching, etc.)'],
     ['/settings/tags', 'Specialty tags', 'Rename or merge linked-specialty tags'],
     ['/export?tab=share', 'Shared links', 'Manage read-only public share links'],
     ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],

@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
-import { INTERVIEW_THEMES } from '@/lib/constants/interview-themes'
+import { COMPETENCY_THEMES } from '@/lib/constants/competency-themes'
 
 type CustomTheme = { id: string; name: string; slug: string; colour: string | null }
 type ThemeOption = { value: string; label: string; isCustom: boolean; colour?: string }
@@ -14,7 +14,7 @@ type Props = {
   manageOnly?: boolean
 }
 
-const PRESET_SLUGS = new Set(INTERVIEW_THEMES.map(slugifyTheme))
+const PRESET_SLUGS = new Set(COMPETENCY_THEMES.map(slugifyTheme))
 
 function slugifyTheme(value: string) {
   return value
@@ -47,7 +47,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
 
   const options = useMemo<ThemeOption[]>(
     () => [
-      ...INTERVIEW_THEMES.map(theme => ({ value: theme, label: theme, isCustom: false })),
+      ...COMPETENCY_THEMES.map(theme => ({ value: theme, label: theme, isCustom: false })),
       ...customThemes.map(theme => ({ value: theme.slug, label: theme.name, isCustom: true, colour: theme.colour ?? '#1B6FD9' })),
     ],
     [customThemes]
