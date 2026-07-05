@@ -3,11 +3,11 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
-import { calculateDomainScore } from '@/lib/specialties'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
-import { DomainEvidenceList } from './domain-evidence-list'
-import { LinkEvidenceModal } from './link-evidence-modal'
-import { LogAndLinkModal } from './log-and-link-modal'
+import { type ModalType } from './domain-tab-modals'
+import { EssentialDomainTab } from './domain-tab-essential'
+import { DesirableDomainTab } from './domain-tab-desirable'
+import { ScoredDomainTab } from './domain-tab-scored'
 
 type Props = {
   domain: SpecialtyDomain
@@ -20,12 +20,6 @@ type Props = {
   onLinksChange: (update: (prev: SpecialtyEntryLink[]) => SpecialtyEntryLink[]) => void
 }
 
-type ModalType = 'link' | 'log' | null
-
-function pts(n: number): string {
-  return `${n} ${n === 1 ? 'pt' : 'pts'}`
-}
-
 export function DomainTab({ domain, links, applicationId, specialtyName, specialtyKey, onLinksChange }: Props) {
   const supabase = createClient()
   const { addToast } = useToast()
@@ -33,9 +27,6 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
   const [checkboxPending, setCheckboxPending] = useState<Set<string>>(new Set())
   const [essentialPending, setEssentialPending] = useState(false)
   const [desirablePending, setDesirablePending] = useState(false)
-
-  const score = calculateDomainScore(domain, links)
-  const pct = domain.maxPoints > 0 ? Math.min((score / domain.maxPoints) * 100, 100) : 0
 
   const isEssential = domain.criteriaType === 'essential'
   const isDesirableEvidence = !isEssential && domain.isEvidenceOnly
@@ -291,484 +282,59 @@ export function DomainTab({ domain, links, applicationId, specialtyName, special
     onLinksChange(prev => prev.filter(l => l.id !== linkId))
   }
 
-  const existingEntryIds = links.filter(l => l.entry_id !== null).map(l => l.entry_id as string)
-
-  // The "Met" checkbox link, if any (for essentials)
-  const isMet = links.some(l => l.is_checkbox && l.band_label === 'Met')
-  // Linked supporting evidence (excluding the "Met" checkbox link itself)
-  const supportingEvidence = links.filter(l => !(l.is_checkbox && l.band_label === 'Met'))
-  // The "Evidenced" checkbox link, if any (for desirable evidence-only domains)
-  const isEvidenced = links.some(l => l.is_checkbox && l.band_label === 'Evidenced')
-  // Linked evidence for desirable (excluding the "Evidenced" checkbox link itself)
-  const desirableEvidence = links.filter(l => !(l.is_checkbox && l.band_label === 'Evidenced'))
-
   // ---------- Essential mode ----------
   if (isEssential) {
     return (
-      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <h2 className="font-semibold text-[var(--text-primary)] text-sm truncate">{domain.label}</h2>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-400 text-xs font-medium border border-amber-500/20">
-              Essential
-            </span>
-          </div>
-          <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isMet ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'
-          }`}>
-            {isMet ? (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Met
-              </>
-            ) : (
-              'Not met'
-            )}
-          </span>
-        </div>
-
-        {/* Notes */}
-        {domain.notes && (
-          <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
-          </div>
-        )}
-
-        {/* Mark-as-met checkbox */}
-        <label
-          className={`flex items-start gap-3 p-4 rounded-xl border transition-all ${
-            essentialPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
-          } ${
-            isMet
-              ? 'bg-accent/[0.06] border-accent/25'
-              : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
-          }`}
-          onClick={() => !essentialPending && handleEssentialToggle()}
-        >
-          <div
-            className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-              isMet ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.25]'
-            }`}
-          >
-            {isMet && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            )}
-          </div>
-          <span className={`text-sm leading-snug ${isMet ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-            Self-mark this requirement as met (or expected by intended start date). Attach portfolio evidence where possible.
-          </span>
-        </label>
-
-        {/* Optional supporting evidence */}
-        <div className="mt-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
-              Supporting evidence
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">Optional</p>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-xs font-medium transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
-              Link existing entry
-            </button>
-            <button
-              onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Log new entry
-            </button>
-          </div>
-
-          {supportingEvidence.length > 0 ? (
-            <DomainEvidenceList domain={domain} links={supportingEvidence} onRemove={handleRemoveLink} />
-          ) : (
-            <p className="text-xs text-[var(--text-secondary)] italic">
-              Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
-            </p>
-          )}
-        </div>
-
-        {/* Modals */}
-        {openModal === 'link' && (
-          <LinkEvidenceModal
-            domain={domain}
-            applicationId={applicationId}
-            specialtyName={specialtyName}
-            existingEntryIds={existingEntryIds}
-            onClose={() => setOpenModal(null)}
-            onLinked={link => { handleLinked(link); setOpenModal(null) }}
-          />
-        )}
-        {openModal === 'log' && (
-          <LogAndLinkModal
-            domain={domain}
-            applicationId={applicationId}
-            specialtyName={specialtyName}
-            specialtyKey={specialtyKey}
-            onClose={() => setOpenModal(null)}
-            onLinked={link => { handleLinked(link); setOpenModal(null) }}
-          />
-        )}
-      </div>
+      <EssentialDomainTab
+        domain={domain}
+        links={links}
+        applicationId={applicationId}
+        specialtyName={specialtyName}
+        specialtyKey={specialtyKey}
+        essentialPending={essentialPending}
+        onEssentialToggle={handleEssentialToggle}
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        onLinked={handleLinked}
+        onRemoveLink={handleRemoveLink}
+      />
     )
   }
 
   // ---------- Desirable evidence-only mode ----------
   if (isDesirableEvidence) {
     return (
-      <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-3 gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <h2 className="font-semibold text-[var(--text-primary)] text-sm truncate">{domain.label}</h2>
-            <span className="shrink-0 px-1.5 py-0.5 rounded bg-white/[0.06] text-[var(--text-secondary)] text-xs font-medium border border-white/[0.08]">
-              Desirable
-            </span>
-          </div>
-          <span className={`shrink-0 text-xs font-medium flex items-center gap-1 ${
-            isEvidenced ? 'text-[var(--accent-text)]' : desirableEvidence.length > 0 ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'
-          }`}>
-            {isEvidenced ? (
-              <>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Evidenced
-              </>
-            ) : (
-              `${desirableEvidence.length} ${desirableEvidence.length === 1 ? 'entry' : 'entries'}`
-            )}
-          </span>
-        </div>
-
-        {/* Notes */}
-        {domain.notes && (
-          <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-            <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
-            </svg>
-            <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
-          </div>
-        )}
-
-        {/* Mark as evidenced checkbox */}
-        <label
-          className={`flex items-start gap-3 p-4 rounded-xl border transition-all mb-4 ${
-            desirablePending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
-          } ${
-            isEvidenced
-              ? 'bg-accent/[0.06] border-accent/25'
-              : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
-          }`}
-          onClick={() => !desirablePending && handleDesirableCheck()}
-        >
-          <div
-            className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-              isEvidenced ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.25]'
-            }`}
-          >
-            {isEvidenced && (
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="20 6 9 17 4 12" />
-              </svg>
-            )}
-          </div>
-          <span className={`text-sm leading-snug ${isEvidenced ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-            Self-mark evidence for this criterion. Attach a portfolio entry to make it documented evidence.
-          </span>
-        </label>
-
-        {/* Supporting evidence - optional upload */}
-        <div>
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
-              Supporting evidence
-            </p>
-            <p className="text-xs text-[var(--text-secondary)]">Optional</p>
-          </div>
-
-          <div className="flex gap-2 mb-3">
-            <button
-              onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-xs font-medium transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
-              Link existing entry
-            </button>
-            <button
-              onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-white/[0.06] hover:bg-white/[0.1] text-[var(--text-secondary)] hover:text-[var(--text-primary)] text-xs font-medium transition-all"
-            >
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Log new entry
-            </button>
-          </div>
-
-          {desirableEvidence.length > 0 ? (
-            <DomainEvidenceList domain={domain} links={desirableEvidence} onRemove={handleRemoveLink} />
-          ) : (
-            <p className="text-xs text-[var(--text-secondary)] italic">
-              Attach a certificate, letter, or portfolio entry as proof if you&apos;d like.
-            </p>
-          )}
-        </div>
-
-        {/* Modals */}
-        {openModal === 'link' && (
-          <LinkEvidenceModal
-            domain={domain}
-            applicationId={applicationId}
-            specialtyName={specialtyName}
-            existingEntryIds={existingEntryIds}
-            onClose={() => setOpenModal(null)}
-            onLinked={link => { handleLinked(link); setOpenModal(null) }}
-          />
-        )}
-        {openModal === 'log' && (
-          <LogAndLinkModal
-            domain={domain}
-            applicationId={applicationId}
-            specialtyName={specialtyName}
-            specialtyKey={specialtyKey}
-            onClose={() => setOpenModal(null)}
-            onLinked={link => { handleLinked(link); setOpenModal(null) }}
-          />
-        )}
-      </div>
+      <DesirableDomainTab
+        domain={domain}
+        links={links}
+        applicationId={applicationId}
+        specialtyName={specialtyName}
+        specialtyKey={specialtyKey}
+        desirablePending={desirablePending}
+        onDesirableCheck={handleDesirableCheck}
+        openModal={openModal}
+        setOpenModal={setOpenModal}
+        onLinked={handleLinked}
+        onRemoveLink={handleRemoveLink}
+      />
     )
   }
 
   // ---------- Existing scored modes (self-assessed / checkbox / banded) ----------
   return (
-    <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 mt-2">
-      {/* Domain header */}
-      <div className="flex items-center justify-between mb-2">
-        <h2 className="font-semibold text-[var(--text-primary)] text-sm">{domain.label}</h2>
-        <span className="text-sm font-semibold text-[var(--text-primary)]">
-          {score} <span className="text-[var(--text-muted)] font-normal">/ {pts(domain.maxPoints)}</span>
-        </span>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden mb-4">
-        <div
-          className="h-full bg-[var(--accent)] rounded-full transition-all"
-          style={{ width: `${pct}%` }}
-        />
-      </div>
-
-      {/* Notes */}
-      {domain.notes && (
-        <div className="flex gap-2 p-3 bg-white/[0.03] border border-white/[0.06] rounded-xl mb-4">
-          <svg className="shrink-0 mt-0.5" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          <p className="text-xs text-[var(--text-muted)] leading-relaxed">{domain.notes}</p>
-        </div>
-      )}
-
-      {/* Self-assessed */}
-      {domain.isSelfAssessed && (
-        <div>
-          <label className="text-xs text-[var(--text-emphasis)] font-medium mb-2 block uppercase tracking-wide">
-            Self-assessment
-          </label>
-          <select
-            value={links[0]?.band_label ?? ''}
-            onChange={e => handleSelfAssessedChange(e.target.value)}
-            className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-[var(--accent)] transition-colors appearance-none"
-          >
-            <option value="">Not assessed</option>
-            {domain.bands.map(band => (
-              <option key={band.label} value={band.label}>
-                {band.label} ({pts(band.points)})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
-
-      {/* Checkbox */}
-      {domain.isCheckbox && (
-        <div className="space-y-2">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">
-              Claimed items
-            </p>
-            <span className="text-xs text-[var(--text-muted)]">
-              {score} / {pts(domain.maxPoints)} claimed
-            </span>
-          </div>
-          {domain.bands.map(band => {
-            const isChecked = links.some(l => l.band_label === band.label)
-            const isPending = checkboxPending.has(band.label)
-            return (
-              <label
-                key={band.label}
-                className={`flex items-start gap-3 group ${isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer'}`}
-                onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
-              >
-                <div
-                  className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-                    isChecked
-                      ? 'bg-[var(--accent)] border-[var(--accent)]'
-                      : 'bg-transparent border-white/[0.2] group-hover:border-white/[0.4]'
-                  }`}
-                >
-                  {isChecked && (
-                    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  )}
-                </div>
-                <div className="flex items-start justify-between flex-1 min-w-0">
-                  <span className="text-sm text-[var(--text-secondary)] group-hover:text-[var(--text-primary)] transition-colors leading-snug">
-                    {band.label}
-                  </span>
-                  <span className="ml-3 shrink-0 text-xs font-semibold text-[var(--text-muted)]">
-                    {pts(band.points)}
-                  </span>
-                </div>
-              </label>
-            )
-          })}
-        </div>
-      )}
-
-      {/* Normal evidence linking with bands */}
-      {!domain.isSelfAssessed && !domain.isCheckbox && (
-        <div>
-          {/* Scoring bands - tick to quick-claim, or link evidence below */}
-          <div className="mb-4">
-            <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide">Scoring bands</p>
-              <p className="text-xs text-[var(--text-secondary)]">Tick to claim</p>
-            </div>
-            <div className="space-y-1">
-              {domain.bands.map(band => {
-                const isChecked = links.some(l => l.band_label === band.label && l.is_checkbox)
-                const isPending = checkboxPending.has(band.label)
-                return (
-                  <div
-                    key={band.label}
-                    onClick={() => !isPending && handleCheckboxToggle(band.label, band.points, !isChecked)}
-                    className={`flex items-center gap-3 py-1.5 px-2 rounded-lg border border-transparent transition-all ${
-                      isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-white/[0.06]'
-                    } ${isChecked ? 'bg-accent/[0.05] border-accent/20' : ''}`}
-                  >
-                    <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all ${
-                      isChecked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.2]'
-                    }`}>
-                      {isChecked && (
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12" />
-                        </svg>
-                      )}
-                    </div>
-                    <span className={`text-xs flex-1 leading-snug ${isChecked ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-                      {band.label}
-                    </span>
-                    <span className={`shrink-0 text-xs font-semibold ${isChecked ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>
-                      {pts(band.points)}
-                    </span>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* Separator */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-white/[0.06]" />
-            <span className="text-xs text-[var(--text-secondary)]">or link evidence</span>
-            <div className="flex-1 h-px bg-white/[0.06]" />
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex gap-2 mb-4">
-            <button
-              onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-sm font-medium transition-all"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
-                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
-              </svg>
-              Link existing evidence
-            </button>
-            <button
-              onClick={() => setOpenModal('log')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] text-sm font-semibold transition-colors"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
-              </svg>
-              Log &amp; link here
-            </button>
-          </div>
-
-          {/* Evidence list */}
-          {links.length > 0 && (
-            <DomainEvidenceList
-              domain={domain}
-              links={links}
-              onRemove={handleRemoveLink}
-            />
-          )}
-
-          {links.length === 0 && (
-            <p className="text-center text-xs text-[var(--text-secondary)] py-4">
-              No evidence linked yet. Link existing entries or log new evidence above.
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Modals */}
-      {openModal === 'link' && (
-        <LinkEvidenceModal
-          domain={domain}
-          applicationId={applicationId}
-          specialtyName={specialtyName}
-          existingEntryIds={existingEntryIds}
-          onClose={() => setOpenModal(null)}
-          onLinked={link => { handleLinked(link); setOpenModal(null) }}
-        />
-      )}
-      {openModal === 'log' && (
-        <LogAndLinkModal
-          domain={domain}
-          applicationId={applicationId}
-          specialtyName={specialtyName}
-          specialtyKey={specialtyKey}
-          onClose={() => setOpenModal(null)}
-          onLinked={link => { handleLinked(link); setOpenModal(null) }}
-        />
-      )}
-    </div>
+    <ScoredDomainTab
+      domain={domain}
+      links={links}
+      applicationId={applicationId}
+      specialtyName={specialtyName}
+      specialtyKey={specialtyKey}
+      checkboxPending={checkboxPending}
+      onCheckboxToggle={handleCheckboxToggle}
+      onSelfAssessedChange={handleSelfAssessedChange}
+      openModal={openModal}
+      setOpenModal={setOpenModal}
+      onLinked={handleLinked}
+      onRemoveLink={handleRemoveLink}
+    />
   )
 }
