@@ -1,85 +1,35 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
-import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
-import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
+import { type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 import { fetchSubscriptionInfo, type SubscriptionInfo } from '@/lib/subscription'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
-import { formatSpecialtyLabel } from '@/lib/specialties'
 import SectionHeader from '@/components/ui/section-header'
 import { useToast } from '@/components/ui/toast-provider'
+import {
+  ALL_RECORDS,
+  UNTAGGED_RECORDS,
+  EXPORT_FIELDS,
+  exportScopeLabel,
+  formatDate,
+  type ExportFormat,
+  type PdfTemplate,
+  type ShareScope,
+  type ShareLink,
+  type TrackedApp,
+  type TagCount,
+} from '@/components/export/shared'
+import { TargetSpecialtyPicker } from '@/components/export/target-specialty-picker'
+import { ImportTab } from '@/components/export/import-tab'
+import { PdfExportTab } from '@/components/export/pdf-export-tab'
+import { BackupTab } from '@/components/export/backup-tab'
+import { ShareTab } from '@/components/export/share-tab'
 
 type Tab = 'import' | 'pdf' | 'backup' | 'share'
-type ExportFormat = 'pdf' | 'csv' | 'json'
-type PdfTemplate = 'default' | 'foundation' | 'mrcp' | 'st_application'
-type ShareScope = 'specialty' | 'theme' | 'full'
-
-const EXPIRY_PRESETS = [
-  { label: '1 day', days: 1 },
-  { label: '1 week', days: 7 },
-  { label: '1 month', days: 30 },
-  { label: 'Custom', days: null },
-]
-const ALL_RECORDS = '__all_records__'
-const UNTAGGED_RECORDS = '__untagged_records__'
-
-const EXPORT_FIELDS = [
-  { value: 'record_type', label: 'Type' },
-  { value: 'id', label: 'ID' },
-  { value: 'title', label: 'Title' },
-  { value: 'category_or_area', label: 'Category / area' },
-  { value: 'date', label: 'Date' },
-  { value: 'specialty_tags', label: 'Specialty tags' },
-  { value: 'notes', label: 'Notes' },
-  { value: 'created_at', label: 'Created' },
-]
-
-type ShareLink = {
-  id: string
-  token: string
-  scope: ShareScope
-  specialty_key: string | null
-  theme_slug: string | null
-  expires_at: string
-  view_count: number
-  hide_notes?: boolean
-  hide_reflection?: boolean
-  redact_tags?: boolean
-  view_webhook_url?: string | null
-  created_at: string
-}
-type TrackedApp = { id: string; specialty_key: string }
-type TagCount = { tag: string; count: number }
 type EntrySpecialtyFields = { specialty_tags: string[] | null }
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-}
-
-function isoDateOffset(days: number) {
-  const date = new Date()
-  date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
-}
-
-function entrySubtitle(e: PortfolioEntry): string | null {
-  return buildEntrySubtitle(e) || null
-}
-
-function shareLabel(link: ShareLink) {
-  if (link.scope === 'full') return 'Full portfolio (entries only)'
-  if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
-  return formatSpecialtyLabel(link.specialty_key)
-}
-
-function exportScopeLabel(value: string) {
-  if (value === ALL_RECORDS) return 'all records'
-  if (value === UNTAGGED_RECORDS) return 'untagged records'
-  return formatSpecialtyLabel(value)
-}
 
 function filenameFromContentDisposition(header: string | null): string | null {
   if (!header) return null
@@ -90,14 +40,6 @@ function filenameFromContentDisposition(header: string | null): string | null {
   }
   const plain = header.match(/filename="?([^";]+)"?/i)
   return plain?.[1]?.trim() || null
-}
-
-function specialtyChipClass(active: boolean) {
-  return `rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
-    active
-      ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
-      : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-  }`
 }
 
 export default function ExportPage() {
@@ -560,498 +502,107 @@ export default function ExportPage() {
       )}
 
       {tab !== 'backup' && tab !== 'import' && (
-        <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Target specialty</p>
-          <div className="mb-3 flex flex-wrap gap-2">
-            {[
-              { value: ALL_RECORDS, label: 'All records' },
-              { value: UNTAGGED_RECORDS, label: 'Untagged' },
-            ].map(option => (
-              <button key={option.value} onClick={() => setSpecialty(option.value)} className={specialtyChipClass(specialty === option.value)}>
-                {option.label}
-              </button>
-            ))}
-          </div>
-          {trackedSpecialtyOptions.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tracked specialties</p>
-              <div className="flex flex-wrap gap-2">
-                {trackedSpecialtyOptions.map(({ key, count }) => (
-                  <button key={key} onClick={() => setSpecialty(current => current === key ? '' : key)} className={specialtyChipClass(specialty === key)}>
-                    {formatSpecialtyLabel(key)} <span className="ml-1 text-xs opacity-60">{count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {linkedOnlyOptions.length > 0 && (
-            <div className="mb-3">
-              <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tagged in your entries</p>
-              <div className="flex flex-wrap gap-2">
-                {linkedOnlyOptions.map(({ tag, count }) => (
-                  <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={specialtyChipClass(specialty === tag)}>
-                    {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-          {/* Show the formatted label when a tracked-specialty chip is active
-              so the field doesn't leak raw slugs like 'acute_internal_medicine'.
-              When the user types into the field we treat their input as a
-              free-text override and store it verbatim - that's the slug we
-              send to the API for filtering. */}
-          <input
-            value={specialty === ALL_RECORDS || specialty === UNTAGGED_RECORDS
-              ? exportScopeLabel(specialty)
-              : portfolioTags.some(t => t.tag === specialty) || trackedApps.some(a => a.specialty_key === specialty)
-              ? formatSpecialtyLabel(specialty)
-              : specialty}
-            onChange={e => setSpecialty(e.target.value)}
-            onFocus={e => e.currentTarget.select()}
-            placeholder="Or type any specialty..."
-            className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3.5 py-2.5 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--accent)]"
-          />
-        </div>
+        <TargetSpecialtyPicker
+          specialty={specialty}
+          setSpecialty={setSpecialty}
+          portfolioTags={portfolioTags}
+          trackedApps={trackedApps}
+          trackedSpecialtyOptions={trackedSpecialtyOptions}
+          linkedOnlyOptions={linkedOnlyOptions}
+        />
       )}
 
-      {tab === 'import' && (
-        <section className="space-y-4">
-          {subInfo && !subInfo.isPro && (
-            <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
-              <p className="font-semibold text-[var(--warning)]">Bulk import is a Pro feature</p>
-              <p className="mt-1 text-[var(--text-secondary)]">
-                Importing from Horus, a spreadsheet, or a backup is available on Pro. You can still add entries manually on Free.
-                {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
-              </p>
-            </div>
-          )}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Link href="/import" className="rounded-2xl border border-accent/12 bg-[var(--bg-surface)] p-5 transition-colors hover:border-accent/30 sm:col-span-2">
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-semibold text-[var(--text-primary)]">Import from Horus</h2>
-                <span className="rounded-full border border-accent/30 bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent-soft-text)]">Recommended</span>
-              </div>
-              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
-            </Link>
-            <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">CSV / spreadsheet</h2>
-              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Map columns from any CSV (MicroGuide, NHS Learn, or your own) to portfolio entries or cases.</p>
-            </Link>
-            <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">Clerkfolio backup</h2>
-              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Restore from a Clerkfolio JSON backup — the file you download from the Data backup tab.</p>
-            </Link>
-          </div>
-        </section>
-      )}
+      {tab === 'import' && <ImportTab subInfo={subInfo} />}
 
       {tab === 'pdf' && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
-          <aside className="space-y-4">
-            {format === 'pdf' && subInfo && !subInfo.isPro && (
-              <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
-                <p className="mb-1 font-semibold text-[var(--warning)]">
-                  {subInfo.limits.canExportPdf
-                    ? '1 of 1 PDF remaining on Free'
-                    : 'PDF cap reached on Free'}
-                </p>
-                <p className="text-[var(--text-secondary)]">
-                  Application PDF, appended PDFs, Year in review and CV downloads share this allowance. CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
-                  {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
-                </p>
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Format</p>
-              <div className="flex gap-2">
-                {(['pdf', 'csv', 'json'] as ExportFormat[]).map(f => (
-                  <button key={f} onClick={() => setFormat(f)} className={`rounded-lg border px-3.5 py-1.5 text-sm font-medium ${format === f ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>
-                    {f.toUpperCase()}
-                  </button>
-                ))}
-              </div>
-              <p className="mt-2 text-[11px] text-[var(--text-muted)]">
-                {format === 'pdf' && 'Formatted portfolio for ARCP panels, applications, or printing.'}
-                {format === 'csv' && 'Spreadsheet for sorting, filtering, or pivoting your records.'}
-                {format === 'json' && 'Raw data dump for backups or scripting.'}
-              </p>
-            </div>
-
-            {format === 'pdf' && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Template</p>
-                <select value={pdfTemplate} onChange={e => setPdfTemplate(e.target.value as PdfTemplate)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
-                  <option value="default">Default</option>
-                  <option value="foundation">Foundation portfolio</option>
-                  <option value="mrcp">MRCP</option>
-                  <option value="st_application">ST application</option>
-                </select>
-                <p className="mt-2 text-[11px] text-[var(--text-muted)]">
-                  {pdfTemplate === 'default' && 'Clean general-purpose layout, grouped by category.'}
-                  {pdfTemplate === 'foundation' && 'Foundation Programme layout grouped by ARCP capability.'}
-                  {pdfTemplate === 'mrcp' && 'Tailored to MRCP application section ordering.'}
-                  {pdfTemplate === 'st_application' && 'Higher specialty (ST3+) self-assessment layout.'}
-                </p>
-              </div>
-            )}
-
-            {themes.length > 0 && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme filter</p>
-                <select value={themeFilter} onChange={e => setThemeFilter(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
-                  <option value="">Any theme</option>
-                {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
-                </select>
-              </div>
-            )}
-
-            {loadedSpecialty && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Category</p>
-                <div className="flex flex-wrap gap-2">
-                  <button onClick={() => setCategoryFilter('all')} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === 'all' ? 'border-white/[0.15] bg-white/[0.1] text-[var(--text-primary)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>All</button>
-                  {CATEGORIES.filter(c => categoriesPresent.includes(c.value)).map(cat => (
-                    <button key={cat.value} onClick={() => setCategoryFilter(cat.value)} className={`rounded-lg border px-3 py-1.5 text-sm ${categoryFilter === cat.value ? 'border-white/[0.15] bg-white/[0.1] text-[var(--text-primary)]' : 'border-white/[0.06] bg-white/[0.04] text-[var(--text-secondary)]'}`}>{cat.short}</button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-              <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Fields</p>
-              <div className="space-y-2">
-                {EXPORT_FIELDS.map(field => (
-                  <label key={field.value} className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                    <input
-                      type="checkbox"
-                      checked={selectedFields.includes(field.value)}
-                      onChange={e => setSelectedFields(current => e.target.checked ? [...current, field.value] : current.filter(value => value !== field.value))}
-                    />
-                    {field.label}
-                  </label>
-                ))}
-              </div>
-            </div>
-
-            {format === 'pdf' && (
-              <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-                <p className="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Append PDF</p>
-                <p className="mb-3 text-[11px] text-[var(--text-muted)]">
-                  Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
-                </p>
-                <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[var(--text-secondary)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[var(--text-primary)]" />
-                <button
-                  onClick={handleAppendPdf}
-                  disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf}
-                  title={!appendPdfFile ? 'Choose a PDF first' : selectedEntryIds.size === 0 ? 'Select at least one entry' : undefined}
-                  className="mt-3 min-h-[40px] w-full rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-40"
-                >
-                  {appendingPdf ? 'Appending...' : 'Append selected'}
-                </button>
-              </div>
-            )}
-          </aside>
-
-          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
-            <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">
-                {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
-              </p>
-              {format === 'pdf' && visibleCases.length > 0 && (
-                <p className="text-xs text-[var(--text-muted)]">Cases export as CSV or JSON. PDFs include portfolio entries only.</p>
-              )}
-              <div className="flex items-center gap-3">
-                <button onClick={() => { setSelectedEntryIds(new Set(visible.map(e => e.id))); setSelectedCaseIds(new Set(visibleCases.map(c => c.id))) }} className="text-xs text-[var(--accent-text)]">Select visible</button>
-                <button onClick={() => { setSelectedEntryIds(new Set()); setSelectedCaseIds(new Set()) }} className="text-xs text-[var(--text-muted)]">Clear</button>
-                <button onClick={handleGenerate} disabled={!canGenerate} title={totalSelected === 0 ? 'Select at least one entry' : undefined} className="rounded-lg bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
-                  {generating ? 'Generating...' : `Export ${format.toUpperCase()}`}
-                </button>
-              </div>
-            </div>
-
-            {!specialty ? (
-              <div className="p-8 text-sm text-[var(--text-muted)]">Choose a target specialty above to load your portfolio.</div>
-            ) : loading ? (
-              <div className="p-8 text-sm text-[var(--text-muted)]">Loading entries for {exportScopeLabel(specialty)}...</div>
-            ) : visible.length === 0 && visibleCases.length === 0 ? (
-              selectedIsRealSpecialty && categoryFilter === 'all' ? (
-                <div className="p-8 text-sm text-[var(--text-muted)]">
-                  No entries linked to {exportScopeLabel(specialty)} yet — tag entries with {exportScopeLabel(specialty)} in the entry&apos;s &ldquo;Linked specialties&rdquo; field to include them here.
-                </div>
-              ) : (
-                <div className="p-8 text-sm text-[var(--text-muted)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>
-              )
-            ) : (
-              <div className="divide-y divide-white/[0.04]">
-                {visible.map(entry => {
-                  const checked = selectedEntryIds.has(entry.id)
-                  const colour = CATEGORY_COLOURS[entry.category]
-                  const label = CATEGORIES.find(c => c.value === entry.category)?.short ?? entry.category
-                  return (
-                    <label key={entry.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-accent/5' : 'hover:bg-white/[0.02]'}`}>
-                      <input type="checkbox" checked={checked} onChange={() => setSelectedEntryIds(prev => {
-                        const next = new Set(prev)
-                        next.has(entry.id) ? next.delete(entry.id) : next.add(entry.id)
-                        return next
-                      })} className="h-4 w-4 accent-[var(--accent-text)]" />
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <span className={`rounded px-1.5 py-0.5 text-[10px] font-medium ${colour.bg} ${colour.text}`}>{label}</span>
-                          <span className="truncate text-sm text-[var(--text-primary)]">{entry.title}</span>
-                        </div>
-                        {entrySubtitle(entry) && <p className="truncate text-xs capitalize text-[var(--text-muted)]">{entrySubtitle(entry)}</p>}
-                      </div>
-                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">{formatDate(entry.date)}</span>
-                      <button
-                        type="button"
-                        title="Download every uploaded evidence file for this entry as a single ZIP."
-                        onClick={e => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          downloadEvidenceZip(entry.id, entry.title)
-                        }}
-                        className="shrink-0 rounded-lg border border-white/[0.08] px-2.5 py-1.5 text-[11px] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                      >
-                        Evidence ZIP
-                      </button>
-                    </label>
-                  )
-                })}
-                {format !== 'pdf' && visibleCases.map(c => {
-                  const checked = selectedCaseIds.has(c.id)
-                  const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
-                  return (
-                    <label key={c.id} className={`flex cursor-pointer items-center gap-4 px-5 py-3.5 transition-colors ${checked ? 'bg-accent/5' : 'hover:bg-white/[0.02]'}`}>
-                      <input type="checkbox" checked={checked} onChange={() => setSelectedCaseIds(prev => {
-                        const next = new Set(prev)
-                        next.has(c.id) ? next.delete(c.id) : next.add(c.id)
-                        return next
-                      })} className="h-4 w-4 accent-[var(--accent-text)]" />
-                      <div className="min-w-0 flex-1">
-                        <div className="mb-0.5 flex flex-wrap items-center gap-2">
-                          <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 text-[10px] font-medium text-cyan-400">Case</span>
-                          <span className="truncate text-sm text-[var(--text-primary)]">{c.title}</span>
-                        </div>
-                        {areas.length > 0 && <p className="truncate text-xs text-[var(--text-muted)]">{areas.join(' - ')}</p>}
-                      </div>
-                      <span className="shrink-0 text-xs text-[var(--text-secondary)]">{formatDate(c.date)}</span>
-                    </label>
-                  )
-                })}
-              </div>
-            )}
-          </section>
-        </div>
+        <PdfExportTab
+          subInfo={subInfo}
+          format={format}
+          setFormat={setFormat}
+          pdfTemplate={pdfTemplate}
+          setPdfTemplate={setPdfTemplate}
+          themes={themes}
+          themeFilter={themeFilter}
+          setThemeFilter={setThemeFilter}
+          loadedSpecialty={loadedSpecialty}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          categoriesPresent={categoriesPresent}
+          selectedFields={selectedFields}
+          setSelectedFields={setSelectedFields}
+          appendPdfFile={appendPdfFile}
+          setAppendPdfFile={setAppendPdfFile}
+          appendingPdf={appendingPdf}
+          onAppendPdf={handleAppendPdf}
+          specialty={specialty}
+          selectedIsRealSpecialty={selectedIsRealSpecialty}
+          loading={loading}
+          visible={visible}
+          visibleCases={visibleCases}
+          totalSelected={totalSelected}
+          generating={generating}
+          canGenerate={canGenerate}
+          onGenerate={handleGenerate}
+          selectedEntryIds={selectedEntryIds}
+          setSelectedEntryIds={setSelectedEntryIds}
+          selectedCaseIds={selectedCaseIds}
+          setSelectedCaseIds={setSelectedCaseIds}
+          onDownloadEvidenceZip={downloadEvidenceZip}
+        />
       )}
 
       {tab === 'backup' && (
-        <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
-          <h2 className="text-lg font-semibold text-[var(--text-primary)]">Full data backup</h2>
-          <p className="mt-2 max-w-2xl mx-auto text-sm leading-relaxed text-[var(--text-muted)]">
-            Download a ZIP containing your profile, portfolio entries, cases, deadlines, goals, specialty scoring links, templates, and evidence files.
-          </p>
-          <label className="mt-4 flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-            <input type="checkbox" checked={includeEvidenceBackup} onChange={e => setIncludeEvidenceBackup(e.target.checked)} />
-            Include evidence files
-          </label>
-          {subInfo && !subInfo.isPro && (
-            <div className="mt-5 max-w-2xl rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
-              <p className="font-semibold">
-                {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
-              </p>
-              <p className="mt-1 text-[var(--text-secondary)]">
-                Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV downloads.
-              </p>
-            </div>
-          )}
-          <button onClick={handleBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
-            {backupLoading ? 'Preparing backup...' : 'Download ZIP backup'}
-          </button>
-          <button
-            type="button"
-            onClick={handleYearReview}
-            disabled={yearReviewLoading || Boolean(subInfo && !subInfo.isPro && !subInfo.limits.canExportPdf)}
-            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
-          </button>
-          <button
-            type="button"
-            onClick={handleMarkdownExport}
-            disabled={markdownLoading}
-            className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:opacity-50"
-          >
-            {markdownLoading ? 'Exporting...' : 'Reflections MD'}
-          </button>
-        </section>
+        <BackupTab
+          subInfo={subInfo}
+          includeEvidenceBackup={includeEvidenceBackup}
+          setIncludeEvidenceBackup={setIncludeEvidenceBackup}
+          backupLoading={backupLoading}
+          onBackup={handleBackup}
+          yearReviewLoading={yearReviewLoading}
+          onYearReview={handleYearReview}
+          markdownLoading={markdownLoading}
+          onMarkdownExport={handleMarkdownExport}
+        />
       )}
 
       {tab === 'share' && (
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
-          <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-            <h2 className="text-base font-semibold text-[var(--text-primary)]">Create protected link</h2>
-            {subInfo && !subInfo.isPro && (
-              <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
-                <p className="font-semibold">
-                  {canCreateShareLink
-                    ? '1 of 1 share link available on Free'
-                    : hasActiveShareLinks
-                      ? 'Active link cap reached'
-                      : 'Share link cap reached on Free'}
-                </p>
-                <p className="mt-0.5 text-[var(--text-secondary)]">
-                  {canCreateShareLink
-                    ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
-                    : hasActiveShareLinks
-                      ? 'Revoke an existing link or upgrade to Pro for unlimited links.'
-                      : 'Free tier includes 1 active share link. Upgrade to Pro for unlimited links.'}
-                </p>
-              </div>
-            )}
-            <div className="mt-5 space-y-4">
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Scope</span>
-                <select value={shareScope} onChange={e => setShareScope(e.target.value as ShareScope)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
-                  <option value="specialty">Tracked specialty</option>
-                  <option value="theme">Competency theme</option>
-                  <option value="full">Full portfolio (entries only)</option>
-                </select>
-                {shareScope === 'full' && (
-                  <p className="mt-1.5 text-xs text-[var(--text-muted)]">Shares all your portfolio entries. Cases are never shared.</p>
-                )}
-              </label>
-              {shareScope === 'specialty' && (
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Specialty</span>
-                  <select value={shareSpecialty} onChange={e => setShareSpecialty(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
-                    {trackedApps.length === 0 && <option value="">No tracked specialties</option>}
-                    {trackedApps.map(app => <option key={app.id} value={app.specialty_key}>{formatSpecialtyLabel(app.specialty_key)}</option>)}
-                  </select>
-                  {trackedApps.length === 0 && <p className="mt-1 text-xs text-[var(--warning)]">Track a specialty before creating this type of link.</p>}
-                </label>
-              )}
-              {shareScope === 'theme' && (
-                <label className="block">
-                  <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme</span>
-                  <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-                  <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
-                </label>
-              )}
-              <div>
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Expires</span>
-                <div className="grid grid-cols-2 gap-2">
-                  {EXPIRY_PRESETS.map(preset => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => setExpiryPreset(preset.days)}
-                      className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
-                        expiryPreset === preset.days
-                          ? 'border-accent/30 bg-[var(--accent-soft)] text-[var(--accent-soft-text)]'
-                          : 'border-white/[0.08] bg-[var(--bg-canvas)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-                {expiryPreset === null && (
-                  <input
-                    type="date"
-                    value={customExpiry}
-                    min={isoDateOffset(1)}
-                    max={isoDateOffset(90)}
-                    onChange={e => setCustomExpiry(e.target.value)}
-                    className="mt-2 w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
-                  />
-                )}
-              </div>
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN</span>
-                <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-                <p className="mt-1 text-xs text-[var(--text-secondary)]">Optional PIN (4-8 digits)</p>
-              </label>
-              <label className="block">
-                <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">View webhook</span>
-                <input
-                  value={viewWebhookUrl}
-                  onChange={e => setViewWebhookUrl(e.target.value)}
-                  placeholder="https://example.com/share-viewed"
-                  className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
-                />
-              </label>
-              <div className="space-y-2 rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-3">
-                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <input type="checkbox" checked={hideNotes} onChange={e => setHideNotes(e.target.checked)} />
-                  Hide notes
-                </label>
-                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <input type="checkbox" checked={hideReflection} onChange={e => setHideReflection(e.target.checked)} />
-                  Hide reflection text
-                </label>
-                <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
-                  <input type="checkbox" checked={redactTags} onChange={e => setRedactTags(e.target.checked)} />
-                  Redact tags
-                </label>
-              </div>
-              <button type="button" onClick={createShareLink} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
-                {shareLoading ? 'Creating...' : 'Create link'}
-              </button>
-            </div>
-          </section>
-
-          <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
-            <div className="border-b border-white/[0.06] px-5 py-4">
-              <h2 className="text-base font-semibold text-[var(--text-primary)]">Active links</h2>
-            </div>
-            {shareLinks.length === 0 ? (
-              <p className="p-6 text-sm text-[var(--text-muted)]">No active share links.</p>
-            ) : (
-              <div className="divide-y divide-white/[0.04]">
-                {shareLinks.map(link => (
-                  <article key={link.id} className="p-5">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-[var(--text-primary)]">{shareLabel(link)}</p>
-                        <p className="mt-1 text-xs text-[var(--text-muted)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
-                        {link.view_webhook_url && <p className="mt-1 text-xs text-[var(--success)]">Webhook enabled</p>}
-                      </div>
-                      <div className="flex flex-wrap gap-2">
-                        <button onClick={() => copyLink(link.token)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">{copiedToken === link.token ? 'Copied' : 'Copy'}</button>
-                        <a href={`/share/${link.token}`} target="_blank" rel="noopener noreferrer" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Preview</a>
-                        <button onClick={() => renewShareLink(link.id)} className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]">Renew</button>
-                        {confirmRevoke === link.id ? (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => setConfirmRevoke(null)}
-                              disabled={revokingLink === link.id}
-                              className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs text-[var(--text-secondary)] disabled:opacity-50"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => revokeShareLink(link.id)}
-                              disabled={revokingLink === link.id}
-                              className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs text-[var(--danger)] disabled:opacity-50"
-                            >
-                              {revokingLink === link.id ? 'Revoking...' : 'Confirm revoke'}
-                            </button>
-                          </>
-                        ) : (
-                          <button onClick={() => setConfirmRevoke(link.id)} className="rounded-lg border border-red-500/20 px-3 py-1.5 text-xs text-[var(--danger)]">Revoke</button>
-                        )}
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
-        </div>
+        <ShareTab
+          subInfo={subInfo}
+          canCreateShareLink={canCreateShareLink}
+          hasActiveShareLinks={hasActiveShareLinks}
+          shareScope={shareScope}
+          setShareScope={setShareScope}
+          shareSpecialty={shareSpecialty}
+          setShareSpecialty={setShareSpecialty}
+          trackedApps={trackedApps}
+          shareTheme={shareTheme}
+          setShareTheme={setShareTheme}
+          themes={themes}
+          expiryPreset={expiryPreset}
+          setExpiryPreset={setExpiryPreset}
+          customExpiry={customExpiry}
+          setCustomExpiry={setCustomExpiry}
+          sharePin={sharePin}
+          setSharePin={setSharePin}
+          viewWebhookUrl={viewWebhookUrl}
+          setViewWebhookUrl={setViewWebhookUrl}
+          hideNotes={hideNotes}
+          setHideNotes={setHideNotes}
+          hideReflection={hideReflection}
+          setHideReflection={setHideReflection}
+          redactTags={redactTags}
+          setRedactTags={setRedactTags}
+          shareLoading={shareLoading}
+          onCreate={createShareLink}
+          shareLinks={shareLinks}
+          copiedToken={copiedToken}
+          onCopy={copyLink}
+          onRenew={renewShareLink}
+          confirmRevoke={confirmRevoke}
+          setConfirmRevoke={setConfirmRevoke}
+          revokingLink={revokingLink}
+          onRevoke={revokeShareLink}
+        />
       )}
     </div>
   )
