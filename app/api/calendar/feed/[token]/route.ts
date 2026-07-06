@@ -3,6 +3,7 @@ import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/types/portfolio'
 import { NHS_ROUND_3_2026_DEADLINES, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { nationalDeadlinesPref, shouldShowNationalDeadlines } from '@/lib/timeline/national-deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
 
@@ -93,7 +94,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   const supabase = createServiceClient()
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
-    .select('id')
+    .select('id, display_prefs')
     .eq('calendar_feed_token_hash', hashToken(token))
     .maybeSingle()
 
@@ -108,13 +109,14 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // F-020: the prior select listed `updated_at` (and unused `created_at`), but
   // `deadlines` has no `updated_at` column, so the query errored and the route
   // silently dropped EVERY user-created Timeline deadline from the ICS while
-  // still returning 200 with config deadlines only. Select exactly what the
-  // VEVENT builder reads (id/title/due_date/details/location) - nothing more.
-  // Any query error now fails loud (500) instead of partial-200, so a future
-  // schema drift is caught.
+  // still returning 200 with config deadlines only. Select exactly what this
+  // route reads: id/title/due_date/details/location for the VEVENT builder,
+  // plus source_specialty_key for the national-deadlines default - nothing
+  // more. Any query error now fails loud (500) instead of partial-200, so a
+  // future schema drift is caught.
   const { data: deadlines, error: deadlinesError } = await supabase
     .from('deadlines')
-    .select('id, title, due_date, details, location')
+    .select('id, title, due_date, details, location, source_specialty_key')
     .eq('user_id', profile.id)
     .eq('completed', false)
     .order('due_date', { ascending: true })
@@ -143,7 +145,16 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
   // is safer than one that silently looks live) until the owner refreshes the
   // pinned round; the deadlines-freshness tripwire test forces that refresh.
   const recruitmentStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
-  const configuredDeadlines = NHS_ROUND_3_2026_DEADLINES.map(deadline => ({
+  // Mirror the Timeline page's visibility rule exactly (shared helper): the
+  // user's "Show NHS national recruitment dates" tick wins; when never set,
+  // hide the generic national round if specialty-specific deadlines exist.
+  // Before this the feed ALWAYS pushed the national dates, so a subscribed
+  // calendar could disagree with the Timeline page.
+  const showNational = shouldShowNationalDeadlines(
+    nationalDeadlinesPref(profile.display_prefs),
+    (deadlines ?? []).some(deadline => deadline.source_specialty_key)
+  )
+  const configuredDeadlines = (showNational ? NHS_ROUND_3_2026_DEADLINES : []).map(deadline => ({
     id: `nhs-round-3-${deadline.kind}`,
     title: recruitmentStale ? `[Past round] ${deadline.label}` : deadline.label,
     due_date: deadline.date,

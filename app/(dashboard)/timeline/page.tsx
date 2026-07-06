@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
 import { NHS_ROUND_3_2026_DEADLINES, NHS_RECRUITMENT_TIMELINE_URL, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { nationalDeadlinesPref, shouldShowNationalDeadlines } from '@/lib/timeline/national-deadlines'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
@@ -36,7 +37,7 @@ export default async function TimelinePage({
       .order('due_date', { ascending: true }),
     supabase
       .from('profiles')
-      .select('calendar_feed_token_hash')
+      .select('calendar_feed_token_hash, display_prefs')
       .eq('id', user!.id)
       .single(),
   ])
@@ -66,21 +67,28 @@ export default async function TimelinePage({
 
   const hasSpecialtySpecificDeadlines = manualDeadlines.some(deadline => deadline.specialtyKey)
 
-  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = hasSpecialtySpecificDeadlines
-    ? []
-    : NHS_ROUND_3_2026_DEADLINES.map(item => ({
-        id: item.kind,
-        title: item.label,
-        date: item.date,
-        details: item.details ?? null,
-        location: null,
-        sourceUrl: item.sourceUrl,
-        sourceLabel: item.sourceLabel,
-        specialtyApplicationId: null,
-        specialtyKey: item.specialtyKey,
-        specialtyName: 'NHS recruitment',
-        source: 'config',
-      }))
+  // The national dates are always sent to the client (search-filtered like
+  // everything else); the client shows/hides them instantly from the
+  // "NHS national recruitment dates" tick, whose effective default is
+  // computed here from the saved preference.
+  const showNationalDeadlines = shouldShowNationalDeadlines(
+    nationalDeadlinesPref(profile?.display_prefs),
+    hasSpecialtySpecificDeadlines
+  )
+
+  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = NHS_ROUND_3_2026_DEADLINES.map(item => ({
+    id: item.kind,
+    title: item.label,
+    date: item.date,
+    details: item.details ?? null,
+    location: null,
+    sourceUrl: item.sourceUrl,
+    sourceLabel: item.sourceLabel,
+    specialtyApplicationId: null,
+    specialtyKey: item.specialtyKey,
+    specialtyName: 'NHS recruitment',
+    source: 'config',
+  }))
 
   const filteredGoals = ((goals ?? []) as TimelineGoal[]).filter(goal => matchesParsedQuery({
     title: goal.specific ?? goal.category,
@@ -97,12 +105,11 @@ export default async function TimelinePage({
 
   // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
   // grace, per isSpecialtyCycleStale), the national dates we surface become
-  // misleading past-dated events. Only warn when those national deadlines are
-  // actually on screen (they're suppressed when the user has specialty-specific
-  // ones). The owner refreshes NHS_ROUND_3_2026_DEADLINES before the round
-  // closes; the deadlines-freshness tripwire test fails ahead of that.
-  const recruitmentDeadlinesStale =
-    nationalRecruitmentDeadlines.length > 0 && isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
+  // misleading past-dated events. The client only renders the banner while the
+  // national dates are actually visible (the tick controls that). The owner
+  // refreshes NHS_ROUND_3_2026_DEADLINES before the round closes; the
+  // deadlines-freshness tripwire test fails ahead of that.
+  const recruitmentDeadlinesStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
 
   // Compute the calendar's initial month once on the server. Passing this in as
   // a stable prop avoids the new Date() / hydration mismatch the client would
@@ -117,6 +124,8 @@ export default async function TimelinePage({
       deadlines={filteredDeadlines}
       calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}
       initialMonthIso={initialMonthIso}
+      showNationalDefault={showNationalDeadlines}
+      displayPrefs={(profile?.display_prefs as Record<string, unknown> | null) ?? {}}
       banner={
         recruitmentDeadlinesStale ? (
           <div className="mb-4 rounded-xl border border-amber-400/20 bg-amber-400/5 p-4">

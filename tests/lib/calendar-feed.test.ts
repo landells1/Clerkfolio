@@ -79,10 +79,11 @@ describe('GET /api/calendar/feed/[token]', () => {
     state.selects = {}
   })
 
-  it('selects exactly the columns the VEVENT builder reads (F-020 guard)', async () => {
+  it('selects exactly the columns the route reads (F-020 guard)', async () => {
     await callFeed()
     // Must be exactly these — re-adding updated_at/created_at is what broke it.
-    expect(state.selects.deadlines).toBe('id, title, due_date, details, location')
+    // source_specialty_key is genuinely read (national-deadlines default rule).
+    expect(state.selects.deadlines).toBe('id, title, due_date, details, location, source_specialty_key')
   })
 
   it('includes user-created deadlines in the ICS body', async () => {
@@ -117,5 +118,48 @@ describe('GET /api/calendar/feed/[token]', () => {
     state.profile = { data: null, error: null }
     const res = await callFeed()
     expect(res.status).toBe(404)
+  })
+
+  // National NHS recruitment dates visibility. The feed must mirror the
+  // Timeline page's rule (shared shouldShowNationalDeadlines helper): explicit
+  // pref wins; when unset, specialty-specific deadlines suppress the generic
+  // national round. Previously the feed unconditionally included them.
+  it('includes national dates by default when the user has no specialty-specific deadlines', async () => {
+    const res = await callFeed()
+    const body = await res.text()
+    expect(body).toContain('UID:nhs-round-3-applicationOpens@')
+  })
+
+  it('suppresses national dates when specialty-specific deadlines exist and no pref is set', async () => {
+    state.deadlines = {
+      data: [
+        { id: 'd1', title: 'IMT application deadline', due_date: '2026-09-01', details: null, location: null, source_specialty_key: 'imt' },
+      ],
+      error: null,
+    }
+    const res = await callFeed()
+    const body = await res.text()
+    expect(body).not.toContain('UID:nhs-round-3-')
+    expect(body).toContain('SUMMARY:IMT application deadline')
+  })
+
+  it('honours an explicit show_national_deadlines=true over the auto-suppression', async () => {
+    state.profile = { data: { id: 'user-1', display_prefs: { show_national_deadlines: true } }, error: null }
+    state.deadlines = {
+      data: [
+        { id: 'd1', title: 'IMT application deadline', due_date: '2026-09-01', details: null, location: null, source_specialty_key: 'imt' },
+      ],
+      error: null,
+    }
+    const res = await callFeed()
+    const body = await res.text()
+    expect(body).toContain('UID:nhs-round-3-applicationOpens@')
+  })
+
+  it('honours an explicit show_national_deadlines=false', async () => {
+    state.profile = { data: { id: 'user-1', display_prefs: { show_national_deadlines: false } }, error: null }
+    const res = await callFeed()
+    const body = await res.text()
+    expect(body).not.toContain('UID:nhs-round-3-')
   })
 })
