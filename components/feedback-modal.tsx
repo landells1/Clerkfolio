@@ -1,9 +1,12 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useToast } from '@/components/ui/toast-provider'
 import { apiFetch } from '@/lib/api-fetch'
 import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
+import { FEEDBACK_CATEGORIES, FEEDBACK_CATEGORY_LABELS, type FeedbackCategory } from '@/lib/feedback/validation'
+
+const SELECT = 'w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] focus:outline-none focus:border-accent transition-colors'
 
 // Rendered always-mounted (returns null when closed) so an unsent draft
 // survives closing and reopening the modal.
@@ -12,17 +15,29 @@ export function FeedbackModal({
   onClose,
   prefillName,
   userEmail,
+  initialCategory = 'general',
 }: {
   open: boolean
   onClose: () => void
   prefillName: string
   userEmail: string
+  // Lets callers (e.g. the /specialties "request a specialty" affordance)
+  // open the modal pre-set to a specific category.
+  initialCategory?: FeedbackCategory
 }) {
   const feedbackRef = useRef<HTMLDivElement>(null)
   useFocusTrap(open, feedbackRef, onClose)
-  const [feedback, setFeedback] = useState({ name: prefillName, email: userEmail, comment: '' })
+  const [feedback, setFeedback] = useState({ name: prefillName, email: userEmail, comment: '', category: initialCategory, specialty: '' })
   const [feedbackSending, setFeedbackSending] = useState(false)
   const { addToast } = useToast()
+
+  // Re-apply the caller's requested category each time the modal opens (it
+  // stays mounted between opens, so state would otherwise stick from the
+  // previous open - e.g. leftover "Request a specialty" after a generic open).
+  useEffect(() => {
+    if (open) setFeedback(f => ({ ...f, category: initialCategory }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, initialCategory])
 
   async function handleFeedbackSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -35,7 +50,7 @@ export function FeedbackModal({
     })
 
     if (res.ok) {
-      setFeedback({ name: prefillName, email: userEmail, comment: '' })
+      setFeedback({ name: prefillName, email: userEmail, comment: '', category: 'general', specialty: '' })
       onClose()
       addToast('Feedback sent - thank you!', 'success')
     } else {
@@ -70,6 +85,30 @@ export function FeedbackModal({
         </div>
 
         <form onSubmit={handleFeedbackSubmit} className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Category</label>
+              <select
+                value={feedback.category}
+                onChange={e => setFeedback(f => ({ ...f, category: e.target.value as FeedbackCategory }))}
+                className={SELECT}
+              >
+                {FEEDBACK_CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{FEEDBACK_CATEGORY_LABELS[cat]}</option>
+                ))}
+              </select>
+            </div>
+            {feedback.category === 'specialty_request' && (
+              <div>
+                <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Which specialty?</label>
+                <input
+                  required
+                  value={feedback.specialty}
+                  onChange={e => setFeedback(f => ({ ...f, specialty: e.target.value }))}
+                  className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-accent transition-colors"
+                  placeholder="e.g. Clinical Radiology"
+                />
+              </div>
+            )}
             <div>
               <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Your name</label>
               <input

@@ -6,11 +6,16 @@ import CommandPalette from '@/components/ui/command-palette'
 import Cheatsheet from '@/components/ui/cheatsheet'
 import OfflineCachePrimer from '@/components/offline/offline-cache-primer'
 import OfflineIndicator from '@/components/offline/offline-indicator'
+import { FeedbackModal } from '@/components/feedback-modal'
+import type { FeedbackCategory } from '@/lib/feedback/validation'
 
 type EntryType = 'case' | 'teaching' | 'reflection' | 'procedure'
 type QuickAddInitial = { type?: EntryType; domain?: string; domains?: string[]; tags?: string[] }
 type QuickAddCtx = { openQuickAdd: (initial?: QuickAddInitial) => void }
 type SearchCtx = { openSearch: () => void }
+// Lets any page (e.g. the /specialties "request a specialty" affordance) open
+// the single shared feedback modal instance, optionally pre-set to a category.
+type FeedbackCtx = { openFeedback: (category?: FeedbackCategory) => void }
 
 const QuickAddContext = createContext<QuickAddCtx>({ openQuickAdd: () => {} })
 export function useQuickAdd() { return useContext(QuickAddContext) }
@@ -18,11 +23,16 @@ export function useQuickAdd() { return useContext(QuickAddContext) }
 const SearchContext = createContext<SearchCtx>({ openSearch: () => {} })
 export function useSearch() { return useContext(SearchContext) }
 
-export default function DashboardProviders({ children, userInterests, careerStage = null }: { children: React.ReactNode; userInterests: string[]; careerStage?: string | null }) {
+const FeedbackContext = createContext<FeedbackCtx>({ openFeedback: () => {} })
+export function useFeedback() { return useContext(FeedbackContext) }
+
+export default function DashboardProviders({ children, userInterests, careerStage = null, profileName = '', userEmail = '' }: { children: React.ReactNode; userInterests: string[]; careerStage?: string | null; profileName?: string; userEmail?: string }) {
   const [open, setOpen] = useState(false)
   const [initial, setInitial] = useState<QuickAddInitial | undefined>()
   const [searchOpen, setSearchOpen] = useState(false)
   const [cheatsheetOpen, setCheatsheetOpen] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
+  const [feedbackCategory, setFeedbackCategory] = useState<FeedbackCategory>('general')
 
   const openQuickAdd = useCallback((init?: QuickAddInitial) => {
     setInitial(init)
@@ -31,6 +41,11 @@ export default function DashboardProviders({ children, userInterests, careerStag
 
   const openSearch = useCallback(() => {
     setSearchOpen(true)
+  }, [])
+
+  const openFeedback = useCallback((category?: FeedbackCategory) => {
+    setFeedbackCategory(category ?? 'general')
+    setFeedbackOpen(true)
   }, [])
 
   useEffect(() => {
@@ -104,14 +119,23 @@ export default function DashboardProviders({ children, userInterests, careerStag
   return (
     <SearchContext.Provider value={{ openSearch }}>
       <QuickAddContext.Provider value={{ openQuickAdd }}>
-        <ToastProvider>
-          <OfflineCachePrimer />
-          <OfflineIndicator />
-          {children}
-          {open && <QuickAddModal onClose={() => setOpen(false)} userInterests={userInterests} initialValues={initial} />}
-          {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} careerStage={careerStage} />}
-          {cheatsheetOpen && <Cheatsheet onClose={() => setCheatsheetOpen(false)} />}
-        </ToastProvider>
+        <FeedbackContext.Provider value={{ openFeedback }}>
+          <ToastProvider>
+            <OfflineCachePrimer />
+            <OfflineIndicator />
+            {children}
+            {open && <QuickAddModal onClose={() => setOpen(false)} userInterests={userInterests} initialValues={initial} />}
+            {searchOpen && <CommandPalette onClose={() => setSearchOpen(false)} careerStage={careerStage} />}
+            {cheatsheetOpen && <Cheatsheet onClose={() => setCheatsheetOpen(false)} />}
+            <FeedbackModal
+              open={feedbackOpen}
+              onClose={() => setFeedbackOpen(false)}
+              prefillName={profileName}
+              userEmail={userEmail}
+              initialCategory={feedbackCategory}
+            />
+          </ToastProvider>
+        </FeedbackContext.Provider>
       </QuickAddContext.Provider>
     </SearchContext.Provider>
   )

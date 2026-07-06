@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import { useFeedback } from '@/app/(dashboard)/providers'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/lib/specialties'
 import { SpecialtyCard } from './specialty-card'
@@ -32,6 +33,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
   // (e.g. the sidebar nav item) correctly clears the selection because the
   // param genuinely disappears from that tab's URL.
   const urlAppKey = searchParams.get('app') ?? undefined
+  const { openFeedback } = useFeedback()
 
   const [activeTab, setActiveTab] = useState<Tab>('my_specialties')
   const [applications, setApplications] = useState<SpecialtyApplication[]>(initialApplications)
@@ -101,7 +103,16 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-fg">Specialties</h1>
-          <p className="mt-1 text-sm text-fg-2">Your tracked application programmes.</p>
+          <p className="mt-1 text-sm text-fg-2">
+            Your tracked application programmes.{' '}
+            <button
+              type="button"
+              onClick={() => openFeedback('specialty_request')}
+              className="text-[var(--accent-text)] hover:underline"
+            >
+              Don&apos;t see your specialty? Request it
+            </button>
+          </p>
         </div>
         <div className="flex flex-wrap gap-2">
           {activeTab === 'my_specialties' && (

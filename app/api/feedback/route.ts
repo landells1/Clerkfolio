@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
+import { validateFeedbackInput, buildFeedbackSubject, FEEDBACK_CATEGORY_LABELS } from '@/lib/feedback/validation'
 
 // Simple HTML escaper - prevents injection into email body
 function esc(str: string): string {
@@ -12,11 +13,6 @@ function esc(str: string): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#x27;')
-}
-
-// Minimal email format check
-function isValidEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && email.length <= 254
 }
 
 const FEEDBACK_RATE_LIMIT = 10
@@ -53,24 +49,14 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, email, comment } = body
 
     // ── Validate inputs ──────────────────────────────────────────────────────
-    if (typeof name !== 'string' || typeof email !== 'string' || typeof comment !== 'string') {
-      return NextResponse.json({ error: 'Invalid input types' }, { status: 400 })
+    const validated = validateFeedbackInput(body)
+    if (!validated.ok) {
+      return NextResponse.json({ error: validated.error }, { status: 400 })
     }
-
-    const trimmedName    = name.trim().slice(0, 100)
-    const trimmedEmail   = email.trim().toLowerCase().slice(0, 254)
-    const trimmedComment = comment.trim().slice(0, 2000)
-
-    if (!trimmedName || !trimmedEmail || !trimmedComment) {
-      return NextResponse.json({ error: 'Missing fields' }, { status: 400 })
-    }
-
-    if (!isValidEmail(trimmedEmail)) {
-      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
-    }
+    const { name: trimmedName, email: trimmedEmail, comment: trimmedComment, category, specialty } = validated.value
+    const categoryLabel = FEEDBACK_CATEGORY_LABELS[category]
 
     // ── Send email with escaped content ──────────────────────────────────────
     await resend.emails.send({
@@ -78,16 +64,20 @@ export async function POST(req: NextRequest) {
       to: 'admin@clerkfolio.co.uk',
       // replyTo validated above - safe to use
       replyTo: trimmedEmail,
-      subject: `Feedback from ${esc(trimmedName)}`,
+      subject: buildFeedbackSubject(validated.value),
       // Plain text version has no injection risk
-      text: `Name: ${trimmedName}\nEmail: ${trimmedEmail}\n\n${trimmedComment}`,
+      text: `Category: ${categoryLabel}${specialty ? ` (${specialty})` : ''}\nName: ${trimmedName}\nEmail: ${trimmedEmail}\n\n${trimmedComment}`,
       // HTML version uses escaped values throughout
       html: `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
           <h2 style="color: #1B6FD9;">New feedback from Clerkfolio</h2>
           <table style="width: 100%; border-collapse: collapse;">
             <tr>
-              <td style="padding: 8px 0; color: #666; width: 80px;"><strong>Name</strong></td>
+              <td style="padding: 8px 0; color: #666; width: 80px;"><strong>Category</strong></td>
+              <td style="padding: 8px 0;">${esc(categoryLabel)}${specialty ? ` &mdash; ${esc(specialty)}` : ''}</td>
+            </tr>
+            <tr>
+              <td style="padding: 8px 0; color: #666;"><strong>Name</strong></td>
               <td style="padding: 8px 0;">${esc(trimmedName)}</td>
             </tr>
             <tr>

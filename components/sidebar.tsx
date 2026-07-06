@@ -4,10 +4,9 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useState, useEffect } from 'react'
-import { useSearch } from '@/app/(dashboard)/providers'
+import { useSearch, useFeedback } from '@/app/(dashboard)/providers'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { NotificationBellSidebar, NotificationBellMobile } from '@/components/notification-bell'
-import { FeedbackModal } from '@/components/feedback-modal'
 
 type Profile = {
   first_name: string | null
@@ -165,14 +164,13 @@ function getBottomNavItems(careerStage: string | null) {
   ]
 }
 
-export default function Sidebar({ profile, userEmail = '' }: { profile: Profile; userEmail?: string }) {
+export default function Sidebar({ profile }: { profile: Profile }) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
-  const [feedbackOpen, setFeedbackOpen] = useState(false)
-  const prefillName = [profile.first_name, profile.last_name].filter(Boolean).join(' ')
   const [mobileOpen, setMobileOpen] = useState(false)
   const { openSearch } = useSearch()
+  const { openFeedback } = useFeedback()
   // Avoid hydration mismatch flicker when the SSR-assumed platform doesn't match
   // the client. We render no shortcut hint until the component has mounted.
   const [platformHint, setPlatformHint] = useState<string | null>(null)
@@ -375,7 +373,7 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         <div className="px-3 pb-4 space-y-0.5 border-t border-white/[0.06] pt-3">
           {/* Send Feedback */}
           <button
-            onClick={() => setFeedbackOpen(true)}
+            onClick={() => openFeedback()}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold text-[var(--text-emphasis)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-colors"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
@@ -477,14 +475,6 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           </div>
         </div>
       </aside>
-
-      {/* Feedback modal */}
-      <FeedbackModal
-        open={feedbackOpen}
-        onClose={() => setFeedbackOpen(false)}
-        prefillName={prefillName}
-        userEmail={userEmail}
-      />
     </>
   )
 }
