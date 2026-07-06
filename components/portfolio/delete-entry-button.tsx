@@ -3,12 +3,14 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { useToast } from '@/components/ui/toast-provider'
 
 export default function DeleteEntryButton({ id }: { id: string }) {
   const [confirm, setConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const router = useRouter()
   const supabase = createClient()
+  const { addToast } = useToast()
 
   async function handleDelete() {
     setDeleting(true)
@@ -24,6 +26,7 @@ export default function DeleteEntryButton({ id }: { id: string }) {
     if (error) {
       setDeleting(false)
       setConfirm(false)
+      addToast('Failed to delete entry. Please try again.', 'error')
       return
     }
     router.push('/portfolio')
