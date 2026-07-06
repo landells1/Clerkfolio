@@ -76,6 +76,7 @@ export default function HelpPage() {
           Acronyms, concepts, and the difference between the look-alikes (snippets vs templates,
           goals vs deadlines, themes vs specialties). If something is unclear, search this page or
           email <Link href="/contact" className="text-[var(--accent-text)] hover:underline">support</Link>.
+          {' '}See the full <Link href="/help/whats-new" className="text-[var(--accent-text)] hover:underline">what&apos;s new</Link> history for everything we&apos;ve shipped.
         </p>
       </div>
 
