@@ -68,7 +68,7 @@ function monthKey(date: Date) {
 // across SSR/CSR (BUG-004 placement + BUG-010 hydration #418).
 const iso = localIsoDate
 
-export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, filterBar, banner }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; filterBar?: React.ReactNode; banner?: React.ReactNode }) {
+export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, showNationalDefault, displayPrefs, filterBar, banner }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; showNationalDefault: boolean; displayPrefs: Record<string, unknown>; filterBar?: React.ReactNode; banner?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -98,19 +98,28 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   })
   const [eventForm, setEventForm] = useState({ title: '', due_date: '', details: '', location: '', source_specialty_key: '' })
 
+  // Today's date is only known safely on the client (SSR server clock can
+  // disagree with the user's timezone - the BUG-004/BUG-010 class of issue), so
+  // today-dependent decorations (today ring, overdue flags) appear post-mount.
+  const [todayIso, setTodayIso] = useState<string | null>(null)
+
   // Fill in client-only defaults after hydration so SSR HTML and first client
   // render agree.
   useEffect(() => {
     setMounted(true)
     if (window.matchMedia('(max-width: 640px)').matches) setView('list')
     const today = iso(new Date())
+    setTodayIso(today)
     setGoalForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
     setEventForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
   }, [])
   const [calendarToken, setCalendarToken] = useState<string | null>(null)
   const [hasCalendarFeed, setHasCalendarFeed] = useState(calendarFeedExists)
   const [selectedItem, setSelectedItem] = useState<TimelineItem | null>(null)
+  const [selectedDayIso, setSelectedDayIso] = useState<string | null>(null)
   const [calendarFallbackUrl, setCalendarFallbackUrl] = useState<string | null>(null)
+  const [syncMenuOpen, setSyncMenuOpen] = useState(false)
+  const [showNational, setShowNational] = useState(showNationalDefault)
 
   const colourBySpecialty = useMemo(() => Object.fromEntries(specialties.map((specialty, index) => [specialty.id, COLOURS[index % COLOURS.length]])), [specialties])
 
@@ -149,14 +158,39 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
     return [...deadlineItems, ...goalItems].sort((a, b) => a.date.localeCompare(b.date))
   }, [deadlines, goals, specialties])
 
+  // The server always sends the national NHS recruitment dates (isAuto items);
+  // the tick filters them here so toggling is instant, then persists.
+  const visibleItems = useMemo(
+    () => (showNational ? items : items.filter(item => !item.isAuto)),
+    [items, showNational]
+  )
+
   const grouped = useMemo(() => {
     const next: Record<string, TimelineItem[]> = {}
-    items.forEach(item => {
+    visibleItems.forEach(item => {
       const key = item.specialtyName || 'Other'
       next[key] = [...(next[key] ?? []), item]
     })
     return next
-  }, [items])
+  }, [visibleItems])
+
+  async function toggleNationalDeadlines(value: boolean) {
+    setShowNational(value)
+    // Merge into the caller-supplied prefs snapshot: /api/settings/profile
+    // replaces the whole display_prefs object, so a bare write would drop
+    // theme/accessibility choices.
+    const { ok, status } = await apiFetch('/api/settings/profile', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ displayPrefs: { ...displayPrefs, show_national_deadlines: value } }),
+    })
+    if (!ok) {
+      setShowNational(!value)
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : 'Failed to save the NHS dates preference', 'error')
+      return
+    }
+    router.refresh()
+  }
 
   async function addGoal(e: React.FormEvent) {
     e.preventDefault()
@@ -338,10 +372,41 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
               <button key={mode} onClick={() => setView(mode)} className={`min-h-[36px] px-3 rounded-md text-sm capitalize ${view === mode ? 'bg-white/[0.08] text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>{mode}</button>
             ))}
           </div>
-          <button onClick={copyCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)] font-medium rounded-xl px-4 py-2.5 text-sm">Copy feed</button>
-          <button onClick={openCalendarFeed} className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-secondary)] font-medium rounded-xl px-4 py-2.5 text-sm">Apple/Outlook</button>
-          <button onClick={openGoogleCalendar} className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-secondary)] font-medium rounded-xl px-4 py-2.5 text-sm">Google</button>
-          {hasCalendarFeed && <button onClick={() => rotateCalendarFeed()} className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-secondary)] font-medium rounded-xl px-4 py-2.5 text-sm">Rotate feed</button>}
+          <div className="relative" onKeyDown={e => { if (e.key === 'Escape') setSyncMenuOpen(false) }}>
+            <button
+              onClick={() => setSyncMenuOpen(open => !open)}
+              aria-haspopup="menu"
+              aria-expanded={syncMenuOpen}
+              className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)] font-medium rounded-xl px-4 py-2.5 text-sm"
+            >
+              Sync to calendar
+            </button>
+            {syncMenuOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setSyncMenuOpen(false)} />
+                <div role="menu" className="absolute right-0 top-full z-40 mt-2 w-72 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-raised)] p-2 shadow-lg">
+                  <p className="px-3 py-2 text-xs text-[var(--text-muted)]">
+                    Subscribe your calendar app to your deadlines and goals. It stays up to date automatically.
+                  </p>
+                  <button role="menuitem" onClick={() => { setSyncMenuOpen(false); openGoogleCalendar() }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
+                    Google Calendar
+                  </button>
+                  <button role="menuitem" onClick={() => { setSyncMenuOpen(false); openCalendarFeed() }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
+                    Apple Calendar / Outlook
+                  </button>
+                  <button role="menuitem" onClick={() => { setSyncMenuOpen(false); copyCalendarFeed() }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
+                    Copy feed URL
+                  </button>
+                  {hasCalendarFeed && (
+                    <button role="menuitem" onClick={() => { setSyncMenuOpen(false); rotateCalendarFeed() }} className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[var(--text-primary)] hover:bg-[var(--bg-hover)]">
+                      Rotate feed link
+                      <span className="mt-0.5 block text-xs text-[var(--text-muted)]">Creates a new link; the old one stops working.</span>
+                    </button>
+                  )}
+                </div>
+              </>
+            )}
+          </div>
           <button onClick={() => setShowEventForm(true)} className="min-h-[44px] border border-white/[0.08] bg-[var(--bg-surface)] text-[var(--text-primary)] font-medium rounded-xl px-4 py-2.5 text-sm">Add event</button>
           <button onClick={() => setShowGoalForm(true)} className="min-h-[44px] bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] text-[var(--button-primary-text)] font-semibold rounded-xl px-4 py-2.5 text-sm">Add goal</button>
         </div>
@@ -360,9 +425,21 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         </div>
       )}
 
-      {banner}
+      {showNational && banner}
 
       {filterBar}
+
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+          <input
+            type="checkbox"
+            checked={showNational}
+            onChange={e => toggleNationalDeadlines(e.target.checked)}
+          />
+          Show NHS national recruitment dates
+          <span className="text-xs text-[var(--text-muted)]">(auto-loaded from the current recruitment round)</span>
+        </label>
+      </div>
 
       <div className="sm:hidden mb-4">
         <select value={view} onChange={e => setView(e.target.value as 'calendar' | 'list')} className="w-full min-h-[44px] bg-[var(--bg-surface)] border border-white/[0.08] rounded-lg px-3 text-[var(--text-primary)]">
@@ -376,38 +453,97 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           <div className="flex items-center justify-between p-4 border-b border-white/[0.08]">
             <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Previous</button>
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">{month.toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })}</h2>
-            <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Next</button>
+            <div className="flex items-center">
+              <button onClick={() => { const now = new Date(); setMonth(new Date(now.getFullYear(), now.getMonth(), 1)) }} className="min-h-[44px] px-3 text-sm text-[var(--text-secondary)]">Today</button>
+              <button onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} className="min-h-[44px] px-3 text-[var(--text-secondary)]">Next</button>
+            </div>
           </div>
           <div className="grid grid-cols-7 border-b border-white/[0.08] text-xs text-[var(--text-secondary)]">
             {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => <div key={day} className="p-2 text-center sm:p-3 sm:text-left">{day}</div>)}
           </div>
           <div className="grid grid-cols-7">
             {days.map(day => {
-              const dayItems = items.filter(item => item.date === iso(day))
+              const dayIso = iso(day)
+              const dayItems = visibleItems.filter(item => item.date === dayIso)
               const muted = monthKey(day) !== monthKey(month)
+              const isToday = todayIso === dayIso
               return (
-                <div key={day.toISOString()} className={`min-h-20 sm:min-h-28 border-r border-b border-white/[0.06] p-1 sm:p-2 ${muted ? 'bg-black/10' : ''}`}>
-                  <p className={`text-xs mb-2 ${muted ? 'text-[var(--text-secondary)]' : 'text-[var(--text-secondary)]'}`}>{day.getDate()}</p>
+                <div
+                  key={day.toISOString()}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setSelectedDayIso(dayIso)}
+                  onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedDayIso(dayIso) } }}
+                  className={`min-h-20 sm:min-h-28 cursor-pointer border-r border-b border-white/[0.06] p-1 sm:p-2 hover:bg-[var(--bg-hover)] ${muted ? 'bg-black/10' : ''}`}
+                >
+                  <p className="text-xs mb-2 text-[var(--text-secondary)]">
+                    {isToday ? (
+                      <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--accent)] px-1 font-semibold text-[var(--text-on-accent)]">{day.getDate()}</span>
+                    ) : (
+                      day.getDate()
+                    )}
+                  </p>
                   <div className="space-y-1">
                     {dayItems.slice(0, 3).map(item => (
-                      <button key={item.id} type="button" onClick={() => setSelectedItem(item)} className="block w-full truncate rounded px-2 py-1 text-left text-[11px] text-white" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }}>
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setSelectedItem(item) }}
+                        className={`block w-full truncate rounded px-2 py-1 text-left text-[11px] ${item.type === 'goal' ? 'border bg-transparent text-[var(--text-primary)]' : 'text-white'}`}
+                        style={item.type === 'goal'
+                          ? { borderColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }
+                          : { backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }}
+                      >
                         {item.title}
                       </button>
                     ))}
+                    {dayItems.length > 3 && (
+                      <button
+                        type="button"
+                        onClick={e => { e.stopPropagation(); setSelectedDayIso(dayIso) }}
+                        className="block w-full rounded px-2 py-0.5 text-left text-[11px] text-[var(--text-muted)] hover:text-[var(--text-primary)]"
+                      >
+                        +{dayItems.length - 3} more
+                      </button>
+                    )}
                   </div>
                 </div>
               )
             })}
           </div>
+          {(specialties.length > 0 || visibleItems.length > 0) && (
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-white/[0.08] p-3 text-xs text-[var(--text-secondary)]">
+              {specialties.map(specialty => (
+                <span key={specialty.id} className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: colourBySpecialty[specialty.id] }} />
+                  {specialty.name}
+                </span>
+              ))}
+              <span className="inline-flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: 'var(--cat-neutral-dot)' }} />
+                Other
+              </span>
+              <span className="ml-auto inline-flex items-center gap-3 text-[var(--text-muted)]">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: 'var(--cat-neutral-dot)' }} />
+                  Deadline
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-4 rounded-sm border" style={{ borderColor: 'var(--cat-neutral-dot)' }} />
+                  Goal
+                </span>
+              </span>
+            </div>
+          )}
         </section>
       ) : (
-        <TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} />
+        <TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} todayIso={todayIso} />
       )}
 
       {/* Pre-hydration the view is 'calendar' but the calendar grid is hidden on
           mobile; show the list there until the effect resolves the real view, so
           mobile users never see a blank/flashing timeline on first paint. */}
-      {view === 'calendar' && !mounted && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} /></div>}
+      {view === 'calendar' && !mounted && <div className="sm:hidden"><TimelineList grouped={grouped} colourBySpecialty={colourBySpecialty} onSelectItem={setSelectedItem} todayIso={todayIso} /></div>}
 
       {showGoalForm && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
@@ -495,6 +631,43 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
         </div>
       )}
 
+      {selectedDayIso && (
+        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4" onClick={() => setSelectedDayIso(null)}>
+          <div className="w-full sm:max-w-md bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4">
+              <h2 className="text-lg font-semibold text-[var(--text-primary)]">
+                {new Date(selectedDayIso).toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+              </h2>
+              <button type="button" onClick={() => setSelectedDayIso(null)} className="min-h-[36px] px-3 text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Close</button>
+            </div>
+            <div className="mt-4 space-y-2">
+              {visibleItems.filter(item => item.date === selectedDayIso).map(item => (
+                <button
+                  key={item.id}
+                  type="button"
+                  onClick={() => { setSelectedDayIso(null); setSelectedItem(item) }}
+                  className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-4 py-3 text-left hover:border-white/[0.14]"
+                >
+                  <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }} />
+                  <span className="min-w-0 flex-1 truncate text-sm text-[var(--text-primary)]">{item.title}</span>
+                  <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-[var(--success)]' : 'border-amber-400/20 bg-amber-400/10 text-[var(--warning)]'}`}>{item.type}</span>
+                </button>
+              ))}
+              {visibleItems.filter(item => item.date === selectedDayIso).length === 0 && (
+                <p className="rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-4 py-3 text-sm text-[var(--text-muted)]">Nothing scheduled on this day.</p>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => { setEventForm(f => ({ ...f, due_date: selectedDayIso })); setSelectedDayIso(null); setShowEventForm(true) }}
+              className="mt-5 min-h-[44px] w-full rounded-xl bg-[var(--button-primary-bg)] px-4 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)]"
+            >
+              Add event on this date
+            </button>
+          </div>
+        </div>
+      )}
+
       {selectedItem && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-0 sm:p-4">
           <div className="w-full sm:max-w-lg bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6">
@@ -558,19 +731,24 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
   )
 }
 
-function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: Record<string, TimelineItem[]>; colourBySpecialty: Record<string, string>; onSelectItem: (item: TimelineItem) => void }) {
+function TimelineList({ grouped, colourBySpecialty, onSelectItem, todayIso }: { grouped: Record<string, TimelineItem[]>; colourBySpecialty: Record<string, string>; onSelectItem: (item: TimelineItem) => void; todayIso: string | null }) {
   return (
     <div className="space-y-4">
       {Object.entries(grouped).map(([group, groupItems]) => (
         <section key={group} className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5">
           <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{group}</h2>
           <div className="space-y-2">
-            {groupItems.map(item => (
+            {groupItems.map(item => {
+              const overdue = Boolean(todayIso && item.date < todayIso)
+              return (
               <button key={item.id} type="button" onClick={() => onSelectItem(item)} className="flex w-full items-center gap-3 rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] px-4 py-3 text-left hover:border-white/[0.14]">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-[var(--text-primary)]">{item.title}</p>
-                  <p className="text-xs text-[var(--text-secondary)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                  <p className={`text-xs ${overdue ? 'font-medium text-[var(--danger)]' : 'text-[var(--text-secondary)]'}`}>
+                    {new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    {overdue ? ' - overdue' : ''}
+                  </p>
                   {(item.location || item.details) && (
                     <p className="mt-1 line-clamp-2 text-xs text-[var(--text-muted)]">{[item.location, item.details].filter(Boolean).join(' - ')}</p>
                   )}
@@ -582,7 +760,8 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem }: { grouped: R
                   )}
                 </div>
               </button>
-            ))}
+              )
+            })}
           </div>
         </section>
       ))}
