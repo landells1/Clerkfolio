@@ -10,6 +10,7 @@ import CompetencyThemePicker from './competency-theme-picker'
 import ImportanceSelect from './importance-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import EvidenceFiles from '@/components/shared/evidence-files'
+import AttachExistingEvidence from '@/components/shared/attach-existing-evidence'
 import CategoryGuide from '@/components/portfolio/category-guide'
 import { AnonymisationBanner, AnonymisationHint } from '@/components/shared/anonymisation-notice'
 import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
@@ -1034,11 +1035,15 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         {/* Evidence uploads */}
         <div className="space-y-3 border-t border-white/[0.06] pt-6">
           <h3 className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wider">Evidence</h3>
-          {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
+          {/* Already-attached files (edit mode): list with per-file remove/unlink (QOL-013) */}
           {mode === 'edit' && existingEvidence.length > 0 && (
-            <EvidenceFiles initialFiles={existingEvidence} canDelete />
+            <EvidenceFiles initialFiles={existingEvidence} canDelete entryId={initialData?.id} entryType="portfolio" />
           )}
           <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
+          {/* Reuse an already-uploaded file instead of re-uploading it. */}
+          {mode === 'edit' && initialData?.id && (
+            <AttachExistingEvidence entryId={initialData.id} entryType="portfolio" />
+          )}
         </div>
 
         {error && (

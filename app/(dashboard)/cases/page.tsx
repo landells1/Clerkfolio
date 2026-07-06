@@ -40,15 +40,19 @@ export default async function CasesPage({
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user!.id),
+    // Resolve evidence per case through the join table so reused files show on
+    // every case they're linked to (not only where uploaded).
     supabase
-      .from('evidence_files')
-      .select('entry_id, file_name')
-      .eq('user_id', user!.id)
-      .eq('entry_type', 'case'),
+      .from('evidence_file_links')
+      .select('entry_id, evidence_files!inner(file_name, user_id)')
+      .eq('entry_type', 'case')
+      .eq('evidence_files.user_id', user!.id),
   ])
   const fileNamesByCase = new Map<string, string[]>()
-  ;(evidenceFiles ?? []).forEach(file => {
-    fileNamesByCase.set(file.entry_id, [...(fileNamesByCase.get(file.entry_id) ?? []), file.file_name])
+  ;(evidenceFiles ?? []).forEach((link: { entry_id: string; evidence_files: { file_name: string } | { file_name: string }[] | null }) => {
+    const ef = Array.isArray(link.evidence_files) ? link.evidence_files[0] : link.evidence_files
+    if (!ef) return
+    fileNamesByCase.set(link.entry_id, [...(fileNamesByCase.get(link.entry_id) ?? []), ef.file_name])
   })
   const parsedQuery = parseSearchQuery(q)
   if (missing) parsedQuery.missing = missing.toLowerCase()

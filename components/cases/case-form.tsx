@@ -9,6 +9,7 @@ import ImportanceSelect from '@/components/portfolio/importance-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import EvidenceFiles from '@/components/shared/evidence-files'
+import AttachExistingEvidence from '@/components/shared/attach-existing-evidence'
 import { AnonymisationBanner, AnonymisationHint } from '@/components/shared/anonymisation-notice'
 import { uploadPendingFiles, type EvidenceFile } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
@@ -392,11 +393,15 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
       {/* Evidence uploads */}
       <div className="space-y-3">
         <label className={LABEL}>Evidence</label>
-        {/* Already-attached files (edit mode): list with per-file remove (QOL-013) */}
+        {/* Already-attached files (edit mode): list with per-file remove/unlink (QOL-013) */}
         {mode === 'edit' && existingEvidence.length > 0 && (
-          <EvidenceFiles initialFiles={existingEvidence} canDelete />
+          <EvidenceFiles initialFiles={existingEvidence} canDelete entryId={initialData?.id} entryType="case" />
         )}
         <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
+        {/* Reuse an already-uploaded file instead of re-uploading it. */}
+        {mode === 'edit' && initialData?.id && (
+          <AttachExistingEvidence entryId={initialData.id} entryType="case" />
+        )}
       </div>
 
       {error && (

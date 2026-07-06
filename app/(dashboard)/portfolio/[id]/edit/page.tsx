@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import EntryForm from '@/components/portfolio/entry-form'
+import { fetchEvidenceForEntry } from '@/lib/evidence/server'
 
 export default async function EditEntryPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, { data: trackedSpecialties }, { data: existingEvidence }] = await Promise.all([
+  const [{ data: entry }, { data: trackedSpecialties }, existingEvidence] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -20,13 +21,7 @@ export default async function EditEntryPage({ params }: { params: Promise<{ id: 
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user!.id),
-    supabase
-      .from('evidence_files')
-      .select('*')
-      .eq('entry_id', id)
-      .eq('entry_type', 'portfolio')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: true }),
+    fetchEvidenceForEntry(supabase, id, 'portfolio'),
   ])
 
   if (!entry) notFound()

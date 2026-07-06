@@ -34,13 +34,28 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
   }
 
-  const { data: files, error } = await supabase
-    .from('evidence_files')
-    .select('file_path, file_name')
-    .eq('user_id', user.id)
+  // Resolve files through the join table so evidence attached to this entry via
+  // reuse (uploaded against a different entry) is included in the export.
+  const { data: links, error: linkError } = await supabase
+    .from('evidence_file_links')
+    .select('file_id')
     .eq('entry_id', entryId)
     .eq('entry_type', entryType)
-    .eq('scan_status', 'clean')
+
+  if (linkError) {
+    console.error('export/evidence link lookup error:', linkError.message)
+    return NextResponse.json({ error: 'Failed to prepare evidence export. Please try again.' }, { status: 500 })
+  }
+
+  const fileIds = (links ?? []).map(l => l.file_id)
+  const { data: files, error } = fileIds.length > 0
+    ? await supabase
+        .from('evidence_files')
+        .select('file_path, file_name')
+        .eq('user_id', user.id)
+        .in('id', fileIds)
+        .eq('scan_status', 'clean')
+    : { data: [], error: null }
 
   if (error) {
     console.error('export/evidence lookup error:', error.message)

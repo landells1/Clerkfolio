@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import TrashActions from '@/components/trash/trash-actions'
+import { purgeEvidenceForEntriesClient } from '@/lib/evidence/client-purge'
 
 export type TrashItem = {
   id: string
@@ -38,38 +39,14 @@ export default function TrashRow({ item }: { item: TrashItem }) {
       return
     }
     const table = item.type === 'entry' ? 'portfolio_entries' : 'cases'
-    const { data: evidenceFiles, error: evidenceLookupError } = await supabase
-      .from('evidence_files')
-      .select('id, file_path')
-      .eq('entry_id', item.id)
-      .eq('entry_type', entryType)
-      .eq('user_id', user.id)
 
-    if (evidenceLookupError) {
-      addToast('Failed to prepare evidence for deletion', 'error')
+    // Evidence reuse: this entry's files may also be attached to other live
+    // entries. Unlink this entry's files and delete only the ones whose last
+    // link is now gone (a file still linked elsewhere survives).
+    const purge = await purgeEvidenceForEntriesClient(supabase, user.id, [{ entryId: item.id, entryType }])
+    if (purge.error) {
+      addToast(purge.error, 'error')
       return
-    }
-
-    const paths = (evidenceFiles ?? []).map(file => file.file_path)
-    if (paths.length > 0) {
-      const { error: storageError } = await supabase.storage.from('evidence').remove(paths)
-      if (storageError) {
-        addToast('Failed to delete linked evidence files', 'error')
-        return
-      }
-    }
-
-    const evidenceIds = (evidenceFiles ?? []).map(file => file.id)
-    if (evidenceIds.length > 0) {
-      const { error: evidenceDeleteError } = await supabase
-        .from('evidence_files')
-        .delete()
-        .in('id', evidenceIds)
-        .eq('user_id', user.id)
-      if (evidenceDeleteError) {
-        addToast('Failed to delete evidence records', 'error')
-        return
-      }
     }
 
     const { data: deletedRows, error } = await supabase

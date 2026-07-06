@@ -1,7 +1,9 @@
-﻿'use client'
+'use client'
 
 import { useEffect, useState } from 'react'
 import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supabase/storage'
+import { apiFetch } from '@/lib/api-fetch'
+import { useToast } from '@/components/ui/toast-provider'
 import ImageLightbox, { type LightboxImage } from '@/components/ui/image-lightbox'
 
 function formatBytes(bytes: number) {
@@ -10,14 +12,24 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
+type EvidenceFileItem = EvidenceFile & { linkCount?: number }
+
 export default function EvidenceFiles({
   initialFiles,
   canDelete = false,
+  entryId,
+  entryType,
 }: {
-  initialFiles: EvidenceFile[]
+  initialFiles: EvidenceFileItem[]
   canDelete?: boolean
+  // When provided, "remove" unlinks the file from THIS entry (and only deletes
+  // the physical file when it was the last link). Without them, "remove" falls
+  // back to the legacy hard-delete of the whole file.
+  entryId?: string
+  entryType?: 'portfolio' | 'case'
 }) {
-  const [files, setFiles] = useState<EvidenceFile[]>(initialFiles)
+  const { addToast } = useToast()
+  const [files, setFiles] = useState<EvidenceFileItem[]>(initialFiles)
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -40,7 +52,7 @@ export default function EvidenceFiles({
     return () => { cancelled = true }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  async function handleDownload(file: EvidenceFile) {
+  async function handleDownload(file: EvidenceFileItem) {
     if ((file.scan_status ?? 'clean') !== 'clean') return
     setDownloading(file.id)
     // Request the signed URL with the original filename so Supabase serves it
@@ -55,12 +67,33 @@ export default function EvidenceFiles({
     setDownloading(null)
   }
 
-  async function handleDelete(file: EvidenceFile) {
+  const canUnlink = Boolean(entryId && entryType)
+
+  async function handleRemove(file: EvidenceFileItem) {
     setDeleting(file.id)
     setConfirmDeleteId(null)
+
+    if (canUnlink) {
+      const params = new URLSearchParams({ fileId: file.id, entryId: entryId!, entryType: entryType! })
+      const res = await apiFetch<{ deleted: boolean }>(`/api/evidence/link?${params.toString()}`, {
+        method: 'DELETE',
+      })
+      if (res.ok) {
+        setFiles(prev => prev.filter(f => f.id !== file.id))
+        addToast(res.data?.deleted ? 'File removed and deleted.' : 'File removed from this entry.', 'success')
+      } else {
+        addToast('Could not remove that file. Please try again.', 'error')
+      }
+      setDeleting(null)
+      return
+    }
+
+    // Legacy path (no entry context): hard-delete the whole file.
     const { error } = await deleteEvidenceFile(file.id)
     if (!error) {
       setFiles(prev => prev.filter(f => f.id !== file.id))
+    } else {
+      addToast('Could not remove that file. Please try again.', 'error')
     }
     setDeleting(null)
   }
@@ -89,6 +122,11 @@ export default function EvidenceFiles({
             const statusLabel = status === 'clean'
               ? file.scan_provider === 'clamav' ? ' - virus scanned' : ' - MIME verified'
               : status === 'quarantined' ? ' - quarantined' : ' - verifying'
+            const linkCount = file.linkCount ?? 1
+            const sharedAcross = linkCount > 1
+            // "Yes" removes; the last-link case also deletes the file, so make
+            // the confirm copy honest either way.
+            const willDeleteFile = !canUnlink || linkCount <= 1
             return (
           <li
             key={file.id}
@@ -120,6 +158,14 @@ export default function EvidenceFiles({
                 {statusLabel}
               </p>
             </div>
+            {sharedAcross && (
+              <span
+                className="shrink-0 rounded-full border border-accent/30 bg-[var(--accent-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--accent-soft-text)]"
+                title={`This file is attached to ${linkCount} entries. Removing it here won't delete the others.`}
+              >
+                Linked to {linkCount}
+              </span>
+            )}
             <div className="flex items-center gap-2 shrink-0">
               <button
                 onClick={() => handleDownload(file)}
@@ -131,9 +177,11 @@ export default function EvidenceFiles({
               {canDelete && (
                 confirmDeleteId === file.id ? (
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[var(--text-muted)]">Delete?</span>
+                    <span className="text-[10px] text-[var(--text-muted)]">
+                      {willDeleteFile ? 'Delete file?' : 'Remove here?'}
+                    </span>
                     <button
-                      onClick={() => handleDelete(file)}
+                      onClick={() => handleRemove(file)}
                       disabled={deleting === file.id}
                       className="text-[10px] text-red-400 hover:text-[var(--danger)] font-medium disabled:opacity-50"
                     >
@@ -150,6 +198,14 @@ export default function EvidenceFiles({
                   <button
                     onClick={() => setConfirmDeleteId(file.id)}
                     disabled={deleting === file.id}
+                    aria-label={canUnlink ? `Remove ${file.file_name} from this entry` : `Delete ${file.file_name}`}
+                    title={
+                      canUnlink && sharedAcross
+                        ? 'Remove from this entry (the file stays on its other entries)'
+                        : canUnlink
+                          ? 'Remove from this entry (this is the only entry using it, so the file is deleted)'
+                          : 'Delete file'
+                    }
                     className="text-[var(--text-secondary)] hover:text-red-400 transition-colors disabled:opacity-50"
                   >
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

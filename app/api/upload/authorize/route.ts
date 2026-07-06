@@ -157,6 +157,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Could not authorise upload. Please try again.' }, { status: 500 })
   }
 
+  // Create the file's first link row (evidence reuse). The legacy
+  // entry_id/entry_type columns above still record the original binding; the
+  // join table is the source of truth for which entries a file is attached to,
+  // so every file has at least one link from the moment it is created. If the
+  // upload never finalises, the orphan cron deletes the evidence_files row and
+  // this link cascades away (FK ON DELETE CASCADE).
+  const { error: linkError } = await service
+    .from('evidence_file_links')
+    .insert({ file_id: row.id, entry_id: entryId, entry_type: entryType })
+  if (linkError) {
+    await service.from('evidence_files').delete().eq('id', row.id)
+    console.error('upload/authorize link insert error:', linkError.message)
+    return NextResponse.json({ error: 'Could not authorise upload. Please try again.' }, { status: 500 })
+  }
+
   const { data: signed, error: signedError } = await service.storage
     .from(BUCKET)
     .createSignedUploadUrl(path)

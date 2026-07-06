@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import { purgeEvidenceForEntriesClient, type EvidencePurgeTarget } from '@/lib/evidence/client-purge'
 
 export default function EmptyTrashButton({
   eligibleCount,
@@ -50,44 +51,18 @@ export default function EmptyTrashButton({
       setConfirm('')
       return
     }
-    const evidenceQueries = [
-      entryIds.length
-        ? supabase.from('evidence_files').select('id, file_path').eq('user_id', user.id).eq('entry_type', 'portfolio').in('entry_id', entryIds)
-        : Promise.resolve({ data: [], error: null }),
-      caseIds.length
-        ? supabase.from('evidence_files').select('id, file_path').eq('user_id', user.id).eq('entry_type', 'case').in('entry_id', caseIds)
-        : Promise.resolve({ data: [], error: null }),
-    ] as const
-    const [{ data: entryEvidence, error: entryEvidenceError }, { data: caseEvidence, error: caseEvidenceError }] = await Promise.all(evidenceQueries)
-    if (entryEvidenceError || caseEvidenceError) {
+    // Evidence reuse: unlink every expiring entry's files and delete only the
+    // files whose last link is now gone (a file still linked to a live entry
+    // survives). Shared with the per-row "delete permanently" flow.
+    const purgeTargets: EvidencePurgeTarget[] = [
+      ...entryIds.map(id => ({ entryId: id, entryType: 'portfolio' as const })),
+      ...caseIds.map(id => ({ entryId: id, entryType: 'case' as const })),
+    ]
+    const purge = await purgeEvidenceForEntriesClient(supabase, user.id, purgeTargets)
+    if (purge.error) {
       setLoading(false)
-      addToast('Could not load linked evidence for deletion', 'error')
+      addToast(purge.error, 'error')
       return
-    }
-
-    const evidenceFiles = [...(entryEvidence ?? []), ...(caseEvidence ?? [])]
-    const paths = evidenceFiles.map(file => file.file_path)
-    if (paths.length > 0) {
-      const { error: storageError } = await supabase.storage.from('evidence').remove(paths)
-      if (storageError) {
-        setLoading(false)
-        addToast('Could not delete linked evidence files', 'error')
-        return
-      }
-    }
-
-    const evidenceIds = evidenceFiles.map(file => file.id)
-    if (evidenceIds.length > 0) {
-      const { error: evidenceDeleteError } = await supabase
-        .from('evidence_files')
-        .delete()
-        .in('id', evidenceIds)
-        .eq('user_id', user.id)
-      if (evidenceDeleteError) {
-        setLoading(false)
-        addToast('Could not delete linked evidence records', 'error')
-        return
-      }
     }
 
     const [{ error: entryError }, { error: caseError }] = await Promise.all([

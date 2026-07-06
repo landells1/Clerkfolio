@@ -124,6 +124,14 @@ export async function POST(req: NextRequest) {
     supabase.from('api_keys').select('id, user_id, name, prefix, scopes, created_at, last_used_at, revoked_at').eq('user_id', user.id),
   ])
 
+  // Evidence-file links (evidence reuse): included so the export documents every
+  // entry each physical file is attached to. Fetched by file id so it stays
+  // within the user's own files.
+  const evidenceFileIds = (evidenceFiles ?? []).map(f => f.id)
+  const { data: evidenceLinks } = evidenceFileIds.length > 0
+    ? await supabase.from('evidence_file_links').select('*').in('file_id', evidenceFileIds)
+    : { data: [] }
+
   const appIds = (specialtyApps ?? []).map(a => a.id)
   const { data: rawSpecialtyLinks } = appIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', appIds)
@@ -138,10 +146,23 @@ export async function POST(req: NextRequest) {
   )
   const activePortfolioIds = new Set((portfolioEntries ?? []).map(entry => entry.id))
   const activeCaseIds = new Set((cases ?? []).map(c => c.id))
+  // A file is kept if ANY of its links points at a live entry the user still
+  // has (evidence reuse: the file may now be attached to a live entry other
+  // than the one it was originally uploaded against). Falls back to the legacy
+  // entry_id/entry_type binding when a file has no link rows.
+  const linksByFileId = new Map<string, { entry_id: string; entry_type: string }[]>()
+  for (const link of (evidenceLinks ?? []) as { file_id: string; entry_id: string; entry_type: string }[]) {
+    const list = linksByFileId.get(link.file_id) ?? []
+    list.push({ entry_id: link.entry_id, entry_type: link.entry_type })
+    linksByFileId.set(link.file_id, list)
+  }
+  const isLiveLink = (l: { entry_id: string; entry_type: string }) =>
+    (l.entry_type === 'portfolio' && activePortfolioIds.has(l.entry_id)) ||
+    (l.entry_type === 'case' && activeCaseIds.has(l.entry_id))
   const filteredEvidenceFiles = (evidenceFiles ?? []).filter(file => {
-    if (file.entry_type === 'portfolio') return activePortfolioIds.has(file.entry_id)
-    if (file.entry_type === 'case') return activeCaseIds.has(file.entry_id)
-    return false
+    const links = linksByFileId.get(file.id) ?? []
+    if (links.length > 0) return links.some(isLiveLink)
+    return isLiveLink({ entry_id: file.entry_id, entry_type: file.entry_type })
   })
   // Budget evidence by stored size before any download starts so the archive
   // stays within MAX_EVIDENCE_BYTES; everything over budget is listed in the
@@ -235,6 +256,7 @@ export async function POST(req: NextRequest) {
       arcp_links: filteredArcpLinks.length,
       templates: templates?.length ?? 0,
       evidence_files: downloadedEvidenceCount,
+      evidence_file_links: (evidenceLinks ?? []).length,
       evidence_files_skipped_over_size_cap: skippedEvidence.length,
       evidence_files_failed_download: failedEvidence.length,
       personal_log: personalLog?.length ?? 0,
@@ -269,6 +291,7 @@ export async function POST(req: NextRequest) {
   raw.file('goals.json', JSON.stringify(goals ?? [], null, 2))
   raw.file('specialty-applications.json', JSON.stringify(specialtyApps ?? [], null, 2))
   raw.file('specialty-entry-links.json', JSON.stringify(filteredLinks, null, 2))
+  raw.file('evidence-file-links.json', JSON.stringify(evidenceLinks ?? [], null, 2))
   raw.file('arcp-links.json', JSON.stringify(filteredArcpLinks, null, 2))
   raw.file('templates.json', JSON.stringify(templates ?? [], null, 2))
   raw.file('personal-log.json', JSON.stringify(personalLog ?? [], null, 2))

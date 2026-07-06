@@ -21,6 +21,7 @@ import PinButton from '@/components/ui/pin-button'
 import SaveTemplateButton from '@/components/portfolio/save-template-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
+import { fetchEvidenceForEntry } from '@/lib/evidence/server'
 
 function formatTag(tag: string): string {
   return formatSpecialtyLabel(tag)
@@ -54,7 +55,7 @@ export default async function EntryDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, { data: evidenceFiles, error: evidenceError }] = await Promise.all([
+  const [{ data: entry }, evidenceFiles] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -62,13 +63,7 @@ export default async function EntryDetailPage({
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .single(),
-    supabase
-      .from('evidence_files')
-      .select('*')
-      .eq('entry_id', id)
-      .eq('entry_type', 'portfolio')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: true }),
+    fetchEvidenceForEntry(supabase, id, 'portfolio'),
   ])
 
   if (!entry) notFound()
@@ -259,15 +254,11 @@ export default async function EntryDetailPage({
         )}
 
         {/* Evidence files */}
-        {evidenceError ? (
+        {evidenceFiles.length > 0 && (
           <div className="border-t border-white/[0.06] pt-5">
-            <p className="text-xs text-red-400">Could not load attachments. Try refreshing the page.</p>
+            <EvidenceFiles initialFiles={evidenceFiles} canDelete entryId={id} entryType="portfolio" />
           </div>
-        ) : evidenceFiles && evidenceFiles.length > 0 ? (
-          <div className="border-t border-white/[0.06] pt-5">
-            <EvidenceFiles initialFiles={evidenceFiles} canDelete={true} />
-          </div>
-        ) : null}
+        )}
 
         {/* Metadata */}
         <div className="border-t border-white/[0.06] pt-4 flex justify-between text-[10px] text-[var(--text-secondary)] font-mono">

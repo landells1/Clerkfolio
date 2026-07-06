@@ -52,16 +52,20 @@ export default async function PortfolioPage({
       .select('specialty_key')
       .eq('user_id', user!.id)
       .eq('is_active', true),
+    // Resolve evidence per entry through the join table so files reused across
+    // entries show on every entry they're linked to (not only where uploaded).
     supabase
-      .from('evidence_files')
-      .select('entry_id, file_name')
-      .eq('user_id', user!.id)
-      .eq('entry_type', 'portfolio'),
+      .from('evidence_file_links')
+      .select('entry_id, evidence_files!inner(file_name, user_id)')
+      .eq('entry_type', 'portfolio')
+      .eq('evidence_files.user_id', user!.id),
   ])
 
   const fileNamesByEntry = new Map<string, string[]>()
-  ;(evidenceFiles ?? []).forEach(file => {
-    fileNamesByEntry.set(file.entry_id, [...(fileNamesByEntry.get(file.entry_id) ?? []), file.file_name])
+  ;(evidenceFiles ?? []).forEach((link: { entry_id: string; evidence_files: { file_name: string } | { file_name: string }[] | null }) => {
+    const ef = Array.isArray(link.evidence_files) ? link.evidence_files[0] : link.evidence_files
+    if (!ef) return
+    fileNamesByEntry.set(link.entry_id, [...(fileNamesByEntry.get(link.entry_id) ?? []), ef.file_name])
   })
   const parsedQuery = parseSearchQuery(q)
   if (missing) parsedQuery.missing = missing.toLowerCase()

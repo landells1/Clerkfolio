@@ -9,6 +9,7 @@ import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
 import PinButton from '@/components/ui/pin-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
+import { fetchEvidenceForEntry } from '@/lib/evidence/server'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -27,7 +28,7 @@ export default async function CaseDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: c }, { data: evidenceFiles }] = await Promise.all([
+  const [{ data: c }, evidenceFiles] = await Promise.all([
     supabase
       .from('cases')
       .select('*')
@@ -35,13 +36,7 @@ export default async function CaseDetailPage({
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .single(),
-    supabase
-      .from('evidence_files')
-      .select('*')
-      .eq('entry_id', id)
-      .eq('entry_type', 'case')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: true }),
+    fetchEvidenceForEntry(supabase, id, 'case'),
   ])
 
   if (!c) notFound()
@@ -131,9 +126,9 @@ export default async function CaseDetailPage({
         )}
 
         {/* Evidence files */}
-        {evidenceFiles && evidenceFiles.length > 0 && (
+        {evidenceFiles.length > 0 && (
           <div className="border-t border-white/[0.06] pt-5">
-            <EvidenceFiles initialFiles={evidenceFiles} canDelete={true} />
+            <EvidenceFiles initialFiles={evidenceFiles} canDelete entryId={id} entryType="case" />
           </div>
         )}
 

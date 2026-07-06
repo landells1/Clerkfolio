@@ -2,13 +2,14 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import CaseForm from '@/components/cases/case-form'
+import { fetchEvidenceForEntry } from '@/lib/evidence/server'
 
 export default async function EditCasePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: c }, { data: trackedSpecialties }, { data: existingEvidence }] = await Promise.all([
+  const [{ data: c }, { data: trackedSpecialties }, existingEvidence] = await Promise.all([
     supabase
       .from('cases')
       .select('*')
@@ -20,13 +21,7 @@ export default async function EditCasePage({ params }: { params: Promise<{ id: s
       .from('specialty_applications')
       .select('specialty_key')
       .eq('user_id', user!.id),
-    supabase
-      .from('evidence_files')
-      .select('*')
-      .eq('entry_id', id)
-      .eq('entry_type', 'case')
-      .eq('user_id', user!.id)
-      .order('created_at', { ascending: true }),
+    fetchEvidenceForEntry(supabase, id, 'case'),
   ])
 
   if (!c) notFound()

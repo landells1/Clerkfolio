@@ -17,16 +17,59 @@ async function purgeEvidenceForEntries(
 ) {
   if (entryIds.length === 0) return
 
-  // Fetch all evidence rows referencing the entries we're about to hard-delete.
-  // We delete the storage objects first (best-effort) and then the DB rows.
-  const { data: files, error } = await supabase
-    .from('evidence_files')
-    .select('id, file_path')
+  // Evidence reuse: a physical file can be linked to several entries. Deleting
+  // the doomed entries must (1) drop their link rows and (2) remove the storage
+  // object + evidence_files row ONLY for files whose LAST link is now gone. A
+  // file still linked to a surviving (or not-yet-purged) entry must be kept.
+
+  // Files touched by any of the doomed entries.
+  const { data: doomedLinks, error: doomedError } = await supabase
+    .from('evidence_file_links')
+    .select('file_id')
     .in('entry_id', entryIds)
     .eq('entry_type', entryType)
 
+  if (doomedError) {
+    logBackgroundJobError('cron.purge_deleted.evidence_link_lookup', doomedError, { entryType, count: entryIds.length })
+    return
+  }
+  const candidateFileIds = Array.from(new Set((doomedLinks ?? []).map(l => l.file_id)))
+
+  // Remove the doomed entries' link rows first so the "remaining links" count
+  // below reflects reality.
+  for (let offset = 0; offset < entryIds.length; offset += CHUNK) {
+    const slice = entryIds.slice(offset, offset + CHUNK)
+    const { error: unlinkError } = await supabase
+      .from('evidence_file_links')
+      .delete()
+      .in('entry_id', slice)
+      .eq('entry_type', entryType)
+    if (unlinkError) logBackgroundJobError('cron.purge_deleted.evidence_unlink', unlinkError, { count: slice.length })
+  }
+
+  if (candidateFileIds.length === 0) return
+
+  // Of the touched files, which now have zero remaining links?
+  const { data: survivingLinks, error: survivingError } = await supabase
+    .from('evidence_file_links')
+    .select('file_id')
+    .in('file_id', candidateFileIds)
+  if (survivingError) {
+    logBackgroundJobError('cron.purge_deleted.evidence_surviving_lookup', survivingError, { count: candidateFileIds.length })
+    return
+  }
+  const stillLinked = new Set((survivingLinks ?? []).map(l => l.file_id))
+  const orphanFileIds = candidateFileIds.filter(id => !stillLinked.has(id))
+  if (orphanFileIds.length === 0) return
+
+  // Look up paths for the now-orphaned files, then delete storage + rows.
+  const { data: files, error } = await supabase
+    .from('evidence_files')
+    .select('id, file_path')
+    .in('id', orphanFileIds)
+
   if (error) {
-    logBackgroundJobError('cron.purge_deleted.evidence_lookup', error, { entryType, count: entryIds.length })
+    logBackgroundJobError('cron.purge_deleted.evidence_lookup', error, { entryType, count: orphanFileIds.length })
     return
   }
   if (!files || files.length === 0) return
