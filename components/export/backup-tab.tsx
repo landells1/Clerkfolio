@@ -41,7 +41,7 @@ export function BackupTab({
             {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
           </p>
           <p className="mt-1 text-[var(--text-secondary)]">
-            Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV downloads.
+            Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV PDF/DOCX downloads.
           </p>
         </div>
       )}

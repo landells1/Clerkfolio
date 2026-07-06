@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
 import CvDownloadButton from '@/components/export/cv-download-button'
+import DocxDownloadButton from '@/components/export/docx-download-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 
 const TEMPLATES = [
@@ -78,11 +79,12 @@ export default async function CvGeneratorPage({
           </Link>
         ))}
         <CvDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
+        <DocxDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
       </div>
       {!subInfo.isPro && (
         <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
           {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining. ' : 'Your included PDF has been used. '}
-          CV downloads share the PDF allowance with Application PDF and Year in review downloads.
+          CV PDF and DOCX downloads share the PDF allowance with Application PDF and Year in review downloads.
         </p>
       )}
       <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">

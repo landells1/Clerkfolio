@@ -304,7 +304,7 @@ export default function ExportPage() {
     if (!ok || !response) {
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const json = await response?.json().catch(() => ({})) ?? {}
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
       return
     }
     await downloadBlob(response, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -323,7 +323,7 @@ export default function ExportPage() {
     if (!ok || !response) {
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const json = await response?.json().catch(() => ({})) ?? {}
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Appended PDFs, Year in review, Application PDF and CV downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Appended PDFs, Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
       return
     }
     await downloadBlob(response, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
