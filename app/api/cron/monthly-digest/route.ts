@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
-import { buildDigestSummary, type DigestEntry } from '@/lib/engagement/digest'
+import { buildDigestSummary, isDigestEmpty, shouldSendMonthlyDigest, type DigestEntry } from '@/lib/engagement/digest'
 import { previousLondonMonthWindow } from '@/lib/engagement/streaks'
 import { monthlyDigestEmail } from '@/lib/notifications/email-templates'
 import { processInBatches } from '@/lib/utils/batch'
@@ -15,6 +15,7 @@ export const maxDuration = 60
 const EMAIL_CONCURRENCY = 5
 
 type Preferences = {
+  weekly_digest?: boolean
   monthly_digest?: boolean
 }
 
@@ -55,13 +56,19 @@ export async function GET(req: NextRequest) {
   }
 
   let sent = 0
+  // Skip anyone who already gets this material weekly (de-dup, not a
+  // preference change) - see shouldSendMonthlyDigest for the rule.
   const recipients = ((profiles ?? []) as ProfileRow[])
-    .filter(profile => profile.notification_preferences?.monthly_digest !== false)
+    .filter(profile => shouldSendMonthlyDigest(profile.notification_preferences ?? {}))
 
   await processInBatches(recipients, EMAIL_CONCURRENCY, async profile => {
     const entries = entriesByUser.get(profile.id) ?? []
     const activeWeeks = profile.streak_cache?.active_weeks ?? []
     const summary = buildDigestSummary(entries, activeWeeks)
+    // Defence-in-depth: the profile set here is already pre-filtered to users
+    // with activity last month (see fetchWindowEntriesByUser), but guard the
+    // send directly too so this stays true if that query ever changes.
+    if (isDigestEmpty(summary)) return
     const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
     if (!user?.email) return
 

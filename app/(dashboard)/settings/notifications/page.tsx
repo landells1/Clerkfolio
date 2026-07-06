@@ -20,7 +20,7 @@ const OPTIONS = [
   { key: 'activity_nudge', label: 'Activity nudge' },
   { key: 'application_window', label: 'Application windows' },
   { key: 'weekly_digest', label: 'Weekly digest' },
-  { key: 'monthly_digest', label: 'Monthly digest' },
+  { key: 'monthly_digest', label: 'Monthly digest', hint: 'Only sent if your weekly digest is off, so you never get both covering the same activity.' },
 ] as const
 
 export default function NotificationSettingsPage() {
@@ -93,6 +93,7 @@ export default function NotificationSettingsPage() {
               <ToggleRow
                 key={option.key}
                 label={option.label}
+                hint={'hint' in option ? option.hint : undefined}
                 checked={resolvedPrefs[option.key]}
                 disabled={saving}
                 onChange={checked => save({ ...resolvedPrefs, [option.key]: checked })}
@@ -105,11 +106,14 @@ export default function NotificationSettingsPage() {
   )
 }
 
-function ToggleRow({ label, checked, disabled, onChange }: { label: string; checked: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
+function ToggleRow({ label, hint, checked, disabled, onChange }: { label: string; hint?: string; checked: boolean; disabled?: boolean; onChange: (checked: boolean) => void }) {
   return (
     <label className="flex min-h-[44px] items-center justify-between gap-4">
-      <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange(e.target.checked)} className="h-5 w-5 accent-[var(--accent-text)]" />
+      <span className="flex flex-col">
+        <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
+        {hint && <span className="text-xs text-[var(--text-muted)]">{hint}</span>}
+      </span>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={e => onChange(e.target.checked)} className="h-5 w-5 accent-[var(--accent-text)] shrink-0" />
     </label>
   )
 }

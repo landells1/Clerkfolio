@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
-import { buildDigestSummary, type DigestEntry } from '@/lib/engagement/digest'
+import { buildDigestSummary, isDigestEmpty, type DigestEntry } from '@/lib/engagement/digest'
 import { currentLondonWeekWindow } from '@/lib/engagement/streaks'
 import { weeklyDigestEmail } from '@/lib/notifications/email-templates'
 import { processInBatches } from '@/lib/utils/batch'
@@ -62,6 +62,10 @@ export async function GET(req: NextRequest) {
     const entries = entriesByUser.get(profile.id) ?? []
     const activeWeeks = profile.streak_cache?.active_weeks ?? []
     const summary = buildDigestSummary(entries, activeWeeks)
+    // Defence-in-depth: the profile set here is already pre-filtered to users
+    // with activity this week (see fetchWindowEntriesByUser), but guard the
+    // send directly too so this stays true if that query ever changes.
+    if (isDigestEmpty(summary)) return
     const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
     if (!user?.email) return
 
