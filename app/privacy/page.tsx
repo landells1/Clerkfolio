@@ -3,7 +3,7 @@ import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 import { LEGAL_ENTITY } from '@/lib/legal/entity'
 
-const lastUpdated = '28 June 2026'
+const lastUpdated = '6 July 2026'
 
 const dataRows = [
   {
@@ -21,8 +21,8 @@ const dataRows = [
   {
     category: 'Anonymised case diary',
     examples: 'Case title, date, clinical area, specialty tags, competency themes, notes, pinned status, and importance rating.',
-    purpose: 'To help you maintain a personal anonymised clinical diary. Clerkfolio is not designed for patient-identifiable data. To the extent that case notes incidentally contain health information about third parties, processing of that special category data is based on your explicit consent (Art 9(2)(a)).',
-    lawfulBasis: 'Contract (Art 6(1)(b)); explicit consent (Art 9(2)(a)) for any special category health data incidentally contained in notes; legitimate interests (Art 6(1)(f)) for security and integrity.',
+    purpose: 'To help you maintain a personal anonymised clinical diary. Case entries must be fully anonymised: our terms prohibit entering patient-identifiable information, and truly anonymised notes are not personal data about a patient. If we become aware of identifiable content we may restrict or remove it.',
+    lawfulBasis: 'Contract (Art 6(1)(b)); legitimate interests (Art 6(1)(f)) for security and integrity.',
   },
   {
     category: 'Evidence files',
@@ -86,6 +86,10 @@ const processors = [
 ]
 
 const changelog = [
+  {
+    date: '6 July 2026',
+    changes: 'Removed the Article 9(2)(a) explicit-consent lawful basis for incidental third-party health data: consent from the account holder cannot cover a patient, and the correct position is that Clerkfolio requires full anonymisation (anonymised information is not personal data). Removed the standing public DPA (no institutional customers; bilateral DPAs on request). Corrected the analytics-consent description to match the actual off-by-default footer control.',
+  },
   {
     date: '28 June 2026',
     changes: 'Corrected the operator disclosure: Clerkfolio is operated by an individual (a sole trader) in the UK, not a limited company. Added placeholders for the proprietor name, address for service, and ICO registration reference. Consolidated the published contact address to admin@clerkfolio.co.uk.',
@@ -188,14 +192,13 @@ export default function PrivacyPage() {
             combination of details could still identify a patient, so you should generalise or omit unnecessary details.
           </p>
           <p>
-            To the extent that any information you enter could constitute health data about a third party under
-            Article 9 UK GDPR (for example, a case note that incidentally reveals a patient&apos;s medical condition
-            even after anonymisation), we rely on your explicit consent given when you create an account and accept
-            our <Link href="/terms" className="underline hover:text-[var(--text-primary)]">Terms of service</Link>. You may
-            withdraw this consent by deleting the relevant content or your account, though withdrawal does not
-            affect processing already carried out.
+            Information that has been properly anonymised is not personal data about a patient, so entering it does
+            not involve processing patient data under UK GDPR. That is why anonymisation is a strict condition of
+            using Clerkfolio, set out in our{' '}
+            <Link href="/terms" className="underline hover:text-[var(--text-primary)]">Terms of service</Link>: you must
+            not enter information that could identify a patient, and you remain responsible for anonymising anything
+            you record.
           </p>
-          {/* Art 9(2)(a) explicit consent at sign-up confirmed as the intended basis by operator. A separate at-point-of-entry mechanism is not planned. */}
           <p>
             If we become aware that content appears to contain patient-identifiable information, we may ask you to edit it,
             restrict the content, suspend sharing, or remove it where necessary to protect patients, comply with law, or
@@ -272,8 +275,8 @@ export default function PrivacyPage() {
         <Section title="Cookies, analytics, and local storage">
           <p>
             Clerkfolio uses essential authentication cookies and similar technologies to keep you signed in, secure your
-            session, remember requested service state, and run the web app. When you first visit the site, we ask for your
-            consent before loading optional analytics. Full details are in our{' '}
+            session, remember requested service state, and run the web app. Optional analytics is off by default and is
+            only loaded if you enable it via the Analytics preferences control in the page footer. Full details are in our{' '}
             <Link href="/cookies" className="underline hover:text-[var(--text-primary)]">Cookie policy</Link>.
           </p>
           <p>
@@ -314,15 +317,6 @@ export default function PrivacyPage() {
             To exercise any right, contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>. We aim to
             respond within one month and may ask you to verify your identity before acting. The ICO may also be contacted
             directly at <a href="https://ico.org.uk/make-a-complaint/" target="_blank" rel="noopener noreferrer" className="underline">ico.org.uk/make-a-complaint</a>.
-          </p>
-        </Section>
-
-        <Section title="Data processing agreement">
-          <p>
-            Institutional or enterprise customers who require a formal data processing agreement can find our standard
-            terms at{' '}
-            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">clerkfolio.co.uk/dpa</Link>. For bilateral
-            signed DPAs, contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>.
           </p>
         </Section>
 

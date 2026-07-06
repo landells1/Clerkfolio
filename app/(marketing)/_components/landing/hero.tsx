@@ -29,7 +29,7 @@ export function Hero() {
           </div>
           <div className="mt-6 flex flex-wrap gap-x-[18px] gap-y-2 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-dim sm:mt-8">
             <span><span aria-hidden>◆</span> UK-hosted · London</span>
-            <span><span aria-hidden>◆</span> AES-256 encrypted</span>
+            <span><span aria-hidden>◆</span> Encrypted in transit &amp; at rest</span>
             <span><span aria-hidden>◆</span> Fully exportable</span>
           </div>
         </div>

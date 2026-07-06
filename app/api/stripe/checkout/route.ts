@@ -70,6 +70,18 @@ export async function POST(request: NextRequest) {
       cancel_url: `${APP_URL}/settings`,
       allow_promotion_codes: true,
       metadata: { supabase_user_id: user.id },
+      // Consumer Contracts Regulations 2013: capture agreement to the terms and
+      // the express request for immediate supply (which converts a cancellation
+      // in the 14-day cooling-off period into a pro-rata refund) at the point
+      // of payment. Requires the terms-of-service URL to be set in the Stripe
+      // Dashboard (Settings -> Business -> Public details) or session creation fails.
+      consent_collection: { terms_of_service: 'required' },
+      custom_text: {
+        terms_of_service_acceptance: {
+          message:
+            'Your subscription renews automatically at GBP 9.99/year until cancelled; cancel renewal any time from the billing portal. By subscribing you request immediate access to Pro. You keep your 14-day right to cancel for a refund, less a proportionate charge for the period already supplied - see the [refund policy](https://clerkfolio.co.uk/terms).',
+        },
+      },
     })
 
     return NextResponse.json({ url: session.url })

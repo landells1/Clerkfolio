@@ -26,7 +26,6 @@ export function CtaFooter() {
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/cookies">Cookies</Link>
-          <Link href="/dpa">DPA</Link>
           <Link href="/security">Security</Link>
           <Link href="/subprocessors">Subprocessors</Link>
           <Link href="/contact">Contact</Link>

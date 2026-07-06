@@ -1,7 +1,7 @@
 import { SectionHeader } from './section-header'
 
 const faqs = [
-  ['Is my data really private?', 'Yes. UK-hosted (London), AES-256 encrypted at rest and in transit, GDPR-aligned. You own your data and can export the lot as a ZIP at any time. Account deletion is permanent and complete.'],
+  ['Is my data really private?', 'Yes. UK-hosted (London), encrypted in transit and at rest, GDPR-aligned. You own your data and can export the lot as a ZIP at any time. Deleting your account removes your data from live systems straight away; backups purge within 30 days.'],
   ['Will it accept patient identifiers?', 'No. Every case form reminds you to leave out identifiers - no names, dates of birth or NHS numbers - and we ask you not to enter any patient-identifiable data.'],
   ['Are you affiliated with the NHS, GMC or any Royal College?', "No. Clerkfolio is independent. We map onto specialty self-assessment criteria where each specialty publishes them - but we don't replace official portfolios required by deaneries."],
   ['Can I import from Horus?', 'Yes - Horus CSV bulk import is available on the Pro plan. Free and Student users can still add entries one at a time, or copy across by hand.'],

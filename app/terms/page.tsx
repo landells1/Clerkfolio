@@ -18,17 +18,21 @@ export const metadata: Metadata = {
   alternates: { canonical: '/terms' },
 }
 
-const lastUpdated = '28 June 2026'
+const lastUpdated = '6 July 2026'
 
 // Storage figures are computed from the entitlement constants so the Terms can
 // never drift from what the app actually grants (single source: limits.ts).
 const planRows = [
   ['Free', `${formatStorageQuota(BASE_STORAGE_MB)} storage. Core portfolio, cases, dashboard, timeline, ARCP tracking, settings, personal backup, one PDF export, one share link, and one active specialty tracker.`],
   ['Verified', `${formatStorageQuota(VERIFIED_STORAGE_MB)} storage for accounts verified with a .ac.uk student or NHS doctor email (the ${formatStorageQuota(BASE_STORAGE_MB)} free allowance plus a ${VERIFIED_BONUS_MB} MB verification bonus). The same feature limits as Free unless otherwise stated in the app.`],
-  ['Pro', `GBP 9.99 per year (price inclusive of VAT where applicable), ${formatStorageQuota(PRO_STORAGE_MB)} storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available. Pro is available only by paid subscription.`],
+  ['Pro', `GBP 9.99 per year (the total price payable), ${formatStorageQuota(PRO_STORAGE_MB)} storage, and unrestricted Pro features shown in the app, including additional PDF exports, share links, specialties, and bulk import where available. Pro is available only by paid subscription.`],
 ]
 
 const changelog = [
+  {
+    date: '6 July 2026',
+    changes: 'Rewrote the Refunds and cancellations section to set out the 14-day cooling-off right in full (immediate-supply request, proportionate deduction, how to cancel, model cancellation form). Clarified that the displayed price is the total price payable.',
+  },
   {
     date: '28 June 2026',
     changes: 'Corrected the operator wording (sole trader, not a limited company). Updated the plan table to the current Free / Verified / Pro tiers and clarified that Pro is paid-subscription only. Added a Referrals and rewards section.',
@@ -163,7 +167,8 @@ export default function TermsPage() {
             </table>
           </div>
           <p>
-            All prices shown on the site include VAT at the applicable rate, unless stated otherwise.
+            The price shown is the total price you pay; if VAT becomes chargeable it will be included in the displayed
+            price rather than added on top.
             Prices, allowances, and features may change, but changes will not reduce the paid term you have already bought
             without notice or a lawful basis. Subscription billing is handled by Stripe. Paid plans renew until cancelled.
             You can manage or cancel your subscription through the billing portal where available.
@@ -193,16 +198,31 @@ export default function TermsPage() {
 
         <Section title="Refunds and cancellations">
           <p>
-            You can cancel future renewal of a paid plan through the Stripe billing portal where available or by contacting
-            us. Unless the law gives you a right to cancel or receive a refund, fees already paid are not automatically
-            refundable.
+            <strong>Your 14-day right to cancel.</strong> If you are a consumer, you have the right to cancel a new
+            subscription within 14 days of the day after you buy it, without giving a reason, under the Consumer
+            Contracts (Information, Cancellation and Additional Charges) Regulations 2013. By subscribing, you
+            expressly request that we start providing the Pro service immediately, during the cancellation period.
+            If you then cancel within the 14 days, we will refund what you paid minus a proportionate amount for the
+            time the service was supplied before you told us you were cancelling.
           </p>
           <p>
-            Where consumer cancellation rights apply under applicable UK law, including the Consumer Contracts
-            Regulations 2013, you may have a 14-day right to cancel a new subscription. This right may be affected once
-            you explicitly request that we begin providing the digital service during the cancellation period, in which
-            case you may owe a proportionate payment. Contact <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a> for
-            refund requests; we will respond within 10 business days.
+            <strong>How to cancel.</strong> You can cancel by emailing{' '}
+            <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a> with any clear statement that you want
+            to cancel, or by using the model form below (its use is not obligatory). To cancel future renewal at any
+            time (inside or outside the 14 days), you can also use the Stripe billing portal in Settings. Refunds are
+            made within 14 days of cancellation using the original payment method.
+          </p>
+          <p>
+            <strong>After the 14 days.</strong> You can stop your plan renewing at any time and keep Pro until the end
+            of the period you paid for. Fees for a period already supplied are not otherwise refundable, except where
+            the law gives you a right to a refund (for example where the service is faulty under the Consumer Rights
+            Act 2015).
+          </p>
+          <p className="rounded-lg border border-white/[0.08] px-4 py-3 text-xs leading-6">
+            <strong>Model cancellation form.</strong> To Clerkfolio ({' '}
+            <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>): I hereby give notice that I cancel my
+            contract for the supply of the Clerkfolio Pro subscription, ordered on [date], name of consumer, email
+            address used for the account, date.
           </p>
         </Section>
 

@@ -454,7 +454,6 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
               ['Privacy', '/privacy'],
               ['Terms', '/terms'],
               ['Cookies', '/cookies'],
-              ['DPA', '/dpa'],
               ['Security', '/security'],
               ['Contact', '/contact'],
             ].map(([label, href]) => (

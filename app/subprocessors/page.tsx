@@ -9,7 +9,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/subprocessors' },
 }
 
-const lastUpdated = '28 June 2026'
+const lastUpdated = '6 July 2026'
 
 type Subprocessor = {
   name: string
@@ -81,29 +81,11 @@ export default function SubprocessorsPage() {
           <h1 className="text-3xl font-semibold tracking-tight">Subprocessors</h1>
           <p className="text-sm text-[var(--text-secondary)]">Last updated: {lastUpdated}</p>
           <p className="max-w-3xl text-sm leading-7 text-[var(--text-secondary)]">
-            This page lists the third-party subprocessors Clerkfolio uses to deliver the service.
-            All subprocessors are engaged under written data processing agreements with obligations
-            equivalent to those in our{' '}
-            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">
-              Data Processing Agreement
-            </Link>
-            .
+            This page lists the third-party providers Clerkfolio uses to deliver the service.
+            Each provider is engaged under its own published data processing terms, linked below.
+            We update this page when a provider is added, replaced, or removed.
           </p>
         </header>
-
-        <div className="rounded-xl border border-accent/20 bg-accent/8 px-5 py-4 text-sm leading-7 text-[var(--text-primary)]">
-          <p className="font-semibold text-[var(--text-primary)] mb-1">Stay informed</p>
-          <p className="text-xs leading-6">
-            To be notified of changes to this subprocessor list (at least 30 days in advance of any
-            addition or replacement), email{' '}
-            <a href="mailto:admin@clerkfolio.co.uk" className="underline hover:text-[var(--text-primary)]">
-              admin@clerkfolio.co.uk
-            </a>{' '}
-            with the subject line &ldquo;Subscribe to subprocessor changes&rdquo;. See our{' '}
-            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">DPA</Link> for your rights
-            to object to new subprocessors.
-          </p>
-        </div>
 
         <div className="space-y-4">
           {subprocessors.map(sp => (
@@ -155,9 +137,7 @@ export default function SubprocessorsPage() {
           <p>
             Questions about this list or our data processing practices should be sent to{' '}
             <a href="mailto:admin@clerkfolio.co.uk">admin@clerkfolio.co.uk</a>. See also our{' '}
-            <Link href="/privacy" className="underline hover:text-[var(--text-primary)]">Privacy policy</Link>{' '}
-            and{' '}
-            <Link href="/dpa" className="underline hover:text-[var(--text-primary)]">Data processing agreement</Link>.
+            <Link href="/privacy" className="underline hover:text-[var(--text-primary)]">Privacy policy</Link>.
           </p>
         </section>
       </article>

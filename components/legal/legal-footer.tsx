@@ -5,7 +5,6 @@ const LEGAL_LINKS = [
   { label: 'Privacy', href: '/privacy' },
   { label: 'Terms', href: '/terms' },
   { label: 'Cookies', href: '/cookies' },
-  { label: 'DPA', href: '/dpa' },
   { label: 'Subprocessors', href: '/subprocessors' },
   { label: 'Security', href: '/security' },
   { label: 'Contact', href: '/contact' },

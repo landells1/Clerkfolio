@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   alternates: { canonical: '/security' },
 }
 
-const lastUpdated = '26 May 2026'
+const lastUpdated = '6 July 2026'
 
 export default function SecurityPage() {
   return (
@@ -33,7 +33,7 @@ export default function SecurityPage() {
               admin@clerkfolio.co.uk
             </a>{' '}
             with details of the issue. Please include steps to reproduce and any supporting
-            evidence. We will acknowledge your report within 3 business days.
+            evidence. We aim to acknowledge reports within a few business days.
           </p>
         </div>
 
@@ -71,7 +71,8 @@ export default function SecurityPage() {
 
         <Section title="Safe harbour">
           <p>
-            Clerkfolio will not pursue civil or criminal action against researchers who:
+            Clerkfolio will not initiate legal action against, or make any complaint to law
+            enforcement about, researchers who:
           </p>
           <ul>
             <li>Report vulnerabilities to us privately at admin@clerkfolio.co.uk before any public disclosure.</li>
@@ -86,17 +87,14 @@ export default function SecurityPage() {
           </p>
         </Section>
 
-        <Section title="Response SLA">
-          <ul>
-            <li><strong>Acknowledgement:</strong> within 3 business days of receiving your report.</li>
-            <li><strong>Initial triage:</strong> within 10 business days.</li>
-            <li><strong>Critical or high severity fix:</strong> we aim to deploy a fix within 30 calendar days of confirming the issue. We will keep you updated on progress.</li>
-            <li><strong>Medium and low severity:</strong> addressed on a risk-based schedule; typically within 90 calendar days.</li>
-          </ul>
+        <Section title="Response times">
           <p>
-            We will co-ordinate a disclosure timeline with you and aim to allow public disclosure
-            after a fix is deployed or after 90 days from the date of your report, whichever is sooner,
-            unless we agree a different timeline in writing.
+            Clerkfolio is operated by a single developer, so response times are aims rather than
+            guarantees: we aim to acknowledge reports within a few business days, to triage promptly,
+            and to prioritise fixes by severity, with critical issues addressed as fast as reasonably
+            possible. We will co-ordinate a disclosure timeline with you and aim to allow public
+            disclosure once a fix is deployed, or after 90 days from your report, whichever is sooner,
+            unless we agree a different timeline.
           </p>
         </Section>
 
@@ -122,12 +120,12 @@ export default function SecurityPage() {
             <li>Hashed IP addresses and hashed PINs for share-link access control</li>
             <li>Server-side MIME type and file-format validation for evidence uploads; antivirus scanning is not currently provided</li>
             <li>Content Security Policy, X-Frame-Options, HSTS, X-Content-Type-Options, Referrer-Policy, and Permissions-Policy headers</li>
-            <li>Soft-delete only across all user data; no immediate hard deletes</li>
+            <li>Soft-delete with a 30-day trash window for portfolio entries and cases; account deletion and user-initiated evidence removal are hard deletes, as described in the Privacy policy</li>
             <li>Session fingerprint tracking to detect and revoke suspicious sessions</li>
           </ul>
           <p>
             More detail is available in our{' '}
-            <a href="/dpa" className="underline hover:text-[var(--text-primary)]">Data Processing Agreement</a>.
+            <a href="/privacy" className="underline hover:text-[var(--text-primary)]">Privacy policy</a>.
             Third-party security posture is governed by each provider&apos;s own controls and certifications -
             see the{' '}
             <a href="/subprocessors" className="underline hover:text-[var(--text-primary)]">subprocessors page</a>.
