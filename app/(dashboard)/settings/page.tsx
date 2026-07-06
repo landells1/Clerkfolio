@@ -390,7 +390,7 @@ export default function SettingsPage() {
   const settingsLinks: Array<[string, string, string]> = ([
     ['/settings/notifications', 'Notifications', 'Email digests and reminders'],
     ['/settings/billing', 'Billing', 'Open Stripe checkout or billing portal'],
-    ['/settings/referrals', 'Referrals', 'Invite a colleague, both get Pro'],
+    ['/settings/referrals', 'Referrals', 'Invite a colleague, earn export and storage bonuses'],
     ['/settings/snippets', 'Snippets', 'Reusable phrases for portfolio notes'],
     ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
     ['/settings/themes', 'Competency themes', 'Custom competency themes (Leadership, Teaching, etc.)'],
