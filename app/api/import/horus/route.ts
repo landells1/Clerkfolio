@@ -164,7 +164,10 @@ export async function POST(req: NextRequest) {
       .insert(toInsert)
       .select('id')
 
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    if (error) {
+      console.error('import/horus insert error:', error.message)
+      return NextResponse.json({ error: 'Failed to import entries. Please try again.' }, { status: 500 })
+    }
     created = data?.length ?? 0
     // Duplicate rows already incremented `skipped` inside the build loop;
     // adding validRows.length - toInsert.length here double-counted them.

@@ -54,7 +54,10 @@ export async function POST(req: NextRequest) {
     .eq('capability_key', capability_key)
     .maybeSingle()
 
-  if (capabilityError) return NextResponse.json({ error: capabilityError.message }, { status: 500 })
+  if (capabilityError) {
+    console.error('arcp/links capability lookup error:', capabilityError.message)
+    return NextResponse.json({ error: 'Failed to verify capability. Please try again.' }, { status: 500 })
+  }
   if (!capability) return NextResponse.json({ error: 'Capability not found' }, { status: 404 })
 
   // userOwnsEntry throws on a Supabase error; keep the route's JSON error
@@ -63,8 +66,9 @@ export async function POST(req: NextRequest) {
   try {
     ownsEntry = await userOwnsEntry(supabase, user.id, entry_id, entry_type)
   } catch (err) {
+    console.error('arcp/links ownership check error:', err instanceof Error ? err.message : 'unknown error')
     return NextResponse.json(
-      { error: err instanceof Error ? err.message : 'Ownership check failed' },
+      { error: 'Failed to verify entry ownership. Please try again.' },
       { status: 500 }
     )
   }
@@ -82,8 +86,11 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (error) {
-    const status = error.code === '23505' ? 409 : 500
-    return NextResponse.json({ error: error.message }, { status })
+    if (error.code === '23505') {
+      return NextResponse.json({ error: 'This entry is already linked to that capability.' }, { status: 409 })
+    }
+    console.error('arcp/links insert error:', error.message)
+    return NextResponse.json({ error: 'Failed to link entry. Please try again.' }, { status: 500 })
   }
 
   return NextResponse.json(data, { status: 201 })
@@ -106,6 +113,9 @@ export async function DELETE(req: NextRequest) {
     .eq('id', id)
     .eq('user_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('arcp/links delete error:', error.message)
+    return NextResponse.json({ error: 'Failed to remove link. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ success: true })
 }

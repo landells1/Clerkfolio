@@ -81,7 +81,10 @@ export async function POST(req: NextRequest) {
       .order('date', { ascending: false }),
   ])
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('export/pdf-append entries lookup error:', error.message)
+    return NextResponse.json({ error: 'Failed to generate PDF. Please try again.' }, { status: 500 })
+  }
   if (!entries?.length) return NextResponse.json({ error: 'No entries found.' }, { status: 404 })
 
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'

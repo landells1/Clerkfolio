@@ -92,7 +92,8 @@ export async function POST(req: NextRequest) {
   const table = target === 'portfolio' ? 'portfolio_entries' : 'cases'
   const { error } = await supabase.from(table).insert(validRows)
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+    console.error('import/csv insert error:', error.message)
+    return NextResponse.json({ error: 'Failed to import rows. Please try again.' }, { status: 500 })
   }
 
   return NextResponse.json({ imported: validRows.length, skipped: errors.length, errors })

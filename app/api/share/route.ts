@@ -91,7 +91,10 @@ export async function GET() {
     .is('revoked_at', null)
     .order('created_at', { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('share GET error:', error.message)
+    return NextResponse.json({ error: 'Failed to load share links. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json(data ?? [])
 }
 
@@ -167,7 +170,10 @@ export async function POST(req: NextRequest) {
     .select('id, token, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, view_webhook_url, created_at')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('share POST insert error:', error.message)
+    return NextResponse.json({ error: 'Failed to create share link. Please try again.' }, { status: 500 })
+  }
 
   if (!subInfo.isPro) {
     // Compensating check: race condition where two concurrent requests both
@@ -236,7 +242,10 @@ export async function PATCH(req: NextRequest) {
     .eq('user_id', user.id)
     .maybeSingle()
 
-  if (existingError) return NextResponse.json({ error: existingError.message }, { status: 500 })
+  if (existingError) {
+    console.error('share PATCH lookup error:', existingError.message)
+    return NextResponse.json({ error: 'Failed to extend share link. Please try again.' }, { status: 500 })
+  }
   if (!existing) return NextResponse.json({ error: 'Share link not found.' }, { status: 404 })
   if (existing.revoked || existing.revoked_at) {
     return NextResponse.json(
@@ -253,7 +262,10 @@ export async function PATCH(req: NextRequest) {
     .select('id, expires_at')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('share PATCH update error:', error.message)
+    return NextResponse.json({ error: 'Failed to extend share link. Please try again.' }, { status: 500 })
+  }
 
   // Extensions are unlimited by design (it is the owner's own link), so the
   // audit trail must record them - otherwise a link "created for 7 days" can
@@ -291,7 +303,10 @@ export async function DELETE(req: NextRequest) {
     .eq('revoked', false)
     .select('id')
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('share DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to revoke share link. Please try again.' }, { status: 500 })
+  }
 
   // Revoking a share link is a security-relevant action — complete the audit
   // trail alongside share_link_generated / share_link_viewed (QOL-021).

@@ -65,10 +65,9 @@ export async function GET(request: NextRequest) {
   ])
 
   if (casesLookupError || entriesLookupError) {
-    return NextResponse.json(
-      { error: casesLookupError?.message ?? entriesLookupError?.message },
-      { status: 500 }
-    )
+    if (casesLookupError) logBackgroundJobError('cron.purge_deleted.cases_lookup', casesLookupError)
+    if (entriesLookupError) logBackgroundJobError('cron.purge_deleted.entries_lookup', entriesLookupError)
+    return NextResponse.json({ error: 'Failed to purge deleted records.' }, { status: 500 })
   }
 
   const caseIds = (doomedCases ?? []).map(r => r.id)
@@ -83,7 +82,9 @@ export async function GET(request: NextRequest) {
   ])
 
   if (casesError || entriesError) {
-    return NextResponse.json({ error: casesError?.message ?? entriesError?.message }, { status: 500 })
+    if (casesError) logBackgroundJobError('cron.purge_deleted.cases_delete', casesError)
+    if (entriesError) logBackgroundJobError('cron.purge_deleted.entries_delete', entriesError)
+    return NextResponse.json({ error: 'Failed to purge deleted records.' }, { status: 500 })
   }
 
   return NextResponse.json({

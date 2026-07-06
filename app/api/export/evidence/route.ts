@@ -42,7 +42,10 @@ export async function GET(req: NextRequest) {
     .eq('entry_type', entryType)
     .eq('scan_status', 'clean')
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('export/evidence lookup error:', error.message)
+    return NextResponse.json({ error: 'Failed to prepare evidence export. Please try again.' }, { status: 500 })
+  }
   if (!files?.length) return NextResponse.json({ error: 'No clean evidence files found for this entry.' }, { status: 404 })
 
   // Pre-compute a unique archive name for every file so two evidence files

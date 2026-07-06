@@ -34,7 +34,10 @@ export async function POST(req: NextRequest) {
     .update({ calendar_feed_token_hash: hashToken(token), calendar_feed_token: null })
     .eq('id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('calendar/feed-token POST error:', error.message)
+    return NextResponse.json({ error: 'Failed to create calendar feed link. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ token })
 }
 
@@ -51,6 +54,9 @@ export async function DELETE(req: NextRequest) {
     .update({ calendar_feed_token_hash: null, calendar_feed_token: null })
     .eq('id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('calendar/feed-token DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to remove calendar feed link. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true })
 }

@@ -105,7 +105,8 @@ export async function POST(req: NextRequest) {
     .eq('id', user.id)
 
   if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 })
+    console.error('settings/profile update error:', updateError.message)
+    return NextResponse.json({ error: 'Failed to update profile. Please try again.' }, { status: 500 })
   }
 
   // Recompute tier centrally after every save. A career-stage change can

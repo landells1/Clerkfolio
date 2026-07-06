@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
     })
     .eq('id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('settings/restart-tutorial error:', error.message)
+    return NextResponse.json({ error: 'Failed to restart the tutorial. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

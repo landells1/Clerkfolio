@@ -137,7 +137,10 @@ export async function POST(req: NextRequest) {
     .eq('token', token)
     .maybeSingle()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('share/access lookup error:', error.message)
+    return NextResponse.json({ error: 'Share access is temporarily unavailable.' }, { status: 500 })
+  }
   if (!link) {
     return NextResponse.json({ error: 'This share link is no longer available.' }, { status: 404 })
   }
@@ -171,7 +174,10 @@ export async function POST(req: NextRequest) {
       ownerQuery,
     ])
 
-    if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
+    if (entriesError) {
+      console.error('share/access owner-preview entries error:', entriesError.message)
+      return NextResponse.json({ error: 'Share access is temporarily unavailable.' }, { status: 500 })
+    }
 
     return NextResponse.json({
       ownerName: [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio user',
@@ -315,7 +321,10 @@ export async function POST(req: NextRequest) {
     query,
   ])
 
-  if (entriesError) return NextResponse.json({ error: entriesError.message }, { status: 500 })
+  if (entriesError) {
+    console.error('share/access entries error:', entriesError.message)
+    return NextResponse.json({ error: 'Share access is temporarily unavailable.' }, { status: 500 })
+  }
 
   const viewedAt = new Date().toISOString()
   const { error: viewError } = await supabase

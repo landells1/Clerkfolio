@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     .delete()
     .lt('created_at', oneYearAgo)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('cron/purge-audit-log error:', error.message)
+    return NextResponse.json({ error: 'Failed to purge audit log.' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true })
   }, {
     schedule: { type: 'crontab', value: '0 3 * * 0' },

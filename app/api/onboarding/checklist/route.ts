@@ -60,7 +60,10 @@ export async function POST(req: NextRequest) {
     .update(update)
     .eq('id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('onboarding/checklist error:', error.message)
+    return NextResponse.json({ error: 'Failed to save checklist progress. Please try again.' }, { status: 500 })
+  }
 
   return NextResponse.json({ ok: true })
 }

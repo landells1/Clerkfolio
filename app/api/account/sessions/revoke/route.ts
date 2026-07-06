@@ -32,7 +32,10 @@ export async function POST(req: NextRequest) {
     .select('id')
     .maybeSingle()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('account/sessions/revoke error:', error.message)
+    return NextResponse.json({ error: 'Failed to revoke session. Please try again.' }, { status: 500 })
+  }
   if (!data) return NextResponse.json({ error: 'Session not found or already revoked.' }, { status: 404 })
 
   return NextResponse.json({ success: true })

@@ -33,7 +33,7 @@ export async function GET(request: NextRequest) {
 
     if (lookupError) {
       logBackgroundJobError('cron.purge_orphan_uploads.lookup', lookupError)
-      return NextResponse.json({ error: lookupError.message }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to purge orphaned uploads.' }, { status: 500 })
     }
     if (!orphans || orphans.length === 0) {
       return NextResponse.json({ ok: true, purged: 0 })

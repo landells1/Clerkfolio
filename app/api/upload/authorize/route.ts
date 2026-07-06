@@ -94,7 +94,10 @@ export async function POST(req: NextRequest) {
     .is('deleted_at', null)
     .maybeSingle()
 
-  if (entryError) return NextResponse.json({ error: entryError.message }, { status: 500 })
+  if (entryError) {
+    console.error('upload/authorize entry lookup error:', entryError.message)
+    return NextResponse.json({ error: 'Failed to authorise upload. Please try again.' }, { status: 500 })
+  }
   if (!entry) return NextResponse.json({ error: 'Entry not found' }, { status: 404 })
 
   const subInfo = await fetchSubscriptionInfo(supabase, user.id)
@@ -137,7 +140,8 @@ export async function POST(req: NextRequest) {
     .single()
 
   if (insertError || !row) {
-    return NextResponse.json({ error: insertError?.message ?? 'Could not authorise upload' }, { status: 500 })
+    if (insertError) console.error('upload/authorize insert error:', insertError.message)
+    return NextResponse.json({ error: 'Could not authorise upload. Please try again.' }, { status: 500 })
   }
 
   const path = `${user.id}/${entryType}/${entryId}/${row.id}-${safeName}`
@@ -149,7 +153,8 @@ export async function POST(req: NextRequest) {
   if (pathError) {
     // Roll back the placeholder row so the orphan cron doesn't have to.
     await service.from('evidence_files').delete().eq('id', row.id)
-    return NextResponse.json({ error: pathError.message }, { status: 500 })
+    console.error('upload/authorize path update error:', pathError.message)
+    return NextResponse.json({ error: 'Could not authorise upload. Please try again.' }, { status: 500 })
   }
 
   const { data: signed, error: signedError } = await service.storage
@@ -158,7 +163,8 @@ export async function POST(req: NextRequest) {
 
   if (signedError || !signed) {
     await service.from('evidence_files').delete().eq('id', row.id)
-    return NextResponse.json({ error: signedError?.message ?? 'Could not issue upload URL' }, { status: 500 })
+    if (signedError) console.error('upload/authorize signed URL error:', signedError.message)
+    return NextResponse.json({ error: 'Could not issue upload URL. Please try again.' }, { status: 500 })
   }
 
   return NextResponse.json({

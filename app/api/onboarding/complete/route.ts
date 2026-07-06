@@ -64,7 +64,8 @@ export async function POST(req: NextRequest) {
     .maybeSingle()
 
   if (profileFetchError) {
-    return NextResponse.json({ error: profileFetchError.message }, { status: 500 })
+    console.error('onboarding/complete: profile fetch failed:', profileFetchError.message)
+    return NextResponse.json({ error: 'Could not load your profile. Please try again.' }, { status: 500 })
   }
 
   // Self-heal missing profile (auth.users exists but public.profiles does
@@ -115,7 +116,10 @@ export async function POST(req: NextRequest) {
     .select('id')
     .maybeSingle()
 
-  if (profileError) return NextResponse.json({ error: profileError.message }, { status: 500 })
+  if (profileError) {
+    console.error('onboarding/complete: profile update failed:', profileError.message)
+    return NextResponse.json({ error: 'Could not complete onboarding. Please try again.' }, { status: 500 })
+  }
 
   // Two-tab race: a stale tab can hit this route after the first tab already
   // flipped onboarding_complete to true. The eq('onboarding_complete', false)
@@ -186,7 +190,10 @@ export async function POST(req: NextRequest) {
       const { error } = await service
         .from('specialty_applications')
         .upsert(appRows, { onConflict: 'user_id,specialty_key', ignoreDuplicates: true })
-      if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+      if (error) {
+        console.error('onboarding/complete: specialty upsert failed:', error.message)
+        return NextResponse.json({ error: 'Could not save your specialty selection. Please try again.' }, { status: 500 })
+      }
     }
   }
 

@@ -42,7 +42,10 @@ export async function POST(req: NextRequest) {
     .select('id')
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('templates POST error:', error.message)
+    return NextResponse.json({ error: 'Failed to create template. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ id: data.id }, { status: 201 })
 }
 
@@ -64,7 +67,10 @@ export async function DELETE(req: NextRequest) {
     .eq('id', id)
     .eq('user_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('templates DELETE error:', error.message)
+    return NextResponse.json({ error: 'Failed to delete template. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true })
 }
 
@@ -88,6 +94,9 @@ export async function PATCH(req: NextRequest) {
     .eq('id', id)
     .eq('user_id', user.id)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('templates PATCH error:', error.message)
+    return NextResponse.json({ error: 'Failed to rename template. Please try again.' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true })
 }

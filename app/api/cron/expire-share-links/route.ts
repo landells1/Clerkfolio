@@ -17,7 +17,10 @@ export async function GET(request: NextRequest) {
     .lt('expires_at', new Date().toISOString())
     .is('revoked_at', null)
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    console.error('cron/expire-share-links error:', error.message)
+    return NextResponse.json({ error: 'Failed to expire share links.' }, { status: 500 })
+  }
   return NextResponse.json({ ok: true })
   }, {
     schedule: { type: 'crontab', value: '0 1 * * *' },
