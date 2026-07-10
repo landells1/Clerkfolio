@@ -9,6 +9,7 @@ import QuickAddButton from '@/components/dashboard/quick-add-button'
 import ActivityHeatmap from '@/components/dashboard/activity-heatmap'
 import StreakBadge from '@/components/dashboard/streak-badge'
 import SpecialtyRadar from '@/components/dashboard/specialty-radar'
+import CompetencyThemeWidget from '@/components/dashboard/competency-theme-widget'
 import UpcomingTimeline from '@/components/dashboard/upcoming-timeline'
 import EmptyDayPrompt from '@/components/dashboard/empty-day-prompt'
 import AnniversaryBanner from '@/components/dashboard/anniversary-banner'
@@ -34,6 +35,7 @@ import { CHANGELOG } from '@/lib/changelog'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 import { careerStageLabel } from '@/lib/constants/career-stages'
+import { buildThemeCoverage } from '@/lib/portfolio/theme-coverage'
 
 export default async function DashboardPage({
   searchParams,
@@ -66,6 +68,7 @@ export default async function DashboardPage({
     { data: deadlines },
     { data: goals },
     { data: rotations },
+    { data: customCompetencyThemes },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -92,12 +95,12 @@ export default async function DashboardPage({
       .limit(20),
     supabase
       .from('portfolio_entries')
-      .select('id, category, specialty_tags, created_at, date, is_demo')
+      .select('id, category, specialty_tags, interview_themes, created_at, date, is_demo')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
       .from('cases')
-      .select('specialty_tags, clinical_domain, clinical_domains, created_at, date, is_demo')
+      .select('specialty_tags, clinical_domain, clinical_domains, interview_themes, created_at, date, is_demo')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -126,6 +129,11 @@ export default async function DashboardPage({
       .is('deleted_at', null)
       .order('date', { ascending: false })
       .limit(8),
+    supabase
+      .from('custom_competency_themes')
+      .select('name, slug')
+      .eq('user_id', user!.id)
+      .order('name', { ascending: true }),
   ])
   // Demo starter pack is now seeded once at /api/onboarding/complete (F-014/F-031),
   // so by the time any dashboard renders the demo rows already exist - no seed on
@@ -168,6 +176,12 @@ export default async function DashboardPage({
       return acc
     }, {})
   ).map(([category, count]) => ({ category, count }))
+
+  const themeCoverage = buildThemeCoverage(
+    realEntries as { interview_themes?: string[] | null }[],
+    realCases as { interview_themes?: string[] | null }[],
+    customCompetencyThemes ?? []
+  )
 
   const clinicalAreaCounts: Record<string, number> = {}
   realCases.forEach(c => {
@@ -423,6 +437,12 @@ export default async function DashboardPage({
           {Object.keys(clinicalAreaCounts).length > 0 && (
             <DashboardSection title="Clinical areas" subtitle="cases by clinical setting">
               <SpecialtyRadar counts={clinicalAreaCounts} fullWidth />
+            </DashboardSection>
+          )}
+
+          {(realEntries.length > 0 || realCases.length > 0) && (
+            <DashboardSection title="Competency themes" subtitle="entries and cases by theme tag">
+              <CompetencyThemeWidget rows={themeCoverage} />
             </DashboardSection>
           )}
         </div>
