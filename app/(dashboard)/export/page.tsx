@@ -408,7 +408,7 @@ export default function ExportPage() {
     }
     const json = data ?? {}
     if (!ok) {
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link${json.limit === 1 ? '' : 's'}. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
       return
     }
     setShareLinks(prev => [json as ShareLink, ...prev])

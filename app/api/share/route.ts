@@ -139,7 +139,7 @@ export async function POST(req: NextRequest) {
   const subInfo = await fetchSubscriptionInfo(supabase, user.id)
   if (!subInfo.isPro && !subInfo.limits.canCreateShareLink) {
     return NextResponse.json(
-      { error: 'limit_reached', limit: 1, used: subInfo.usage.shareLinksUsed, upgrade_url: '/upgrade' },
+      { error: 'limit_reached', limit: 1 + subInfo.referralCount, used: subInfo.usage.shareLinksUsed, upgrade_url: '/upgrade' },
       { status: 403 }
     )
   }
@@ -178,8 +178,9 @@ export async function POST(req: NextRequest) {
   if (!subInfo.isPro) {
     // Compensating check: race condition where two concurrent requests both
     // pass the pre-insert limit check. Count actual active links and revoke
-    // the just-created one if we're now over the free limit. Only count the
-    // lifetime free usage after the link survives this check.
+    // the just-created one if we're now over the free allowance (1 base +
+    // 1 per rewarded referral, same formula as canCreateShareLink above).
+    // Only count the lifetime free usage after the link survives this check.
     const { count: actualCount } = await supabase
       .from('share_links')
       .select('id', { count: 'exact', head: true })
@@ -187,12 +188,12 @@ export async function POST(req: NextRequest) {
       .is('revoked_at', null)
       .gt('expires_at', new Date().toISOString())
 
-    if ((actualCount ?? 0) > 1) {
+    if ((actualCount ?? 0) > 1 + subInfo.referralCount) {
       // The compensating delete also uses service role: there is no user
       // DELETE policy on share_links any more.
       await service.from('share_links').delete().eq('id', data.id)
       return NextResponse.json(
-        { error: 'limit_reached', limit: 1, used: actualCount, upgrade_url: '/upgrade' },
+        { error: 'limit_reached', limit: 1 + subInfo.referralCount, used: actualCount, upgrade_url: '/upgrade' },
         { status: 403 }
       )
     }
