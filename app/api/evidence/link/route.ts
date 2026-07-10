@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
-import { decideUnlink, type EvidenceEntryType } from '@/lib/evidence/links'
+import type { EvidenceEntryType } from '@/lib/evidence/links'
 
 const BUCKET = 'evidence'
 const UUID_RE = /^[0-9a-f-]{36}$/i
@@ -145,45 +145,51 @@ export async function DELETE(req: NextRequest) {
   }
   if (!file) return NextResponse.json({ error: 'File not found' }, { status: 404 })
 
-  // Current full link set for this file (RLS-scoped to the user's own files).
-  const { data: links, error: linksError } = await supabase
-    .from('evidence_file_links')
-    .select('entry_id, entry_type')
-    .eq('file_id', fileId)
-  if (linksError) {
-    console.error('evidence/unlink links lookup error:', linksError.message)
-    return NextResponse.json({ error: 'Failed to remove file. Please try again.' }, { status: 500 })
-  }
-
-  const decision = decideUnlink(
-    (links ?? []) as { entry_id: string; entry_type: EvidenceEntryType }[],
-    entryId,
-    entryType,
-  )
-  if (!decision.linkExists) {
-    return NextResponse.json({ error: 'That file is not attached to this entry.' }, { status: 404 })
-  }
-
-  // Remove the one link row.
-  const { error: deleteLinkError } = await supabase
+  // Delete the caller's link row FIRST, then decide off what's left — matching
+  // the batch purge paths (cron purge-deleted, lib/evidence/client-purge.ts).
+  // Deciding off a pre-delete snapshot (the old approach) let two concurrent
+  // unlinks of the same file from two different entries each see the other's
+  // still-there link, delete both links, and neither trigger the file delete:
+  // an orphaned storage object + evidence_files row that still counts toward
+  // quota with no link left for any UI to remove it from.
+  const { data: deletedLink, error: deleteLinkError } = await supabase
     .from('evidence_file_links')
     .delete()
     .eq('file_id', fileId)
     .eq('entry_id', entryId)
     .eq('entry_type', entryType)
+    .select('file_id')
   if (deleteLinkError) {
     console.error('evidence/unlink link delete error:', deleteLinkError.message)
     return NextResponse.json({ error: 'Failed to remove file. Please try again.' }, { status: 500 })
   }
-
-  if (!decision.deleteFile) {
-    // Still linked elsewhere — the file stays. This was a plain unlink.
-    return NextResponse.json({ deleted: false, remainingLinks: decision.remainingLinkCount })
+  if (!deletedLink || deletedLink.length === 0) {
+    return NextResponse.json({ error: 'That file is not attached to this entry.' }, { status: 404 })
   }
 
-  // Last link gone: remove the storage object then the evidence_files row.
+  // Re-query the remaining links now that this one is gone, so "does the file
+  // still have a link" reflects current state rather than a snapshot a
+  // concurrent request could have already changed.
+  const { data: remainingLinks, error: remainingError } = await supabase
+    .from('evidence_file_links')
+    .select('entry_id, entry_type')
+    .eq('file_id', fileId)
+  if (remainingError) {
+    console.error('evidence/unlink remaining-links lookup error:', remainingError.message)
+    return NextResponse.json({ error: 'Failed to remove file. Please try again.' }, { status: 500 })
+  }
+
+  if ((remainingLinks?.length ?? 0) > 0) {
+    // Still linked elsewhere — the file stays. This was a plain unlink.
+    return NextResponse.json({ deleted: false, remainingLinks: remainingLinks!.length })
+  }
+
+  // No links remain: remove the storage object then the evidence_files row.
   // Service role for the storage remove (matches deleteEvidenceFile / the crons);
-  // the file_path comes from the owned row, never from the caller.
+  // the file_path comes from the owned row, never from the caller. Both removals
+  // below are idempotent, so a concurrent unlink that races to the same
+  // last-link outcome is harmless — the second pass finds nothing left to
+  // remove and returns success, not an error.
   if (file.file_path) {
     const { error: storageError } = await service.storage.from(BUCKET).remove([file.file_path])
     if (storageError) {
