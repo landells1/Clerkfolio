@@ -1,17 +1,28 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import CaseForm from '@/components/cases/case-form'
+import type { Template } from '@/lib/types/templates'
 
 export default async function NewCasePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const { data: trackedSpecialties } = await supabase
-    .from('specialty_applications')
-    .select('specialty_key')
-    .eq('user_id', user!.id)
+  const [{ data: trackedSpecialties }, { data: rawTemplates }] = await Promise.all([
+    supabase
+      .from('specialty_applications')
+      .select('specialty_key')
+      .eq('user_id', user!.id),
+    supabase
+      .from('templates')
+      .select('*')
+      .eq('entry_type', 'case')
+      .or(`user_id.eq.${user!.id},user_id.is.null`)
+      .order('is_curated', { ascending: false })
+      .order('created_at', { ascending: true }),
+  ])
 
   const specialtyKeys = trackedSpecialties?.map(s => s.specialty_key) ?? []
+  const templates = (rawTemplates ?? []) as Template[]
 
   return (
     <div className="p-8 max-w-2xl">
@@ -31,6 +42,7 @@ export default async function NewCasePage() {
         <CaseForm
           mode="create"
           userInterests={specialtyKeys}
+          templates={templates}
           authenticatedUserId={user!.id}
         />
       </div>

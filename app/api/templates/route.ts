@@ -14,18 +14,27 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await safeJsonBody<{ name?: unknown; category?: unknown; field_defaults?: unknown; guidance_prompts?: unknown }>(req)
+  const body = await safeJsonBody<{ name?: unknown; category?: unknown; entry_type?: unknown; field_defaults?: unknown; guidance_prompts?: unknown }>(req)
   if (!body) return badJson()
   const name = typeof body.name === 'string' ? body.name : ''
   const category = body.category
   const field_defaults = body.field_defaults
   const guidance_prompts = body.guidance_prompts
+  // Missing entry_type means a portfolio entry template (the only kind that
+  // existed before case templates; older clients never send the field).
+  const entryTypeRaw = body.entry_type ?? 'portfolio'
 
   if (!name.trim()) return NextResponse.json({ error: 'Name is required' }, { status: 400 })
+  if (entryTypeRaw !== 'portfolio' && entryTypeRaw !== 'case') {
+    return NextResponse.json({ error: 'Template type is invalid' }, { status: 400 })
+  }
+  const entry_type: 'portfolio' | 'case' = entryTypeRaw
   // Every other write path validates category against CATEGORIES; a junk
   // value stored here would later make applyTemplate set a category the
-  // entry form's buildPayload switch can't handle.
-  if (typeof category !== 'string' || !CATEGORY_VALUES.has(category as Category)) {
+  // entry form's buildPayload switch can't handle. Case templates have no
+  // category concept - the NOT NULL column stores the sentinel 'case'
+  // (see supabase/migrations/2026_07_11_case_templates.sql).
+  if (entry_type === 'portfolio' && (typeof category !== 'string' || !CATEGORY_VALUES.has(category as Category))) {
     return NextResponse.json({ error: 'Category is invalid' }, { status: 400 })
   }
 
@@ -34,7 +43,8 @@ export async function POST(req: NextRequest) {
     .insert({
       user_id: user.id,
       name: name.trim(),
-      category: category as Category,
+      entry_type,
+      category: entry_type === 'case' ? 'case' : category as Category,
       field_defaults: field_defaults ?? {},
       guidance_prompts: guidance_prompts ?? {},
       is_curated: false,

@@ -6,6 +6,7 @@ import { IMPORTANCE_LABELS, isImportance } from '@/lib/types/importance'
 import DeleteCaseButton from '@/components/cases/delete-case-button'
 import LogSimilarButton from '@/components/cases/log-similar-button'
 import DuplicateCaseButton from '@/components/cases/duplicate-case-button'
+import SaveCaseTemplateButton from '@/components/cases/save-case-template-button'
 import PinButton from '@/components/ui/pin-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
@@ -74,6 +75,7 @@ export default async function CaseDetailPage({
             </svg>
             Edit
           </Link>
+          <SaveCaseTemplateButton caseData={c} />
           <DuplicateCaseButton caseId={c.id} />
           <PinButton table="cases" id={c.id} initialPinned={c.pinned ?? false} noun="case" />
           <DeleteCaseButton id={c.id} />

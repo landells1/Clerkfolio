@@ -4,6 +4,10 @@ import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
+import type { CaseTemplate, Template } from '@/lib/types/templates'
+import { caseTemplates } from '@/lib/templates/filter'
+import { clinicalDomainsFromDefaults, notesScaffoldFromDefaults } from '@/lib/templates/case-defaults'
+import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ImportanceSelect from '@/components/portfolio/importance-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
@@ -23,6 +27,7 @@ type Props = {
   mode: 'create' | 'edit'
   initialData?: Partial<NewCase> & { id?: string }
   userInterests?: string[]
+  templates?: Template[]
   authenticatedUserId?: string
   existingEvidence?: EvidenceFile[]
 }
@@ -38,7 +43,7 @@ function draftKeyForUser(userId: string) {
 
 const wordCount = (s: string) => s.trim() ? s.trim().split(/\s+/).length : 0
 
-export default function CaseForm({ mode, initialData, userInterests = [], authenticatedUserId, existingEvidence = [] }: Props) {
+export default function CaseForm({ mode, initialData, userInterests = [], templates = [], authenticatedUserId, existingEvidence = [] }: Props) {
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
@@ -65,6 +70,12 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const draftKey = mode === 'create' && authenticatedUserId ? draftKeyForUser(authenticatedUserId) : null
+
+  // Template guidance placeholders - overridden when a template is applied
+  const [guidancePlaceholders, setGuidancePlaceholders] = useState<Record<string, string>>({})
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false)
+  const templatePickerRef = useRef<HTMLDivElement>(null)
+  useFocusTrap(templatePickerOpen, templatePickerRef, () => setTemplatePickerOpen(false))
 
   // Dirty state — ref mirrors state so cleanup closures always see current value
   const [isDirty, setIsDirty] = useState(false)
@@ -144,6 +155,20 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
 
   function markDirty() { setIsDirty(true); isDirtyRef.current = true }
 
+  // ── Apply a template ────────────────────────────────────────────────────
+
+  function applyTemplate(t: CaseTemplate) {
+    setGuidancePlaceholders(t.guidance_prompts)
+    const domains = clinicalDomainsFromDefaults(t.field_defaults)
+    if (domains.length > 0) setClinicalDomains(domains)
+    // Scaffold headings go into the notes box itself, but never over text the
+    // user has already written.
+    const scaffold = notesScaffoldFromDefaults(t.field_defaults, notes)
+    if (scaffold !== null) setNotes(scaffold)
+    markDirty()
+    setTemplatePickerOpen(false)
+  }
+
   function handleNotesKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
     if (event.key !== 'Enter' && event.key !== 'Tab') return
     const target = event.currentTarget
@@ -168,6 +193,14 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
 
   const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
+
+  const ph = (key: string, fallback: string) => guidancePlaceholders[key] ?? fallback
+
+  // Grouped templates for the picker. Only case-kind templates belong here -
+  // portfolio entry templates are the entry form's picker.
+  const availableTemplates = caseTemplates(templates)
+  const curatedTemplates = availableTemplates.filter(t => t.is_curated)
+  const personalTemplates = availableTemplates.filter(t => !t.is_curated)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -247,6 +280,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
   }
 
   return (
+    <>
     <form
       onSubmit={handleSubmit}
       onPaste={event => {
@@ -292,7 +326,18 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
 
       {/* Title */}
       <div>
-        <label className={LABEL}>Case title <span className="text-red-400">*</span></label>
+        <div className="flex items-center justify-between gap-3">
+          <label className={LABEL}>Case title <span className="text-red-400">*</span></label>
+          {mode === 'create' && availableTemplates.length > 0 && (
+            <button
+              type="button"
+              onClick={() => setTemplatePickerOpen(true)}
+              className="mb-1 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:text-[var(--text-primary)]"
+            >
+              Use template
+            </button>
+          )}
+        </div>
         <input
           type="text"
           required
@@ -300,7 +345,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           maxLength={200}
           onChange={e => { setTitle(e.target.value); markDirty() }}
           className={INPUT}
-          placeholder="Brief description - no patient identifiers"
+          placeholder={ph('title', 'Brief description - no patient identifiers')}
         />
         <p className="text-xs text-[var(--text-secondary)] mt-1">
           Do not include patient names, dates of birth, or NHS numbers.
@@ -384,7 +429,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
           onKeyDown={handleNotesKeyDown}
           onFocus={() => markDirty()}
           className={INPUT}
-          placeholder="Clinical context, learning points, what happened - anonymised…"
+          placeholder={ph('notes', 'Clinical context, learning points, what happened - anonymised…')}
         />
         {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
         <AnonymisationHint />
@@ -450,5 +495,76 @@ export default function CaseForm({ mode, initialData, userInterests = [], authen
         </div>
       )}
     </form>
+
+    {/* Template picker modal */}
+    {templatePickerOpen && (
+      <div className="fixed inset-0 z-50 flex items-start justify-center p-4 pt-16 bg-black/60 backdrop-blur-sm" onClick={() => setTemplatePickerOpen(false)}>
+        <div
+          ref={templatePickerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Choose a case template"
+          tabIndex={-1}
+          className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl w-full max-w-2xl max-h-[70vh] overflow-hidden flex flex-col"
+          onClick={e => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+            <h2 className="text-base font-semibold text-[var(--text-primary)]">Choose a template</h2>
+            <button
+              onClick={() => setTemplatePickerOpen(false)}
+              aria-label="Close template picker"
+              className="text-[var(--text-muted)] hover:text-[var(--text-primary)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent)] rounded transition-colors"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+
+          <div className="overflow-y-auto flex-1 p-4 space-y-5">
+            {/* Personal templates */}
+            {personalTemplates.length > 0 && (
+              <div>
+                <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Your templates</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {personalTemplates.map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => applyTemplate(t)}
+                      className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-accent/40 hover:bg-accent/5 transition-colors"
+                    >
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
+                      {t.description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.description}</p>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Curated templates */}
+            {curatedTemplates.length > 0 && (
+              <div>
+                <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Curated templates</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {curatedTemplates.map(t => (
+                    <button
+                      key={t.id}
+                      type="button"
+                      onClick={() => applyTemplate(t)}
+                      className="text-left px-3.5 py-3 rounded-xl border border-white/[0.08] hover:border-accent/40 hover:bg-accent/5 transition-colors"
+                    >
+                      <p className="text-sm font-medium text-[var(--text-primary)]">{t.name}</p>
+                      {t.description && <p className="text-xs text-[var(--text-muted)] mt-0.5">{t.description}</p>}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   )
 }
