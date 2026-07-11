@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { SpecialtiesShell } from '@/components/specialties/specialties-shell'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
-import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
 
 export default async function SpecialtiesPage({
   searchParams,
@@ -45,7 +45,7 @@ export default async function SpecialtiesPage({
       .select('*')
       .in('application_id', appIds)
       .order('created_at', { ascending: true })
-    links = await filterLinksToActivePortfolioEntries(
+    links = await filterLinksToActiveEntries(
       supabase,
       (linkData ?? []) as SpecialtyEntryLink[]
     )

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 
-type EntryType = 'portfolio'
+type EntryType = 'portfolio' | 'case'
 
 async function userOwnsEntry(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -10,8 +10,10 @@ async function userOwnsEntry(
   entryId: string,
   entryType: EntryType
 ) {
+  // Cases and portfolio entries live in separate tables; check the right one.
+  const table = entryType === 'case' ? 'cases' : 'portfolio_entries'
   const { data, error } = await supabase
-    .from('portfolio_entries')
+    .from(table)
     .select('id')
     .eq('id', entryId)
     .eq('user_id', userId)
@@ -44,8 +46,8 @@ export async function POST(req: NextRequest) {
   if (typeof entry_id !== 'string' || !entry_id.trim()) {
     return NextResponse.json({ error: 'entry_id is required' }, { status: 400 })
   }
-  if (entry_type !== 'portfolio') {
-    return NextResponse.json({ error: 'entry_type must be portfolio' }, { status: 400 })
+  if (entry_type !== 'portfolio' && entry_type !== 'case') {
+    return NextResponse.json({ error: 'entry_type must be portfolio or case' }, { status: 400 })
   }
 
   const { data: capability, error: capabilityError } = await supabase

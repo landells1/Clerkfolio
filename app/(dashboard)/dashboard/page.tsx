@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { getSpecialtyConfig, calculateDomainsScore, calculateBonusScore, isEvidenceBased, getEvidenceProgress } from '@/lib/specialties'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
-import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
 import ActivityFeed from '@/components/dashboard/activity-feed'
 import OnboardingChecklist from '@/components/dashboard/onboarding-checklist'
 import CoverageWidget from '@/components/dashboard/coverage-widget'
@@ -100,7 +100,7 @@ export default async function DashboardPage({
       .is('deleted_at', null),
     supabase
       .from('cases')
-      .select('specialty_tags, clinical_domain, clinical_domains, interview_themes, created_at, date, is_demo')
+      .select('id, specialty_tags, clinical_domain, clinical_domains, interview_themes, created_at, date, is_demo')
       .eq('user_id', user!.id)
       .is('deleted_at', null),
     supabase
@@ -160,14 +160,16 @@ export default async function DashboardPage({
   const { data: specialtyLinksRaw } = applicationIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', applicationIds)
     : { data: [] as SpecialtyEntryLink[] }
-  // We already fetched every active (non-deleted) portfolio entry above, so pass
-  // their ids to avoid a second round-trip just to re-check which are active
-  // (F-031 hot-path query elimination).
+  // We already fetched every active (non-deleted) portfolio entry and case
+  // above, so pass their ids to avoid extra round-trips just to re-check which
+  // are active (F-031 hot-path query elimination).
   const activeEntryIds = new Set((allEntries ?? []).map(entry => entry.id))
-  const specialtyLinks = await filterLinksToActivePortfolioEntries(
+  const activeCaseIds = new Set((allCases ?? []).map(c => c.id))
+  const specialtyLinks = await filterLinksToActiveEntries(
     supabase,
     (specialtyLinksRaw ?? []) as SpecialtyEntryLink[],
-    activeEntryIds
+    activeEntryIds,
+    activeCaseIds
   )
 
   const coverageCounts = Object.entries(
