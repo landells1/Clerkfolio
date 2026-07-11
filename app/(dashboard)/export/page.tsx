@@ -27,8 +27,9 @@ import { ImportTab } from '@/components/export/import-tab'
 import { PdfExportTab } from '@/components/export/pdf-export-tab'
 import { BackupTab } from '@/components/export/backup-tab'
 import { ShareTab } from '@/components/export/share-tab'
+import { FilesTab } from '@/components/export/files-tab'
 
-type Tab = 'import' | 'pdf' | 'backup' | 'share'
+type Tab = 'import' | 'pdf' | 'backup' | 'share' | 'files'
 type EntrySpecialtyFields = { specialty_tags: string[] | null }
 
 function filenameFromContentDisposition(header: string | null): string | null {
@@ -103,7 +104,7 @@ export default function ExportPage() {
   // client-only effect).
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('tab')
-    if (requested === 'import' || requested === 'pdf' || requested === 'backup' || requested === 'share') {
+    if (requested === 'import' || requested === 'pdf' || requested === 'backup' || requested === 'share' || requested === 'files') {
       setTab(requested)
     }
   }, [])
@@ -408,7 +409,7 @@ export default function ExportPage() {
     }
     const json = data ?? {}
     if (!ok) {
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
+      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} free share link${json.limit === 1 ? '' : 's'}. Upgrade or revoke one to free a slot.` : json.error ?? 'Could not create share link.')
       return
     }
     setShareLinks(prev => [json as ShareLink, ...prev])
@@ -484,13 +485,13 @@ export default function ExportPage() {
       />
 
       <div className="mb-6 flex flex-wrap gap-1 rounded-lg border border-subtle bg-surface-1 p-1">
-        {(['import', 'pdf', 'backup', 'share'] as Tab[]).map(item => (
+        {(['import', 'pdf', 'backup', 'share', 'files'] as Tab[]).map(item => (
           <button
             key={item}
             onClick={() => setTab(item)}
             className={`rounded px-4 py-2 text-sm font-medium transition-colors ${tab === item ? 'bg-[var(--button-primary-bg)] text-[var(--button-primary-text)]' : 'text-fg-2 hover:bg-surface-3 hover:text-fg'}`}
           >
-            {item === 'import' ? 'Import' : item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : 'Share links'}
+            {item === 'import' ? 'Import' : item === 'pdf' ? 'Application PDF' : item === 'backup' ? 'Data backup' : item === 'share' ? 'Share links' : 'Files'}
           </button>
         ))}
       </div>
@@ -501,7 +502,7 @@ export default function ExportPage() {
         </div>
       )}
 
-      {tab !== 'backup' && tab !== 'import' && (
+      {tab !== 'backup' && tab !== 'import' && tab !== 'files' && (
         <TargetSpecialtyPicker
           specialty={specialty}
           setSpecialty={setSpecialty}
@@ -563,6 +564,10 @@ export default function ExportPage() {
           markdownLoading={markdownLoading}
           onMarkdownExport={handleMarkdownExport}
         />
+      )}
+
+      {tab === 'files' && (
+        <FilesTab subInfo={subInfo} onStorageChanged={refreshSubscriptionInfo} />
       )}
 
       {tab === 'share' && (

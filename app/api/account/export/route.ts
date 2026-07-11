@@ -5,7 +5,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { badJson } from '@/lib/safe-json'
 import JSZip from 'jszip'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
 import { sanitizeProfileForExport } from '@/lib/export/sanitize-profile'
 import type { SpecialtyEntryLink } from '@/lib/specialties'
 import type { ARCPEntryLink } from '@/lib/types/arcp'
@@ -136,11 +136,14 @@ export async function POST(req: NextRequest) {
   const { data: rawSpecialtyLinks } = appIds.length > 0
     ? await supabase.from('specialty_entry_links').select('*').in('application_id', appIds)
     : { data: [] }
-  const filteredLinks = await filterLinksToActivePortfolioEntries(
+  // Note: the exported portfolio_entries/cases sets above include soft-deleted
+  // rows (Art. 20 completeness), so they are NOT valid "known active" id sets.
+  // Let the filter run its own live-row lookups (deleted_at is null).
+  const filteredLinks = await filterLinksToActiveEntries(
     supabase,
     (rawSpecialtyLinks ?? []) as SpecialtyEntryLink[]
   )
-  const filteredArcpLinks = await filterLinksToActivePortfolioEntries(
+  const filteredArcpLinks = await filterLinksToActiveEntries(
     supabase,
     (arcpLinks ?? []) as ARCPEntryLink[]
   )

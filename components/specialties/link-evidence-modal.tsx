@@ -8,7 +8,7 @@ type SearchResult = {
   id: string
   title: string
   date: string
-  type: 'portfolio'
+  type: 'portfolio' | 'case'
 }
 
 type Props = {
@@ -46,18 +46,28 @@ export function LinkEvidenceModal({
     debounceRef.current = setTimeout(async () => {
       setSearching(true)
       try {
-        const { data: portfolioData } = await supabase
-          .from('portfolio_entries')
-          .select('id, title, date')
-          .ilike('title', `%${query}%`)
-          .is('deleted_at', null)
-          .limit(8)
+        const [{ data: portfolioData }, { data: caseData }] = await Promise.all([
+          supabase
+            .from('portfolio_entries')
+            .select('id, title, date')
+            .ilike('title', `%${query}%`)
+            .is('deleted_at', null)
+            .limit(8),
+          supabase
+            .from('cases')
+            .select('id, title, date')
+            .ilike('title', `%${query}%`)
+            .is('deleted_at', null)
+            .limit(8),
+        ])
 
         const combined: SearchResult[] = [
           ...(portfolioData ?? []).map(e => ({ ...e, type: 'portfolio' as const })),
+          ...(caseData ?? []).map(c => ({ ...c, type: 'case' as const })),
         ]
           .filter(e => !existingEntryIds.includes(e.id))
           .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 8)
 
         setResults(combined)
       } finally {
@@ -155,7 +165,7 @@ export function LinkEvidenceModal({
                   type="text"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
-                  placeholder="Search portfolio entries..."
+                  placeholder="Search portfolio entries and cases..."
                   className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl pl-10 pr-4 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors"
                 />
                 {searching && (
@@ -171,7 +181,7 @@ export function LinkEvidenceModal({
                       onClick={() => setSelectedResult(result)}
                       className="w-full flex items-start gap-3 p-3 bg-[var(--bg-canvas)] border border-white/[0.06] hover:border-white/[0.16] rounded-xl text-left transition-all"
                     >
-                      <span className="text-xs mt-0.5 shrink-0 text-[var(--text-muted)]">Entry</span>
+                      <span className="text-xs mt-0.5 shrink-0 text-[var(--text-muted)]">{result.type === 'case' ? 'Case' : 'Entry'}</span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-[var(--text-primary)] font-medium truncate">{result.title}</p>
                         <div className="flex items-center gap-2 mt-0.5">
@@ -193,13 +203,13 @@ export function LinkEvidenceModal({
 
               {query && !searching && results.length === 0 && (
                 <p className="text-center text-xs text-[var(--text-secondary)] py-6">
-                  No matching entries found.
+                  No matching entries or cases found.
                 </p>
               )}
 
               {!query && (
                 <p className="text-center text-xs text-[var(--text-secondary)] py-6">
-                  Start typing to search your portfolio entries.
+                  Start typing to search your portfolio entries and cases.
                 </p>
               )}
             </>
@@ -215,7 +225,7 @@ export function LinkEvidenceModal({
                 </button>
                 <span className="text-[var(--text-secondary)]">|</span>
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="text-xs shrink-0 text-[var(--text-muted)]">Entry</span>
+                  <span className="text-xs shrink-0 text-[var(--text-muted)]">{selectedResult.type === 'case' ? 'Case' : 'Entry'}</span>
                   <span className="text-sm text-[var(--text-primary)] font-medium truncate">{selectedResult.title}</span>
                 </div>
               </div>
@@ -223,7 +233,7 @@ export function LinkEvidenceModal({
               {noBands ? (
                 <div className="px-4 py-3 bg-white/[0.03] border border-white/[0.06] rounded-xl">
                   <p className="text-xs text-[var(--text-secondary)] leading-relaxed">
-                    This domain is evidence-only - no scoring bands. Linking this entry will
+                    This domain is evidence-only - no scoring bands. Linking this evidence will
                     mark the domain as evidenced.
                   </p>
                 </div>

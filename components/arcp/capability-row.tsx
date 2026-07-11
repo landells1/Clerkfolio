@@ -19,7 +19,7 @@ type LinkedEntry = {
   id: string
   title: string
   date: string
-  type: 'portfolio'
+  type: 'portfolio' | 'case'
   category?: string
 }
 
@@ -38,13 +38,20 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
     if (!expanded && links.length > 0 && entryDetails === null) {
       setLoadingEntries(true)
       const portfolioIds = links.filter(l => l.entry_type === 'portfolio').map(l => l.entry_id)
+      const caseIds = links.filter(l => l.entry_type === 'case').map(l => l.entry_id)
 
-      const portfolioRes = portfolioIds.length > 0
-        ? await supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds).is('deleted_at', null)
-        : { data: [] }
+      const [portfolioRes, caseRes] = await Promise.all([
+        portfolioIds.length > 0
+          ? supabase.from('portfolio_entries').select('id, title, date, category').in('id', portfolioIds).is('deleted_at', null)
+          : Promise.resolve({ data: [] }),
+        caseIds.length > 0
+          ? supabase.from('cases').select('id, title, date').in('id', caseIds).is('deleted_at', null)
+          : Promise.resolve({ data: [] }),
+      ])
 
       const details: LinkedEntry[] = [
         ...((portfolioRes.data ?? []).map(e => ({ ...e, type: 'portfolio' as const }))),
+        ...((caseRes.data ?? []).map(c => ({ ...c, type: 'case' as const }))),
       ]
       setEntryDetails(details)
       setLoadingEntries(false)
@@ -61,7 +68,7 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
       setEntryDetails(prev => {
         const link = links.find(l => l.id === linkId)
         if (!prev || !link) return prev
-        return prev.filter(e => e.id !== link.entry_id)
+        return prev.filter(e => !(e.id === link.entry_id && e.type === link.entry_type))
       })
       onUnlinked(linkId)
     }
@@ -128,16 +135,17 @@ export default function CapabilityRow({ capability, links, onLinked, onUnlinked 
           ) : (
             <div className="divide-y divide-white/[0.04]">
               {links.map(link => {
-                const detail = entryDetails?.find(e => e.id === link.entry_id)
+                const detail = entryDetails?.find(e => e.id === link.entry_id && e.type === link.entry_type)
+                const isCase = link.entry_type === 'case'
                 return (
                   <div key={link.id} className="flex items-center gap-3 px-4 py-2.5 group hover:bg-white/[0.02] transition-colors">
                     <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-white/[0.06] text-[var(--text-muted)] border border-white/[0.08] shrink-0">
-                      Portfolio entry
+                      {isCase ? 'Case' : 'Portfolio entry'}
                     </span>
                     <div className="flex-1 min-w-0">
                       {detail ? (
                         <Link
-                          href={`/portfolio/${link.entry_id}`}
+                          href={isCase ? `/cases/${link.entry_id}` : `/portfolio/${link.entry_id}`}
                           className="text-sm text-[var(--text-primary)] hover:text-[var(--text-primary)] transition-colors truncate block"
                         >
                           {detail.title}

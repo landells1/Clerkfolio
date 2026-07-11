@@ -2,7 +2,7 @@
 import { createClient } from '@/lib/supabase/server'
 import ARCPPageClient from '@/components/arcp/arcp-page-client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
-import { filterLinksToActivePortfolioEntries } from '@/lib/specialties/active-links'
+import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
 
 // Mirror the sidebar visibility rule (FY1/FY2 only). The sidebar already
 // hides this nav item, but a deep link or a stale tab can still land here.
@@ -44,7 +44,7 @@ export default async function ARCPPage() {
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
   ])
-  const activeLinks = await filterLinksToActivePortfolioEntries(
+  const activeLinks = await filterLinksToActiveEntries(
     supabase,
     (links ?? []) as ARCPEntryLink[]
   )
@@ -57,7 +57,7 @@ export default async function ARCPPage() {
           Annual Review of Competency Progression
         </p>
         <p className="text-sm text-[var(--text-secondary)] mt-2">
-          Link portfolio entries to Foundation Programme capabilities to build evidence as you go.
+          Link portfolio entries and cases to Foundation Programme capabilities to build evidence as you go.
           This is for your own organisation - it isn&apos;t a Horus replacement and doesn&apos;t replace
           the official portfolio your deanery requires.
         </p>
@@ -70,9 +70,9 @@ export default async function ARCPPage() {
         <p className="mt-3 text-sm text-[var(--text-secondary)] leading-6">
           The Foundation Programme curriculum sets out 17 high-level capabilities (e.g. patient
           care, professional behaviour, leadership). At ARCP your supervisor wants to see evidence
-          across all of them. Linking a portfolio entry here records that you think it demonstrates
-          a particular capability - the same entry can support multiple capabilities. Click any row
-          below to add or remove linked entries.
+          across all of them. Linking a portfolio entry or case here records that you think it
+          demonstrates a particular capability - the same entry can support multiple capabilities.
+          Click any row below to add or remove linked entries.
         </p>
       </details>
 

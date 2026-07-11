@@ -13,6 +13,19 @@ export type EvidenceFileWithLinks = EvidenceFile & {
   links: { entry_id: string; entry_type: EvidenceEntryType }[]
 }
 
+/** A link plus the linked entry's resolved title. `title` is null when the
+ *  entry is in the trash (soft-deleted) - the link row survives until the
+ *  entry is purged, but the live-rows title lookup deliberately skips it. */
+export type EvidenceLinkWithTitle = {
+  entry_id: string
+  entry_type: EvidenceEntryType
+  title: string | null
+}
+
+export type EvidenceFileWithTitledLinks = EvidenceFile & {
+  links: EvidenceLinkWithTitle[]
+}
+
 /** An entry's evidence file plus how many entries the physical file is
  *  attached to (linkCount > 1 => reused across entries; drives the UI badge
  *  and the "this is the last copy" unlink copy). */
@@ -102,4 +115,98 @@ export async function fetchUserEvidenceLibrary(
     ...file,
     links: linksByFile.get(file.id) ?? [],
   }))
+}
+
+/**
+ * Pure shaping for the owner-facing files surface: group link rows per file and
+ * resolve each link's entry title from the supplied per-type lookups. A link
+ * whose id is missing from its lookup (entry soft-deleted / purged mid-flight)
+ * keeps the link but gets `title: null` so the UI can label it honestly.
+ * Kept DB-free so it can be unit-tested (tests/lib/evidence/server.test.ts).
+ */
+export function attachTitlesToLibrary(
+  files: EvidenceFile[],
+  links: { file_id: string; entry_id: string; entry_type: EvidenceEntryType }[],
+  titlesByType: Record<EvidenceEntryType, Map<string, string>>,
+): EvidenceFileWithTitledLinks[] {
+  const linksByFile = new Map<string, EvidenceLinkWithTitle[]>()
+  for (const link of links) {
+    const list = linksByFile.get(link.file_id) ?? []
+    list.push({
+      entry_id: link.entry_id,
+      entry_type: link.entry_type,
+      title: titlesByType[link.entry_type].get(link.entry_id) ?? null,
+    })
+    linksByFile.set(link.file_id, list)
+  }
+  return files.map(file => ({
+    ...file,
+    links: linksByFile.get(file.id) ?? [],
+  }))
+}
+
+/**
+ * The user's full evidence library for the OWNER-facing "My files" surface
+ * (/export?tab=files via GET /api/evidence/files), with each link's entry/case
+ * TITLE resolved server-side. This is deliberately a SEPARATE function from
+ * `fetchUserEvidenceLibrary`: the attach-existing picker route
+ * (/api/evidence/library) withholds cross-entry titles by design - do not
+ * loosen it; the owner viewing their own files page is the one place titles
+ * are appropriate. Two differences from the picker fetch:
+ *   * ALL scan statuses are included (pending/quarantined files still count
+ *     toward the storage quota, and this page exists so users can see and
+ *     free what is eating it).
+ *   * Titles come only from the user's own LIVE rows (`deleted_at is null`),
+ *     matching the entry-ownership guards elsewhere; a link to a trashed entry
+ *     resolves to `title: null`.
+ */
+export async function fetchUserEvidenceLibraryWithTitles(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<EvidenceFileWithTitledLinks[]> {
+  const [{ data: files, error: filesError }, { data: allLinks, error: linksError }] = await Promise.all([
+    supabase
+      .from('evidence_files')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('evidence_file_links')
+      .select('file_id, entry_id, entry_type'),
+  ])
+
+  if (filesError || !files) return []
+
+  const links = linksError || !allLinks
+    ? []
+    : (allLinks as { file_id: string; entry_id: string; entry_type: EvidenceEntryType }[])
+
+  const portfolioIds = Array.from(new Set(links.filter(l => l.entry_type === 'portfolio').map(l => l.entry_id)))
+  const caseIds = Array.from(new Set(links.filter(l => l.entry_type === 'case').map(l => l.entry_id)))
+
+  const [{ data: entryRows }, { data: caseRows }] = await Promise.all([
+    portfolioIds.length > 0
+      ? supabase
+          .from('portfolio_entries')
+          .select('id, title')
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .in('id', portfolioIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+    caseIds.length > 0
+      ? supabase
+          .from('cases')
+          .select('id, title')
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .in('id', caseIds)
+      : Promise.resolve({ data: [] as { id: string; title: string }[] }),
+  ])
+
+  const titlesByType: Record<EvidenceEntryType, Map<string, string>> = {
+    portfolio: new Map(((entryRows ?? []) as { id: string; title: string }[]).map(r => [r.id, r.title])),
+    case: new Map(((caseRows ?? []) as { id: string; title: string }[]).map(r => [r.id, r.title])),
+  }
+
+  return attachTitlesToLibrary(files as EvidenceFile[], links, titlesByType)
 }

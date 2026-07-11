@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
 import type { Template } from '@/lib/types/templates'
+import { portfolioTemplates } from '@/lib/templates/filter'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from './specialty-tag-select'
 import CompetencyThemePicker from './competency-theme-picker'
 import ImportanceSelect from './importance-select'
@@ -582,9 +583,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   const LEVEL_OPTIONS = ['local', 'regional', 'national', 'international']
 
-  // Grouped templates for the picker
-  const curatedTemplates = templates.filter(t => t.is_curated)
-  const personalTemplates = templates.filter(t => !t.is_curated)
+  // Grouped templates for the picker. Only portfolio-kind templates belong
+  // here - case templates are the case form's picker.
+  const entryTemplates = portfolioTemplates(templates)
+  const curatedTemplates = entryTemplates.filter(t => t.is_curated)
+  const personalTemplates = entryTemplates.filter(t => !t.is_curated)
   const groupedCurated = CATEGORIES.reduce<Record<string, Template[]>>((acc, cat) => {
     acc[cat.value] = curatedTemplates.filter(t => t.category === cat.value)
     return acc
@@ -634,7 +637,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <div>
             <div className="flex items-center justify-between gap-3">
               <label className={LABEL}>Category</label>
-              {templates.length > 0 && (
+              {entryTemplates.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setTemplatePickerOpen(true)}

@@ -96,7 +96,7 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                   ) : null}
                   {!isClaimed && link.entry_id && link.entry_type && (
                     <a
-                      href={`/portfolio/${link.entry_id}`}
+                      href={link.entry_type === 'case' ? `/cases/${link.entry_id}` : `/portfolio/${link.entry_id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-xs text-[var(--accent-text)] hover:underline"
