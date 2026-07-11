@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { hasValidMagicBytes } from '@/lib/upload/magic-bytes'
+import { checkFinalisedUploadSize } from '@/lib/upload/quota'
+import { MAX_FILE_BYTES } from '@/lib/supabase/storage'
+import { fetchSubscriptionInfo, formatStorageQuota } from '@/lib/subscription'
 import { safeJsonBody, badJson } from '@/lib/safe-json'
 
 const BUCKET = 'evidence'
@@ -60,6 +63,68 @@ export async function POST(req: NextRequest) {
       scan_completed_at: new Date().toISOString(),
     }).eq('id', file.id)
     return NextResponse.json({ error: 'Could not verify uploaded file' }, { status: 500 })
+  }
+
+  // Reconcile the stored size with the REAL object size, then re-check the caps.
+  // /api/upload/authorize trusts the client-declared fileSize (the bytes are not
+  // uploaded yet), so a crafted client can declare 1 byte, PUT ~50 MB, and make
+  // the quota meter read near-zero (get_profile_entitlements sums file_size).
+  // Finalisation is the first point the true size is known: write it, then
+  // enforce the per-file cap and quota against it.
+  const actualSize = blob.size
+
+  const { error: sizeUpdateError } = await service
+    .from('evidence_files')
+    .update({ file_size: actualSize })
+    .eq('id', file.id)
+
+  if (sizeUpdateError) {
+    // Without the corrected size persisted, the quota check below would run
+    // against the client-declared figure - the exact hole this route closes.
+    // Leave the row in 'scanning' so the orphan cron reclaims it (row +
+    // object) if retries never succeed.
+    console.error('upload/verify file_size update error:', sizeUpdateError.message)
+    return NextResponse.json({ error: 'Could not verify uploaded file' }, { status: 500 })
+  }
+
+  const subInfo = await fetchSubscriptionInfo(supabase, user.id)
+  const quotaMB = subInfo.storageQuotaMB
+  // Base-ten units (1 MB = 1,000,000 bytes), matching /api/upload/authorize and
+  // storage_used_mb. usedBytes already includes this file at its corrected size.
+  const quotaBytes = quotaMB * 1_000_000
+  const usedBytes = subInfo.usage.storageUsedMB * 1_000_000
+
+  const sizeCheck = checkFinalisedUploadSize({
+    actualBytes: actualSize,
+    maxFileBytes: MAX_FILE_BYTES,
+    usedBytes,
+    quotaBytes,
+  })
+
+  if (!sizeCheck.ok) {
+    // Reject this NEW upload: remove the storage object and its row (the link
+    // row cascades via FK ON DELETE CASCADE). This never touches previously
+    // stored files, so the "over-quota never deletes existing data" rule (F-040)
+    // holds - the rejected object was never a successfully stored file. Mirrors
+    // the row rollback authorize already performs on its own failure paths.
+    // Only delete the row once the object is gone: the orphan cron finds
+    // objects via their rows, so a row deleted ahead of a failed storage
+    // remove would leak the object forever. On remove failure the row stays
+    // in 'scanning' and the cron retries both after 24h.
+    const { error: removeError } = await service.storage.from(BUCKET).remove([file.file_path])
+    if (removeError) {
+      console.error('upload/verify reject storage remove error:', removeError.message)
+    } else {
+      await service.from('evidence_files').delete().eq('id', file.id)
+    }
+
+    if (sizeCheck.reason === 'file_too_large') {
+      return NextResponse.json({ error: 'File too large. Maximum size is 50 MB.' }, { status: 400 })
+    }
+    return NextResponse.json(
+      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe — delete some or upgrade to free up space.` },
+      { status: 400 }
+    )
   }
 
   const bytes = new Uint8Array(await blob.slice(0, 512).arrayBuffer())
