@@ -11,6 +11,9 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
   const [generating, setGenerating] = useState(false)
   const [revoking, setRevoking] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [pin, setPin] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const pinValid = /^\d{4,8}$/.test(pin.trim())
 
   const BASE_URL = typeof window !== 'undefined' ? window.location.origin : 'https://clerkfolio.co.uk'
 
@@ -27,14 +30,22 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
   }, [specialtyKey])
 
   async function handleGenerate() {
+    if (!pinValid) {
+      setError('A PIN is required. Enter 4-8 digits to protect this link.')
+      return
+    }
     setGenerating(true)
-    const { ok, data } = await apiFetch<ShareLinkData>('/api/share', {
+    setError(null)
+    const { ok, data } = await apiFetch<ShareLinkData & { error?: string }>('/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ specialty_key: specialtyKey }),
+      body: JSON.stringify({ specialty_key: specialtyKey, pin: pin.trim() }),
     })
     if (ok && data) {
       setLink(data)
+      setPin('')
+    } else {
+      setError(data?.error ?? 'Could not create share link.')
     }
     setGenerating(false)
   }
@@ -161,9 +172,22 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
                 <span className="text-xs text-[var(--text-muted)]">Revoke at any time</span>
               </div>
             </div>
+            <label className="block">
+              <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN <span className="text-red-400">*</span></span>
+              <input
+                value={pin}
+                onChange={e => { setPin(e.target.value); setError(null) }}
+                inputMode="numeric"
+                pattern="[0-9]{4,8}"
+                placeholder="Required PIN (4-8 digits)"
+                className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
+              />
+              <span className="mt-1 block text-xs text-[var(--text-muted)]">Required — anyone opening the link must enter this 4-8 digit PIN.</span>
+            </label>
+            {error && <p className="text-xs text-red-400">{error}</p>}
             <button
               onClick={handleGenerate}
-              disabled={generating}
+              disabled={generating || !pinValid}
               className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50 text-[var(--button-primary-text)] font-semibold text-sm rounded-xl transition-colors"
             >
               {generating ? (

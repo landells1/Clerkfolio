@@ -176,9 +176,9 @@ export function ShareTab({
             )}
           </div>
           <label className="block">
-            <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN</span>
-            <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Optional PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">Optional PIN (4-8 digits)</p>
+            <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN <span className="text-[var(--danger)]">*</span></span>
+            <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Required PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">Required — anyone opening the link must enter this 4-8 digit PIN.</p>
           </label>
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">View webhook</span>
@@ -203,7 +203,7 @@ export function ShareTab({
               Redact tags
             </label>
           </div>
-          <button type="button" onClick={onCreate} disabled={shareLoading || !canCreateShareLink || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
+          <button type="button" onClick={onCreate} disabled={shareLoading || !canCreateShareLink || !/^\d{4,8}$/.test(sharePin.trim()) || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
             {shareLoading ? 'Creating...' : 'Create link'}
           </button>
         </div>

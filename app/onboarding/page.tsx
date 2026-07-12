@@ -182,13 +182,21 @@ export default function OnboardingPage() {
       return
     }
 
-    setSaving(false)
     window.localStorage.removeItem(DRAFT_KEY)
-    if (postOnboardingNext) router.push(postOnboardingNext)
-    else if (target === 'portfolio') router.push('/portfolio/new')
-    else if (target === 'case') router.push('/cases/new')
-    else router.push('/dashboard')
-    router.refresh()
+    // Hard navigation (not router.push + router.refresh): completing onboarding
+    // flips onboarding_complete server-side, and the middleware reads it fresh
+    // on a full request. A soft push here raced with router.refresh() and left
+    // the user stranded on this page; a full load lets the middleware route
+    // them correctly. Keep `saving` true so the button stays disabled until the
+    // page unloads.
+    const destination = postOnboardingNext
+      ? postOnboardingNext
+      : target === 'portfolio'
+        ? '/portfolio/new'
+        : target === 'case'
+          ? '/cases/new'
+          : '/dashboard'
+    window.location.assign(destination)
   }
 
   return (
@@ -296,18 +304,23 @@ export default function OnboardingPage() {
         )}
 
         {step === 'arcp' && (
-          <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <div className={`rounded-lg border p-5 ${careerStage === 'FY1' || careerStage === 'FY2' ? 'border-pill-blue bg-pill-blue' : 'border-subtle bg-surface-1'}`}>
-              <h2 className="text-base font-semibold">ARCP timeline</h2>
-              <p className="mt-2 text-sm leading-relaxed text-fg-2">
-                Foundation doctors see the ARCP tracker and timeline by default. Medical students can enable it later from settings when relevant.
-              </p>
-            </div>
-            <div className="rounded-lg border border-subtle bg-surface-1 p-5">
-              <h2 className="text-base font-semibold">Evidence model</h2>
-              <p className="mt-2 text-sm leading-relaxed text-fg-2">
-                ARCP and specialty scoring only link portfolio evidence. Clinical cases remain a reflective journal and interview bank.
-              </p>
+          <section>
+            <p className="mb-4 max-w-2xl text-sm text-fg-2">
+              Nothing to choose here — this is set automatically from your career stage. Here is how your training tracker will work.
+            </p>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="rounded-lg border border-subtle bg-surface-1 p-5">
+                <h2 className="text-base font-semibold">ARCP timeline</h2>
+                <p className="mt-2 text-sm leading-relaxed text-fg-2">
+                  Foundation doctors see the ARCP tracker and timeline by default. Medical students can enable it later from settings when relevant.
+                </p>
+              </div>
+              <div className="rounded-lg border border-subtle bg-surface-1 p-5">
+                <h2 className="text-base font-semibold">Evidence model</h2>
+                <p className="mt-2 text-sm leading-relaxed text-fg-2">
+                  ARCP and specialty scoring only link portfolio evidence. Clinical cases remain a reflective journal and interview bank.
+                </p>
+              </div>
             </div>
           </section>
         )}

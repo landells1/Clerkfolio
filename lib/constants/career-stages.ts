@@ -6,7 +6,7 @@
 // rows hold them (live DB verified 2026-06-10), so they are not valid values
 // anywhere. Import from here instead of redeclaring stage lists.
 
-export const CAREER_STAGES = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5_PLUS', 'FY1', 'FY2', 'POST_FY'] as const
+export const CAREER_STAGES = ['Y1', 'Y2', 'Y3', 'Y4', 'Y5_PLUS', 'FY1', 'FY2', 'F3', 'OUT_OF_TRAINING', 'POST_FY'] as const
 
 export type CareerStage = (typeof CAREER_STAGES)[number]
 
@@ -24,6 +24,8 @@ export const CAREER_STAGE_LABELS: Record<CareerStage, string> = {
   Y5_PLUS: 'Year 5+ (Medical Student)',
   FY1: 'Foundation Year 1 (FY1)',
   FY2: 'Foundation Year 2 (FY2)',
+  F3: 'F3 / FY3 year (post-foundation)',
+  OUT_OF_TRAINING: 'Out of training (SAS / non-training / break)',
   POST_FY: 'Core/Specialty Training (CT/ST)',
 }
 

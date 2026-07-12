@@ -100,7 +100,9 @@ function makeRequest(body: Record<string, unknown>) {
   return new NextRequest('https://clerkfolio.co.uk/api/share', {
     method: 'POST',
     headers: { origin: 'https://clerkfolio.co.uk', 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    // A PIN is required on every share link now; default one in so these
+    // limit-allowance cases exercise the quota logic, not the PIN guard.
+    body: JSON.stringify({ pin: '1234', ...body }),
   })
 }
 
@@ -161,5 +163,44 @@ describe('POST /api/share — referral-aware free allowance (1 + referralCount)'
     expect(json.used).toBe(3)
     expect(state.deletedIds).toEqual(['link-1'])
     expect(state.rpcCalls).toHaveLength(0)
+  })
+})
+
+describe('POST /api/share — PIN is required', () => {
+  beforeEach(() => {
+    state.user = { id: USER_ID }
+    state.actualCount = 0
+    state.insertedRow = null
+    state.deletedIds = []
+    state.rpcCalls = []
+    state.subInfo = { isPro: false, referralCount: 0, limits: { canCreateShareLink: true }, usage: { shareLinksUsed: 0 } }
+    vi.stubEnv('SUPABASE_SERVICE_ROLE_KEY', '')
+  })
+
+  it('rejects a request with no PIN (400, before any insert)', async () => {
+    const req = new NextRequest('https://clerkfolio.co.uk/api/share', {
+      method: 'POST',
+      headers: { origin: 'https://clerkfolio.co.uk', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scope: 'full' }),
+    })
+    const res = await createShareLink(req)
+    const json = await res.json()
+    expect(res.status).toBe(400)
+    expect(json.error).toMatch(/PIN is required/i)
+    expect(state.insertedRow).toBeNull()
+  })
+
+  it('rejects a malformed PIN (too short)', async () => {
+    const res = await createShareLink(makeRequest({ scope: 'full', pin: '12' }))
+    const json = await res.json()
+    expect(res.status).toBe(400)
+    expect(json.error).toMatch(/4-8 digits/i)
+    expect(state.insertedRow).toBeNull()
+  })
+
+  it('accepts a valid PIN', async () => {
+    const res = await createShareLink(makeRequest({ scope: 'full', pin: '4321' }))
+    expect(res.status).toBe(201)
+    expect(state.insertedRow?.pin_hash).toBeTruthy()
   })
 })

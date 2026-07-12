@@ -98,12 +98,13 @@ export function transactionalEmail({
   return { html, text }
 }
 
-export function notificationEmailText(firstName: string | null, items: NotificationItem[]) {
+export function notificationEmailText(firstName: string | null, items: NotificationItem[], unsubscribeUrl?: string) {
   const lines = items.map(item => `- ${item.title}: ${item.body}`).join('\n')
-  return `Hi ${firstName || 'there'},\n\n${lines}\n\nOpen Clerkfolio: ${baseUrl}/timeline\n\nManage notification preferences: ${baseUrl}/settings/notifications`
+  const unsub = unsubscribeUrl ? `\nUnsubscribe from reminder emails: ${unsubscribeUrl}` : ''
+  return `Hi ${firstName || 'there'},\n\n${lines}\n\nOpen Clerkfolio: ${baseUrl}/timeline\n\nManage notification preferences: ${baseUrl}/settings/notifications${unsub}`
 }
 
-export function notificationEmailHtml(firstName: string | null, items: NotificationItem[]) {
+export function notificationEmailHtml(firstName: string | null, items: NotificationItem[], unsubscribeUrl?: string) {
   const rows = items.map(item => `
     <tr>
       <td style="padding:16px;border-bottom:1px solid #e7e7e3;">
@@ -133,6 +134,7 @@ export function notificationEmailHtml(firstName: string | null, items: Notificat
                 <td style="padding:18px 24px;background:#fafafa;">
                   <a href="${baseUrl}/timeline" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open timeline</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage these emails from Clerkfolio settings.</p>
+                  ${unsubscribeHtmlLine(unsubscribeUrl)}
                 </td>
               </tr>
             </table>
@@ -143,22 +145,37 @@ export function notificationEmailHtml(firstName: string | null, items: Notificat
   </html>`
 }
 
-export function weeklyDigestEmail(firstName: string | null, summary: DigestSummary) {
+export function weeklyDigestEmail(firstName: string | null, summary: DigestSummary, unsubscribeUrl?: string) {
   return digestEmail({
     firstName,
     title: 'Your weekly Clerkfolio digest',
     intro: 'Here is what you logged this week.',
     summary,
+    unsubscribeUrl,
   })
 }
 
-export function monthlyDigestEmail(firstName: string | null, monthLabel: string, summary: DigestSummary) {
+export function monthlyDigestEmail(firstName: string | null, monthLabel: string, summary: DigestSummary, unsubscribeUrl?: string) {
   return digestEmail({
     firstName,
     title: `${monthLabel} in Clerkfolio`,
     intro: `Here is your end-of-month portfolio snapshot for ${monthLabel}.`,
     summary,
+    unsubscribeUrl,
   })
+}
+
+// Footer opt-out lines. The visible link points at the /unsubscribe confirmation
+// page (a deliberate click, safe from mail-scanner prefetch); provider one-click
+// unsubscribe is handled separately via List-Unsubscribe headers on the send.
+function unsubscribeTextLine(unsubscribeUrl?: string) {
+  return unsubscribeUrl ? `Unsubscribe from these emails: ${unsubscribeUrl}` : null
+}
+
+function unsubscribeHtmlLine(unsubscribeUrl?: string) {
+  return unsubscribeUrl
+    ? `<p style="margin:8px 0 0;font-size:12px;line-height:1.5;color:#777;"><a href="${unsubscribeUrl}" style="color:#777;text-decoration:underline;">Unsubscribe from these emails</a></p>`
+    : ''
 }
 
 function digestEmail({
@@ -166,11 +183,13 @@ function digestEmail({
   title,
   intro,
   summary,
+  unsubscribeUrl,
 }: {
   firstName: string | null
   title: string
   intro: string
   summary: DigestSummary
+  unsubscribeUrl?: string
 }) {
   const tags = summary.specialtyTags.length > 0 ? summary.specialtyTags.join(', ') : 'No specialty tags used'
   const text = [
@@ -184,6 +203,7 @@ function digestEmail({
     '',
     `Open Clerkfolio: ${baseUrl}/dashboard`,
     `Manage notification preferences: ${baseUrl}/settings/notifications`,
+    ...(unsubscribeTextLine(unsubscribeUrl) ? [unsubscribeTextLine(unsubscribeUrl) as string] : []),
   ].join('\n')
 
   const html = `<!doctype html>
@@ -211,6 +231,7 @@ function digestEmail({
                 <td style="padding:18px 24px;background:#fafafa;">
                   <a href="${baseUrl}/dashboard" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open dashboard</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage digest emails from Clerkfolio settings.</p>
+                  ${unsubscribeHtmlLine(unsubscribeUrl)}
                 </td>
               </tr>
             </table>

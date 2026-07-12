@@ -389,8 +389,8 @@ export default function ExportPage() {
 
   async function createShareLink() {
     const trimmedPin = sharePin.trim()
-    if (trimmedPin && !/^\d{4,8}$/.test(trimmedPin)) {
-      setError('PIN must be 4-8 digits.')
+    if (!/^\d{4,8}$/.test(trimmedPin)) {
+      setError('A PIN is required. Enter 4-8 digits to protect this link.')
       return
     }
     if (shareScope === 'specialty' && !shareSpecialty) {
@@ -418,7 +418,7 @@ export default function ExportPage() {
         specialty_key: shareScope === 'specialty' ? shareSpecialty : null,
         theme_slug: shareScope === 'theme' ? shareTheme : null,
         expires_at: expiresAt,
-        pin: trimmedPin || null,
+        pin: trimmedPin,
         hide_notes: hideNotes,
         hide_reflection: hideReflection,
         redact_tags: redactTags,

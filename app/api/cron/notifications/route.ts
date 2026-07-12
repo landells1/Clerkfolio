@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { Resend } from 'resend'
 import { notificationEmailHtml, notificationEmailText } from '@/lib/notifications/email-templates'
+import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
 import { validateCronSecret } from '@/lib/cron'
 import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
@@ -221,14 +222,20 @@ export async function GET(req: NextRequest) {
 
       const { data: { user } } = await supabase.auth.admin.getUserById(userId)
       if (!user?.email) return
+      // Never email an account that has not confirmed its address yet.
+      if (!user.email_confirmed_at) return
 
+      const unsub = unsubscribeUrl(userId, 'reminders')
       try {
         await resend.emails.send({
           from: 'Clerkfolio <hello@clerkfolio.co.uk>',
           to: user.email,
           subject: userItems.length > 1 ? `${userItems.length} Clerkfolio reminders` : userItems[0].title,
-          text: notificationEmailText(profile?.first_name ?? null, userItems),
-          html: notificationEmailHtml(profile?.first_name ?? null, userItems),
+          text: notificationEmailText(profile?.first_name ?? null, userItems, unsub ?? undefined),
+          html: notificationEmailHtml(profile?.first_name ?? null, userItems, unsub ?? undefined),
+          ...(unsub
+            ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+            : {}),
         })
       } catch (error) {
         logBackgroundJobError('cron.notifications.email', error, { userId, count: userItems.length })

@@ -5,6 +5,7 @@ import { validateCronSecret } from '@/lib/cron'
 import { buildDigestSummary, isDigestEmpty, type DigestEntry } from '@/lib/engagement/digest'
 import { currentLondonWeekWindow } from '@/lib/engagement/streaks'
 import { weeklyDigestEmail } from '@/lib/notifications/email-templates'
+import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
 import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
@@ -68,8 +69,12 @@ export async function GET(req: NextRequest) {
     if (isDigestEmpty(summary)) return
     const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
     if (!user?.email) return
+    // Never email an account that has not confirmed its address yet: a
+    // pre-verification signup should receive nothing but the confirmation mail.
+    if (!user.email_confirmed_at) return
 
-    const email = weeklyDigestEmail(profile.first_name, summary)
+    const unsub = unsubscribeUrl(profile.id, 'weekly_digest')
+    const email = weeklyDigestEmail(profile.first_name, summary, unsub ?? undefined)
     try {
       await resend.emails.send({
         from: 'Clerkfolio <hello@clerkfolio.co.uk>',
@@ -77,6 +82,9 @@ export async function GET(req: NextRequest) {
         subject: 'Your weekly Clerkfolio digest',
         text: email.text,
         html: email.html,
+        ...(unsub
+          ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+          : {}),
       })
       sent++
     } catch (error) {

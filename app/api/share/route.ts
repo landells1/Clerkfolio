@@ -126,8 +126,14 @@ export async function POST(req: NextRequest) {
   if (body.pin != null && typeof body.pin !== 'string') {
     return NextResponse.json({ error: 'PIN must be 4-8 digits.' }, { status: 400 })
   }
-  if (rawPin && !pin) {
-    return NextResponse.json({ error: 'PIN must be 4-8 digits.' }, { status: 400 })
+  // A PIN is required on every share link: a shared portfolio is real clinical
+  // evidence, and an un-PINned link is a bare bearer URL. `rawPin` present but
+  // `pin` null means it was supplied in the wrong format.
+  if (!pin) {
+    return NextResponse.json(
+      { error: rawPin ? 'PIN must be 4-8 digits.' : 'A PIN is required. Enter 4-8 digits to protect this link.' },
+      { status: 400 }
+    )
   }
   if ('error' in webhook) {
     return NextResponse.json({ error: webhook.error }, { status: 400 })

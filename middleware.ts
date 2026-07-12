@@ -116,6 +116,8 @@ export async function middleware(request: NextRequest) {
     pathname === '/security' ||
     pathname === '/contact' ||
     pathname === '/offline' ||
+    pathname === '/unsubscribe' ||
+    pathname.startsWith('/api/unsubscribe') ||
     pathname.startsWith('/share/') ||
     pathname.startsWith('/showcase/') ||
     pathname.startsWith('/api/share/access') ||
@@ -304,6 +306,15 @@ export async function middleware(request: NextRequest) {
   if (user && isUnauthRoute && pathname !== '/update-password') {
     const url = request.nextUrl.clone()
     url.pathname = onboardingComplete ? '/dashboard' : '/onboarding'
+    return applySecurityHeaders(NextResponse.redirect(url), nonce)
+  }
+
+  // Already onboarded but sitting on /onboarding (finished in another tab, a
+  // bookmark, or a stale client that failed to navigate on completion): send
+  // them to the dashboard instead of re-rendering the wizard from step one.
+  if (user && pathname === '/onboarding' && onboardingComplete) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/dashboard'
     return applySecurityHeaders(NextResponse.redirect(url), nonce)
   }
 

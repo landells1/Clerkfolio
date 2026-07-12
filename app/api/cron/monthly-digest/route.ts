@@ -5,6 +5,7 @@ import { validateCronSecret } from '@/lib/cron'
 import { buildDigestSummary, isDigestEmpty, shouldSendMonthlyDigest, type DigestEntry } from '@/lib/engagement/digest'
 import { previousLondonMonthWindow } from '@/lib/engagement/streaks'
 import { monthlyDigestEmail } from '@/lib/notifications/email-templates'
+import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
 import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
@@ -71,8 +72,11 @@ export async function GET(req: NextRequest) {
     if (isDigestEmpty(summary)) return
     const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
     if (!user?.email) return
+    // Never email an account that has not confirmed its address yet.
+    if (!user.email_confirmed_at) return
 
-    const email = monthlyDigestEmail(profile.first_name, label, summary)
+    const unsub = unsubscribeUrl(profile.id, 'monthly_digest')
+    const email = monthlyDigestEmail(profile.first_name, label, summary, unsub ?? undefined)
     try {
       await resend.emails.send({
         from: 'Clerkfolio <hello@clerkfolio.co.uk>',
@@ -80,6 +84,9 @@ export async function GET(req: NextRequest) {
         subject: `${label} in Clerkfolio`,
         text: email.text,
         html: email.html,
+        ...(unsub
+          ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+          : {}),
       })
       sent++
     } catch (error) {
