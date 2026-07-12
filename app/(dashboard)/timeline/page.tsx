@@ -17,10 +17,10 @@ export default async function TimelinePage({
   const q = resolvedSearchParams.q ?? ''
   const parsedQuery = parseSearchQuery([q, resolvedSearchParams.since ? `since:${resolvedSearchParams.since}` : ''].filter(Boolean).join(' '))
 
-  const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }] = await Promise.all([
+  const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }, { data: goalProgressEntries }] = await Promise.all([
     supabase
       .from('goals')
-      .select('id, category, target_count, due_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
+      .select('id, category, target_count, due_date, start_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
       .eq('user_id', user!.id)
       .is('completed_at', null)
       .order('due_date', { ascending: true }),
@@ -40,6 +40,16 @@ export default async function TimelinePage({
       .select('calendar_feed_token_hash, display_prefs')
       .eq('id', user!.id)
       .single(),
+    // Minimal fields for the goal progress counts ("N of target logged"),
+    // demo rows and soft-deletes excluded server-side so no demo/deleted row
+    // ever inflates a goal's count (F-022 pattern - see the dashboard's
+    // realEntries comment).
+    supabase
+      .from('portfolio_entries')
+      .select('category, date')
+      .eq('user_id', user!.id)
+      .eq('is_demo', false)
+      .is('deleted_at', null),
   ])
 
   const specialtyRows: TimelineSpecialty[] = (specialties ?? []).map(row => ({
@@ -120,6 +130,7 @@ export default async function TimelinePage({
   return (
     <TimelineClient
       goals={filteredGoals}
+      goalProgressEntries={goalProgressEntries ?? []}
       specialties={specialtyRows}
       deadlines={filteredDeadlines}
       calendarFeedExists={Boolean(profile?.calendar_feed_token_hash)}

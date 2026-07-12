@@ -36,6 +36,7 @@ import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/port
 import type { Case } from '@/lib/types/cases'
 import { careerStageLabel } from '@/lib/constants/career-stages'
 import { buildThemeCoverage } from '@/lib/portfolio/theme-coverage'
+import { countGoalProgress } from '@/lib/goals/progress'
 
 export default async function DashboardPage({
   searchParams,
@@ -114,7 +115,7 @@ export default async function DashboardPage({
       .limit(10),
     supabase
       .from('goals')
-      .select('category, target_count, due_date')
+      .select('category, target_count, due_date, start_date')
       .eq('user_id', user!.id)
       .is('completed_at', null)
       .gte('due_date', today)
@@ -211,8 +212,16 @@ export default async function DashboardPage({
   const showAnniversary = anniversaryYear > (profile?.last_anniversary_seen_year ?? 0)
 
   const upcomingItems = [
-    ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const })),
-    ...(goals ?? []).filter(g => g.due_date).map(g => ({ id: `${g.category}-${g.due_date}`, title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`, date: g.due_date, type: 'Goal' as const })),
+    ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const, progress: undefined })),
+    // Progress is a neutral logged-count only ("N of target logged"), never a
+    // pace/readiness judgement (owner red-line) - see lib/goals/progress.ts.
+    ...(goals ?? []).filter(g => g.due_date).map(g => ({
+      id: `${g.category}-${g.due_date}`,
+      title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`,
+      date: g.due_date,
+      type: 'Goal' as const,
+      progress: `${countGoalProgress({ category: g.category, start_date: g.start_date }, realEntries)} of ${g.target_count} logged`,
+    })),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
   // Specialty progress: one pass over the tracked rows computes both shapes -

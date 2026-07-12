@@ -11,6 +11,9 @@ export type UpcomingTimelineItem = {
   title: string
   date: string
   type: 'Deadline' | 'Goal'
+  // Neutral logged-count only, goal items only ("N of target logged") -
+  // never a pace/readiness judgement. See lib/goals/progress.ts.
+  progress?: string
 }
 
 export default function UpcomingTimeline({ items }: { items: UpcomingTimelineItem[] }) {
@@ -55,7 +58,10 @@ export default function UpcomingTimeline({ items }: { items: UpcomingTimelineIte
           <div key={`${item.type}-${item.id}-${item.date}`} className="flex items-center justify-between gap-3 rounded-lg bg-[var(--bg-canvas)] border border-white/[0.06] px-3 py-2">
             <div className="min-w-0">
               <p className="truncate text-sm text-[var(--text-primary)]">{item.title}</p>
-              <p className="text-[11px] text-[var(--text-secondary)]">{item.type}</p>
+              <p className="text-[11px] text-[var(--text-secondary)]">
+                {item.type}
+                {item.progress ? ` - ${item.progress}` : ''}
+              </p>
             </div>
             <div className="shrink-0 flex items-center gap-2">
               <span className="text-xs text-[var(--text-muted)]">{new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}</span>
