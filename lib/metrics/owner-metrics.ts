@@ -9,6 +9,8 @@
 //     OwnerMetricsSnapshot, so the mapping logic is covered by fast unit tests
 //     without touching Supabase at all (matches lib/engagement/digest.ts).
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
+import { logBackgroundJobError } from '@/lib/monitoring'
 
 export type OwnerMetricsSnapshot = {
   windowLabel: string
@@ -22,8 +24,12 @@ export type OwnerMetricsSnapshot = {
   checklistCompletionBuckets: { none: number; some: number; all: number }
   specialtyPopularity: Array<{ specialtyKey: string; count: number }>
   shareLinksCreated: number
-  exportsUsed: number
   referralsCreated: number
+  // Aggregate sums across ALL referrers from the public.referral_funnel view
+  // (2026_06_23_referrals_entitlements_overhaul.sql) - never per-referrer
+  // rows, which would be growth-attribution detail, not an owner headline
+  // count. retained14d mirrors the view's retained_14d column.
+  referralFunnel: { signups: number; activated: number; rewarded: number; retained14d: number }
 }
 
 const CHECKLIST_TOTAL_ITEMS_ASSUMED_MAX = 1 // see note in buildChecklistBuckets
@@ -64,13 +70,18 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
     `  Portfolio entries created: ${snapshot.portfolioEntriesCreated}`,
     `  Cases created: ${snapshot.casesCreated}`,
     `  Share links created: ${snapshot.shareLinksCreated}`,
-    `  Exports used: ${snapshot.exportsUsed}`,
     `  Referrals created: ${snapshot.referralsCreated}`,
     '',
     'Onboarding funnel',
     `  Completed onboarding: ${snapshot.onboardingCompleted}`,
     `  Not yet completed: ${snapshot.onboardingIncomplete}`,
     `  Checklist: none=${snapshot.checklistCompletionBuckets.none}, some=${snapshot.checklistCompletionBuckets.some}, all=${snapshot.checklistCompletionBuckets.all}`,
+    '',
+    'Referral funnel (all-time, all referrers)',
+    `  Signups attributed: ${snapshot.referralFunnel.signups}`,
+    `  Activated: ${snapshot.referralFunnel.activated}`,
+    `  Rewarded: ${snapshot.referralFunnel.rewarded}`,
+    `  Retained 14d post-activation: ${snapshot.referralFunnel.retained14d}`,
     '',
     'Specialty popularity (active tracking)',
     specialtyLines,
@@ -104,13 +115,18 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Portfolio entries created: <strong style="color:#111113;">${snapshot.portfolioEntriesCreated}</strong></p>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Cases created: <strong style="color:#111113;">${snapshot.casesCreated}</strong></p>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Share links created: <strong style="color:#111113;">${snapshot.shareLinksCreated}</strong></p>
-                  <p style="margin:0 0 4px;font-size:14px;color:#555;">Exports used: <strong style="color:#111113;">${snapshot.exportsUsed}</strong></p>
                   <p style="margin:0 0 14px;font-size:14px;color:#555;">Referrals created: <strong style="color:#111113;">${snapshot.referralsCreated}</strong></p>
 
                   <h2 style="margin:0 0 8px;font-size:14px;color:#111113;">Onboarding funnel</h2>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Completed onboarding: <strong style="color:#111113;">${snapshot.onboardingCompleted}</strong></p>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Not yet completed: <strong style="color:#111113;">${snapshot.onboardingIncomplete}</strong></p>
                   <p style="margin:0 0 14px;font-size:14px;color:#555;">Checklist ticked: none=${snapshot.checklistCompletionBuckets.none}, some=${snapshot.checklistCompletionBuckets.some}, all=${snapshot.checklistCompletionBuckets.all}</p>
+
+                  <h2 style="margin:0 0 8px;font-size:14px;color:#111113;">Referral funnel (all-time, all referrers)</h2>
+                  <p style="margin:0 0 4px;font-size:14px;color:#555;">Signups attributed: <strong style="color:#111113;">${snapshot.referralFunnel.signups}</strong></p>
+                  <p style="margin:0 0 4px;font-size:14px;color:#555;">Activated: <strong style="color:#111113;">${snapshot.referralFunnel.activated}</strong></p>
+                  <p style="margin:0 0 4px;font-size:14px;color:#555;">Rewarded: <strong style="color:#111113;">${snapshot.referralFunnel.rewarded}</strong></p>
+                  <p style="margin:0 0 14px;font-size:14px;color:#555;">Retained 14d post-activation: <strong style="color:#111113;">${snapshot.referralFunnel.retained14d}</strong></p>
 
                   <h2 style="margin:0 0 8px;font-size:14px;color:#111113;">Specialty popularity (active tracking)</h2>
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="font-size:13px;">${specialtyRowsHtml}</table>
@@ -164,6 +180,7 @@ export async function fetchOwnerMetrics(
     activeCaseUsersRes,
     checklistRes,
     specialtyRes,
+    referralFunnelRes,
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startIso).lt('created_at', endIso),
@@ -182,6 +199,18 @@ export async function fetchOwnerMetrics(
     supabase.from('cases').select('user_id').is('deleted_at', null).gte('created_at', startIso).lt('created_at', endIso),
     supabase.from('profiles').select('onboarding_checklist_completed_items'),
     supabase.from('specialty_applications').select('specialty_key').eq('is_active', true),
+    // referral_funnel is grouped one-row-per-referrer and could exceed
+    // PostgREST's 1000-row default cap at scale, so page through it with
+    // fetchAllRows rather than a bare .select() (which would silently
+    // truncate the sums below). Ordered by referrer_id for a stable page cut.
+    fetchAllRows<{ signups: number; activated: number; rewarded: number; retained_14d: number }>(
+      (from, to) =>
+        supabase
+          .from('referral_funnel')
+          .select('signups, activated, rewarded, retained_14d')
+          .order('referrer_id')
+          .range(from, to)
+    ),
   ])
 
   const activeUserIds = new Set<string>()
@@ -199,6 +228,24 @@ export async function fetchOwnerMetrics(
     .map(([specialtyKey, count]) => ({ specialtyKey, count }))
     .sort((a, b) => b.count - a.count || a.specialtyKey.localeCompare(b.specialtyKey))
 
+  // referral_funnel is per-referrer; sum across all referrers into a single
+  // owner-facing aggregate. Fails soft (logs, defaults to zero) rather than
+  // throwing, so a referral_funnel read problem never blocks the rest of the
+  // weekly email - same posture as the rest of this file.
+  let referralFunnel = { signups: 0, activated: 0, rewarded: 0, retained14d: 0 }
+  if (referralFunnelRes.error) {
+    logBackgroundJobError('owner-metrics.referral-funnel-fetch', referralFunnelRes.error)
+  } else {
+    for (const row of referralFunnelRes.data ?? []) {
+      referralFunnel = {
+        signups: referralFunnel.signups + Number(row.signups ?? 0),
+        activated: referralFunnel.activated + Number(row.activated ?? 0),
+        rewarded: referralFunnel.rewarded + Number(row.rewarded ?? 0),
+        retained14d: referralFunnel.retained14d + Number(row.retained_14d ?? 0),
+      }
+    }
+  }
+
   return {
     windowLabel: label,
     totalUsers: totalUsersRes.count ?? 0,
@@ -211,12 +258,14 @@ export async function fetchOwnerMetrics(
     checklistCompletionBuckets: buildChecklistBuckets(checklistCounts),
     specialtyPopularity,
     shareLinksCreated: shareLinksRes.count ?? 0,
-    // Exports are intentionally dropped: usage lives inside the
-    // profiles.pro_features_used JSON blob (pdf_exports_used), which has no
-    // "this week" timestamp and would need a full-table row fetch + app-side
-    // JSON sum rather than a head:true count. Not cheap, so dropped rather
-    // than adding schema, per the brief.
-    exportsUsed: 0,
+    // Exports are intentionally omitted from this snapshot/email entirely
+    // (not just zeroed): usage lives inside the profiles.pro_features_used
+    // JSON blob (pdf_exports_used), which has no "this week" timestamp and
+    // would need a full-table row fetch + app-side JSON sum rather than a
+    // head:true count. A permanently-0 "Exports used" row would just mislead
+    // the owner every week, so the row was dropped rather than adding schema
+    // or a relabelled-but-still-fake number, per the brief.
     referralsCreated: referralsRes.count ?? 0,
+    referralFunnel,
   }
 }
