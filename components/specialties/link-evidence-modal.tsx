@@ -37,6 +37,12 @@ export function LinkEvidenceModal({
   const [error, setError] = useState<string | null>(null)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Requests are sequenced by generation: a slow earlier search response can
+  // resolve after a newer one if the user keeps typing - without this, the
+  // slower response would overwrite the fresher results (last-write-wins).
+  // Stale completions no-op instead (audit L-3/L-4 pattern).
+  const searchGeneration = useRef(0)
+
   useEffect(() => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!query.trim()) {
@@ -44,6 +50,8 @@ export function LinkEvidenceModal({
       return
     }
     debounceRef.current = setTimeout(async () => {
+      const generation = ++searchGeneration.current
+      const isStale = () => searchGeneration.current !== generation
       setSearching(true)
       try {
         const [{ data: portfolioData }, { data: caseData }] = await Promise.all([
@@ -61,6 +69,8 @@ export function LinkEvidenceModal({
             .limit(8),
         ])
 
+        if (isStale()) return
+
         const combined: SearchResult[] = [
           ...(portfolioData ?? []).map(e => ({ ...e, type: 'portfolio' as const })),
           ...(caseData ?? []).map(c => ({ ...c, type: 'case' as const })),
@@ -71,7 +81,7 @@ export function LinkEvidenceModal({
 
         setResults(combined)
       } finally {
-        setSearching(false)
+        if (!isStale()) setSearching(false)
       }
     }, 300)
 

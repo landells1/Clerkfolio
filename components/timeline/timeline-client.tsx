@@ -7,12 +7,14 @@ import { CATEGORIES } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { localIsoDate, monthGridDays } from '@/lib/timeline/calendar-grid'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { countGoalProgress, type GoalProgressEntry } from '@/lib/goals/progress'
 
 export type TimelineGoal = {
   id: string
   category: string
   target_count: number
   due_date: string | null
+  start_date: string | null
   specialty_application_id: string | null
   specific: string | null
   measurable: string | null
@@ -54,6 +56,9 @@ type TimelineItem = {
   isAuto: boolean
   specialtyApplicationId: string | null
   specialtyName: string
+  // Neutral progress count, goal items only - "N of target logged", never a
+  // pace/readiness judgement (owner red-line - counts only).
+  progressLabel: string | null
 }
 
 const COLOURS = ['var(--cat-blue-dot)', 'var(--cat-cyan-dot)', 'var(--cat-teal-dot)', 'var(--cat-green-dot)', 'var(--cat-amber-dot)', 'var(--cat-red-dot)', 'var(--cat-violet-dot)', 'var(--cat-pink-dot)']
@@ -68,7 +73,7 @@ function monthKey(date: Date) {
 // across SSR/CSR (BUG-004 placement + BUG-010 hydration #418).
 const iso = localIsoDate
 
-export function TimelineClient({ goals, specialties, deadlines, calendarFeedExists, initialMonthIso, showNationalDefault, displayPrefs, filterBar, banner }: { goals: TimelineGoal[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; showNationalDefault: boolean; displayPrefs: Record<string, unknown>; filterBar?: React.ReactNode; banner?: React.ReactNode }) {
+export function TimelineClient({ goals, goalProgressEntries, specialties, deadlines, calendarFeedExists, initialMonthIso, showNationalDefault, displayPrefs, filterBar, banner }: { goals: TimelineGoal[]; goalProgressEntries: GoalProgressEntry[]; specialties: TimelineSpecialty[]; deadlines: TimelineSpecialtyDeadline[]; calendarFeedExists: boolean; initialMonthIso: string; showNationalDefault: boolean; displayPrefs: Record<string, unknown>; filterBar?: React.ReactNode; banner?: React.ReactNode }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -128,6 +133,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       .filter(goal => goal.due_date)
       .map(goal => {
         const specialty = specialties.find(row => row.id === goal.specialty_application_id)
+        const logged = countGoalProgress({ category: goal.category, start_date: goal.start_date }, goalProgressEntries)
         return {
           id: `goal-${goal.id}`,
           title: goal.specific || `${goal.target_count} ${CATEGORIES.find(category => category.value === goal.category)?.label ?? goal.category}`,
@@ -140,6 +146,7 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
           isAuto: false,
           specialtyApplicationId: goal.specialty_application_id,
           specialtyName: specialty?.name ?? 'Other',
+          progressLabel: `${logged} of ${goal.target_count} logged`,
         }
       })
     const deadlineItems = deadlines.map(deadline => ({
@@ -154,9 +161,10 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
       isAuto: deadline.source === 'config',
       specialtyApplicationId: deadline.specialtyApplicationId,
       specialtyName: deadline.specialtyName,
+      progressLabel: null,
     }))
     return [...deadlineItems, ...goalItems].sort((a, b) => a.date.localeCompare(b.date))
-  }, [deadlines, goals, specialties])
+  }, [deadlines, goals, goalProgressEntries, specialties])
 
   // The server always sends the national NHS recruitment dates (isAuto items);
   // the tick filters them here so toggling is instant, then persists.
@@ -687,6 +695,12 @@ export function TimelineClient({ goals, specialties, deadlines, calendarFeedExis
                 <dt className="text-xs text-[var(--text-secondary)]">Group</dt>
                 <dd className="text-[var(--text-primary)]">{selectedItem.specialtyName}</dd>
               </div>
+              {selectedItem.progressLabel && (
+                <div>
+                  <dt className="text-xs text-[var(--text-secondary)]">Progress</dt>
+                  <dd className="text-[var(--text-primary)]">{selectedItem.progressLabel}</dd>
+                </div>
+              )}
               {(selectedItem.location || selectedItem.details) && (
                 <div>
                   <dt className="text-xs text-[var(--text-secondary)]">Details</dt>
@@ -749,6 +763,9 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem, todayIso }: { 
                     {new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
                     {overdue ? ' - overdue' : ''}
                   </p>
+                  {item.progressLabel && (
+                    <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{item.progressLabel}</p>
+                  )}
                   {(item.location || item.details) && (
                     <p className="mt-1 line-clamp-2 text-xs text-[var(--text-muted)]">{[item.location, item.details].filter(Boolean).join(' - ')}</p>
                   )}

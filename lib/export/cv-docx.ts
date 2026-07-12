@@ -13,6 +13,7 @@
  */
 import { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, TabStopType, TabStopPosition } from 'docx'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
+import type { CvLogSection } from '@/lib/export/cv-log-sections'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import {
   AUDIT_CYCLE_STAGE_LABELS,
@@ -152,6 +153,9 @@ export type CvDocData = {
   templateName: string
   templateSubtitle: string
   sections: CvDocEntrySection[]
+  // personal_log-sourced sections (Courses & Certifications, Examinations),
+  // built by lib/export/cv-log-sections.ts and shared with the PDF + preview.
+  logSections: CvLogSection[]
   totalEntries: number
 }
 
@@ -187,6 +191,7 @@ export function buildCvDocData(params: {
   exportedAt: string
   templateName: string
   templateSubtitle: string
+  logSections?: CvLogSection[]
 }): CvDocData {
   return {
     userName: params.userName,
@@ -195,6 +200,7 @@ export function buildCvDocData(params: {
     templateName: params.templateName,
     templateSubtitle: params.templateSubtitle,
     sections: buildCvDocSections(params.entries),
+    logSections: params.logSections ?? [],
     totalEntries: params.entries.length,
   }
 }
@@ -271,7 +277,44 @@ export async function renderCvDocx(data: CvDocData): Promise<Buffer> {
     }
   }
 
-  if (data.sections.length === 0) {
+  // Log-sourced sections (Courses & Certifications, Examinations) render with
+  // the same heading/entry/detail structure as the portfolio sections above.
+  for (const section of data.logSections) {
+    children.push(
+      new Paragraph({
+        heading: HeadingLevel.HEADING_1,
+        spacing: { before: 300, after: 120 },
+        children: [new TextRun({ text: section.title.toUpperCase(), color: ACCENT_COLOR, bold: true })],
+      }),
+    )
+
+    for (const entry of section.entries) {
+      children.push(
+        new Paragraph({
+          spacing: { before: 160 },
+          children: [
+            new TextRun({ text: entry.title, bold: true }),
+            new TextRun({ text: `\t${entry.dateLabel}`, color: '888888' }),
+          ],
+          tabStops: [{ type: TabStopType.RIGHT, position: TabStopPosition.MAX }],
+        }),
+      )
+
+      for (const detail of entry.details) {
+        children.push(
+          new Paragraph({
+            bullet: { level: 0 },
+            children: [
+              new TextRun({ text: `${detail.label}: `, bold: true }),
+              new TextRun({ text: detail.value }),
+            ],
+          }),
+        )
+      }
+    }
+  }
+
+  if (data.sections.length === 0 && data.logSections.length === 0) {
     children.push(new Paragraph({ children: [new TextRun({ text: 'No entries matched this template.' })] }))
   }
 

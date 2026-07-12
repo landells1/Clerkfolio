@@ -35,7 +35,7 @@ function clinicalArea(c: Case) {
 export default function CasesListClient({ cases, userInterests }: Props) {
   const router = useRouter()
   const supabase = createClient()
-  const { addToast } = useToast()
+  const { addToast, addUndoToast } = useToast()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
   const [selected, setSelected] = useState<Set<string>>(new Set())
@@ -110,11 +110,19 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     setBusy(true)
     const { error } = await supabase.from('cases').update({ deleted_at: new Date().toISOString() }).in('id', Array.from(selected))
     setBusy(false)
+    const ids = Array.from(selected)
     if (error) {
       addToast('Failed to trash cases', 'error')
       return
     }
-    addToast(`${selected.size} ${selected.size === 1 ? 'case' : 'cases'} moved to trash`, 'success')
+    addUndoToast(`${selected.size} ${selected.size === 1 ? 'case' : 'cases'} moved to trash`, async () => {
+      const { error: restoreError } = await supabase.from('cases').update({ deleted_at: null }).in('id', ids)
+      if (restoreError) {
+        addToast('Failed to restore cases, they are still in trash', 'error')
+        return
+      }
+      router.refresh()
+    })
     cancelSelect()
     router.refresh()
   }
@@ -128,7 +136,14 @@ export default function CasesListClient({ cases, userInterests }: Props) {
       addToast('Failed to trash case', 'error')
       return
     }
-    addToast('Case moved to trash', 'success')
+    addUndoToast('Case moved to trash', async () => {
+      const { error: restoreError } = await supabase.from('cases').update({ deleted_at: null }).eq('id', c.id)
+      if (restoreError) {
+        addToast('Failed to restore case, it is still in trash', 'error')
+        return
+      }
+      router.refresh()
+    })
     router.refresh()
   }
 

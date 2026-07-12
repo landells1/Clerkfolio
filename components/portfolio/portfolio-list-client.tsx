@@ -8,6 +8,7 @@ import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/port
 import SpecialtyTagSelect from './specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
+import { EXPORT_PRESELECT_STORAGE_KEY } from '@/lib/export/preselect'
 
 type Props = {
   entries: PortfolioEntry[]
@@ -137,7 +138,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   }
 
   function handleAddToExport() {
-    sessionStorage.setItem('clerkfolio-export-preselect', JSON.stringify(Array.from(selected)))
+    sessionStorage.setItem(EXPORT_PRESELECT_STORAGE_KEY, JSON.stringify(Array.from(selected)))
     router.push('/export')
   }
 

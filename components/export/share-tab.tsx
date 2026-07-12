@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import type { SubscriptionInfo } from '@/lib/subscription'
@@ -109,6 +110,11 @@ export function ShareTab({
                   ? 'Revoke an existing link or upgrade to Pro for unlimited links.'
                   : 'Free tier includes 1 active share link. Upgrade to Pro for unlimited links.'}
             </p>
+            {!canCreateShareLink && (
+              <p className="mt-1 text-[var(--text-secondary)]">
+                <Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link> for unlimited share links. Or <Link href="/settings/referrals" className="text-[var(--accent-text)] underline">invite a colleague</Link>. Each successful referral adds one more free share link.
+              </p>
+            )}
           </div>
         )}
         <div className="mt-5 space-y-4">

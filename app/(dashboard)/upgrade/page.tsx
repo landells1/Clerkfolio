@@ -1,8 +1,10 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo, planProvenance } from '@/lib/subscription'
+import { freePdfAllowance, freeShareAllowance } from '@/lib/referrals/constants'
 import BillingActionButton from '@/components/upgrade/billing-action-button'
 import MemberDiscountCard from '@/components/upgrade/member-discount-card'
+import StorageMeter from '@/components/upgrade/storage-meter'
 import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 
 export default async function UpgradePage() {
@@ -14,6 +16,8 @@ export default async function UpgradePage() {
   // "Current" badge: Pro card for any effective Pro; the verified card when
   // institution-verified-but-not-Pro; otherwise the Free card.
   const currentTierName = subInfo.isPro ? 'Pro' : subInfo.isVerified ? 'Verified' : 'Free'
+  const pdfAllowance = freePdfAllowance(subInfo.referralCount)
+  const shareAllowance = freeShareAllowance(subInfo.referralCount)
 
   return (
     <div className="p-6 lg:p-8">
@@ -36,6 +40,26 @@ export default async function UpgradePage() {
       )}
 
       <MemberDiscountCard />
+
+      <section className="mb-8 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+        <h2 className="mb-4 text-base font-semibold text-[var(--text-primary)]">Your usage</h2>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <StorageMeter usedMB={subInfo.usage.storageUsedMB} quotaMB={subInfo.storageQuotaMB} />
+          <div className="space-y-2 text-sm text-[var(--text-secondary)]">
+            {subInfo.isPro ? (
+              <>
+                <p>You have used {subInfo.usage.pdfExportsUsed} PDF exports. Pro includes unlimited PDF exports.</p>
+                <p>You have used {subInfo.usage.shareLinksUsed} share links. Pro includes unlimited share links.</p>
+              </>
+            ) : (
+              <>
+                <p>You have used {subInfo.usage.pdfExportsUsed} of {pdfAllowance} free PDF exports.</p>
+                <p>You have used {subInfo.usage.shareLinksUsed} of {shareAllowance} free share links.</p>
+              </>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="mb-8 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {PRICING_TIERS.map(tier => (

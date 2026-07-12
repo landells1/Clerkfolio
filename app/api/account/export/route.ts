@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { badJson } from '@/lib/safe-json'
@@ -77,6 +78,49 @@ export async function POST(req: NextRequest) {
   const readable = root.folder('readable')!
 
   // Fetch all user data in parallel (specialty_entry_links fetched separately after we have app IDs)
+  const results = await Promise.all([
+    supabase.from('profiles').select('*').eq('id', user.id).single(),
+    // Every list read below goes through fetchAllRows so a heavy account is not
+    // silently truncated at PostgREST's 1000-row cap (GDPR Art. 20 completeness).
+    // Ordering is added where a query had none so pages don't overlap/skip.
+    fetchAllRows((from, to) => supabase.from('portfolio_entries').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('cases').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('deadlines').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('goals').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('specialty_applications').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('arcp_entry_links').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`).order('id').range(from, to)),
+    includeEvidence
+      ? fetchAllRows((from, to) => supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean').order('id').range(from, to))
+      : Promise.resolve({ data: [], error: null }),
+    // GDPR Art. 20 — additional tables containing personal data
+    fetchAllRows((from, to) => supabase.from('personal_log').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('share_links').select('id, created_at, scope, specialty_key, theme_slug, expires_at, view_count, revoked, revoked_at, hide_notes, hide_reflection, redact_tags').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('custom_competency_themes').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('snippets').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('saved_searches').select('*').eq('user_id', user.id).order('id').range(from, to)),
+    // Exclude ip_hash from session fingerprints (derived from PII, not PII itself)
+    fetchAllRows((from, to) => supabase.from('session_fingerprints').select('id, user_id, user_agent, created_at, last_seen_at, revoked_at').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows((from, to) => supabase.from('referrals').select('*').or(`referrer_id.eq.${user.id},referred_id.eq.${user.id}`).order('id').range(from, to)),
+    // Include key names and prefixes; exclude hash (not personal data, not reconstructable)
+    fetchAllRows((from, to) => supabase.from('api_keys').select('id, user_id, name, prefix, scopes, created_at, last_used_at, revoked_at').eq('user_id', user.id).order('id').range(from, to)),
+  ])
+
+  // A GDPR Art. 20 export must be complete or fail — never a 200 ZIP that
+  // silently omits a whole table (or a paginated remainder) because a read
+  // errored. Fail loud on the first read error, mirroring the calendar feed's
+  // fail-loud posture (F-020) and the evidence-download honesty rule (M-1).
+  const readError = results.find(r => r.error)?.error
+  if (readError) {
+    console.error('account export read failed:', readError.message)
+    return NextResponse.json(
+      { error: 'Could not read all of your data for export. Please try again.' },
+      { status: 500 },
+    )
+  }
+
   const [
     { data: profile },
     { data: portfolioEntries },
@@ -97,45 +141,30 @@ export async function POST(req: NextRequest) {
     { data: sessionFingerprints },
     { data: referrals },
     { data: apiKeys },
-  ] = await Promise.all([
-    supabase.from('profiles').select('*').eq('id', user.id).single(),
-    supabase.from('portfolio_entries').select('*').eq('user_id', user.id),
-    supabase.from('cases').select('*').eq('user_id', user.id),
-    supabase.from('deadlines').select('*').eq('user_id', user.id),
-    supabase.from('goals').select('*').eq('user_id', user.id),
-    supabase.from('specialty_applications').select('*').eq('user_id', user.id),
-    supabase.from('arcp_entry_links').select('*').eq('user_id', user.id),
-    supabase.from('templates').select('*').or(`user_id.eq.${user.id},user_id.is.null`),
-    includeEvidence
-      ? supabase.from('evidence_files').select('*').eq('user_id', user.id).eq('scan_status', 'clean')
-      : Promise.resolve({ data: [] }),
-    // GDPR Art. 20 — additional tables containing personal data
-    supabase.from('personal_log').select('*').eq('user_id', user.id),
-    supabase.from('audit_log').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-    supabase.from('share_links').select('id, created_at, scope, specialty_key, theme_slug, expires_at, view_count, revoked, revoked_at, hide_notes, hide_reflection, redact_tags').eq('user_id', user.id),
-    supabase.from('notifications').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
-    supabase.from('custom_competency_themes').select('*').eq('user_id', user.id),
-    supabase.from('snippets').select('*').eq('user_id', user.id),
-    supabase.from('saved_searches').select('*').eq('user_id', user.id),
-    // Exclude ip_hash from session fingerprints (derived from PII, not PII itself)
-    supabase.from('session_fingerprints').select('id, user_id, user_agent, created_at, last_seen_at, revoked_at').eq('user_id', user.id),
-    supabase.from('referrals').select('*').or(`referrer_id.eq.${user.id},referred_id.eq.${user.id}`),
-    // Include key names and prefixes; exclude hash (not personal data, not reconstructable)
-    supabase.from('api_keys').select('id, user_id, name, prefix, scopes, created_at, last_used_at, revoked_at').eq('user_id', user.id),
-  ])
+  ] = results
 
   // Evidence-file links (evidence reuse): included so the export documents every
   // entry each physical file is attached to. Fetched by file id so it stays
   // within the user's own files.
   const evidenceFileIds = (evidenceFiles ?? []).map(f => f.id)
-  const { data: evidenceLinks } = evidenceFileIds.length > 0
-    ? await supabase.from('evidence_file_links').select('*').in('file_id', evidenceFileIds)
-    : { data: [] }
+  const evidenceLinksResult = evidenceFileIds.length > 0
+    ? await fetchAllRows((from, to) => supabase.from('evidence_file_links').select('*').in('file_id', evidenceFileIds).order('id').range(from, to))
+    : { data: [] as { file_id: string; entry_id: string; entry_type: string }[], error: null }
 
   const appIds = (specialtyApps ?? []).map(a => a.id)
-  const { data: rawSpecialtyLinks } = appIds.length > 0
-    ? await supabase.from('specialty_entry_links').select('*').in('application_id', appIds)
-    : { data: [] }
+  const rawSpecialtyLinksResult = appIds.length > 0
+    ? await fetchAllRows((from, to) => supabase.from('specialty_entry_links').select('*').in('application_id', appIds).order('id').range(from, to))
+    : { data: [] as SpecialtyEntryLink[], error: null }
+
+  if (evidenceLinksResult.error || rawSpecialtyLinksResult.error) {
+    console.error('account export read failed:', (evidenceLinksResult.error ?? rawSpecialtyLinksResult.error)?.message)
+    return NextResponse.json(
+      { error: 'Could not read all of your data for export. Please try again.' },
+      { status: 500 },
+    )
+  }
+  const evidenceLinks = evidenceLinksResult.data
+  const rawSpecialtyLinks = rawSpecialtyLinksResult.data
   // Note: the exported portfolio_entries/cases sets above include soft-deleted
   // rows (Art. 20 completeness), so they are NOT valid "known active" id sets.
   // Let the filter run its own live-row lookups (deleted_at is null).
@@ -184,12 +213,21 @@ export async function POST(req: NextRequest) {
   }
 
   const shareLinkIds = (shareLinks ?? []).map(link => link.id)
-  const [{ data: shareViews }, { data: shareAccessAttempts }] = shareLinkIds.length > 0
+  const [shareViewsResult, shareAccessAttemptsResult] = shareLinkIds.length > 0
     ? await Promise.all([
-        supabase.from('share_views').select('id, share_link_id, viewed_at').in('share_link_id', shareLinkIds),
-        supabase.from('share_access_attempts').select('id, share_link_id, success, created_at').in('share_link_id', shareLinkIds),
+        fetchAllRows((from, to) => supabase.from('share_views').select('id, share_link_id, viewed_at').in('share_link_id', shareLinkIds).order('id').range(from, to)),
+        fetchAllRows((from, to) => supabase.from('share_access_attempts').select('id, share_link_id, success, created_at').in('share_link_id', shareLinkIds).order('id').range(from, to)),
       ])
-    : [{ data: [] }, { data: [] }]
+    : [{ data: [], error: null }, { data: [], error: null }]
+  if (shareViewsResult.error || shareAccessAttemptsResult.error) {
+    console.error('account export read failed:', (shareViewsResult.error ?? shareAccessAttemptsResult.error)?.message)
+    return NextResponse.json(
+      { error: 'Could not read all of your data for export. Please try again.' },
+      { status: 500 },
+    )
+  }
+  const shareViews = shareViewsResult.data
+  const shareAccessAttempts = shareAccessAttemptsResult.data
 
   // Download evidence files from Supabase Storage in small batches so peak
   // memory is bounded by the byte budget, not the account's file count. Runs

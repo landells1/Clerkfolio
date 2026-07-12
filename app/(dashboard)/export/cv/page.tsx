@@ -5,6 +5,7 @@ import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
 import CvDownloadButton from '@/components/export/cv-download-button'
 import DocxDownloadButton from '@/components/export/docx-download-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -49,7 +50,7 @@ export default async function CvGeneratorPage({
   const template = normaliseTemplate(resolvedSearchParams.template)
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const [{ data: entries }, subInfo] = await Promise.all([
+  const [{ data: entries }, { data: logRows }, subInfo] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('id, title, date, category, notes, specialty_tags, conf_event_name, pub_journal, pub_status, leader_role, leader_organisation, prize_body')
@@ -57,9 +58,21 @@ export default async function CvGeneratorPage({
       .is('deleted_at', null)
       .order('date', { ascending: false })
       .limit(80),
+    // Structured columns only (never notes/meta/cost_pence) - same query shape
+    // as the /api/export/cv and /api/export/docx routes so all three CV
+    // renderings stay in sync.
+    supabase
+      .from('personal_log')
+      .select('id, kind, title, date, expires_at, cpd_hours, attempts, score')
+      .eq('user_id', user!.id)
+      .in('kind', CV_LOG_KINDS)
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+      .limit(80),
     fetchSubscriptionInfo(supabase, user!.id),
   ])
   const rows = dedupeEntries((entries ?? []) as PortfolioEntry[])
+  const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
   const categoryOrder = TEMPLATE_CATEGORY_ORDER[template]
 
   return (
@@ -89,7 +102,7 @@ export default async function CvGeneratorPage({
       )}
       <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
-        {rows.length === 0 ? (
+        {rows.length === 0 && logSections.length === 0 ? (
           <div className="mt-5 rounded-xl border border-white/[0.08] bg-[var(--bg-canvas)] p-5 text-sm text-[var(--text-secondary)]">
             Add publications, teaching, leadership, prizes, audits, or conference entries to build a CV preview.
           </div>
@@ -117,6 +130,21 @@ export default async function CvGeneratorPage({
               </div>
             )
           })}
+          {/* Log-sourced sections (Courses & Certifications, Examinations) -
+              same structure/order/data as the CV PDF + DOCX. */}
+          {logSections.map(section => (
+            <div key={section.key}>
+              <h3 className="text-sm font-semibold text-[var(--text-primary)]">{section.title}</h3>
+              <ul className="mt-2 space-y-2">
+                {section.entries.slice(0, 8).map(entry => (
+                  <li key={entry.id} className="text-sm text-[var(--text-secondary)]">
+                    <span className="text-[var(--text-primary)]">{entry.title}</span> · {entry.dateLabel}
+                    {entry.details.length > 0 ? ` · ${entry.details.map(detail => `${detail.label}: ${detail.value}`).join(' · ')}` : ''}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
         )}
       </section>

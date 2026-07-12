@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
+import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import * as Sentry from '@sentry/nextjs'
@@ -77,7 +78,7 @@ export async function POST(req: NextRequest) {
   }
 
   const template = req.nextUrl.searchParams.get('template') ?? 'clinical'
-  const [{ data: profile }, { data: entries }] = await Promise.all([
+  const [{ data: profile }, { data: entries }, { data: logRows }] = await Promise.all([
     supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single(),
     supabase
       .from('portfolio_entries')
@@ -86,10 +87,21 @@ export async function POST(req: NextRequest) {
       .is('deleted_at', null)
       .order('date', { ascending: false })
       .limit(120),
+    // Structured columns only (never notes/meta/cost_pence) for the CV log
+    // sections - same query shape as /api/export/docx and the preview.
+    supabase
+      .from('personal_log')
+      .select('id, kind, title, date, expires_at, cpd_hours, attempts, score')
+      .eq('user_id', user.id)
+      .in('kind', CV_LOG_KINDS)
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+      .limit(120),
   ])
 
   const label = LABELS[template] ?? LABELS.clinical
   const orderedEntries = orderEntriesForTemplate((entries ?? []) as Record<string, unknown>[], template)
+  const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   try {
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
@@ -101,6 +113,7 @@ export async function POST(req: NextRequest) {
       templateName: label,
       templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
       templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
+      logSections,
     })
 
     // Atomically claim the free PDF slot after a successful render.

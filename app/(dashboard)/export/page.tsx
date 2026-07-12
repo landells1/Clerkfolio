@@ -28,6 +28,7 @@ import { PdfExportTab } from '@/components/export/pdf-export-tab'
 import { BackupTab } from '@/components/export/backup-tab'
 import { ShareTab } from '@/components/export/share-tab'
 import { FilesTab } from '@/components/export/files-tab'
+import { EXPORT_PRESELECT_STORAGE_KEY, parseExportPreselect } from '@/lib/export/preselect'
 
 type Tab = 'import' | 'pdf' | 'backup' | 'share' | 'files'
 type EntrySpecialtyFields = { specialty_tags: string[] | null }
@@ -101,11 +102,15 @@ export default function ExportPage() {
   // Allow deep-linking to a specific tab, e.g. ?tab=share - the now-retired
   // /settings/shared-links redirects here so share management lives on one
   // surface (F-027). Read from the URL directly (no Suspense needed for a
-  // client-only effect).
+  // client-only effect). Tracked in a ref so the export-preselect handoff
+  // below knows whether an explicit deep-link should win over its own
+  // "switch to the Application PDF tab" behaviour.
+  const explicitTabParamRef = useRef(false)
   useEffect(() => {
     const requested = new URLSearchParams(window.location.search).get('tab')
     if (requested === 'import' || requested === 'pdf' || requested === 'backup' || requested === 'share' || requested === 'files') {
       setTab(requested)
+      explicitTabParamRef.current = true
     }
   }, [])
 
@@ -138,7 +143,12 @@ export default function ExportPage() {
           : activeApps[0]?.specialty_key ?? ''
       )
       setShareLinks((links ?? []) as ShareLink[])
-      setSpecialty(sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? ALL_RECORDS)
+      // When an "Add to export" handoff is pending, start on "All records" so
+      // every preselected entry is loaded before validation - the default
+      // specialty filter would otherwise silently drop out-of-specialty IDs.
+      // Peek only: the loadEntries effect is the sole consumer that removes the key.
+      const hasPendingPreselect = window.sessionStorage.getItem(EXPORT_PRESELECT_STORAGE_KEY) !== null
+      setSpecialty(hasPendingPreselect ? ALL_RECORDS : (sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? ALL_RECORDS))
     }
     load()
   }, [supabase])
@@ -187,7 +197,20 @@ export default function ExportPage() {
       })
       setEntries(rows)
       setCases(caseData)
-      setSelectedEntryIds(new Set(rows.map(e => e.id)))
+
+      // Consume the one-shot "Add to export" handoff from the portfolio bulk
+      // action bar (`clerkfolio-export-preselect`), if present. Read-then-remove
+      // so a stale payload can never affect a later visit to this page.
+      const preselectRaw = window.sessionStorage.getItem(EXPORT_PRESELECT_STORAGE_KEY)
+      if (preselectRaw !== null) window.sessionStorage.removeItem(EXPORT_PRESELECT_STORAGE_KEY)
+      const preselectedIds = parseExportPreselect(preselectRaw, new Set(rows.map(e => e.id)))
+
+      if (preselectedIds.length > 0) {
+        setSelectedEntryIds(new Set(preselectedIds))
+        if (!explicitTabParamRef.current) setTab('pdf')
+      } else {
+        setSelectedEntryIds(new Set(rows.map(e => e.id)))
+      }
       setSelectedCaseIds(new Set(caseData.map(c => c.id)))
       setLoadedSpecialty(specialty)
       setLoading(false)
