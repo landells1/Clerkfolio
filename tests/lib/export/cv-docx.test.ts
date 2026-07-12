@@ -106,6 +106,33 @@ describe('buildCvDocData', () => {
     expect(data.totalEntries).toBe(2)
     expect(data.sections.length).toBe(2)
   })
+
+  it('defaults logSections to an empty array when none are supplied', () => {
+    const data = buildCvDocData({
+      entries: [makeEntry()],
+      userName: 'Dr Jane Doe',
+      specialty: 'Clinical CV',
+      exportedAt: '6 July 2026',
+      templateName: 'Clinical CV',
+      templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
+    })
+    expect(data.logSections).toEqual([])
+  })
+
+  it('carries supplied logSections through to the doc data', () => {
+    const data = buildCvDocData({
+      entries: [],
+      userName: 'Dr Jane Doe',
+      specialty: 'Clinical CV',
+      exportedAt: '6 July 2026',
+      templateName: 'Clinical CV',
+      templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
+      logSections: [
+        { key: 'exams', title: 'Examinations', entries: [{ id: 'x1', title: 'MRCP', dateLabel: '2 Mar 2026', details: [{ label: 'Score', value: '520' }] }] },
+      ],
+    })
+    expect(data.logSections.map(s => s.key)).toEqual(['exams'])
+  })
 })
 
 describe('renderCvDocx', () => {

@@ -5,6 +5,7 @@
 // style PDF export. Do not delete without replacing that workflow.
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { PortfolioEntry, Category } from '@/lib/types/portfolio'
+import type { CvLogSection } from '@/lib/export/cv-log-sections'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import {
   AUDIT_CYCLE_STAGE_LABELS,
@@ -188,9 +189,12 @@ export type ExportDocProps = {
   templateName?: string
   templateSubtitle?: string
   templateAccent?: string
+  // personal_log-sourced sections (Courses & Certifications, Examinations),
+  // built by lib/export/cv-log-sections.ts and shared with the DOCX + preview.
+  logSections?: CvLogSection[]
 }
 
-export default function PortfolioPDF({ entries, userName, specialty, exportedAt, templateName, templateSubtitle, templateAccent = '#1B6FD9' }: ExportDocProps) {
+export default function PortfolioPDF({ entries, userName, specialty, exportedAt, templateName, templateSubtitle, templateAccent = '#1B6FD9', logSections = [] }: ExportDocProps) {
   // Group by category in canonical order
   const grouped: Partial<Record<Category, PortfolioEntry[]>> = {}
   for (const e of entries) {
@@ -218,6 +222,12 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
               <View key={cat} style={s.tocRow}>
                 <Text style={s.tocText}>{CAT_LABELS[cat]}</Text>
                 <Text style={s.tocText}>{grouped[cat]!.length}</Text>
+              </View>
+            ))}
+            {logSections.map(section => (
+              <View key={section.key} style={s.tocRow}>
+                <Text style={s.tocText}>{section.title}</Text>
+                <Text style={s.tocText}>{section.entries.length}</Text>
               </View>
             ))}
           </View>
@@ -257,6 +267,27 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
                   </View>
                 )}
                 {e.notes && <Detail label="Notes" value={e.notes} />}
+              </View>
+            ))}
+          </View>
+        ))}
+
+        {/* Log-sourced sections (Courses & Certifications, Examinations) */}
+        {logSections.map(section => (
+          <View key={section.key}>
+            <View style={s.catHeading}>
+              <Text style={s.catTitle}>{section.title}</Text>
+              <View style={s.catRule} />
+            </View>
+            {section.entries.map(entry => (
+              <View key={entry.id} style={s.entry} wrap={false}>
+                <View style={s.entryRow}>
+                  <Text style={s.entryTitle}>{entry.title}</Text>
+                  <Text style={s.entryDate}>{entry.dateLabel}</Text>
+                </View>
+                {entry.details.map((d, i) => (
+                  <Detail key={i} label={d.label} value={d.value} />
+                ))}
               </View>
             ))}
           </View>

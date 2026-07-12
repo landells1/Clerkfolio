@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { buildCvDocData, renderCvDocx } from '@/lib/export/cv-docx'
+import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
 import type { PortfolioEntry } from '@/lib/types/portfolio'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
   }
 
   const template = req.nextUrl.searchParams.get('template') ?? 'clinical'
-  const [{ data: profile }, { data: entries }] = await Promise.all([
+  const [{ data: profile }, { data: entries }, { data: logRows }] = await Promise.all([
     supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single(),
     supabase
       .from('portfolio_entries')
@@ -91,10 +92,21 @@ export async function POST(req: NextRequest) {
       .is('deleted_at', null)
       .order('date', { ascending: false })
       .limit(120),
+    // Structured columns only (never notes/meta/cost_pence) for the CV log
+    // sections - same query shape as /api/export/cv and the preview.
+    supabase
+      .from('personal_log')
+      .select('id, kind, title, date, expires_at, cpd_hours, attempts, score')
+      .eq('user_id', user.id)
+      .in('kind', CV_LOG_KINDS)
+      .is('deleted_at', null)
+      .order('date', { ascending: false })
+      .limit(120),
   ])
 
   const label = LABELS[template] ?? LABELS.clinical
   const orderedEntries = orderEntriesForTemplate((entries ?? []) as Record<string, unknown>[], template)
+  const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
 
   try {
@@ -108,6 +120,7 @@ export async function POST(req: NextRequest) {
       exportedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
       templateName: label,
       templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
+      logSections,
     })
     const buffer = await renderCvDocx(docData)
 
