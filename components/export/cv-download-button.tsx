@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export default function CvDownloadButton({ template, isPro, canExportPdf }: { template: string; isPro: boolean; canExportPdf: boolean }) {
@@ -43,6 +44,11 @@ export default function CvDownloadButton({ template, isPro, canExportPdf }: { te
       >
         {loading ? 'Preparing PDF...' : allowanceUsed ? 'PDF allowance used' : 'Download PDF'}
       </button>
+      {allowanceUsed && (
+        <p className="max-w-xs text-xs text-[var(--text-secondary)]">
+          <Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link> for unlimited PDFs. Or <Link href="/settings/referrals" className="text-[var(--accent-text)] underline">invite a colleague</Link>. Each successful referral adds one more free PDF export.
+        </p>
+      )}
       {error && (
         <div className="max-w-xs rounded-lg border border-amber-400/20 bg-amber-400/5 px-3 py-2 text-xs text-[var(--warning)]">
           {error}

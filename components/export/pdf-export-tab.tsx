@@ -100,6 +100,11 @@ export function PdfExportTab({
             <p className="text-[var(--text-secondary)]">
               Application PDF, appended PDFs, Year in review and CV PDF/DOCX downloads share this allowance. CSV and JSON exports stay unlimited on every tier. Pro removes the PDF cap.
               {' '}<Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link>.
+              {!subInfo.limits.canExportPdf && (
+                <>
+                  {' '}Or <Link href="/settings/referrals" className="text-[var(--accent-text)] underline">invite a colleague</Link>. Each successful referral adds one more free PDF export.
+                </>
+              )}
             </p>
           </div>
         )}

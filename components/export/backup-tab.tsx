@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import type { SubscriptionInfo } from '@/lib/subscription'
 
 // Data backup tab: full ZIP backup, year-in-review PDF and reflections
@@ -43,6 +44,11 @@ export function BackupTab({
           <p className="mt-1 text-[var(--text-secondary)]">
             Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV PDF/DOCX downloads.
           </p>
+          {!subInfo.limits.canExportPdf && (
+            <p className="mt-1 text-[var(--text-secondary)]">
+              <Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link> for unlimited PDFs. Or <Link href="/settings/referrals" className="text-[var(--accent-text)] underline">invite a colleague</Link>. Each successful referral adds one more free PDF export.
+            </p>
+          )}
         </div>
       )}
       <button onClick={onBackup} disabled={backupLoading} className="mt-6 rounded-xl bg-[var(--button-primary-bg)] px-5 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-50">
