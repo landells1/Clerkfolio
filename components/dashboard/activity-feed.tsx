@@ -129,7 +129,7 @@ export default function ActivityFeed({
                 <Link key={c.id} href={`/cases/${c.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
                   <span
                     className="shrink-0 w-1.5 h-1.5 rounded-full bg-accent"
-                    style={{ boxShadow: '0 0 0 3px #3884DD22' }}
+                    style={{ boxShadow: '0 0 0 3px rgb(var(--accent-rgb) / 0.13)' }}
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-[var(--text-primary)] truncate group-hover:text-[var(--text-primary)] transition-colors">{c.title}</p>

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export default function ResetPasswordPage() {
   const [email, setEmail] = useState('')
@@ -16,30 +17,39 @@ export default function ResetPasswordPage() {
     setError(null)
     setLoading(true)
 
-    const preflight = await fetch('/api/auth/preflight', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'reset' }),
-    })
-    if (preflight.status === 429) {
-      setError('Too many password reset attempts from this network. Please wait an hour and try again.')
+    try {
+      const { ok, status } = await apiFetch('/api/auth/preflight', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reset' }),
+      })
+      if (status === null) {
+        setError(NETWORK_ERROR_MESSAGE)
+        return
+      }
+      if (status === 429) {
+        setError('Too many password reset attempts from this network. Please wait an hour and try again.')
+        return
+      }
+      if (!ok) {
+        setError('Password reset is temporarily unavailable. Please try again.')
+        return
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
+      })
+
+      if (error) {
+        console.error('Password reset failed:', error.code ?? error.name ?? 'auth_error')
+        setError('We could not process that reset request. Check the email address and try again.')
+        return
+      }
+
+      setSent(true)
+    } finally {
       setLoading(false)
-      return
     }
-
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/auth/callback?next=/update-password`,
-    })
-
-    if (error) {
-      console.error('Password reset failed:', error.code ?? error.name ?? 'auth_error')
-      setError('We could not process that reset request. Check the email address and try again.')
-      setLoading(false)
-      return
-    }
-
-    setSent(true)
-    setLoading(false)
   }
 
   if (sent) {

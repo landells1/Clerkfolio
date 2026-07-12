@@ -30,6 +30,12 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
   const [linking, setLinking] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
+  // Requests are sequenced by generation: a slow earlier search response can
+  // resolve after a newer one if the user keeps typing - without this, the
+  // slower response would overwrite the fresher results (last-write-wins).
+  // Stale completions no-op instead (audit L-3/L-4 pattern).
+  const searchGeneration = useRef(0)
+
   useEffect(() => {
     function onKey(e: KeyboardEvent) { if (e.key === 'Escape') onClose() }
     document.addEventListener('keydown', onKey)
@@ -40,6 +46,8 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
     if (debounceRef.current) clearTimeout(debounceRef.current)
     if (!query.trim()) { setResults([]); return }
     debounceRef.current = setTimeout(async () => {
+      const generation = ++searchGeneration.current
+      const isStale = () => searchGeneration.current !== generation
       setSearching(true)
       const [{ data: entryData }, { data: caseData }] = await Promise.all([
         supabase
@@ -55,6 +63,7 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
           .is('deleted_at', null)
           .limit(8),
       ])
+      if (isStale()) return
       setResults([
         ...(entryData ?? []).map(entry => ({ ...entry, type: 'portfolio' as const })),
         ...(caseData ?? []).map(c => ({ ...c, type: 'case' as const })),

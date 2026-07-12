@@ -173,7 +173,7 @@ export default async function PortfolioPage({
             )
           })}
           {themes.every(theme => allEntries.filter(entry => (entry.interview_themes ?? []).map(normaliseTheme).includes(theme.slug)).length === 0) && (
-            <EmptyPortfolio />
+            (entries?.length ?? 0) === 0 ? <EmptyPortfolio /> : <EmptyThemes />
           )}
         </div>
       ) : (
@@ -225,6 +225,34 @@ function EmptyPortfolio() {
           className="inline-flex items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors"
         >
           Import existing portfolio
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// Themes-specific empty state: entries exist but none carry a competency theme
+// tag yet, so the full "Add your first entry" EmptyPortfolio would be
+// misleading. Points the user at tagging their existing entries instead.
+function EmptyThemes() {
+  return (
+    <div className="rounded-lg border border-subtle bg-surface-1 p-10 text-center">
+      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-lg border border-subtle bg-surface-2">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-fg-2">
+          <path d="M20.59 13.41 11 22 2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" /><line x1="7" y1="7" x2="7.01" y2="7" />
+        </svg>
+      </div>
+      <p className="text-sm font-medium text-fg">No competency themes tagged yet</p>
+      <p className="mx-auto mt-1.5 max-w-sm text-xs leading-relaxed text-fg-2">
+        You have entries, but none are tagged with a competency theme. Open an existing entry and add themes like Leadership or Teaching to see them grouped here.
+      </p>
+      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+        <Link
+          href="/portfolio?view=all"
+          prefetch={false}
+          className="inline-flex items-center gap-2 rounded-lg border border-subtle bg-surface-1 px-4 py-2 text-sm font-medium text-fg hover:border-default transition-colors"
+        >
+          View all entries
         </Link>
       </div>
     </div>
