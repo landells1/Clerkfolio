@@ -10,6 +10,7 @@ export const foundationArcpEvidenceRequirements: Guide = {
     'The evidence FY1 and FY2 doctors need for ARCP: supervisor reports, TAB, PSG, SLEs, the PSA, and how the 13 Foundation Professional Capabilities and 3 HLOs fit together in Horus and Turas.',
   summary:
     'The Foundation Programme publishes exactly what evidence an ARCP panel expects from F1 and F2 doctors. This guide walks through the national checklist item by item, explains the curriculum structure behind it (3 HLOs, 13 FPCs), and covers how evidence mapping works in Horus and Turas.',
+  cluster: 'arcp',
   published: '2026-07-13',
   lastReviewed: '2026-07-13',
   blocks: [

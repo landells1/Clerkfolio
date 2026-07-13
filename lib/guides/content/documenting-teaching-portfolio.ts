@@ -10,6 +10,7 @@ export const documentingTeachingPortfolio: Guide = {
     'What counts as teaching evidence for UK doctors, what to record for every session, how the Developing the Clinical Teacher SLE works, and how teaching evidence keeps paying off across your career.',
   summary:
     'Teaching you deliver only counts if it is documented. This guide covers what counts as teaching, what to record for each session, the Developing the Clinical Teacher SLE, and how to collect feedback so a one-off session becomes durable portfolio evidence.',
+  cluster: 'arcp',
   published: '2026-07-13',
   lastReviewed: '2026-07-13',
   blocks: [

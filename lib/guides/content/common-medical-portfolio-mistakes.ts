@@ -10,6 +10,7 @@ export const commonMedicalPortfolioMistakes: Guide = {
     'The recurring portfolio problems that cause avoidable ARCP outcome 5s and weak application evidence: late evidence collection, unread checklists, identifiable data, unmapped entries and lost records.',
   summary:
     'Most portfolio problems are process problems, and the same handful recur every year. This guide lists the common mistakes foundation doctors and early-career doctors make with portfolio evidence, and the specific habit that prevents each one.',
+  cluster: 'arcp',
   published: '2026-07-13',
   lastReviewed: '2026-07-13',
   blocks: [

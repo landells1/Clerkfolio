@@ -28,6 +28,22 @@ export type GuideSource = {
   jurisdiction: string
 }
 
+/**
+ * Topical clusters on the /guides hub. Each cluster has exactly one pillar
+ * guide (test-pinned). Hub display order follows GUIDE_CLUSTERS in index.ts -
+ * specialty applications lead because ARCP is a significant but secondary
+ * feature in the marketing importance order (owner rule).
+ */
+export type GuideClusterKey = 'specialty-applications' | 'arcp'
+
+export type GuideCluster = {
+  key: GuideClusterKey
+  /** Section label on the /guides hub. */
+  label: string
+  /** One-line section intro on the hub. */
+  blurb: string
+}
+
 export type GuideBlock =
   /** Section heading (h2). `id` becomes the anchor. */
   | { kind: 'heading'; id: string; text: string }
@@ -55,7 +71,9 @@ export type Guide = {
   metaDescription: string
   /** Lede paragraph on the page and card text on the hub. */
   summary: string
-  /** The pillar page is featured on the hub and linked from every cluster guide. */
+  /** Which hub cluster the guide belongs to. */
+  cluster: GuideClusterKey
+  /** The pillar page is featured first in its cluster section and linked from every cluster guide. */
   isPillar?: boolean
   /** ISO date the guide was first published (Article datePublished). */
   published: string
