@@ -53,13 +53,12 @@ export const REFERRAL_SHARE_PER = 1
 export const REFERRAL_VEST_DAYS = 7
 
 // "Founding Sharer" launch badge: earned by anyone who lands a rewarded
-// referral while this window is open (the first 8 weeks post-launch).
+// referral while this window is open.
 //
-// OWNER ACTION: set this to (launch date + 8 weeks) when the launch date is
-// fixed. The placeholder below is deliberately in the past so the badge is
-// dormant (no one earns it) until you set a real future date — it never
-// mis-fires. Format: YYYY-MM-DD (UTC end-of-day).
-export const FOUNDING_SHARER_WINDOW_END = '2000-01-01'
+// Owner-set 2026-07-13: window runs until the end of 2026 (owner chose a
+// fixed calendar end rather than launch date + 8 weeks).
+// Format: YYYY-MM-DD (UTC end-of-day).
+export const FOUNDING_SHARER_WINDOW_END = '2026-12-31'
 
 export function isFoundingSharerWindowOpen(now: Date = new Date()): boolean {
   const end = new Date(`${FOUNDING_SHARER_WINDOW_END}T23:59:59.999Z`)

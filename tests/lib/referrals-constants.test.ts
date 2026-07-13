@@ -26,11 +26,14 @@ describe('referral ladder helpers', () => {
     expect(freeShareAllowance(2)).toBe(3)
   })
 
-  it('keeps the Founding Sharer window dormant under the placeholder date', () => {
-    // The committed placeholder is in the past, so the badge never mis-fires
-    // until the owner sets a real launch+8wk date.
-    expect(FOUNDING_SHARER_WINDOW_END).toBe('2000-01-01')
-    expect(isFoundingSharerWindowOpen(new Date())).toBe(false)
+  it('pins the owner-set Founding Sharer window end', () => {
+    // Owner decision 2026-07-13: the founding-sharer window runs to the end
+    // of 2026. If this is deliberately changed, update the pin.
+    expect(FOUNDING_SHARER_WINDOW_END).toBe('2026-12-31')
+  })
+
+  it('reports the window closed after the configured end', () => {
+    expect(isFoundingSharerWindowOpen(new Date('2027-01-01T12:00:00Z'))).toBe(false)
   })
 
   it('reports the window open for a now before the configured end', () => {

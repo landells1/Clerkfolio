@@ -22,12 +22,12 @@ Current state: **feature-complete pre-launch.** The 2026-06-22 staged pre-releas
 
 ## Owner Launch Blockers (owner actions, zero code change)
 
-- **Stripe ToS URL — checkout is BROKEN until set.** Stripe Dashboard → Settings → Business → Public details → Terms of service URL = `https://clerkfolio.co.uk/terms` (set the Privacy policy URL too), in **both** sandbox/test and live accounts. Checkout sends `consent_collection: { terms_of_service: 'required' }` and Stripe refuses to create sessions without the Dashboard URL. Do NOT remove `consent_collection` to "fix" a broken checkout.
-- Fill `lib/legal/entity.ts`: `proprietorName`, `addressForService`, `icoReference` (each renders only when non-empty). Solicitor sign-off of the legal pages is also owed.
-- F-047: provision an EU-region Upstash Redis in the prod Vercel project (until then every rate limiter runs on the weaker per-instance in-memory fallback).
-- Set `FOUNDING_SHARER_WINDOW_END` in `lib/referrals/constants.ts` (placeholder `2000-01-01` = founding-sharer badge disabled).
+- **Stripe ToS URL — checkout is BROKEN until set.** Stripe Dashboard → Settings → Business → Public details → Terms of service URL = `https://clerkfolio.co.uk/terms` (set the Privacy policy URL too), in **both** sandbox/test and live accounts. Checkout sends `consent_collection: { terms_of_service: 'required' }` and Stripe refuses to create sessions without the Dashboard URL. Do NOT remove `consent_collection` to "fix" a broken checkout. (2026-07-13: owner plans the sandbox→live switch soon; ToS URL still unconfirmed in either account.)
+- Fill `lib/legal/entity.ts`: `proprietorName`, `addressForService`, `icoReference` (each renders only when non-empty). ICO registration deferred by owner 2026-07-13 ("later"). Solicitor sign-off of the legal pages is also owed.
 - Refresh the NHS Round-3 deadlines in `lib/specialties/deadlines.ts` before ~Oct 2026 (last date 2026-10-29; a staleness tripwire test will start failing).
 - Leaked-password protection needs Supabase Pro (known accepted limitation).
+
+Done (2026-07-13): **F-047 Upstash provisioned** (owner connected an Upstash Redis via Vercel; env vars apply from the next deploy after connection — cluster-wide rate limiting active from then). **`FOUNDING_SHARER_WINDOW_END` set to `2026-12-31`** (owner: end of 2026; pinned in `tests/lib/referrals-constants.test.ts`). **Google Search Console + Bing Webmaster** verified and sitemap submitted (owner).
 
 ## Project Snapshot
 
