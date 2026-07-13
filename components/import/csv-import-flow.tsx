@@ -258,7 +258,7 @@ export default function CsvImportFlow() {
     const skipped = Number(result?.skipped ?? 0)
     const label = target === 'portfolio' ? 'portfolio entries' : 'cases'
     if (skipped > 0) {
-      addToast(`Imported ${imported} ${label} — ${skipped} row${skipped === 1 ? '' : 's'} skipped (missing title or invalid category)`, 'info')
+      addToast(`Imported ${imported} ${label} - ${skipped} row${skipped === 1 ? '' : 's'} skipped (missing title or invalid category)`, 'info')
     } else {
       addToast(`Imported ${imported} ${label}`, 'success')
     }

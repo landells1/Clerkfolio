@@ -59,7 +59,7 @@ export default function TagsSettingsPage() {
       <div className="mb-6">
         <Link href="/settings" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Settings</Link>
         <h1 className="mt-3 text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Merge specialty tags</h1>
-        <p className="mt-1 text-sm text-[var(--text-muted)]">Merge one specialty tag into another across your cases and portfolio entries. Specialty labels are fixed catalogue names, so this reassigns entries from one tag to another — it is not a free-text rename.</p>
+        <p className="mt-1 text-sm text-[var(--text-muted)]">Merge one specialty tag into another across your cases and portfolio entries. Specialty labels are fixed catalogue names, so this reassigns entries from one tag to another - it is not a free-text rename.</p>
       </div>
       {loaded && !canMerge ? (
         <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 text-sm text-[var(--text-secondary)]">

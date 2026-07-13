@@ -122,7 +122,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'File too large. Maximum size is 50 MB.' }, { status: 400 })
     }
     return NextResponse.json(
-      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe — delete some or upgrade to free up space.` },
+      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe - delete some or upgrade to free up space.` },
       { status: 400 }
     )
   }

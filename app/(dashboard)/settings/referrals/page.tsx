@@ -142,7 +142,7 @@ export default async function ReferralsPage() {
         <ul className="space-y-2 text-sm text-[var(--text-secondary)]">
           <li>+{rewarded} PDF export{rewarded === 1 ? '' : 's'} and +{rewarded} share link{rewarded === 1 ? '' : 's'} added to your free allowance.</li>
           <li className={rewarded >= REFERRAL_STORAGE_BONUS_AT ? 'text-[var(--accent-text)]' : ''}>
-            +{REFERRAL_STORAGE_BONUS_MB} MB permanent storage at {REFERRAL_STORAGE_BONUS_AT} referrals —{' '}
+            +{REFERRAL_STORAGE_BONUS_MB} MB permanent storage at {REFERRAL_STORAGE_BONUS_AT} referrals -{' '}
             {rewarded >= REFERRAL_STORAGE_BONUS_AT ? 'unlocked.' : `${REFERRAL_STORAGE_BONUS_AT - rewarded} to go.`}
           </li>
         </ul>

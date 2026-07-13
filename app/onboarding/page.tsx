@@ -270,7 +270,7 @@ export default function OnboardingPage() {
                     onChange={e => setStudentGraduationDate(e.target.value)}
                     className="w-full rounded-lg border border-subtle bg-surface-1 px-4 py-3 text-sm outline-none focus:border-strong"
                   />
-                  <span className="mt-1.5 block text-xs normal-case tracking-normal text-fg-3">Required — used to personalise your stage and timeline. You can change this later.</span>
+                  <span className="mt-1.5 block text-xs normal-case tracking-normal text-fg-3">Required - used to personalise your stage and timeline. You can change this later.</span>
                 </label>
               )}
             </div>
@@ -306,7 +306,7 @@ export default function OnboardingPage() {
         {step === 'arcp' && (
           <section>
             <p className="mb-4 max-w-2xl text-sm text-fg-2">
-              Nothing to choose here — this is set automatically from your career stage. Here is how your training tracker will work.
+              Nothing to choose here - this is set automatically from your career stage. Here is how your training tracker will work.
             </p>
             <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
               <div className="rounded-lg border border-subtle bg-surface-1 p-5">

@@ -46,12 +46,12 @@ export default function StorageMeter({
       </div>
       {full ? (
         <p className="mt-2 text-xs leading-5 text-[var(--danger)]">
-          Storage full. Your existing files are safe and stay readable — we never delete your data. To add new uploads,
+          Storage full. Your existing files are safe and stay readable - we never delete your data. To add new uploads,
           delete some files or upgrade for more space.
         </p>
       ) : near ? (
         <p className="mt-2 text-xs leading-5 text-[var(--warning)]">
-          You&apos;re close to your storage limit. We never delete your files — free up space or upgrade before you hit the cap.
+          You&apos;re close to your storage limit. We never delete your files - free up space or upgrade before you hit the cap.
         </p>
       ) : null}
     </div>

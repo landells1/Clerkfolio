@@ -621,7 +621,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 from the autosaved draft for privacy - say so, or a user who
                 drafted a Gibbs reflection finds the section open and every
                 box empty with no explanation. */}
-            <span>Draft restored — notes and reflection text aren&apos;t auto-saved</span>
+            <span>Draft restored - notes and reflection text aren&apos;t auto-saved</span>
             <button type="button" onClick={resetForm} className="text-xs text-accent/70 hover:text-[var(--accent-text)]">
               Discard
             </button>
@@ -682,7 +682,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             <SpecialtyTagSelect ref={specialtyRef} value={specialtyTags} onChange={v => { setSpecialtyTags(v); markDirty() }} userInterests={userInterests} trackedOnly />
             {suggestedTags.length > 0 && (
               <div className="mt-2">
-                <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text &mdash; tap to add</p>
+                <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text - tap to add</p>
                 <div className="flex flex-wrap gap-1.5">
                   {suggestedTags.map(tag => (
                     <button
@@ -707,7 +707,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <Field label="Importance">
             <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
             <p className="mt-2 text-[11px] text-[var(--text-muted)]">
-              Optional — flag how important this entry is to you. Tap the active level again to clear it.
+              Optional - flag how important this entry is to you. Tap the active level again to clear it.
             </p>
           </Field>
 

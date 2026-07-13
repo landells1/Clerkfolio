@@ -389,7 +389,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         />
         {suggestedTags.length > 0 && (
           <div className="mt-2">
-            <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text &mdash; tap to add</p>
+            <p className="mb-1 text-[11px] text-[var(--text-muted)]">Suggested from your text - tap to add</p>
             <div className="flex flex-wrap gap-1.5">
               {suggestedTags.map(tag => (
                 <button
@@ -414,7 +414,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         <label className={LABEL}>Importance</label>
         <ImportanceSelect value={importance} onChange={v => { setImportance(v); markDirty() }} />
         <p className="text-xs text-[var(--text-secondary)] mt-1">
-          Optional — flag how important this case is to you. Tap the active level again to clear it.
+          Optional - flag how important this case is to you. Tap the active level again to clear it.
         </p>
       </div>
 
