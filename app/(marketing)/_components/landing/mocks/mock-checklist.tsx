@@ -16,7 +16,7 @@ const rows = [
   ['Commitment to specialty - evidence', '✓', '4 / 1 linked', true, false],
 ] as const
 
-export function MockChecklist({ className = '' }: { className?: string }) {
+export function MockChecklist({ className = '', compact = false }: { className?: string; compact?: boolean }) {
   return (
     <WindowChrome
       url="clerkfolio.co.uk/specialties/imt"
@@ -24,7 +24,7 @@ export function MockChecklist({ className = '' }: { className?: string }) {
       className={className}
       contentClassName="flex h-full min-h-[360px] sm:min-h-[420px]"
     >
-      <MockSidebar active="Specialties" />
+      {compact ? null : <MockSidebar active="Specialties" />}
       <div className="min-w-0 flex-1 p-4 sm:p-5">
         <p className="mb-2 text-[11px] text-ink-dim">← Specialties</p>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">

@@ -20,7 +20,7 @@ const footerLinks = [
 
 export function CtaFooter() {
   return (
-    <footer className="border-t border-default px-6 py-14 sm:py-20 md:px-14 lg:py-24">
+    <footer className="border-t border-default px-6 py-14 sm:py-20 md:px-14 xl:py-20">
       <div className="mx-auto max-w-4xl text-center">
         <p className="mb-5 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">Next stage</p>
         <h2 className="text-[clamp(34px,9vw,56px)] font-medium leading-none tracking-[-0.055em] lg:text-[clamp(56px,6vw,82px)]">

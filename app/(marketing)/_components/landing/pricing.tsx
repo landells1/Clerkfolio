@@ -3,7 +3,7 @@ import { SectionHeader } from './section-header'
 
 export function Pricing() {
   return (
-    <section id="pricing" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="pricing" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader
         label="Pricing"
         title="Free to use. Upgrade to Pro when you need more."

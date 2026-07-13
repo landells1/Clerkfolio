@@ -11,19 +11,19 @@ const features = [
     tag: '01 / PORTFOLIO',
     title: 'A structured record of your work.',
     body: 'Keep audits, teaching, reflections, procedures, publications, leadership, conferences and prizes in one searchable portfolio that moves with you.',
-    mock: <MockPortfolio className="h-[390px] sm:h-auto lg:h-[420px]" />,
+    mock: <MockPortfolio compact className="h-[350px] sm:h-[390px]" />,
   },
   {
     tag: '02 / SPECIALTIES',
     title: 'Evidence mapped to supported specialties.',
     body: 'Link existing evidence to published application domains and see which areas still need supporting entries. Clerkfolio supports self-assessment, not official scoring or outcome prediction.',
-    mock: <MockChecklist className="h-[390px] sm:h-auto lg:h-[420px]" />,
+    mock: <MockChecklist compact className="h-[350px] sm:h-[390px]" />,
   },
   {
     tag: '03 / CASES',
     title: 'Anonymised case logging.',
     body: 'Record clinical area, learning and supporting evidence without entering names, dates of birth, NHS numbers or other patient identifiers. Drafts auto-save while you write.',
-    mock: <MockCasesList className="h-[390px] sm:h-auto lg:h-[420px]" />,
+    mock: <MockCasesList compact className="h-[350px] sm:h-[390px]" />,
     wide: true,
   },
 ] as const
@@ -36,13 +36,13 @@ const supportingTools = [
 
 export function Features() {
   return (
-    <section id="features" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="features" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader
         label="What you can do"
         title="One organised record, built around real portfolio work."
         sub="Record achievements and anonymised cases, organise evidence for supported specialty applications, and find it again when the next review or application arrives."
       />
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 lg:grid-cols-2">
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-3">
         {features.map((feature) => <FeatureCard key={feature.tag} {...feature} />)}
       </div>
       <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -59,13 +59,13 @@ export function Features() {
 
 function FeatureCard({ tag, title, body, mock, wide = false }: { tag: string; title: string; body: string; mock: ReactNode; wide?: boolean }) {
   return (
-    <article className={`rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7 ${wide ? 'lg:col-span-2 lg:grid lg:grid-cols-[0.7fr_1.3fr] lg:gap-8' : ''}`}>
+    <article className={`rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7 ${wide ? 'md:col-span-2 md:grid md:grid-cols-[0.7fr_1.3fr] md:gap-8 xl:col-span-1 xl:block' : ''}`}>
       <div>
         <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
         <h3 className="text-[22px] font-medium leading-tight tracking-[-0.025em] text-ink sm:text-[26px]">{title}</h3>
         <p className="mt-3 text-sm leading-[1.6] text-ink-soft">{body}</p>
       </div>
-      <div className={`mt-6 min-w-0 overflow-hidden ${wide ? 'lg:mt-0' : ''}`}>{mock}</div>
+      <div className={`mt-6 min-w-0 overflow-hidden ${wide ? 'md:mt-0 xl:mt-6' : ''}`}>{mock}</div>
     </article>
   )
 }

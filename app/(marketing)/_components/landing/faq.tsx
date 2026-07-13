@@ -5,7 +5,7 @@ const faqs = LANDING_FAQS
 
 export function FAQ() {
   return (
-    <section id="faq" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="faq" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader label="Practical details" title="Frequently asked questions." />
       <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-12 md:grid-cols-2">
         {faqs.map(([question, answer]) => (

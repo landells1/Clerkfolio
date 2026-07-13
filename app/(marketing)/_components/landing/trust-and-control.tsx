@@ -9,7 +9,7 @@ const reassurances = [
 
 export function TrustAndControl() {
   return (
-    <section id="privacy-and-control" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="privacy-and-control" className="bg-[var(--bg-surface)] px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <div className="grid grid-cols-1 items-start gap-10 lg:grid-cols-[0.78fr_1.22fr] lg:gap-14">
         <div>
           <SectionHeader

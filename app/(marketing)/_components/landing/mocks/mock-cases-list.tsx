@@ -45,7 +45,7 @@ const cases = [
   },
 ] as const
 
-export function MockCasesList({ className = '' }: { className?: string }) {
+export function MockCasesList({ className = '', compact = false }: { className?: string; compact?: boolean }) {
   return (
     <WindowChrome
       url="clerkfolio.co.uk/cases"
@@ -53,7 +53,7 @@ export function MockCasesList({ className = '' }: { className?: string }) {
       className={className}
       contentClassName="flex h-full min-h-[360px] sm:min-h-[420px]"
     >
-      <MockSidebar active="Cases" />
+      {compact ? null : <MockSidebar active="Cases" />}
       <div className="min-w-0 flex-1 p-4 sm:p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>

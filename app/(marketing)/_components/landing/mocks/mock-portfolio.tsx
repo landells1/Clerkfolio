@@ -22,7 +22,7 @@ const filters = [
   }),
 ]
 
-export function MockPortfolio({ className = '' }: { className?: string }) {
+export function MockPortfolio({ className = '', compact = false }: { className?: string; compact?: boolean }) {
   return (
     <WindowChrome
       url="clerkfolio.co.uk/portfolio"
@@ -30,7 +30,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
       className={className}
       contentClassName="flex h-full min-h-[360px] sm:min-h-[420px]"
     >
-      <MockSidebar active="Portfolio" />
+      {compact ? null : <MockSidebar active="Portfolio" />}
       <div className="min-w-0 flex-1 p-4 sm:p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>

@@ -24,7 +24,7 @@ const cards = [
 
 export function Audience() {
   return (
-    <section id="audience" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="audience" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader
         label="Who it is for"
         title="Useful from medical school to specialty applications."

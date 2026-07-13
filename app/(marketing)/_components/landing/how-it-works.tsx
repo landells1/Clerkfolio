@@ -8,7 +8,7 @@ const steps = [
 
 export function HowItWorks() {
   return (
-    <section id="how" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+    <section id="how" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader label="How it works" title="Record it once. Organise it as your career develops." />
       <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-subtle bg-[var(--border-subtle)] sm:mt-12 md:grid-cols-3">
         {steps.map(([number, title, body]) => (
