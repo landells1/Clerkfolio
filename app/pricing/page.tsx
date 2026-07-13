@@ -135,7 +135,7 @@ export default async function PricingPage() {
               by {VERIFIED_BONUS_MB} MB. One verified email per account.
             </p>
             <p>
-              <strong className="font-medium text-ink">Referrals earn real allowances.</strong> Each
+              <strong className="font-medium text-ink">Referrals add to your allowance.</strong> Each
               successful referral adds one PDF export and one share link to a free account, and
               {' '}{REFERRAL_STORAGE_BONUS_AT} referrals add {REFERRAL_STORAGE_BONUS_MB} MB of
               permanent storage. Details in the{' '}

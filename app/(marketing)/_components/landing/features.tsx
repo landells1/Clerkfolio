@@ -9,20 +9,20 @@ import { MockPortfolio } from './mocks/mock-portfolio'
 const features = [
   {
     tag: '01 / PORTFOLIO',
-    title: 'A structured record of your work.',
-    body: 'Keep audits, teaching, reflections, procedures, publications, leadership, conferences and prizes in one searchable portfolio that moves with you.',
+    title: 'One portfolio for everything you do.',
+    body: 'Keep audits, teaching, reflections, procedures, publications, leadership, conferences and prizes in one place. It stays with you through rotations, trusts and training stages.',
     mock: <MockPortfolio compact className="h-[350px] sm:h-[390px]" />,
   },
   {
     tag: '02 / SPECIALTIES',
-    title: 'Evidence mapped to supported specialties.',
-    body: 'Link existing evidence to published application domains and see which areas still need supporting entries. Clerkfolio supports self-assessment, not official scoring or outcome prediction.',
+    title: 'See your evidence alongside specialty criteria.',
+    body: 'Link existing entries to published application domains and see where you have supporting evidence. You decide how it applies to your application.',
     mock: <MockChecklist compact className="h-[350px] sm:h-[390px]" />,
   },
   {
     tag: '03 / CASES',
-    title: 'Anonymised case logging.',
-    body: 'Record clinical area, learning and supporting evidence without entering names, dates of birth, NHS numbers or other patient identifiers. Drafts auto-save while you write.',
+    title: 'Log cases while the details are fresh.',
+    body: 'Record anonymised cases with clinical area, learning and supporting evidence. Drafts save automatically while you write.',
     mock: <MockCasesList compact className="h-[350px] sm:h-[390px]" />,
     wide: true,
   },
@@ -39,8 +39,8 @@ export function Features() {
     <section id="features" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader
         label="What you can do"
-        title="One organised record, built around real portfolio work."
-        sub="Record achievements and anonymised cases, organise evidence for supported specialty applications, and find it again when the next review or application arrives."
+        title="One place for the evidence you build over time."
+        sub="Add entries, find them again, and use them when you need them."
       />
       <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-3">
         {features.map((feature) => <FeatureCard key={feature.tag} {...feature} />)}

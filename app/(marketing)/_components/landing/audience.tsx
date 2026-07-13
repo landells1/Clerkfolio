@@ -4,20 +4,20 @@ import { SectionHeader } from './section-header'
 const cards = [
   [
     'MEDICAL STUDENTS',
-    'Start a useful record before foundation training.',
-    'Keep audits, teaching, prizes, reflections and anonymised cases together from the beginning, ready to revisit when foundation or academic applications arrive.',
-    ['Anonymised case journal', 'Track audits, QIPs and prizes', `Verified .ac.uk email unlocks ${formatStorageQuota(VERIFIED_STORAGE_MB)} storage`],
+    'Start your portfolio before foundation training.',
+    'Keep audits, teaching, prizes, reflections and anonymised cases from the start. Tag anything you may want for foundation or academic applications.',
+    ['Anonymised case journal', 'Track audits, QIPs and prizes', `A verified .ac.uk email gives you up to ${formatStorageQuota(VERIFIED_STORAGE_MB)} storage`],
   ],
   [
     'FOUNDATION DOCTORS',
-    'Build your portfolio once, not every application cycle.',
-    "Log a case while it is fresh, organise supporting files and connect existing evidence to the specialty applications you are considering.",
-    ['Quick logging from phone or desktop', 'Specialty self-assessment mapping', 'PIN-protected portfolio sharing'],
+    'Keep your evidence in one place.',
+    "Log a case while it is fresh, save the supporting files and tag it for a specialty if it is relevant. When applications open, you can find what you need.",
+    ['Quick logging from phone or desktop', 'Specialty self-assessment mapping', 'Share selected portfolio evidence'],
   ],
   [
     'PREPARING APPLICATIONS',
-    'Turn an existing record into focused evidence.',
-    'Search previous work, review supported application domains and export the portfolio evidence needed for the next stage.',
+    'Your portfolio stays with you.',
+    'Your Clerkfolio portfolio belongs to you, not your trust. Move hospital, deanery, specialty or role and keep the same record.',
     ['Track supported specialties', 'Structured achievement categories', 'PDF, CSV, JSON and ZIP exports'],
   ],
 ] as const
@@ -27,8 +27,8 @@ export function Audience() {
     <section id="audience" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
       <SectionHeader
         label="Who it is for"
-        title="Useful from medical school to specialty applications."
-        sub="Clerkfolio adapts to the evidence you need to retain as your training stage and priorities change."
+        title="For medical school, foundation training and beyond."
+        sub="Keep one record as your role and priorities change."
       />
       <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2 lg:grid-cols-3">
         {cards.map(([tag, title, body, bullets]) => (

@@ -1,15 +1,15 @@
 import { SectionHeader } from './section-header'
 
 const steps = [
-  ['01', 'Record what you did', 'Add a structured portfolio entry or log an anonymised clinical case while the details are still fresh. Case forms remind you to remove patient identifiers.'],
-  ['02', 'Organise the evidence', 'Attach files, use searchable tags and link relevant entries to supported specialty application domains.'],
-  ['03', 'Use it when you need it', 'Find previous work, create focused exports or share selected portfolio evidence through a PIN-protected link.'],
+  ['01', 'Log', 'Add cases or portfolio entries from your phone or desktop. Case drafts save automatically.'],
+  ['02', 'Tag', 'Add clinical-area and specialty tags, then reuse them across your entries.'],
+  ['03', 'Use', 'Link entries to specialty domains, export a PDF, or share selected portfolio entries with a PIN.'],
 ] as const
 
 export function HowItWorks() {
   return (
     <section id="how" className="px-6 py-16 sm:py-20 md:px-14 xl:py-20">
-      <SectionHeader label="How it works" title="Record it once. Organise it as your career develops." />
+      <SectionHeader label="How it works" title="Use it as you go." />
       <div className="mt-10 grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-subtle bg-[var(--border-subtle)] sm:mt-12 md:grid-cols-3">
         {steps.map(([number, title, body]) => (
           <article key={number} className="bg-[var(--bg-surface)] p-6 sm:p-8 md:min-h-[250px]">

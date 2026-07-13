@@ -11,20 +11,22 @@ export function MockShareLink({ className = '' }: { className?: string }) {
       <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 className="text-lg font-semibold tracking-[-0.02em]">Import &amp; export</h3>
-          <p className="text-xs text-ink-dim">Import a portfolio, build application-ready packs, or protected links.</p>
+          <p className="text-xs text-ink-dim">Import an existing portfolio, generate application packs, back up your data, and create protected portfolio links.</p>
         </div>
         <div className="flex flex-wrap rounded-lg border border-default bg-[var(--bg-canvas)] p-1 font-mono text-[10px] text-ink-dim">
           <span className="px-2 py-1">Import</span>
           <span className="px-2 py-1">Application PDF</span>
           <span className="px-2 py-1">Data backup</span>
           <span className="rounded bg-[var(--button-primary-bg)] px-2 py-1 text-[var(--button-primary-text)]">Share links</span>
+          <span className="px-2 py-1">Files</span>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         <div className="rounded-xl border border-default bg-[var(--bg-canvas)] p-4">
           <h4 className="mb-3 text-sm font-medium">Create protected link</h4>
           <div className="space-y-3 text-xs">
-            <Field label="Scope" value="Current specialty ▾" />
+            <Field label="Scope" value="Tracked specialty ▾" />
+            <Field label="Specialty" value="Internal Medicine Training ▾" />
             <div>
               <p className="mb-1.5 text-ink-dim">Expires</p>
               <div className="grid grid-cols-2 gap-1.5">

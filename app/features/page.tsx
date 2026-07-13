@@ -18,10 +18,10 @@ export const metadata = marketingMetadata({
 const featureSections: { id: string; title: string; paragraphs: string[]; bullets?: string[]; linkText?: string; linkHref?: string }[] = [
   {
     id: 'portfolio',
-    title: 'A portfolio for your entire career',
+    title: 'Keep your portfolio with you',
     paragraphs: [
-      'Audits and QIPs, teaching sessions, reflections, procedures, publications, leadership roles, conference presentations and prizes - eight entry categories, each with the fields that actually matter for that kind of evidence.',
-      'Unlike a trust or deanery system, your Clerkfolio portfolio belongs to you. Change hospital, deanery, specialty or career stage and everything comes with you - nothing gets left behind in an account you can no longer access.',
+      'Keep audits and QIPs, teaching sessions, reflections, procedures, publications, leadership roles, conference presentations and prizes in one place. Each category has the fields you need to record that work.',
+      'Your Clerkfolio portfolio belongs to you. Move hospital, deanery, specialty or career stage and keep the same record.',
       'Attach evidence files (PDF, Word, PowerPoint, images and more) to any entry, and link one file to several entries without uploading it twice or counting it twice against your storage.',
     ],
   },
@@ -29,7 +29,7 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
     id: 'specialties',
     title: 'Specialty self-assessment mapping',
     paragraphs: [
-      'Track a specialty application and map your entries onto its published self-assessment domains. You score yourself - Clerkfolio shows you the official criteria, where your evidence sits against them, and which domains still have nothing linked. No predictions, no verdicts: your judgement, better organised.',
+      'Track a specialty application and link your entries to its published self-assessment domains. Clerkfolio shows the official criteria alongside your evidence. You decide how it applies to your application.',
       'Every specialty configuration cites its official sources with the date we last verified them, and covers the 2026 entry-level (ST1/CT1) application round for:',
     ],
     bullets: SPECIALTY_CONFIGS.map(config => config.name),
@@ -38,31 +38,31 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
     id: 'cases',
     title: 'Anonymised case logging',
     paragraphs: [
-      'Log a clinical case in under a minute, from a phone between patients or a laptop at the end of the day. Every case form reminds you to leave out patient identifiers - no names, dates of birth or NHS numbers - so your case diary stays a personal, anonymised record of your clinical experience.',
-      'Cases carry a clinical area, specialty tags, competency themes, notes and an importance rating. Drafts auto-save while you type, so a bleep mid-entry loses nothing.',
+      'Log a clinical case from your phone or laptop. Every case form reminds you to leave out patient identifiers - no names, dates of birth or NHS numbers - so your case diary remains an anonymised record of your clinical experience.',
+      'Cases can include a clinical area, specialty tags, competency themes, notes and an importance rating. Drafts save automatically while you type.',
     ],
   },
   {
     id: 'arcp',
     title: 'ARCP capability tracking',
     paragraphs: [
-      'Foundation doctors (and doctors keeping foundation capabilities current after F2) can link portfolio evidence to ARCP capabilities and see coverage at a glance - useful preparation before the official deanery portfolio review. Clerkfolio complements Horus and Turas; it does not replace the portfolio your deanery requires.',
+      'Foundation doctors, and doctors keeping foundation capabilities current after F2, can link portfolio evidence to ARCP capabilities and see what is already linked. It can help when preparing for the official deanery portfolio review. Clerkfolio complements Horus and Turas; it does not replace the portfolio your deanery requires.',
     ],
     linkText: 'New to the process? Read our source-cited ARCP preparation guide.',
     linkHref: '/guides/arcp-preparation',
   },
   {
     id: 'sharing',
-    title: 'Share links your supervisor can actually open',
+    title: 'Share selected portfolio evidence',
     paragraphs: [
-      'Generate a read-only link scoped to a specialty, a competency theme, or your whole portfolio (entries only - anonymised cases are never shared). Every link is PIN-protected, expires when you say (up to 90 days), can be revoked instantly, and every view is audited. No supervisor account needed.',
+      'Create a read-only link for a specialty, a competency theme or your full portfolio of entries. Cases are never shared. Every link needs a PIN, can expire within 90 days and can be revoked at any time. The recipient does not need a Clerkfolio account.',
     ],
   },
   {
     id: 'export',
-    title: 'Import and export without lock-in',
+    title: 'Import and export your records',
     paragraphs: [
-      'Bring an existing portfolio across with Horus CSV bulk import (Pro), or CSV/JSON import. Get everything out whenever you want: application-ready PDF packs, a formatted CV as PDF or Word, CSV and JSON for your own records, and a full ZIP backup of your account on demand. Your evidence is yours.',
+      'Bring an existing portfolio across with Horus CSV bulk import on Pro, or use CSV and JSON import. Export application PDFs, a CV in PDF or Word, CSV and JSON records, or a full ZIP backup whenever you need one.',
     ],
   },
   {
@@ -98,14 +98,13 @@ export default async function FeaturesPage() {
       <main className="px-6 py-12 sm:py-16 md:px-14 lg:py-20">
         <header className="max-w-3xl">
           <h1 className="text-[clamp(34px,7vw,52px)] font-medium leading-[1.05] tracking-[-0.045em] text-ink">
-            Everything a UK medical portfolio needs, in one place.
+            A personal portfolio for medical school, foundation training and beyond.
           </h1>
           <p className="mt-5 max-w-[620px] text-base leading-[1.6] text-ink-soft sm:text-lg">
-            Clerkfolio is a career-long portfolio app for UK medical students and doctors: one
-            portfolio for every achievement, specialty self-assessment mapping for training
-            applications, anonymised case logging, ARCP evidence, supervisor sharing, and exports
-            for every application. Free to
-            use - see <Link href="/pricing" className="text-[var(--accent-text)] underline underline-offset-2">pricing</Link> for
+            Keep your achievements, specialty application evidence and anonymised case logs in one
+            place. Clerkfolio also supports ARCP evidence, protected sharing and exports when you
+            need them. The core tools are free to use. See{' '}
+            <Link href="/pricing" className="text-[var(--accent-text)] underline underline-offset-2">pricing</Link> for
             what Pro adds.
           </p>
         </header>

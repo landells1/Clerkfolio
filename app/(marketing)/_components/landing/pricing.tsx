@@ -43,8 +43,8 @@ export function Pricing() {
         })}
       </div>
       <p className="mx-auto mt-8 max-w-2xl text-center text-sm leading-6 text-ink-soft">
-        Working in the NHS? Verifying an <span className="text-ink">nhs.net</span> (or other NHS) email unlocks
-        the free <span className="text-ink">Verified</span> plan&apos;s extra storage. ARCP capability tracking is
+        Working in the NHS? Verifying an <span className="text-ink">nhs.net</span> (or other NHS) email adds
+        extra storage to the free <span className="text-ink">Verified</span> plan. ARCP capability tracking is
         included for eligible training stages - set yours during onboarding.
       </p>
     </section>

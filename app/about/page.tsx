@@ -8,7 +8,7 @@ import { Nav } from '../(marketing)/_components/landing/nav'
 
 export const metadata = marketingMetadata({
   title: 'About - Clerkfolio',
-  description: 'Clerkfolio is an independent medical portfolio app built by a UK junior doctor. Why it exists, the principles it is built on, and how specialty data is kept accurate.',
+  description: 'Clerkfolio is an independent medical portfolio app designed and built by doctors working in the NHS. Find out why it exists, the principles behind it, and how specialty data is kept accurate.',
   path: '/about',
 })
 
@@ -46,23 +46,20 @@ export default async function AboutPage() {
       <main className="px-6 py-12 sm:py-16 md:px-14 lg:py-20">
         <article className="max-w-3xl">
           <h1 className="text-[clamp(34px,7vw,52px)] font-medium leading-[1.05] tracking-[-0.045em] text-ink">
-            Built on a ward, not in a boardroom.
+            Designed and built by doctors working in the NHS.
           </h1>
 
           <div className="mt-8 space-y-5 text-[15px] leading-[1.7] text-ink-soft">
             <p>
-              Clerkfolio is built and run by a UK junior doctor
-              {LEGAL_ENTITY.proprietorName ? ` (${LEGAL_ENTITY.proprietorName})` : ''} who kept
-              hitting the same problem every application cycle: the evidence existed - the audits,
-              the teaching, the cases, the certificates - but it lived in photo rolls, email
-              attachments, half-finished spreadsheets and three different portfolio systems, and
-              none of it was shaped like the self-assessment form in front of them.
+              Portfolio evidence can end up across photo libraries, email attachments, spreadsheets
+              and several official systems. Finding and organising it again for each application
+              takes longer than it should.
             </p>
             <p>
-              Clerkfolio is the tool that was missing: one place to log clinical experience as it
-              happens, keep evidence attached to the entries it proves, and map the lot onto the
-              criteria each specialty actually publishes - so an application weekend is an export,
-              not an archaeology dig.
+              Clerkfolio provides one personal record for clinical experience, supporting evidence
+              and specialty application criteria. Keep relevant files with each entry, organise
+              evidence around the criteria you need, and prepare an export when you are ready to
+              apply.
             </p>
           </div>
 

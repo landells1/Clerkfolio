@@ -20,8 +20,7 @@ export function Hero() {
             </span>
           </h1>
           <p className="mt-5 max-w-[620px] text-base leading-[1.6] text-ink-soft sm:mt-7 sm:text-lg">
-            Record achievements and anonymised clinical cases, organise evidence for supported specialty applications,
-            and export or share the portfolio you keep when you move trust or training stage.
+            Keep your achievements, specialty application evidence and anonymised case logs together. Clerkfolio stays with you when you move trust, hospital or training stage.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:items-center">
             <p className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-accent/30 bg-[var(--accent-soft)] px-5 py-3 text-sm font-medium text-[var(--accent-soft-text)]">
@@ -43,10 +42,10 @@ export function Hero() {
             <span><span aria-hidden>◆</span> Export your records</span>
           </div>
         </div>
-        <div className="relative max-h-[390px] overflow-hidden rounded-xl sm:max-h-none lg:-mr-8 lg:min-h-[500px]">
+        <div className="relative max-h-[390px] overflow-hidden rounded-xl sm:max-h-none lg:-mr-8 lg:min-h-[500px] lg:overflow-visible">
           <MockCasesList className="h-[390px] sm:h-auto lg:h-[500px]" />
           <div aria-hidden="true" className="absolute bottom-4 right-2 hidden lg:block"><FloatingCaseCard /></div>
-          <div aria-hidden="true" className="absolute left-[-28px] top-[190px] hidden lg:block"><FloatingChecklistCard /></div>
+          <div aria-hidden="true" className="pointer-events-none absolute left-0 top-[190px] z-10 hidden lg:block"><FloatingChecklistCard /></div>
         </div>
       </div>
     </section>
