@@ -1,6 +1,13 @@
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
+import { marketingMetadata } from '@/lib/marketing/metadata'
+
+export const metadata = marketingMetadata({
+  title: 'Cookie policy - Clerkfolio',
+  description: 'The cookies and browser storage Clerkfolio uses, what each one does, how long it lasts, and how to control analytics.',
+  path: '/cookies',
+})
 
 const lastUpdated = '9 June 2026'
 

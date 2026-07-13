@@ -2,6 +2,13 @@ import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
 import Link from 'next/link'
 import { LEGAL_ENTITY } from '@/lib/legal/entity'
+import { marketingMetadata } from '@/lib/marketing/metadata'
+
+export const metadata = marketingMetadata({
+  title: 'Privacy policy - Clerkfolio',
+  description: 'How Clerkfolio collects, uses, stores, and protects your personal data, and the rights you have under UK GDPR.',
+  path: '/privacy',
+})
 
 const lastUpdated = '6 July 2026'
 

@@ -1,7 +1,32 @@
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+
+// User-generated public pages: give each its own title so shared links look
+// right, but keep them OUT of search indexes by default — a doctor's name plus
+// a list of their portfolio activity should not become Google-searchable as a
+// side effect of enabling the showcase. Flip to indexable only as a deliberate
+// product decision. (robots.txt must keep ALLOWING /showcase/ crawl so this
+// noindex directive can actually be seen by crawlers.)
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const supabase = createServiceClient()
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('first_name, last_name')
+    .eq('public_slug', slug)
+    .eq('public_showcase_enabled', true)
+    .maybeSingle()
+  const ownerName = profile
+    ? [profile.first_name, profile.last_name].filter(Boolean).join(' ') || 'Clerkfolio user'
+    : 'Showcase'
+  return {
+    title: `${ownerName} - Clerkfolio showcase`,
+    robots: { index: false, follow: false },
+  }
+}
 
 // Showcase is a permanent public page - anyone with the slug can read it.
 // Free-text notes routinely contain clinical reflections, supervisor names,
