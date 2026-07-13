@@ -12,7 +12,7 @@ const PAGES: { path: string; lastModified: string; priority: number }[] = [
   { path: '/features', lastModified: '2026-07-13', priority: 0.9 },
   { path: '/pricing', lastModified: '2026-07-13', priority: 0.9 },
   { path: '/about', lastModified: '2026-07-13', priority: 0.8 },
-  { path: '/privacy', lastModified: '2026-07-06', priority: 0.5 },
+  { path: '/privacy', lastModified: '2026-07-13', priority: 0.5 },
   { path: '/terms', lastModified: '2026-07-06', priority: 0.5 },
   { path: '/cookies', lastModified: '2026-06-09', priority: 0.3 },
   { path: '/subprocessors', lastModified: '2026-07-06', priority: 0.3 },

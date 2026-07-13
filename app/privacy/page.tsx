@@ -10,7 +10,7 @@ export const metadata = marketingMetadata({
   path: '/privacy',
 })
 
-const lastUpdated = '6 July 2026'
+const lastUpdated = '13 July 2026'
 
 const dataRows = [
   {
@@ -294,7 +294,7 @@ export default function PrivacyPage() {
 
         <Section title="Retention">
           <ul>
-            <li>Live account, profile, portfolio, case, timeline, specialty, ARCP, template, and evidence records are kept while your account remains active or as needed to provide the service.</li>
+            <li>Live account, profile, portfolio, case, timeline, specialty, ARCP, template, and evidence records are kept while your account remains active or as needed to provide the service. We delete accounts that have not signed in for two years, including their associated live data. If an inactive account has a paid subscription, we first arrange for that subscription to end at the close of its paid period.</li>
             <li>Soft-deleted portfolio entries and cases remain available in trash for a limited period and are currently scheduled for purge after 30 days.</li>
             <li>After account deletion, personal data is removed from live systems promptly. Backup copies may be retained for up to 30 days before being purged in the normal backup rotation. Stripe billing records and any data we are legally required to retain (e.g. for tax or dispute purposes) are kept for the legally required period.</li>
             <li>Audit logs are currently scheduled for purge after one year.</li>
