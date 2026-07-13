@@ -5,7 +5,10 @@ import type { MetadataRoute } from 'next'
 // a page's date here when its content meaningfully changes — the legal pages
 // already carry a matching visible "last updated" line.
 const PAGES: { path: string; lastModified: string; priority: number }[] = [
-  { path: '', lastModified: '2026-07-12', priority: 1.0 },
+  { path: '', lastModified: '2026-07-13', priority: 1.0 },
+  { path: '/features', lastModified: '2026-07-13', priority: 0.9 },
+  { path: '/pricing', lastModified: '2026-07-13', priority: 0.9 },
+  { path: '/about', lastModified: '2026-07-13', priority: 0.8 },
   { path: '/privacy', lastModified: '2026-07-06', priority: 0.5 },
   { path: '/terms', lastModified: '2026-07-06', priority: 0.5 },
   { path: '/cookies', lastModified: '2026-06-09', priority: 0.3 },

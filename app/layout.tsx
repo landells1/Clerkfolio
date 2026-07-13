@@ -1,6 +1,17 @@
 import type { Metadata } from 'next'
+import { Geist, Geist_Mono, Inter, JetBrains_Mono } from 'next/font/google'
 import { headers } from 'next/headers'
 import './globals.css'
+
+// Self-hosted via next/font (served same-origin from /_next/static, so CSP
+// font-src 'self' covers them). The previous Google Fonts @import in
+// globals.css was silently BLOCKED by our own style-src CSP in production —
+// no webfont ever loaded; users saw system fallbacks. Variable fonts, latin
+// subset, swap display.
+const inter = Inter({ subsets: ['latin'], display: 'swap', variable: '--font-inter' })
+const geist = Geist({ subsets: ['latin'], display: 'swap', variable: '--font-geist' })
+const geistMono = Geist_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-geist-mono' })
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], display: 'swap', variable: '--font-jetbrains-mono' })
 import PreferencesApplier from '@/components/accessibility/preferences-applier'
 import CookieBanner from '@/components/legal/cookie-banner'
 import AnalyticsGate from '@/components/legal/analytics-gate'
@@ -52,7 +63,7 @@ export default async function RootLayout({
   const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
-    <html lang="en">
+    <html lang="en" className={`${inter.variable} ${geist.variable} ${geistMono.variable} ${jetbrainsMono.variable}`}>
       <head>
         {/* No-flash theme init — runs before first paint. Cream is the default;
             dark is opt-in and stamped here from the stored choice so dark users

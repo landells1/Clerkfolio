@@ -4,12 +4,15 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { Logo } from './logo'
 
+// Homepage-absolute hrefs so the nav works from /features, /pricing, /about
+// and any other marketing page, not just the landing page itself.
 const links = [
-  ['Product', '#features'],
-  ["Who it's for", '#audience'],
-  ['How it works', '#how'],
-  ['Pricing', '#pricing'],
-  ['FAQ', '#faq'],
+  ['Features', '/features'],
+  ["Who it's for", '/#audience'],
+  ['How it works', '/#how'],
+  ['Pricing', '/pricing'],
+  ['About', '/about'],
+  ['FAQ', '/#faq'],
 ] as const
 
 export function Nav() {
@@ -23,7 +26,7 @@ export function Nav() {
             <span className="text-base font-medium tracking-[-0.02em] text-ink">Clerkfolio</span>
           </Link>
           <div className="hidden items-center gap-6 text-[13px] text-ink-soft lg:flex">
-            {links.map(([label, href]) => <a key={href} href={href} className="rounded-sm transition hover:text-ink">{label}</a>)}
+            {links.map(([label, href]) => <Link key={href} href={href} className="rounded-sm transition hover:text-ink">{label}</Link>)}
           </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
@@ -63,14 +66,14 @@ export function Nav() {
         <div id="landing-nav-menu" className="border-t border-subtle bg-[var(--bg-canvas)] px-4 pb-4 pt-2 sm:px-6 lg:hidden">
           <div className="flex flex-col">
             {links.map(([label, href]) => (
-              <a
+              <Link
                 key={href}
                 href={href}
                 className="rounded-md px-2 py-3 text-[15px] text-ink-soft transition hover:text-ink"
                 onClick={() => setOpen(false)}
               >
                 {label}
-              </a>
+              </Link>
             ))}
           </div>
         </div>

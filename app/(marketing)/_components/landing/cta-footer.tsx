@@ -26,6 +26,9 @@ export function CtaFooter() {
       <div className="mt-14 flex flex-col gap-6 border-t border-default pt-7 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim sm:mt-24 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5"><Logo /><span>Clerkfolio · 2026</span></div>
         <div className="flex flex-wrap gap-5">
+          <Link href="/features">Features</Link>
+          <Link href="/pricing">Pricing</Link>
+          <Link href="/about">About</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
           <Link href="/cookies">Cookies</Link>

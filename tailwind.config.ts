@@ -102,8 +102,8 @@ const config: Config = {
         'pill-neutral': 'var(--cat-neutral-border)',
       },
       fontFamily: {
-        sans: ['Geist', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
-        mono: ['Geist Mono', 'JetBrains Mono', 'ui-monospace', 'monospace'],
+        sans: ['var(--font-geist)', 'var(--font-inter)', 'system-ui', '-apple-system', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'var(--font-jetbrains-mono)', 'ui-monospace', 'monospace'],
       },
       maxWidth: {
         container: '1320px',
