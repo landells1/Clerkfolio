@@ -2,7 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+/* Inter / Geist / Geist Mono / JetBrains Mono are self-hosted via next/font
+   in app/layout.tsx (CSS variables --font-inter etc. on <html>). Do NOT
+   re-add a Google Fonts @import here: style-src in middleware.ts does not
+   allow fonts.googleapis.com, so the import is silently blocked and no
+   webfont loads at all. */
 
 /* OpenDyslexic for the accessibility "dyslexic-friendly font" toggle. Served
    from Fontsource on jsDelivr (font-src is allowlisted in middleware.ts). The
@@ -309,13 +313,13 @@ html[data-theme="dark"] {
 body {
   background-color: var(--bg-canvas);
   color: var(--text-primary);
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body.font-dyslexic {
-  font-family: 'OpenDyslexic', 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'OpenDyslexic', var(--font-inter), system-ui, -apple-system, sans-serif;
 }
 
 /* High-contrast mode — theme-aware. Dark pushes to pure black/white; cream
