@@ -2,24 +2,48 @@ import { VERIFIED_STORAGE_MB, formatStorageQuota } from '@/lib/entitlements/limi
 import { SectionHeader } from './section-header'
 
 const cards = [
-  ['MED STUDENTS', 'Build the evidence your foundation form will ask for.', 'Log every audit, teaching session and prize from year one. Tag what matters for SFP, AFP, or the academic foundation route, and your portfolio builds up as you go.', ['Anonymised case journal', 'Track audits, QIPs, prizes', `Free forever - verified .ac.uk unlocks ${formatStorageQuota(VERIFIED_STORAGE_MB)} storage`]],
-  ['FOUNDATION (FY1 / FY2)', 'Build your portfolio once, not every application cycle.', "Log a case while it's fresh and tag it once. When applications open, the evidence is already there - just export what you need.", ['Quick-log between patients', 'Map onto specialty self-assessments', 'Share links for supervisors']],
-  ['BEYOND FOUNDATION', 'A portfolio that moves with you.', "Run-through, registrar or staff grade - your Clerkfolio portfolio belongs to you, not your trust. Change hospital, deanery or specialty and it comes with you.", ['Unlimited tracked specialties (Pro)', 'GMC-aligned categories', 'Full data export, any time']],
+  [
+    'MEDICAL STUDENTS',
+    'Start a useful record before foundation training.',
+    'Keep audits, teaching, prizes, reflections and anonymised cases together from the beginning, ready to revisit when foundation or academic applications arrive.',
+    ['Anonymised case journal', 'Track audits, QIPs and prizes', `Verified .ac.uk email unlocks ${formatStorageQuota(VERIFIED_STORAGE_MB)} storage`],
+  ],
+  [
+    'FOUNDATION DOCTORS',
+    'Build your portfolio once, not every application cycle.',
+    "Log a case while it is fresh, organise supporting files and connect existing evidence to the specialty applications you are considering.",
+    ['Quick logging from phone or desktop', 'Specialty self-assessment mapping', 'PIN-protected portfolio sharing'],
+  ],
+  [
+    'PREPARING APPLICATIONS',
+    'Turn an existing record into focused evidence.',
+    'Search previous work, review supported application domains and export the portfolio evidence needed for the next stage.',
+    ['Track supported specialties', 'Structured achievement categories', 'PDF, CSV, JSON and ZIP exports'],
+  ],
 ] as const
 
 export function Audience() {
   return (
-    <section id="audience" className="px-6 py-16 sm:py-24 md:px-14 lg:py-32">
-      <SectionHeader number="003" label="Who it's for" title="Designed for every stage of UK medical training." />
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 md:grid-cols-3">
+    <section id="audience" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
+      <SectionHeader
+        label="Who it is for"
+        title="Useful from medical school to specialty applications."
+        sub="Clerkfolio adapts to the evidence you need to retain as your training stage and priorities change."
+      />
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 md:grid-cols-2 lg:grid-cols-3">
         {cards.map(([tag, title, body, bullets]) => (
-          <article key={tag} className="rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7">
+          <article key={tag} className="rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7 md:last:col-span-2 lg:last:col-span-1">
             <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
             <h3 className="text-[22px] font-medium leading-tight tracking-[-0.02em]">{title}</h3>
             <p className="mt-3 text-[13px] leading-[1.6] text-ink-soft">{body}</p>
             <div className="my-5 h-px bg-[var(--border-default)]" />
             <ul className="space-y-3">
-              {bullets.map((bullet) => <li key={bullet} className="text-sm text-ink-soft"><span className="mr-2 text-accent">→</span>{bullet}</li>)}
+              {bullets.map((bullet) => (
+                <li key={bullet} className="flex gap-2 text-sm text-ink-soft">
+                  <span className="text-accent" aria-hidden="true">→</span>
+                  <span>{bullet}</span>
+                </li>
+              ))}
             </ul>
           </article>
         ))}

@@ -12,14 +12,19 @@ import { Hero } from './(marketing)/_components/landing/hero'
 import { HowItWorks } from './(marketing)/_components/landing/how-it-works'
 import { Nav } from './(marketing)/_components/landing/nav'
 import { Pricing } from './(marketing)/_components/landing/pricing'
+import { ProblemValue } from './(marketing)/_components/landing/problem-value'
+import { TrustAndControl } from './(marketing)/_components/landing/trust-and-control'
+
+const title = 'Clerkfolio | One medical portfolio for your whole career'
+const description = 'A personal medical portfolio for UK medical students and doctors. Record achievements and anonymised cases, organise specialty application evidence, and export or share your records.'
 
 export const metadata: Metadata = {
-  title: 'Clerkfolio - One medical portfolio for your entire career',
-  description: 'The UK medical portfolio app that stays yours through every trust and training stage. Track achievements, build specialty application evidence, and log anonymised cases.',
+  title,
+  description,
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Clerkfolio - One medical portfolio for your entire career',
-    description: 'The UK medical portfolio app that stays yours through every trust and training stage.',
+    title,
+    description,
     url: 'https://clerkfolio.co.uk',
     siteName: 'Clerkfolio',
     locale: 'en_GB',
@@ -27,13 +32,13 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Clerkfolio - One medical portfolio for your entire career',
-    description: 'The UK medical portfolio app that stays yours through every trust and training stage.',
+    title,
+    description,
   },
 }
 
 // Entity data for search engines and AI answer engines. Every claim here must
-// match visible page content — no ratings, no fabricated review data.
+// match visible page content. Ratings and review data are intentionally absent.
 function landingStructuredData() {
   const proTier = PRICING_TIERS.find(tier => tier.name === 'Pro')
   const organization = {
@@ -60,14 +65,9 @@ function landingStructuredData() {
     url: SITE_URL,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    description: 'A career-long portfolio app for UK medical students and doctors: portfolio and achievement tracking, specialty self-assessment mapping, anonymised case logging, ARCP evidence organisation, and PDF/CSV/JSON export.',
+    description: 'A personal medical portfolio for UK medical students and doctors, with achievement tracking, supported specialty self-assessment mapping, anonymised case logging and data export.',
     offers: [
-      {
-        '@type': 'Offer',
-        name: 'Free',
-        price: '0',
-        priceCurrency: 'GBP',
-      },
+      { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'GBP' },
       {
         '@type': 'Offer',
         name: 'Pro',
@@ -87,6 +87,7 @@ function landingStructuredData() {
       acceptedAnswer: { '@type': 'Answer', text: answer },
     })),
   }
+
   return {
     '@context': 'https://schema.org',
     '@graph': [organization, webSite, softwareApplication, faqPage],
@@ -102,17 +103,21 @@ export default async function LandingPage({ searchParams }: { searchParams?: Pro
     <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
       <JsonLd data={landingStructuredData()} nonce={nonce} />
       {wasDeleted ? (
-        <div className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-[var(--success)] md:px-14">
+        <div role="status" className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-[var(--success)] md:px-14">
           Your account has been permanently deleted. Sorry to see you go.
         </div>
       ) : null}
       <Nav />
-      <Hero />
-      <Features />
-      <Audience />
-      <HowItWorks />
-      <Pricing />
-      <FAQ />
+      <main>
+        <Hero />
+        <ProblemValue />
+        <HowItWorks />
+        <Features />
+        <TrustAndControl />
+        <Audience />
+        <Pricing />
+        <FAQ />
+      </main>
       <CtaFooter />
     </div>
   )

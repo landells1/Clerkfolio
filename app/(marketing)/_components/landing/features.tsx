@@ -1,73 +1,71 @@
 import type { ReactNode } from 'react'
 import { SectionHeader } from './section-header'
-import { MockCaseForm } from './mocks/mock-case-form'
 import { MockCasesList } from './mocks/mock-cases-list'
 import { MockChecklist } from './mocks/mock-checklist'
 import { MockPortfolio } from './mocks/mock-portfolio'
-import { MockShareLink } from './mocks/mock-share-link'
 
 // Ordered by importance (owner positioning, 2026-07-13): the career-long
-// portfolio leads, then getting into training, then case logging. The `wide`
-// card must sit in an odd slot (1st/3rd/5th) or the 2-col mosaic gaps.
+// portfolio leads, then getting into training, then case logging.
 const features = [
   {
     tag: '01 / PORTFOLIO',
-    title: 'One portfolio for everything you do.',
-    body: 'Eight categories: audit / QIP, teaching, reflection, procedure, publication, leadership, conference, prize. Each with the fields that actually matter - and it stays yours through every rotation, trust and training stage.',
-    mock: <MockPortfolio className="h-auto lg:h-[420px]" />,
+    title: 'A structured record of your work.',
+    body: 'Keep audits, teaching, reflections, procedures, publications, leadership, conferences and prizes in one searchable portfolio that moves with you.',
+    mock: <MockPortfolio className="h-[390px] sm:h-auto lg:h-[420px]" />,
   },
   {
     tag: '02 / SPECIALTIES',
-    title: 'See where your evidence is thin, before applications.',
-    body: "Map portfolio evidence onto each specialty's self-assessment domains, and see which ones still need evidence.",
-    mock: <MockChecklist className="h-auto lg:h-[420px]" />,
+    title: 'Evidence mapped to supported specialties.',
+    body: 'Link existing evidence to published application domains and see which areas still need supporting entries. Clerkfolio supports self-assessment, not official scoring or outcome prediction.',
+    mock: <MockChecklist className="h-[390px] sm:h-auto lg:h-[420px]" />,
   },
   {
     tag: '03 / CASES',
-    title: 'Quick to log between patients.',
-    body: 'Anonymised case entries with clinical area, application tags, notes and evidence files. Drafts auto-save while you write.',
-    mock: <MockCasesList className="h-auto lg:h-[420px]" />,
-  },
-  {
-    tag: '04 / SHARE',
-    title: 'A link you can share with your supervisor.',
-    body: 'Filtered by specialty or theme. PIN-protected. Set it to expire in a day, a week, a month - or revoke it now. Every view audited.',
-    mock: <MockShareLink className="h-auto lg:h-[400px]" />,
-  },
-  {
-    tag: '05 / EXPORT',
-    title: 'Export exactly what an application needs.',
-    body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand - your data is never locked in.',
-    mock: <MockCaseForm className="h-auto lg:h-[400px]" />,
+    title: 'Anonymised case logging.',
+    body: 'Record clinical area, learning and supporting evidence without entering names, dates of birth, NHS numbers or other patient identifiers. Drafts auto-save while you write.',
+    mock: <MockCasesList className="h-[390px] sm:h-auto lg:h-[420px]" />,
     wide: true,
   },
 ] as const
 
+const supportingTools = [
+  ['Evidence beside the entry', 'Keep supporting files with the case, activity or achievement they relate to.'],
+  ['Search, timelines and imports', 'Find previous work, review your activity over time and bring supported records into one place.'],
+  ['Exports and focused sharing', 'Create application PDFs, CSV, JSON or ZIP backups, and share selected portfolio evidence through a required-PIN link.'],
+] as const
+
 export function Features() {
   return (
-    <section id="features" className="px-6 py-16 sm:py-24 md:px-14 lg:py-32">
+    <section id="features" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
       <SectionHeader
-        number="002"
-        label="What you can do with it"
-        title="One organised record of your evidence."
-        sub="Every entry is tagged and searchable. Five tools, all built on the same anonymised record."
+        label="What you can do"
+        title="One organised record, built around real portfolio work."
+        sub="Record achievements and anonymised cases, organise evidence for supported specialty applications, and find it again when the next review or application arrives."
       />
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-2">
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 lg:grid-cols-2">
         {features.map((feature) => <FeatureCard key={feature.tag} {...feature} />)}
+      </div>
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-3">
+        {supportingTools.map(([title, body]) => (
+          <article key={title} className="rounded-xl border border-default bg-[var(--bg-surface)] p-5">
+            <h3 className="text-base font-medium tracking-[-0.015em] text-ink">{title}</h3>
+            <p className="mt-2 text-sm leading-6 text-ink-soft">{body}</p>
+          </article>
+        ))}
       </div>
     </section>
   )
 }
 
-function FeatureCard({ tag, title, body, mock, wide }: { tag: string; title: string; body: string; mock: ReactNode; wide?: boolean }) {
+function FeatureCard({ tag, title, body, mock, wide = false }: { tag: string; title: string; body: string; mock: ReactNode; wide?: boolean }) {
   return (
-    <article className={`rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7 ${wide ? 'lg:col-span-2 lg:grid lg:grid-cols-[0.75fr_1.25fr] lg:gap-8' : ''}`}>
+    <article className={`rounded-2xl border border-default bg-[var(--bg-surface)] p-5 sm:p-7 ${wide ? 'lg:col-span-2 lg:grid lg:grid-cols-[0.7fr_1.3fr] lg:gap-8' : ''}`}>
       <div>
         <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-accent">{tag}</p>
         <h3 className="text-[22px] font-medium leading-tight tracking-[-0.025em] text-ink sm:text-[26px]">{title}</h3>
         <p className="mt-3 text-sm leading-[1.6] text-ink-soft">{body}</p>
       </div>
-      <div className="mt-6 min-w-0 overflow-hidden lg:mt-0">{mock}</div>
+      <div className={`mt-6 min-w-0 overflow-hidden ${wide ? 'lg:mt-0' : ''}`}>{mock}</div>
     </article>
   )
 }

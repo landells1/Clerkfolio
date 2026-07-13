@@ -18,9 +18,14 @@ const rows = [
 
 export function MockChecklist({ className = '' }: { className?: string }) {
   return (
-    <WindowChrome url="clerkfolio.co.uk/specialties/imt" className={className} contentClassName="flex h-full min-h-[420px]">
+    <WindowChrome
+      url="clerkfolio.co.uk/specialties/imt"
+      label="Illustrative Clerkfolio specialty screen mapping portfolio evidence to Internal Medicine Training application domains"
+      className={className}
+      contentClassName="flex h-full min-h-[360px] sm:min-h-[420px]"
+    >
       <MockSidebar active="Specialties" />
-      <main className="min-w-0 flex-1 p-4 sm:p-5">
+      <div className="min-w-0 flex-1 p-4 sm:p-5">
         <p className="mb-2 text-[11px] text-ink-dim">← Specialties</p>
         <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -45,7 +50,7 @@ export function MockChecklist({ className = '' }: { className?: string }) {
           ))}
         </div>
         <p className="mt-3 text-[11px] leading-5 text-ink-dim">Tap a domain to link a portfolio entry, audit, teaching session, or reflection as evidence.</p>
-      </main>
+      </div>
     </WindowChrome>
   )
 }

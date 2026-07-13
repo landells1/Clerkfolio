@@ -3,14 +3,13 @@ import { SectionHeader } from './section-header'
 
 export function Pricing() {
   return (
-    <section id="pricing" className="px-6 py-16 sm:py-24 md:px-14 lg:py-32">
+    <section id="pricing" className="px-6 py-16 sm:py-20 md:px-14 lg:py-24">
       <SectionHeader
-        number="005"
         label="Pricing"
         title="Free to use. Upgrade to Pro when you need more."
         sub={`No card needed to start. The free plan is fully usable on its own. Pro is \u00A39.99 a year.`}
       />
-      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-16 lg:grid-cols-3">
+      <div className="mt-10 grid grid-cols-1 gap-6 sm:mt-12 lg:grid-cols-3">
         {PRICING_TIERS.map((tier) => {
           const features = MARKETING_PRICING_FEATURES[tier.name]
           return (

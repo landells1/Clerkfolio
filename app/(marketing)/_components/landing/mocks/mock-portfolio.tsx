@@ -24,15 +24,20 @@ const filters = [
 
 export function MockPortfolio({ className = '' }: { className?: string }) {
   return (
-    <WindowChrome url="clerkfolio.co.uk/portfolio" className={className} contentClassName="flex h-full min-h-[420px]">
+    <WindowChrome
+      url="clerkfolio.co.uk/portfolio"
+      label="Illustrative Clerkfolio portfolio screen with structured achievement entries and specialty tags"
+      className={className}
+      contentClassName="flex h-full min-h-[360px] sm:min-h-[420px]"
+    >
       <MockSidebar active="Portfolio" />
-      <main className="min-w-0 flex-1 p-4 sm:p-5">
+      <div className="min-w-0 flex-1 p-4 sm:p-5">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold tracking-[-0.02em]">Portfolio</h3>
             <p className="text-xs text-ink-dim">62 entries across 8 categories</p>
           </div>
-          <button className="rounded-md bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">+ New entry</button>
+          <span className="rounded-md bg-[var(--button-primary-bg)] px-3 py-2 text-xs font-semibold text-[var(--button-primary-text)]">+ New entry</span>
         </div>
         <div className="mb-3 flex gap-1.5 overflow-hidden">
           {filters.map((filter) => {
@@ -67,7 +72,7 @@ export function MockPortfolio({ className = '' }: { className?: string }) {
             )
           })}
         </div>
-      </main>
+      </div>
     </WindowChrome>
   )
 }

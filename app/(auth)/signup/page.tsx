@@ -1,11 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import { isAcUkEmail, isNhsEmail } from '@/lib/institutional-email'
 import PasswordInput from '@/components/ui/password-input'
+import { MARKETING_EVENTS } from '@/lib/marketing/analytics-events'
+import { trackMarketingEvent } from '@/lib/marketing/analytics'
 
 function safeUpgradeIntent(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -36,6 +38,10 @@ export default function SignupPage() {
   const afterConfirmation = upgradeIntent
     ? `/onboarding?next=${encodeURIComponent(upgradeIntent)}`
     : '/onboarding'
+
+  useEffect(() => {
+    trackMarketingEvent(MARKETING_EVENTS.signupStarted, { source: 'signup_page' })
+  }, [])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()

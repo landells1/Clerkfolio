@@ -86,7 +86,7 @@ export default async function RootLayout({
       <body>
         <a href="#main-content" className="skip-link">Skip to main content</a>
         <PreferencesApplier />
-        <div id="main-content">{children}</div>
+        <div id="main-content" tabIndex={-1}>{children}</div>
         <CookieBanner />
         <AnalyticsGate />
       </body>
