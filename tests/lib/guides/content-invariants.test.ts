@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { GUIDES, getGuide, relatedGuides, latestGuideReviewDate } from '@/lib/guides'
+import { GUIDES, GUIDE_CLUSTERS, getGuide, relatedGuides, latestGuideReviewDate } from '@/lib/guides'
 import type { GuideBlock } from '@/lib/guides'
 
 // Structural invariants over the /guides content modules, mirroring the
@@ -21,6 +21,10 @@ const ALLOWED_SOURCE_HOSTS = [
   'www.hqip.org.uk',
   'supporthorus.hee.nhs.uk',
   'www.scotlanddeanery.nhs.scot',
+  // Specialty-recruitment officials (specialty-applications cluster).
+  'medical.hee.nhs.uk',
+  'www.imtrecruitment.org.uk',
+  'www.oriel.nhs.uk',
 ]
 
 function visibleStrings(block: GuideBlock): string[] {
@@ -55,10 +59,22 @@ function allVisibleStrings(guideIndex: number): string[] {
 }
 
 describe('guide content invariants', () => {
-  it('has unique slugs and exactly one pillar', () => {
+  it('has unique slugs', () => {
     const slugs = GUIDES.map(guide => guide.slug)
     expect(new Set(slugs).size).toBe(slugs.length)
-    expect(GUIDES.filter(guide => guide.isPillar)).toHaveLength(1)
+  })
+
+  it('assigns every guide to a declared cluster, each with exactly one pillar', () => {
+    const clusterKeys = GUIDE_CLUSTERS.map(cluster => cluster.key)
+    expect(new Set(clusterKeys).size).toBe(clusterKeys.length)
+    for (const guide of GUIDES) {
+      expect(clusterKeys).toContain(guide.cluster)
+    }
+    for (const key of clusterKeys) {
+      const clusterGuides = GUIDES.filter(guide => guide.cluster === key)
+      expect(clusterGuides.length).toBeGreaterThan(1)
+      expect(clusterGuides.filter(guide => guide.isPillar)).toHaveLength(1)
+    }
   })
 
   it('resolves every guide by slug', () => {

@@ -10,6 +10,7 @@ export const documentingAuditQip: Guide = {
     'Audit vs QIP, the stages of the audit cycle, what to document at each stage, and how UK doctors turn quality improvement work into strong ARCP and specialty application evidence.',
   summary:
     'Quality improvement is a named foundation capability and a staple of specialty application frameworks, but a project only becomes portfolio evidence if each stage is written down. This guide covers audit vs QIP, the improvement cycle, and exactly what to document as you go.',
+  cluster: 'arcp',
   published: '2026-07-13',
   lastReviewed: '2026-07-13',
   blocks: [

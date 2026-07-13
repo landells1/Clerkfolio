@@ -10,6 +10,7 @@ export const reflectivePracticePortfolio: Guide = {
     'What the joint GMC, AoMRC, COPMeD and MSC reflective practitioner guidance actually asks for, how to anonymise reflections properly, and practical structures for writing reflections that are useful rather than performative.',
   summary:
     'Reflection is a required thread through foundation training and beyond, and it is governed by clear joint guidance from the GMC, AoMRC, COPMeD and the Medical Schools Council. This guide summarises what that guidance says, how to anonymise properly, and how to write reflections that are actually worth re-reading.',
+  cluster: 'arcp',
   published: '2026-07-13',
   lastReviewed: '2026-07-13',
   blocks: [

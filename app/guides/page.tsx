@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { headers } from 'next/headers'
 import { JsonLd } from '@/components/seo/json-ld'
 import { marketingMetadata, SITE_URL } from '@/lib/marketing/metadata'
-import { GUIDES } from '@/lib/guides'
+import { GUIDES, GUIDE_CLUSTERS } from '@/lib/guides'
 import { CtaFooter } from '../(marketing)/_components/landing/cta-footer'
 import { Nav } from '../(marketing)/_components/landing/nav'
 import { formatGuideDate } from './format-date'
@@ -10,7 +10,7 @@ import { formatGuideDate } from './format-date'
 export const metadata = marketingMetadata({
   title: 'Guides for UK medical portfolios - Clerkfolio',
   description:
-    'Practical, source-cited guides for UK medical students and doctors on building portfolio evidence: ARCP preparation, foundation evidence requirements, documenting teaching, audits and QIPs, and reflective practice.',
+    'Practical, source-cited guides for UK medical students and doctors on building portfolio evidence: specialty training applications, IMT and CST portfolios, ARCP preparation, documenting teaching, audits and QIPs, and reflective practice.',
   path: '/guides',
 })
 
@@ -46,8 +46,6 @@ function guidesStructuredData() {
 
 export default async function GuidesHubPage() {
   const nonce = (await headers()).get('x-nonce') ?? undefined
-  const pillar = GUIDES.find(guide => guide.isPillar)
-  const cluster = GUIDES.filter(guide => !guide.isPillar)
 
   return (
     <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
@@ -65,38 +63,42 @@ export default async function GuidesHubPage() {
           </p>
         </header>
 
-        {pillar ? (
-          <section className="mt-14 max-w-3xl" aria-labelledby="pillar-guide">
-            <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--text-emphasis)]">Start here</p>
-            <Link
-              href={`/guides/${pillar.slug}`}
-              className="block rounded-2xl border border-default bg-[var(--bg-surface)] p-6 transition hover:border-strong sm:p-8"
-            >
-              <h2 id="pillar-guide" className="text-xl font-semibold tracking-[-0.02em] text-ink sm:text-2xl">
-                {pillar.title}
-              </h2>
-              <p className="mt-3 text-[15px] leading-[1.65] text-ink-soft">{pillar.summary}</p>
-              <p className="mt-4 text-xs text-ink-dim">Last reviewed {formatGuideDate(pillar.lastReviewed)}</p>
-            </Link>
-          </section>
-        ) : null}
-
-        <section className="mt-12 max-w-5xl" aria-label="All guides">
-          <p className="mb-4 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--text-emphasis)]">In this series</p>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {cluster.map(guide => (
-              <Link
-                key={guide.slug}
-                href={`/guides/${guide.slug}`}
-                className="flex flex-col rounded-2xl border border-default bg-[var(--bg-surface)] p-5 transition hover:border-strong"
-              >
-                <h2 className="text-base font-semibold tracking-[-0.01em] text-ink">{guide.shortTitle}</h2>
-                <p className="mt-2 flex-1 text-sm leading-[1.6] text-ink-soft">{guide.summary}</p>
-                <p className="mt-4 text-xs text-ink-dim">Last reviewed {formatGuideDate(guide.lastReviewed)}</p>
-              </Link>
-            ))}
-          </div>
-        </section>
+        {GUIDE_CLUSTERS.map(cluster => {
+          const clusterGuides = GUIDES.filter(guide => guide.cluster === cluster.key)
+          const pillar = clusterGuides.find(guide => guide.isPillar)
+          const supporting = clusterGuides.filter(guide => !guide.isPillar)
+          return (
+            <section key={cluster.key} className="mt-14 max-w-5xl" aria-label={cluster.label}>
+              <p className="mb-2 font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--text-emphasis)]">
+                {cluster.label}
+              </p>
+              <p className="mb-5 max-w-[620px] text-sm leading-[1.6] text-ink-soft">{cluster.blurb}</p>
+              {pillar ? (
+                <Link
+                  href={`/guides/${pillar.slug}`}
+                  className="block max-w-3xl rounded-2xl border border-default bg-[var(--bg-surface)] p-6 transition hover:border-strong sm:p-8"
+                >
+                  <h2 className="text-xl font-semibold tracking-[-0.02em] text-ink sm:text-2xl">{pillar.title}</h2>
+                  <p className="mt-3 text-[15px] leading-[1.65] text-ink-soft">{pillar.summary}</p>
+                  <p className="mt-4 text-xs text-ink-dim">Last reviewed {formatGuideDate(pillar.lastReviewed)}</p>
+                </Link>
+              ) : null}
+              <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                {supporting.map(guide => (
+                  <Link
+                    key={guide.slug}
+                    href={`/guides/${guide.slug}`}
+                    className="flex flex-col rounded-2xl border border-default bg-[var(--bg-surface)] p-5 transition hover:border-strong"
+                  >
+                    <h2 className="text-base font-semibold tracking-[-0.01em] text-ink">{guide.shortTitle}</h2>
+                    <p className="mt-2 flex-1 text-sm leading-[1.6] text-ink-soft">{guide.summary}</p>
+                    <p className="mt-4 text-xs text-ink-dim">Last reviewed {formatGuideDate(guide.lastReviewed)}</p>
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )
+        })}
 
         <p className="mt-16 max-w-3xl text-sm leading-6 text-ink-dim">
           Clerkfolio is independent and is not affiliated with the NHS, the GMC, the UKFPO, or any

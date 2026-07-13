@@ -15,8 +15,8 @@ import { Pricing } from './(marketing)/_components/landing/pricing'
 import { ProblemValue } from './(marketing)/_components/landing/problem-value'
 import { TrustAndControl } from './(marketing)/_components/landing/trust-and-control'
 
-const title = 'Clerkfolio | One medical portfolio for your whole career'
-const description = 'A personal medical portfolio for UK medical students and doctors. Record achievements and anonymised cases, organise specialty application evidence, and export or share your records.'
+const title = 'Clerkfolio | UK medical portfolio tracker for your whole career'
+const description = 'The portfolio tracker for UK medical students and doctors: achievements, specialty application evidence and anonymised cases, in one place for your whole career.'
 
 export const metadata: Metadata = {
   title,
@@ -48,7 +48,7 @@ function landingStructuredData() {
     url: SITE_URL,
     logo: `${SITE_URL}/icon-512`,
     email: 'admin@clerkfolio.co.uk',
-    description: 'Clerkfolio is an independent UK portfolio app for medical students and doctors. It is not affiliated with the NHS, GMC, or any Royal College.',
+    description: 'Clerkfolio is an independent UK medical portfolio tracker for medical students and doctors. It is not affiliated with the NHS, GMC, or any Royal College.',
   }
   const webSite = {
     '@type': 'WebSite',
@@ -65,7 +65,7 @@ function landingStructuredData() {
     url: SITE_URL,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    description: 'A personal medical portfolio for UK medical students and doctors, with achievement tracking, supported specialty self-assessment mapping, anonymised case logging and data export.',
+    description: 'A medical portfolio tracker for UK medical students and doctors, with achievement tracking, supported specialty self-assessment mapping, anonymised case logging and data export.',
     offers: [
       { '@type': 'Offer', name: 'Free', price: '0', priceCurrency: 'GBP' },
       {

@@ -11,6 +11,7 @@ export const arcpPreparation: Guide = {
     'What ARCP is, what the panel reviews, the outcome codes used in the Foundation Programme, and how to prepare your portfolio evidence through the year. Verified against UKFPO and Gold Guide sources.',
   summary:
     'The ARCP is the annual, evidence-based review that decides whether you progress through UK postgraduate training. This guide explains how the process works for foundation doctors, what the panel actually looks at, and how to have your portfolio ready well before the deadline.',
+  cluster: 'arcp',
   isPillar: true,
   published: '2026-07-13',
   lastReviewed: '2026-07-13',

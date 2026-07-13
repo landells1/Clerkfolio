@@ -33,6 +33,8 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
       'Every specialty configuration cites its official sources with the date we last verified them, and covers the 2026 entry-level (ST1/CT1) application round for:',
     ],
     bullets: SPECIALTY_CONFIGS.map(config => config.name),
+    linkText: 'New to specialty recruitment? Read our source-cited guide to how UK selection works.',
+    linkHref: '/guides/specialty-training-applications',
   },
   {
     id: 'cases',
