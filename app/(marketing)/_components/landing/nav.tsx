@@ -11,6 +11,7 @@ const links = [
   ["Who it's for", '/#audience'],
   ['How it works', '/#how'],
   ['Pricing', '/pricing'],
+  ['Guides', '/guides'],
   ['About', '/about'],
   ['FAQ', '/#faq'],
 ] as const
