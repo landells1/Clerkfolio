@@ -14,12 +14,12 @@ import { Nav } from './(marketing)/_components/landing/nav'
 import { Pricing } from './(marketing)/_components/landing/pricing'
 
 export const metadata: Metadata = {
-  title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-  description: 'Log clinical cases, audits, teaching and reflections. Anonymised, searchable and exportable, organised around the evidence you need for ARCP, IMT, CST, GP and beyond.',
+  title: 'Clerkfolio - One medical portfolio for your entire career',
+  description: 'The UK medical portfolio app that stays yours through every trust and training stage. Track achievements, build specialty application evidence, and log anonymised cases.',
   alternates: { canonical: '/' },
   openGraph: {
-    title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-    description: 'Log clinical cases, audits, teaching and reflections. Anonymised, searchable and exportable.',
+    title: 'Clerkfolio - One medical portfolio for your entire career',
+    description: 'The UK medical portfolio app that stays yours through every trust and training stage.',
     url: 'https://clerkfolio.co.uk',
     siteName: 'Clerkfolio',
     locale: 'en_GB',
@@ -27,8 +27,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Clerkfolio - The UK doctor portfolio that keeps up with your career',
-    description: 'Anonymised, searchable and exportable portfolios for UK doctors and medical students.',
+    title: 'Clerkfolio - One medical portfolio for your entire career',
+    description: 'The UK medical portfolio app that stays yours through every trust and training stage.',
   },
 }
 
@@ -60,7 +60,7 @@ function landingStructuredData() {
     url: SITE_URL,
     applicationCategory: 'BusinessApplication',
     operatingSystem: 'Web',
-    description: 'A portfolio tracker for UK medical students and doctors: anonymised case logging, portfolio entries, specialty self-assessment mapping, ARCP evidence organisation, and PDF/CSV/JSON export.',
+    description: 'A career-long portfolio app for UK medical students and doctors: portfolio and achievement tracking, specialty self-assessment mapping, anonymised case logging, ARCP evidence organisation, and PDF/CSV/JSON export.',
     offers: [
       {
         '@type': 'Offer',

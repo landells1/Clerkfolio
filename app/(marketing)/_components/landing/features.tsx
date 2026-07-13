@@ -6,30 +6,32 @@ import { MockChecklist } from './mocks/mock-checklist'
 import { MockPortfolio } from './mocks/mock-portfolio'
 import { MockShareLink } from './mocks/mock-share-link'
 
+// Ordered by importance (owner positioning, 2026-07-13): the career-long
+// portfolio leads, then getting into training, then case logging. The `wide`
+// card must sit in an odd slot (1st/3rd/5th) or the 2-col mosaic gaps.
 const features = [
   {
-    tag: '01 / CASES',
+    tag: '01 / PORTFOLIO',
+    title: 'One portfolio for everything you do.',
+    body: 'Eight categories: audit / QIP, teaching, reflection, procedure, publication, leadership, conference, prize. Each with the fields that actually matter - and it stays yours through every rotation, trust and training stage.',
+    mock: <MockPortfolio className="h-auto lg:h-[420px]" />,
+  },
+  {
+    tag: '02 / SPECIALTIES',
+    title: 'See where your evidence is thin, before applications.',
+    body: "Map portfolio evidence onto each specialty's self-assessment domains, and see which ones still need evidence.",
+    mock: <MockChecklist className="h-auto lg:h-[420px]" />,
+  },
+  {
+    tag: '03 / CASES',
     title: 'Quick to log between patients.',
     body: 'Anonymised case entries with clinical area, application tags, notes and evidence files. Drafts auto-save while you write.',
     mock: <MockCasesList className="h-auto lg:h-[420px]" />,
   },
   {
-    tag: '02 / PORTFOLIO',
-    title: 'Audits, teaching, reflections - one shape.',
-    body: 'Eight categories: audit / QIP, teaching, reflection, procedure, publication, leadership, conference, prize. Each with the fields that actually matter.',
-    mock: <MockPortfolio className="h-auto lg:h-[420px]" />,
-  },
-  {
-    tag: '03 / SPECIALTIES',
-    title: 'See where your evidence is thin, before ARCP.',
-    body: "Map portfolio evidence onto each specialty's self-assessment domains, and see which ones still need evidence.",
-    mock: <MockChecklist className="h-auto lg:h-[420px]" />,
-    wide: true,
-  },
-  {
     tag: '04 / SHARE',
     title: 'A link you can share with your supervisor.',
-    body: 'Filtered by specialty or theme. Optional 4-8 digit PIN. Set it to expire in a day, a week, a month - or revoke it now. Every view audited.',
+    body: 'Filtered by specialty or theme. PIN-protected. Set it to expire in a day, a week, a month - or revoke it now. Every view audited.',
     mock: <MockShareLink className="h-auto lg:h-[400px]" />,
   },
   {
@@ -37,6 +39,7 @@ const features = [
     title: 'Export exactly what an application needs.',
     body: 'PDF for application packs. CSV or JSON for your records. Full ZIP backup on demand - your data is never locked in.',
     mock: <MockCaseForm className="h-auto lg:h-[400px]" />,
+    wide: true,
   },
 ] as const
 

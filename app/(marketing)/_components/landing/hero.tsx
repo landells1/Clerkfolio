@@ -12,15 +12,15 @@ export function Hero() {
       <div className="grid grid-cols-1 items-center gap-10 sm:gap-[60px] lg:grid-cols-[minmax(0,1fr)_600px]">
         <div>
           <h1 className="text-[clamp(36px,9.5vw,54px)] font-medium leading-[1.02] tracking-[-0.055em] text-ink lg:text-[clamp(54px,6vw,84px)]">
-            Your cases,<br />
-            your audits,<br />
-            your reflections -<br />
+            One portfolio<br />
+            for your entire<br />
+            medical career -<br />
             <span className="bg-[image:var(--accent-gradient)] bg-clip-text font-normal italic text-transparent">
-              in one place.
+              yours, wherever you train.
             </span>
           </h1>
           <p className="mt-5 max-w-[540px] text-base leading-[1.55] text-ink-soft sm:mt-9 sm:text-lg">
-            Anonymised case logging. Portfolio entries that map cleanly onto every specialty&apos;s self-assessment. Exports ready for ARCP and specialty applications.
+            Clerkfolio is the medical portfolio app for UK doctors and medical students. Track your portfolio, build evidence for specialty training applications, log cases anonymously, and record every achievement - in one place that belongs to you, not your trust.
           </p>
           <div className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
             <span aria-disabled="true" className="inline-flex cursor-default select-none items-center justify-center rounded-lg bg-accent/70 px-6 py-3.5 text-sm font-semibold text-white">Coming soon</span>

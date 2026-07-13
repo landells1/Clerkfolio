@@ -9,24 +9,19 @@ import { SectionHeader } from '../(marketing)/_components/landing/section-header
 
 export const metadata = marketingMetadata({
   title: 'Features - Clerkfolio, the UK medical portfolio app',
-  description: 'Anonymised case logging, portfolio entries, specialty self-assessment mapping, ARCP capability tracking, supervisor share links, and full PDF, Word, CSV and JSON export.',
+  description: 'A career-long portfolio with achievement tracking, specialty self-assessment mapping, anonymised case logging, ARCP evidence, supervisor share links, and full PDF, Word, CSV and JSON export.',
   path: '/features',
 })
 
+// Ordered by importance (owner positioning, 2026-07-13): career-long
+// portfolio first, then getting into training, then case logging.
 const featureSections: { id: string; title: string; paragraphs: string[]; bullets?: string[] }[] = [
   {
-    id: 'cases',
-    title: 'Anonymised case logging',
-    paragraphs: [
-      'Log a clinical case in under a minute, from a phone between patients or a laptop at the end of the day. Every case form reminds you to leave out patient identifiers - no names, dates of birth or NHS numbers - so your case diary stays a personal, anonymised record of your clinical experience.',
-      'Cases carry a clinical area, specialty tags, competency themes, notes and an importance rating. Drafts auto-save while you type, so a bleep mid-entry loses nothing.',
-    ],
-  },
-  {
     id: 'portfolio',
-    title: 'Portfolio entries for everything that is not a case',
+    title: 'A portfolio for your entire career',
     paragraphs: [
       'Audits and QIPs, teaching sessions, reflections, procedures, publications, leadership roles, conference presentations and prizes - eight entry categories, each with the fields that actually matter for that kind of evidence.',
+      'Unlike a trust or deanery system, your Clerkfolio portfolio belongs to you. Change hospital, deanery, specialty or career stage and everything comes with you - nothing gets left behind in an account you can no longer access.',
       'Attach evidence files (PDF, Word, PowerPoint, images and more) to any entry, and link one file to several entries without uploading it twice or counting it twice against your storage.',
     ],
   },
@@ -38,6 +33,14 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
       'Every specialty configuration cites its official sources with the date we last verified them, and covers the 2026 entry-level (ST1/CT1) application round for:',
     ],
     bullets: SPECIALTY_CONFIGS.map(config => config.name),
+  },
+  {
+    id: 'cases',
+    title: 'Anonymised case logging',
+    paragraphs: [
+      'Log a clinical case in under a minute, from a phone between patients or a laptop at the end of the day. Every case form reminds you to leave out patient identifiers - no names, dates of birth or NHS numbers - so your case diary stays a personal, anonymised record of your clinical experience.',
+      'Cases carry a clinical area, specialty tags, competency themes, notes and an importance rating. Drafts auto-save while you type, so a bleep mid-entry loses nothing.',
+    ],
   },
   {
     id: 'arcp',
@@ -96,9 +99,10 @@ export default async function FeaturesPage() {
             Everything a UK medical portfolio needs, in one place.
           </h1>
           <p className="mt-5 max-w-[620px] text-base leading-[1.6] text-ink-soft sm:text-lg">
-            Clerkfolio is a portfolio app for UK medical students and doctors: anonymised case
-            logging, structured portfolio entries, specialty self-assessment mapping, ARCP
-            capability tracking, supervisor sharing, and exports for every application. Free to
+            Clerkfolio is a career-long portfolio app for UK medical students and doctors: one
+            portfolio for every achievement, specialty self-assessment mapping for training
+            applications, anonymised case logging, ARCP evidence, supervisor sharing, and exports
+            for every application. Free to
             use - see <Link href="/pricing" className="text-[var(--accent-text)] underline underline-offset-2">pricing</Link> for
             what Pro adds.
           </p>
