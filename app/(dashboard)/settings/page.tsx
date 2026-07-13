@@ -14,7 +14,6 @@ import type { ProfileState } from '@/components/settings/profile-state'
 import { ConfirmModal } from '@/components/settings/confirm-modal'
 import { CareerStageSection } from '@/components/settings/career-stage-section'
 import { ProfileSection } from '@/components/settings/profile-section'
-import { PublicShowcaseSection, normalisePublicSlug } from '@/components/settings/public-showcase-section'
 import { AppearanceSection } from '@/components/settings/appearance-section'
 import { AccessibilitySection } from '@/components/settings/accessibility-section'
 import { PlanSection } from '@/components/settings/plan-section'
@@ -40,8 +39,6 @@ export default function SettingsPage() {
     student_graduation_date: '',
     referral_code: '',
     timezone: 'Europe/London',
-    public_slug: '',
-    public_showcase_enabled: false,
     display_prefs: {},
   })
   const [studentEmail, setStudentEmail] = useState({
@@ -89,7 +86,7 @@ export default function SettingsPage() {
       const [{ data }, subInfo] = await Promise.all([
         supabase
           .from('profiles')
-          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, timezone, public_slug, public_showcase_enabled, display_prefs, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
+          .select('first_name, last_name, career_stage, student_graduation_date, referral_code, timezone, display_prefs, student_email, student_email_verified, student_email_verified_at, student_email_verification_due_at, student_email_verification_sent_at')
           .eq('id', user.id)
           .single(),
         fetchSubscriptionInfo(supabase, user.id),
@@ -112,8 +109,6 @@ export default function SettingsPage() {
           student_graduation_date: data.student_graduation_date ?? '',
           referral_code: referralCode,
           timezone: data.timezone ?? 'Europe/London',
-          public_slug: data.public_slug ?? '',
-          public_showcase_enabled: data.public_showcase_enabled ?? false,
           display_prefs: data.display_prefs ?? {},
         })
         setSubInfo(subInfo)
@@ -151,7 +146,6 @@ export default function SettingsPage() {
     setSavingProfile(true)
     const previousProfile = profile
 
-    const publicSlug = normalisePublicSlug(next.public_slug)
     const gradDate = typeof next.student_graduation_date === 'string' && next.student_graduation_date.trim() !== ''
       ? next.student_graduation_date
       : null
@@ -169,8 +163,6 @@ export default function SettingsPage() {
         careerStage: next.career_stage,
         studentGraduationDate: gradDate,
         timezone: next.timezone,
-        publicSlug: publicSlug || null,
-        publicShowcaseEnabled: next.public_showcase_enabled,
         displayPrefs: next.display_prefs,
       }),
     })
@@ -181,7 +173,7 @@ export default function SettingsPage() {
       return
     }
 
-    const updatedProfile = { ...next, public_slug: publicSlug }
+    const updatedProfile = next
 
     setProfile(updatedProfile)
     if (pendingStage === updatedProfile.career_stage) {
@@ -452,14 +444,6 @@ export default function SettingsPage() {
           }
           saveProfile()
         }}
-      />
-
-      <PublicShowcaseSection
-        profile={profile}
-        setProfile={setProfile}
-        origin={origin}
-        savingProfile={savingProfile}
-        onSave={() => saveProfile()}
       />
 
       <AppearanceSection theme={profile.display_prefs.theme} onChooseTheme={chooseTheme} />

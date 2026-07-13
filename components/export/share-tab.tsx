@@ -178,7 +178,7 @@ export function ShareTab({
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PIN <span className="text-[var(--danger)]">*</span></span>
             <input value={sharePin} onChange={e => setSharePin(e.target.value)} inputMode="numeric" pattern="[0-9]{4,8}" placeholder="Required PIN (4-8 digits)" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">Required — anyone opening the link must enter this 4-8 digit PIN.</p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">Required - anyone opening the link must enter this 4-8 digit PIN.</p>
           </label>
           <label className="block">
             <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">View webhook</span>

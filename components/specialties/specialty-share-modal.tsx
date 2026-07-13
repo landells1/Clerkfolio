@@ -182,7 +182,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
                 placeholder="Required PIN (4-8 digits)"
                 className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]"
               />
-              <span className="mt-1 block text-xs text-[var(--text-muted)]">Required — anyone opening the link must enter this 4-8 digit PIN.</span>
+              <span className="mt-1 block text-xs text-[var(--text-muted)]">Required - anyone opening the link must enter this 4-8 digit PIN.</span>
             </label>
             {error && <p className="text-xs text-red-400">{error}</p>}
             <button

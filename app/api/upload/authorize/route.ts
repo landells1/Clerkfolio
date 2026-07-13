@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
   if (usedBytes + fileSize > quotaBytes) {
     // Over-quota policy (F-040): never delete user data; only block NEW uploads.
     return NextResponse.json(
-      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe — delete some or upgrade to free up space.` },
+      { error: `Storage limit reached (${formatStorageQuota(quotaMB)}). Your existing files are safe - delete some or upgrade to free up space.` },
       { status: 400 }
     )
   }

@@ -7,7 +7,7 @@ import { ImageResponse } from 'next/og'
 // this file convention. Satori renders inline SVG, linear-gradient, flexbox
 // and text natively, so this stays brand-exact with zero design asset.
 
-export const alt = 'Clerkfolio — the UK doctor portfolio that keeps up with your career'
+export const alt = 'Clerkfolio - the UK doctor portfolio that keeps up with your career'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 

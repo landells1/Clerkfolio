@@ -15,7 +15,7 @@ export const metadata = marketingMetadata({
 
 // Ordered by importance (owner positioning, 2026-07-13): career-long
 // portfolio first, then getting into training, then case logging.
-const featureSections: { id: string; title: string; paragraphs: string[]; bullets?: string[] }[] = [
+const featureSections: { id: string; title: string; paragraphs: string[]; bullets?: string[]; linkText?: string; linkHref?: string }[] = [
   {
     id: 'portfolio',
     title: 'A portfolio for your entire career',
@@ -48,6 +48,8 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
     paragraphs: [
       'Foundation doctors (and doctors keeping foundation capabilities current after F2) can link portfolio evidence to ARCP capabilities and see coverage at a glance - useful preparation before the official deanery portfolio review. Clerkfolio complements Horus and Turas; it does not replace the portfolio your deanery requires.',
     ],
+    linkText: 'New to the process? Read our source-cited ARCP preparation guide.',
+    linkHref: '/guides/arcp-preparation',
   },
   {
     id: 'sharing',
@@ -126,6 +128,13 @@ export default async function FeaturesPage() {
                     </li>
                   ))}
                 </ul>
+              ) : null}
+              {section.linkText && section.linkHref ? (
+                <p className="mt-4 text-[15px] leading-[1.65] text-ink-soft">
+                  <Link href={section.linkHref} className="text-[var(--accent-text)] underline underline-offset-2">
+                    {section.linkText}
+                  </Link>
+                </p>
               ) : null}
             </section>
           ))}

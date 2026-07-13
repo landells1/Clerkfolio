@@ -8,15 +8,6 @@ const VALID_TIMEZONES = new Set([
   'Europe/London', 'UTC', 'Europe/Dublin', 'Europe/Paris',
 ])
 
-function normalisePublicSlug(value: string) {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/-{2,}/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 63)
-}
-
 // Server-side profile update route.
 // Handles the profile fields exposed by /settings; validates onboarding-level
 // invariants (graduation date required for student career stages) and
@@ -41,9 +32,6 @@ export async function POST(req: NextRequest) {
       ? body.studentGraduationDate
       : (body.studentGraduationDate === null || body.studentGraduationDate === '' ? null : undefined)
   const timezone = typeof body.timezone === 'string' ? body.timezone : undefined
-  const rawPublicSlug = typeof body.publicSlug === 'string' ? body.publicSlug : undefined
-  const publicSlug = rawPublicSlug === undefined ? undefined : normalisePublicSlug(rawPublicSlug)
-  const publicShowcaseEnabled = typeof body.publicShowcaseEnabled === 'boolean' ? body.publicShowcaseEnabled : undefined
   const displayPrefs = body.displayPrefs && typeof body.displayPrefs === 'object' && !Array.isArray(body.displayPrefs)
     ? body.displayPrefs as Record<string, unknown>
     : undefined
@@ -65,23 +53,6 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid timezone.' }, { status: 400 })
   }
 
-  if (rawPublicSlug !== undefined && rawPublicSlug.trim() && !publicSlug) {
-    return NextResponse.json({ error: 'Public showcase URL can only contain letters, numbers, and dashes.' }, { status: 400 })
-  }
-
-  let effectivePublicSlug = publicSlug
-  if (publicShowcaseEnabled === true && effectivePublicSlug === undefined) {
-    const { data: currentProfile } = await supabase
-      .from('profiles')
-      .select('public_slug')
-      .eq('id', user.id)
-      .maybeSingle<{ public_slug: string | null }>()
-    effectivePublicSlug = currentProfile?.public_slug ? normalisePublicSlug(currentProfile.public_slug) : ''
-  }
-  if (publicShowcaseEnabled === true && !effectivePublicSlug) {
-    return NextResponse.json({ error: 'Choose a valid public showcase URL before enabling showcase.' }, { status: 400 })
-  }
-
   // Build update payload from only the fields that were provided
   const payload: Record<string, unknown> = {}
   if (firstName !== undefined) payload.first_name = firstName
@@ -89,8 +60,6 @@ export async function POST(req: NextRequest) {
   if (careerStage !== undefined) payload.career_stage = careerStage
   if (studentGraduationDate !== undefined) payload.student_graduation_date = studentGraduationDate
   if (timezone !== undefined) payload.timezone = timezone
-  if (publicSlug !== undefined) payload.public_slug = publicSlug || null
-  if (publicShowcaseEnabled !== undefined) payload.public_showcase_enabled = publicShowcaseEnabled
   if (displayPrefs !== undefined) payload.display_prefs = displayPrefs
 
   if (Object.keys(payload).length === 0) {

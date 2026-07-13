@@ -30,7 +30,7 @@ export function ImportTab({ subInfo }: { subInfo: SubscriptionInfo | null }) {
         </Link>
         <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">Clerkfolio backup</h2>
-          <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Restore from a Clerkfolio JSON backup — the file you download from the Data backup tab.</p>
+          <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Restore from a Clerkfolio JSON backup - the file you download from the Data backup tab.</p>
         </Link>
       </div>
     </section>

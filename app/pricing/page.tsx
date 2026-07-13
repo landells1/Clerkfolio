@@ -38,7 +38,7 @@ function FeatureCell({ value }: { value: boolean | string }) {
   if (typeof value === 'string') return <span>{value}</span>
   return value
     ? <span className="text-accent" aria-label="Included">&#10003;</span>
-    : <span className="text-ink-dim" aria-label="Not included">&mdash;</span>
+    : <span className="text-ink-dim" aria-label="Not included">-</span>
 }
 
 export default async function PricingPage() {

@@ -224,7 +224,7 @@ export function PdfExportTab({
         ) : visible.length === 0 && visibleCases.length === 0 ? (
           selectedIsRealSpecialty && categoryFilter === 'all' ? (
             <div className="p-8 text-sm text-[var(--text-muted)]">
-              No entries linked to {exportScopeLabel(specialty)} yet — tag entries with {exportScopeLabel(specialty)} in the entry&apos;s &ldquo;Linked specialties&rdquo; field to include them here.
+              No entries linked to {exportScopeLabel(specialty)} yet - tag entries with {exportScopeLabel(specialty)} in the entry&apos;s &ldquo;Linked specialties&rdquo; field to include them here.
             </div>
           ) : (
             <div className="p-8 text-sm text-[var(--text-muted)]">No entries or cases found for {exportScopeLabel(specialty)}{categoryFilter !== 'all' ? ` in ${categoryFilter}` : ''}.</div>

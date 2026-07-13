@@ -263,7 +263,7 @@ async function vestForReferrer(service: SupabaseClient, referrerId: string, cuto
       userId: referrerId,
       type: 'referral_badge',
       title: meta ? `Badge earned: ${meta.label} ${meta.emoji}` : 'Badge earned: Founding Sharer 🚀',
-      body: meta ? meta.description : 'You shared Clerkfolio during launch — thank you for being an early supporter.',
+      body: meta ? meta.description : 'You shared Clerkfolio during launch - thank you for being an early supporter.',
       link: '/settings/referrals',
     })
   }

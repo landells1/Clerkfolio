@@ -37,7 +37,7 @@ export interface ReferralBadge {
 export const REFERRAL_LADDER: ReferralBadge[] = [
   { key: 'connector', label: 'Connector', threshold: 1, emoji: '🤝', description: 'Referred your first colleague to Clerkfolio.' },
   { key: 'advocate', label: 'Advocate', threshold: 3, emoji: '📣', description: 'Three colleagues joined on your recommendation.' },
-  { key: 'champion', label: 'Champion', threshold: 5, emoji: '🏅', description: 'Five referrals — unlocked a permanent storage bonus.' },
+  { key: 'champion', label: 'Champion', threshold: 5, emoji: '🏅', description: 'Five referrals - unlocked a permanent storage bonus.' },
   { key: 'ambassador', label: 'Ambassador', threshold: 10, emoji: '🏆', description: 'Ten colleagues onboarded on your recommendation.' },
 ]
 
