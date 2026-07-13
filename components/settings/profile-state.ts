@@ -9,8 +9,6 @@ export type ProfileState = {
   student_graduation_date: string
   referral_code: string
   timezone: string
-  public_slug: string
-  public_showcase_enabled: boolean
   display_prefs: {
     high_contrast?: boolean
     dyslexic_font?: boolean

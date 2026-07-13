@@ -87,16 +87,6 @@ export async function middleware(request: NextRequest) {
   )
 
   const { pathname } = request.nextUrl
-  const host = request.headers.get('host') ?? ''
-
-  if (host.endsWith('.clerkfolio.site')) {
-    const slug = host.split('.')[0]
-    if (slug && slug !== 'www') {
-      const url = request.nextUrl.clone()
-      url.pathname = `/showcase/${slug}`
-      return applySecurityHeaders(NextResponse.rewrite(url, { request: { headers: requestHeaders } }), nonce)
-    }
-  }
 
   // Older cached onboarding bundles posted completion JSON to the page route.
   // Rewrite that POST to the API route so users are not blocked by stale assets.
@@ -119,7 +109,6 @@ export async function middleware(request: NextRequest) {
     pathname === '/unsubscribe' ||
     pathname.startsWith('/api/unsubscribe') ||
     pathname.startsWith('/share/') ||
-    pathname.startsWith('/showcase/') ||
     pathname.startsWith('/api/share/access') ||
     pathname.startsWith('/api/calendar/feed/') ||
     pathname.startsWith('/api/stripe/webhook') ||
