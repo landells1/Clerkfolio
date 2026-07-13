@@ -1,11 +1,12 @@
-import type { Metadata } from 'next'
 import Link from 'next/link'
 import { LegalContactButton } from '@/components/legal/contact-modal'
+import { marketingMetadata } from '@/lib/marketing/metadata'
 
-export const metadata: Metadata = {
+export const metadata = marketingMetadata({
   title: 'Contact - Clerkfolio',
-  description: 'Contact the Clerkfolio team.',
-}
+  description: 'Get in touch with Clerkfolio - questions, feedback, data requests, or security reports for the UK medical portfolio app.',
+  path: '/contact',
+})
 
 export default function ContactPage() {
   return (

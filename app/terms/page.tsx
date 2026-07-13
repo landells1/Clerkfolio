@@ -11,12 +11,13 @@ import {
   REFERRAL_STORAGE_BONUS_AT,
   formatStorageQuota,
 } from '@/lib/entitlements/limits'
+import { marketingMetadata } from '@/lib/marketing/metadata'
 
-export const metadata: Metadata = {
+export const metadata: Metadata = marketingMetadata({
   title: 'Terms of service - Clerkfolio',
   description: 'The terms governing your use of Clerkfolio, including plans, referrals, acceptable use, and liability.',
-  alternates: { canonical: '/terms' },
-}
+  path: '/terms',
+})
 
 const lastUpdated = '6 July 2026'
 

@@ -1,12 +1,12 @@
-import type { Metadata } from 'next'
 import BackButton from '@/components/legal/back-button'
 import LegalFooter from '@/components/legal/legal-footer'
+import { marketingMetadata } from '@/lib/marketing/metadata'
 
-export const metadata: Metadata = {
+export const metadata = marketingMetadata({
   title: 'Security policy - Clerkfolio',
   description: 'How Clerkfolio protects your data and how to responsibly disclose a security vulnerability.',
-  alternates: { canonical: '/security' },
-}
+  path: '/security',
+})
 
 const lastUpdated = '6 July 2026'
 

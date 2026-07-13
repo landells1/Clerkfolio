@@ -9,9 +9,11 @@ export const metadata: Metadata = {
   title: 'Clerkfolio - Medical Portfolio Tracker',
   description: 'The centralised portfolio tracker for UK medical students and foundation doctors. Log cases, achievements, and reflections. Export for any specialty application.',
   metadataBase: new URL('https://clerkfolio.co.uk'),
-  alternates: {
-    canonical: '/',
-  },
+  // NOTE: no `alternates.canonical` here. Next's metadata inheritance copies a
+  // parent canonical onto every child page that doesn't set its own, which had
+  // /privacy, /cookies, /contact and the showcase pages all claiming to be
+  // duplicates of the homepage. Public pages set their own canonical (see
+  // lib/marketing/metadata.ts); the homepage sets '/' in app/page.tsx.
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
