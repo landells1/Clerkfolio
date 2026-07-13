@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
+import { isArcpVisibleStage } from '@/lib/constants/career-stages'
 
 type Result = {
   id: string
@@ -29,11 +30,11 @@ const COMMANDS = [
   { keys: '?', label: 'Help & glossary', href: '/help' },
 ]
 
-// ARCP is for Foundation doctors only. Mirror the sidebar's gating
-// (getNavItemsForStage) so the command palette doesn't surface a route that
-// renders an "ARCP not available" page for non-FY users.
+// ARCP is for foundation + F3 / out-of-training doctors. Mirror the sidebar's
+// gating (getNavItemsForStage / isArcpVisibleStage) so the command palette
+// doesn't surface a route that renders an "ARCP not available" page.
 function commandsForStage(careerStage: string | null) {
-  const showArcp = careerStage === 'FY1' || careerStage === 'FY2'
+  const showArcp = isArcpVisibleStage(careerStage)
   return showArcp ? COMMANDS : COMMANDS.filter(command => command.href !== '/arcp')
 }
 

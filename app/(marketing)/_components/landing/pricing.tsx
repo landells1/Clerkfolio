@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { MARKETING_PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 import { SectionHeader } from './section-header'
 
@@ -34,12 +33,12 @@ export function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Link
-                href={tier.name === 'Pro' ? '/signup?next=%2Fupgrade%3Fsource%3Dpricing' : '/signup'}
-                className={`mt-8 inline-flex w-full justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent text-white' : 'border border-strong text-ink'}`}
+              <span
+                aria-disabled="true"
+                className={`mt-8 inline-flex w-full cursor-default select-none justify-center rounded-lg px-4 py-3 text-sm font-semibold ${tier.name === 'Pro' ? 'bg-accent/70 text-white' : 'border border-strong text-ink-soft'}`}
               >
-                {tier.name === 'Pro' ? 'Get Pro' : 'Start free'}
-              </Link>
+                Coming soon
+              </span>
             </article>
           )
         })}

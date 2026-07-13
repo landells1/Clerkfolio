@@ -312,7 +312,7 @@ export default function OnboardingPage() {
               <div className="rounded-lg border border-subtle bg-surface-1 p-5">
                 <h2 className="text-base font-semibold">ARCP timeline</h2>
                 <p className="mt-2 text-sm leading-relaxed text-fg-2">
-                  Foundation doctors see the ARCP tracker and timeline by default. Medical students can enable it later from settings when relevant.
+                  Foundation and F3 / out-of-training doctors see the ARCP tracker and timeline by default. You can change this later by updating your career stage in settings.
                 </p>
               </div>
               <div className="rounded-lg border border-subtle bg-surface-1 p-5">

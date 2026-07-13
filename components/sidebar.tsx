@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { useSearch, useFeedback } from '@/app/(dashboard)/providers'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { NotificationBellSidebar, NotificationBellMobile } from '@/components/notification-bell'
+import { isArcpVisibleStage } from '@/lib/constants/career-stages'
 
 type Profile = {
   first_name: string | null
@@ -111,7 +112,7 @@ const NAV_ITEMS = [
 ]
 
 export function getNavItemsForStage(careerStage: string | null) {
-  const showArcp = careerStage === 'FY1' || careerStage === 'FY2'
+  const showArcp = isArcpVisibleStage(careerStage)
   return NAV_ITEMS.filter(item => showArcp || item.href !== '/arcp')
 }
 

@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { FloatingCaseCard } from './mocks/floating-case-card'
 import { FloatingChecklistCard } from './mocks/floating-checklist-card'
 import { MockCasesList } from './mocks/mock-cases-list'
@@ -23,10 +22,11 @@ export function Hero() {
           <p className="mt-5 max-w-[540px] text-base leading-[1.55] text-ink-soft sm:mt-9 sm:text-lg">
             Anonymised case logging. Portfolio entries that map cleanly onto every specialty&apos;s self-assessment. Exports ready for ARCP and specialty applications.
           </p>
-          <div className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap">
-            <Link href="/signup" className="inline-flex items-center justify-center rounded-lg bg-accent px-6 py-3.5 text-sm font-semibold text-white">Create your portfolio</Link>
+          <div className="mt-7 flex flex-col gap-3 sm:mt-10 sm:flex-row sm:flex-wrap sm:items-center">
+            <span aria-disabled="true" className="inline-flex cursor-default select-none items-center justify-center rounded-lg bg-accent/70 px-6 py-3.5 text-sm font-semibold text-white">Coming soon</span>
             <a href="#how" className="inline-flex items-center justify-center rounded-lg border border-strong px-6 py-3.5 text-sm font-medium text-ink">See how it works</a>
           </div>
+          <p className="mt-4 text-sm text-ink-soft">Public sign-ups are opening soon.</p>
           <div className="mt-6 flex flex-wrap gap-x-[18px] gap-y-2 font-mono text-[11px] uppercase tracking-[0.05em] text-ink-dim sm:mt-8">
             <span><span aria-hidden>◆</span> UK-hosted · London</span>
             <span><span aria-hidden>◆</span> Encrypted in transit &amp; at rest</span>

@@ -3,10 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import ARCPPageClient from '@/components/arcp/arcp-page-client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
-
-// Mirror the sidebar visibility rule (FY1/FY2 only). The sidebar already
-// hides this nav item, but a deep link or a stale tab can still land here.
-const ARCP_VISIBLE_STAGES = new Set(['FY1', 'FY2'])
+import { isArcpVisibleStage } from '@/lib/constants/career-stages'
 
 export default async function ARCPPage() {
   const supabase = await createClient()
@@ -18,14 +15,14 @@ export default async function ARCPPage() {
     .eq('id', user!.id)
     .maybeSingle()
 
-  if (!ARCP_VISIBLE_STAGES.has(profile?.career_stage ?? '')) {
+  if (!isArcpVisibleStage(profile?.career_stage ?? '')) {
     return (
       <div className="p-8 max-w-2xl mx-auto">
         <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-8">
           <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">ARCP not available</h1>
           <p className="mt-2 text-sm text-[var(--text-secondary)]">
-            ARCP capability tracking is for Foundation Year 1 and Year 2 doctors. Update your career
-            stage in <Link href="/settings" className="text-[var(--accent-text)] hover:underline">Settings</Link> if
+            ARCP capability tracking is for Foundation Year 1 and Year 2 doctors (and F3 / out-of-training
+            doctors). Update your career stage in <Link href="/settings" className="text-[var(--accent-text)] hover:underline">Settings</Link> if
             this is wrong.
           </p>
         </div>

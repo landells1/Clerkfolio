@@ -16,9 +16,12 @@ export function CtaFooter() {
         <p className="mx-auto mt-5 max-w-xl text-base leading-[1.55] text-ink-soft sm:mt-8 sm:text-lg">
           Free forever - no credit card needed for the free tier.
         </p>
-        <Link href="/signup" className="mt-8 inline-flex justify-center rounded-lg bg-accent px-8 py-4 text-sm font-semibold text-white sm:mt-10">
-          Create your portfolio · free
-        </Link>
+        <div className="mt-8 flex flex-col items-center gap-2 sm:mt-10">
+          <span aria-disabled="true" className="inline-flex cursor-default select-none justify-center rounded-lg bg-accent/70 px-8 py-4 text-sm font-semibold text-white">
+            Coming soon
+          </span>
+          <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim">Public sign-ups opening soon</span>
+        </div>
       </div>
       <div className="mt-14 flex flex-col gap-6 border-t border-default pt-7 font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim sm:mt-24 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2.5"><Logo /><span>Clerkfolio · 2026</span></div>

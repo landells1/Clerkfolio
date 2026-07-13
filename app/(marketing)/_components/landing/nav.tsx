@@ -28,10 +28,12 @@ export function Nav() {
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
           <Link href="/login" className="rounded-sm px-2 py-2.5 text-[13px] text-ink-soft hover:text-ink">Log in</Link>
-          <Link href="/signup" className="rounded-lg bg-accent px-3.5 py-2 text-[13px] font-semibold text-white transition hover:brightness-110 sm:px-4">
-            <span className="sm:hidden">Sign up</span>
-            <span className="hidden sm:inline">Create your portfolio →</span>
-          </Link>
+          <span
+            aria-disabled="true"
+            className="cursor-default select-none rounded-lg bg-accent/70 px-3.5 py-2 text-[13px] font-semibold text-white sm:px-4"
+          >
+            Coming soon
+          </span>
           <button
             type="button"
             className="-mr-1.5 flex h-11 w-11 items-center justify-center rounded-md text-ink-soft transition hover:text-ink lg:hidden"
