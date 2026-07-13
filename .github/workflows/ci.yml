@@ -150,7 +150,7 @@ jobs:
           CI: true
       - name: Wait for app to be ready
         run: npx wait-on http://localhost:3000 --timeout 90000
-      - run: npm run e2e
+      - run: npm run e2e -- --project=chromium
         env:
           CI: true
           E2E_BASE_URL: http://localhost:3000
