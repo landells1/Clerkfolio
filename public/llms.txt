@@ -1,0 +1,28 @@
+# Clerkfolio
+
+> Clerkfolio (clerkfolio.co.uk) is an independent UK medical portfolio tracker for medical students and doctors. Users record achievements, teaching, audits and QIPs, reflections and anonymised clinical cases once, attach evidence files, and map the same entries to specialty training applications and ARCP capabilities. The portfolio belongs to the user for their whole career, across trusts, deaneries and nations.
+
+Key facts:
+
+- Made for the UK training pathway: medical school, Foundation Programme (F1/F2), and entry-level specialty applications (ST1/CT1).
+- Tracks the published selection frameworks for 21 entry-level specialties (including IMT, CST, GP, paediatrics, radiology and anaesthetics), each citing its official source and the date it was last verified.
+- Self-scoring only: users score their own evidence against published criteria. Clerkfolio never gives readiness verdicts or application predictions.
+- Cases are anonymised by design and are never included in shared links.
+- Clerkfolio is independent and is not affiliated with the NHS, the GMC, the UKFPO, or any Royal College. It complements official e-portfolios such as Horus and Turas; it does not replace them.
+- Pricing: free tier, plus a Pro tier at GBP 9.99 per year.
+
+## Pages
+
+- [Features](https://clerkfolio.co.uk/features): what Clerkfolio does, including the 21 supported specialty frameworks.
+- [Pricing](https://clerkfolio.co.uk/pricing): free and Pro tiers with a full comparison table.
+- [About](https://clerkfolio.co.uk/about): who builds Clerkfolio and how specialty data is verified.
+- [Guides](https://clerkfolio.co.uk/guides): source-cited guides on UK portfolio evidence.
+
+## Guides
+
+- [Specialty training applications](https://clerkfolio.co.uk/guides/specialty-training-applications): how UK specialty selection works and what to evidence.
+- [IMT portfolio guide](https://clerkfolio.co.uk/guides/imt-portfolio-guide): the 30-point IMT self-assessment, domain by domain.
+- [CST portfolio guide](https://clerkfolio.co.uk/guides/cst-portfolio-guide): the CST portfolio station, A to E grading and the mandatory index page.
+- [Medical student portfolios](https://clerkfolio.co.uk/guides/medical-student-portfolio): what to track from year one and how it scores later.
+- [ARCP preparation](https://clerkfolio.co.uk/guides/arcp-preparation): how the Annual Review of Competence Progression works.
+- [Foundation evidence requirements](https://clerkfolio.co.uk/guides/foundation-arcp-evidence-requirements): the F1 and F2 ARCP checklist explained.

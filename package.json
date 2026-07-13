@@ -12,6 +12,7 @@
     "typecheck": "tsc --noEmit",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "scan:secrets:all": "node scripts/scan-secrets.mjs --all",
+    "seo:indexnow": "node scripts/indexnow-ping.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
