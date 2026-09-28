@@ -101,10 +101,15 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   async function handleBulkAddTag() {
     if (bulkTags.length === 0) return
     setApplyingTag(true)
-    const { data: rows } = await supabase
+    const { data: rows, error: fetchError } = await supabase
       .from('portfolio_entries')
       .select('id, specialty_tags')
       .in('id', Array.from(selected))
+    if (fetchError || !rows) {
+      setApplyingTag(false)
+      addToast('Could not load the selected entries. No tags were added.', 'error')
+      return
+    }
 
     const errors: string[] = []
     for (const r of (rows ?? [])) {
@@ -116,7 +121,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
     if (errors.length > 0) {
       addToast(`Applied tags but ${errors.length} entries failed`, 'error')
     } else {
-      addToast(`Tags added to ${selected.size} ${selected.size === 1 ? 'entry' : 'entries'}`, 'success')
+      addToast(`Tags added to ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}`, 'success')
     }
     setTagModalOpen(false); setBulkTags([])
     setSelected(new Set()); setSelectMode(false)

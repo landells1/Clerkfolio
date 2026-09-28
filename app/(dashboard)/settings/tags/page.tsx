@@ -15,6 +15,8 @@ export default function TagsSettingsPage() {
   const [availableTags, setAvailableTags] = useState<string[]>([])
   const [loaded, setLoaded] = useState(false)
   const [saving, setSaving] = useState(false)
+  // Bumped after a merge so the picker drops the merged-away tag.
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     async function loadTags() {
@@ -31,7 +33,7 @@ export default function TagsSettingsPage() {
       setLoaded(true)
     }
     loadTags()
-  }, [supabase])
+  }, [supabase, reloadKey])
 
   async function renameTag(e: React.FormEvent) {
     e.preventDefault()
@@ -49,6 +51,7 @@ export default function TagsSettingsPage() {
     }
     setOldTag('')
     setNewTag('')
+    setReloadKey(key => key + 1)
     addToast('Tag merged across cases and portfolio entries', 'success')
   }
 

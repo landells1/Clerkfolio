@@ -30,6 +30,16 @@ export default function EvidenceFiles({
 }) {
   const { addToast } = useToast()
   const [files, setFiles] = useState<EvidenceFileItem[]>(initialFiles)
+  // Re-sync when the server sends a different file list (router.refresh()
+  // after "Attach an existing file"): useState alone ignored the new prop, so
+  // the attached file only appeared after a full reload and users re-attached
+  // it (409). Adjust-state-during-render keeps local removals otherwise.
+  const initialKey = initialFiles.map(f => f.id).join(',')
+  const [syncedKey, setSyncedKey] = useState(initialKey)
+  if (initialKey !== syncedKey) {
+    setSyncedKey(initialKey)
+    setFiles(initialFiles)
+  }
   const [downloading, setDownloading] = useState<string | null>(null)
   const [deleting, setDeleting] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
@@ -50,7 +60,7 @@ export default function EvidenceFiles({
       if (!cancelled) setPreviewUrls(urls)
     })()
     return () => { cancelled = true }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [initialKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   async function handleDownload(file: EvidenceFileItem) {
     if ((file.scan_status ?? 'clean') !== 'clean') return
@@ -63,6 +73,8 @@ export default function EvidenceFiles({
       a.href = url
       a.download = file.file_name
       a.click()
+    } else {
+      addToast('Could not download that file. Please try again.', 'error')
     }
     setDownloading(null)
   }

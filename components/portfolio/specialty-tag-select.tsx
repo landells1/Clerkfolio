@@ -22,11 +22,14 @@ type Props = {
 
 /** Imperative API exposed via forwardRef so parent forms can ask "is the
  *  search box still holding uncommitted typed text?" before they submit.
- *  Returns null on success (no pending search, or the pending text matches a
- *  single visible option and was auto-committed), or an error string the
- *  parent should surface inline. */
+ *  `error` is null on success (no pending search, or the pending text matches
+ *  a single visible option and was auto-committed), or a message the parent
+ *  should surface inline. `value` is the tag list AFTER any auto-commit: the
+ *  parent must build its payload from it, because the onChange state update
+ *  has not been applied yet when submit continues (the typed tag was
+ *  otherwise dropped from the saved record). */
 export type SpecialtyTagSelectHandle = {
-  commitPending: () => string | null
+  commitPending: () => { error: string | null; value: string[] }
 }
 
 const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function SpecialtyTagSelect(
@@ -89,26 +92,33 @@ const SpecialtyTagSelect = forwardRef<SpecialtyTagSelectHandle, Props>(function 
   // the imperative `commitPending` ref. Returns null on success or when no
   // pending text needs handling; returns a user-facing error string when the
   // search has text that doesn't resolve to a single option.
-  function commitPending(): string | null {
+  function commitPending(): { error: string | null; value: string[] } {
     const trimmed = search.trim()
-    if (!trimmed) { setError(null); return null }
-    if (sorted.length === 1 && !value.includes(sorted[0])) {
+    if (!trimmed) { setError(null); return { error: null, value } }
+    if (sorted.length === 1 && value.includes(sorted[0])) {
+      // Typed an already-selected tag: nothing to add, just clear the box.
+      setSearch('')
+      setError(null)
+      return { error: null, value }
+    }
+    if (sorted.length === 1) {
       if (value.length >= MAX_SPECIALTIES) {
         const msg = `Tag limit reached (${MAX_SPECIALTIES})`
         setError(msg)
-        return msg
+        return { error: msg, value }
       }
-      onChange([...value, sorted[0]])
+      const next = [...value, sorted[0]]
+      onChange(next)
       setSearch('')
       setError(null)
-      return null
+      return { error: null, value: next }
     }
     const msg = sorted.length === 0
       ? `"${trimmed}" is not a tracked specialty. Pick an option or clear the search.`
       : `Pick a specialty from the dropdown or clear the search before saving.`
     setError(msg)
     setOpen(true)
-    return msg
+    return { error: msg, value }
   }
 
   useImperativeHandle(forwardedRef, () => ({ commitPending }))

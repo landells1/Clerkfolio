@@ -21,10 +21,10 @@ export default async function CaseDetailPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>
-  searchParams: Promise<{ uploaded?: string }>
+  searchParams: Promise<{ upload?: string; uploaded?: string }>
 }) {
   const { id } = await params
-  const { uploaded } = await searchParams
+  const { upload, uploaded } = await searchParams
   const uploadedCount = uploaded ? Number(uploaded) : 0
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -81,6 +81,12 @@ export default async function CaseDetailPage({
           <DeleteCaseButton id={c.id} />
         </div>
       </div>
+
+      {upload === 'failed' && (
+        <div role="status" className="mb-6 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-sm text-[var(--warning)]">
+          This case was saved, but one or more evidence files could not be uploaded. Use Edit to retry the upload.
+        </div>
+      )}
 
       {uploadedCount > 0 && (
         <div role="status" className="mb-6 rounded-xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-[var(--success)]">

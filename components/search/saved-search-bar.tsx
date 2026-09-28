@@ -26,6 +26,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
   const [saving, setSaving] = useState(false)
   const [saveOpen, setSaveOpen] = useState(false)
   const [saveName, setSaveName] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   useEffect(() => {
     const key = `clerkfolio-filters:${pathname}`
@@ -54,25 +55,46 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     const name = saveName.trim()
     if (!name) return
     setSaving(true)
+    setSaveError(null)
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSaving(false); return }
+    if (!user) { setSaving(false); setSaveError('Please sign in again.'); return }
     const params = Object.fromEntries(searchParams.entries())
-    const { data, error } = await supabase
-      .from('saved_searches')
-      .upsert({
-        user_id: user.id,
-        name: name.slice(0, 60),
-        surface,
-        query: { ...parseSearchQuery(q), text: q, params },
-      }, { onConflict: 'user_id,name' })
-      .select('id, name, query')
-      .single()
+    const trimmedName = name.slice(0, 60)
+    const query = { ...parseSearchQuery(q), text: q, params }
+    // Overwrite only a same-named search on THIS page. The old upsert keyed on
+    // (user, name) alone, so saving "Leadership" on Cases silently moved and
+    // replaced the Portfolio search of the same name.
+    const existing = saved.find(item => item.name === trimmedName)
+    const { data, error } = existing
+      ? await supabase
+          .from('saved_searches')
+          .update({ query })
+          .eq('id', existing.id)
+          .select('id, name, query')
+          .single()
+      : await supabase
+          .from('saved_searches')
+          .insert({ user_id: user.id, name: trimmedName, surface, query })
+          .select('id, name, query')
+          .single()
     setSaving(false)
-    if (!error && data) {
-      setSaved(prev => [data as SavedSearch, ...prev.filter(item => item.id !== data.id)])
-      setSaveName('')
-      setSaveOpen(false)
+    if (error || !data) {
+      setSaveError(error?.code === '23505'
+        ? 'You already use that name for a saved search on another page. Pick a different name.'
+        : 'Could not save this search. Please try again.')
+      return
     }
+    setSaved(prev => [data as SavedSearch, ...prev.filter(item => item.id !== data.id)])
+    setSaveName('')
+    setSaveOpen(false)
+  }
+
+  async function removeSaved(id: string) {
+    const item = saved.find(row => row.id === id)
+    if (!item || !window.confirm(`Remove the saved search "${item.name}"?`)) return
+    const { error } = await supabase.from('saved_searches').delete().eq('id', id)
+    if (error) { setSaveError('Could not remove that saved search. Please try again.'); return }
+    setSaved(prev => prev.filter(row => row.id !== id))
   }
 
   function applySaved(id: string) {
@@ -137,15 +159,23 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
           </button>
         </form>
       )}
+      {saveError && <span role="alert" className="text-xs text-[var(--danger)]">{saveError}</span>}
       {saved.length > 0 && (
         <select
-          defaultValue=""
-          onChange={event => applySaved(event.target.value)}
+          value=""
+          onChange={event => {
+            const value = event.target.value
+            if (value.startsWith('remove:')) void removeSaved(value.slice('remove:'.length))
+            else applySaved(value)
+          }}
           className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-primary)]"
           aria-label="Saved searches"
         >
           <option value="" disabled>Saved searches</option>
           {saved.map(item => <option key={item.id} value={item.id}>{item.name}</option>)}
+          <optgroup label="Remove a saved search">
+            {saved.map(item => <option key={`remove-${item.id}`} value={`remove:${item.id}`}>Remove &quot;{item.name}&quot;</option>)}
+          </optgroup>
         </select>
       )}
     </div>

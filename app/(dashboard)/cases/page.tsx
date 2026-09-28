@@ -30,6 +30,9 @@ export default async function CasesPage({
       .eq('user_id', user!.id)
       .is('deleted_at', null)
       .order('pinned', { ascending: false })
+      // By case date (like /portfolio), not creation time: imported or
+      // backdated cases otherwise all bunched under the import month.
+      .order('date', { ascending: false })
       .order('created_at', { ascending: false }),
     supabase
       .from('cases')

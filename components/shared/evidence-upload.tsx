@@ -141,7 +141,20 @@ export default function EvidenceUpload({
         onDragLeave={() => setDragOver(false)}
         onDrop={handleDrop}
         onClick={() => !disabled && inputRef.current?.click()}
-        className={`flex flex-col items-center justify-center gap-2 border-2 border-dashed rounded-xl py-6 px-4 transition-colors text-center ${
+        // Keyboard-operable: the file input itself is hidden, so the dropzone
+        // is the only control and must be focusable and activatable.
+        role="button"
+        tabIndex={disabled ? -1 : 0}
+        aria-disabled={disabled || undefined}
+        aria-label="Add evidence files"
+        onKeyDown={e => {
+          if (disabled) return
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            inputRef.current?.click()
+          }
+        }}
+        className={`flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] items-center justify-center gap-2 border-2 border-dashed rounded-xl py-6 px-4 transition-colors text-center ${
           disabled
             ? 'border-white/[0.05] cursor-not-allowed opacity-50'
             : dragOver
@@ -155,7 +168,7 @@ export default function EvidenceUpload({
           <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
         <p className="text-xs text-[var(--text-muted)]">
-          Click or drag files here
+          Click, press Enter or drag files here
         </p>
         <p className="text-[10px] text-[var(--text-secondary)]">
           PDF, JPG, PNG, DOC, DOCX, XLSX, PPTX, TXT, HEIC - max 50 MB per file
@@ -166,7 +179,14 @@ export default function EvidenceUpload({
           multiple
           accept={ACCEPTED}
           className="hidden"
-          onChange={e => handleFiles(e.target.files)}
+          onChange={e => {
+            handleFiles(e.target.files)
+            // Reset so picking the same file again (e.g. after removing it)
+            // still fires a change event.
+            e.target.value = ''
+          }}
+          onClick={e => e.stopPropagation()}
+          tabIndex={-1}
           disabled={disabled}
         />
       </div>

@@ -14,7 +14,7 @@ export type TrashItem = {
   category: string | null
   date: string
   deletedAt: string
-  type: 'entry' | 'case'
+  type: 'entry' | 'case' | 'log'
 }
 
 export default function TrashRow({ item }: { item: TrashItem }) {
@@ -25,7 +25,7 @@ export default function TrashRow({ item }: { item: TrashItem }) {
   const canPermanentlyDelete = permanentDeleteAt.getTime() <= Date.now()
   const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
-  const typeLabel = item.type === 'entry' ? 'Portfolio' : 'Case'
+  const typeLabel = item.type === 'entry' ? 'Portfolio' : item.type === 'log' ? 'Log' : 'Case'
   const entryType = item.type === 'entry' ? 'portfolio' : 'case'
 
   async function permanentlyDelete() {
@@ -38,15 +38,18 @@ export default function TrashRow({ item }: { item: TrashItem }) {
       addToast('Please sign in again', 'error')
       return
     }
-    const table = item.type === 'entry' ? 'portfolio_entries' : 'cases'
+    const table = item.type === 'entry' ? 'portfolio_entries' : item.type === 'log' ? 'personal_log' : 'cases'
 
     // Evidence reuse: this entry's files may also be attached to other live
     // entries. Unlink this entry's files and delete only the ones whose last
-    // link is now gone (a file still linked elsewhere survives).
-    const purge = await purgeEvidenceForEntriesClient(supabase, user.id, [{ entryId: item.id, entryType }])
-    if (purge.error) {
-      addToast(purge.error, 'error')
-      return
+    // link is now gone (a file still linked elsewhere survives). Log entries
+    // carry no evidence.
+    if (item.type !== 'log') {
+      const purge = await purgeEvidenceForEntriesClient(supabase, user.id, [{ entryId: item.id, entryType }])
+      if (purge.error) {
+        addToast(purge.error, 'error')
+        return
+      }
     }
 
     const { data: deletedRows, error } = await supabase
