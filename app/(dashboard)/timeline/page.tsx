@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { TimelineClient, type TimelineGoal, type TimelineSpecialtyDeadline, type TimelineSpecialty } from '@/components/timeline/timeline-client'
-import { NHS_ROUND_3_2026_DEADLINES, NHS_RECRUITMENT_TIMELINE_URL, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { NHS_RECRUITMENT_TIMELINE_URL, currentNationalRecruitmentDeadlines, nationalDeadlineId } from '@/lib/specialties/deadlines'
 import { nationalDeadlinesPref, shouldShowNationalDeadlines } from '@/lib/timeline/national-deadlines'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
@@ -86,8 +86,15 @@ export default async function TimelinePage({
     hasSpecialtySpecificDeadlines
   )
 
-  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = NHS_ROUND_3_2026_DEADLINES.map(item => ({
-    id: item.kind,
+  // Every pinned national round that is still current (a closed round drops
+  // out by itself once a newer one is pinned). `stale` is only true when every
+  // pinned round has elapsed (last close-date + 30-day grace, per
+  // isSpecialtyCycleStale); the client only renders the banner while the
+  // national dates are actually visible (the tick controls that). The
+  // deadlines-freshness tripwire test forces a refresh ahead of that.
+  const { deadlines: nationalDeadlines, stale: recruitmentDeadlinesStale } = currentNationalRecruitmentDeadlines()
+  const nationalRecruitmentDeadlines: TimelineSpecialtyDeadline[] = nationalDeadlines.map(item => ({
+    id: nationalDeadlineId(item),
     title: item.label,
     date: item.date,
     details: item.details ?? null,
@@ -112,14 +119,6 @@ export default async function TimelinePage({
     date: deadline.date,
     category: 'deadline',
   }, parsedQuery))
-
-  // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
-  // grace, per isSpecialtyCycleStale), the national dates we surface become
-  // misleading past-dated events. The client only renders the banner while the
-  // national dates are actually visible (the tick controls that). The owner
-  // refreshes NHS_ROUND_3_2026_DEADLINES before the round closes; the
-  // deadlines-freshness tripwire test fails ahead of that.
-  const recruitmentDeadlinesStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
 
   // Compute the calendar's initial month once on the server. Passing this in as
   // a stable prop avoids the new Date() / hydration mismatch the client would

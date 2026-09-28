@@ -1,5 +1,5 @@
 // Visibility rule for the pinned national NHS recruitment deadlines
-// (NHS_ROUND_3_2026_DEADLINES) on the Timeline page and in the ICS feed.
+// (currentNationalRecruitmentDeadlines) on the Timeline page and in the ICS feed.
 //
 // The user preference lives in `profiles.display_prefs.show_national_deadlines`
 // (same JSON bag as theme/accessibility - no migration). Semantics:
