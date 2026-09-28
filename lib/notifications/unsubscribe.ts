@@ -16,7 +16,8 @@ export const UNSUBSCRIBE_LISTS = {
   weekly_digest: ['weekly_digest', 'monthly_digest'],
   monthly_digest: ['monthly_digest'],
   reminders: ['deadlines', 'share_link_expiring', 'application_window', 'activity_nudge'],
-  all: ['weekly_digest', 'monthly_digest', 'deadlines', 'share_link_expiring', 'application_window', 'activity_nudge'],
+  year_in_review: ['year_in_review'],
+  all: ['weekly_digest', 'monthly_digest', 'deadlines', 'share_link_expiring', 'application_window', 'activity_nudge', 'year_in_review'],
 } as const
 
 export type UnsubscribeList = keyof typeof UNSUBSCRIBE_LISTS
@@ -25,6 +26,7 @@ export const UNSUBSCRIBE_LIST_LABELS: Record<UnsubscribeList, string> = {
   weekly_digest: 'digest emails (weekly and monthly)',
   monthly_digest: 'monthly digest emails',
   reminders: 'reminder emails (deadlines, expiring share links, application windows, and nudges)',
+  year_in_review: 'the yearly year-in-review email',
   all: 'all Clerkfolio emails',
 }
 

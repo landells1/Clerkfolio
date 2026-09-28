@@ -12,6 +12,8 @@ const DEFAULT_PREFS = {
   application_window: true,
   weekly_digest: true,
   monthly_digest: true,
+  // Opt-in (PECR): off unless the user switches it on.
+  year_in_review: false,
 }
 
 const OPTIONS = [
@@ -21,6 +23,7 @@ const OPTIONS = [
   { key: 'application_window', label: 'Application windows' },
   { key: 'weekly_digest', label: 'Weekly digest' },
   { key: 'monthly_digest', label: 'Monthly digest', hint: 'Only sent if your weekly digest is off, so you never get both covering the same activity.' },
+  { key: 'year_in_review', label: 'Year in review email', hint: 'One email each January when your year-in-review PDF is ready. Off unless you switch it on.' },
 ] as const
 
 export default function NotificationSettingsPage() {

@@ -4,6 +4,7 @@ import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
 import { validateFeedbackInput, buildFeedbackSubject, FEEDBACK_CATEGORY_LABELS } from '@/lib/feedback/validation'
+import { sendEmail } from '@/lib/email/send'
 
 // Simple HTML escaper - prevents injection into email body
 function esc(str: string): string {
@@ -59,7 +60,9 @@ export async function POST(req: NextRequest) {
     const categoryLabel = FEEDBACK_CATEGORY_LABELS[category]
 
     // ── Send email with escaped content ──────────────────────────────────────
-    await resend.emails.send({
+    // sendEmail surfaces Resend's returned errors (the SDK does not throw), so
+    // a failed send is no longer reported to the user as "Message sent!".
+    const result = await sendEmail(resend, {
       from: 'Clerkfolio Feedback <noreply@clerkfolio.co.uk>',
       to: 'admin@clerkfolio.co.uk',
       // replyTo validated above - safe to use
@@ -90,6 +93,10 @@ export async function POST(req: NextRequest) {
         </div>
       `,
     })
+    if (!result.ok) {
+      console.error('Feedback send error:', result.error)
+      return NextResponse.json({ error: 'We could not send your message right now. Please email admin@clerkfolio.co.uk instead.' }, { status: 502 })
+    }
 
     return NextResponse.json({ success: true })
   } catch (err) {

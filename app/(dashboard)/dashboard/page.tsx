@@ -79,7 +79,9 @@ export default async function DashboardPage({
     supabase
       .from('specialty_applications')
       .select('id, specialty_key, bonus_claimed, is_target')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      // Archived cycles would otherwise show twice in Specialty progress.
+      .eq('is_active', true),
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -202,7 +204,9 @@ export default async function DashboardPage({
     ...realEntries.map((e: { created_at: string }) => e.created_at),
     ...realCases.map((c: { created_at: string }) => c.created_at),
   ].filter(createdAt => new Date(createdAt).getTime() >= cutoff.getTime())
-  const heatmapDates = heatmapCreatedAts.map(createdAt => createdAt.split('T')[0])
+  // UK calendar day, not the UTC date: an entry logged at 00:30 BST belongs to
+  // today, not yesterday (and must agree with hasEntryToday below).
+  const heatmapDates = heatmapCreatedAts.map(createdAt => londonDateKey(createdAt))
   const activeWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
   const todayLondon = londonDateKey(new Date())
   const hasEntryToday = heatmapCreatedAts.some(createdAt => londonDateKey(createdAt) === todayLondon)
@@ -231,7 +235,9 @@ export default async function DashboardPage({
   // specialties (person spec only) fall back to essentials/desirables counts.
   const specialtyProgressData = (trackedSpecialtyRows ?? []).map(row => {
     const links = specialtyLinks.filter(link => link.application_id === row.id)
-    const entryCount = new Set(links.map(link => link.entry_id)).size
+    // Checkbox / self-assessed claims have no entry attached - don't count
+    // them as a linked entry.
+    const entryCount = new Set(links.map(link => link.entry_id).filter(Boolean)).size
     const config = getSpecialtyConfig(row.specialty_key)
     const emptyScore = { score: 0, maxScore: 0, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
     if (!config) {

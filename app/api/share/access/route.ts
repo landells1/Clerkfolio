@@ -10,6 +10,7 @@ import { resolvesToPublicAddresses } from '@/lib/share/ssrf-resolve'
 import { fetchSharedEntries } from '@/lib/share/shared-entries'
 import { requestIp } from '@/lib/request-ip'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+import { sendEmail } from '@/lib/email/send'
 
 const ACCESS_RATE_LIMIT = 5
 // Endpoint-wide per-IP ceiling, enforced BEFORE any DB work. The DB-backed
@@ -273,7 +274,7 @@ export async function POST(req: NextRequest) {
         const { data: userData } = await supabase.auth.admin.getUserById(link.user_id)
         if (userData?.user?.email) {
           const resend = new Resend(resendKey)
-          await resend.emails.send({
+          const result = await sendEmail(resend, {
             from: 'Clerkfolio <noreply@clerkfolio.co.uk>',
             to: userData.user.email,
             subject: 'Your shared portfolio link was auto-revoked',
@@ -283,6 +284,7 @@ export async function POST(req: NextRequest) {
               viewCount: VIEW_AUTO_REVOKE_THRESHOLD,
             }),
           })
+          if (!result.ok) console.error('auto-revoke email failed:', result.error)
         }
       } catch (err) {
         // Message only - the raw Resend error can embed the send payload,

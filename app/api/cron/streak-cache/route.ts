@@ -34,12 +34,14 @@ export async function GET(req: NextRequest) {
         .select('created_at')
         .eq('user_id', profile.id)
         .is('deleted_at', null)
+        .eq('is_demo', false)
         .gte('created_at', since.toISOString()),
       supabase
         .from('cases')
         .select('created_at')
         .eq('user_id', profile.id)
         .is('deleted_at', null)
+        .eq('is_demo', false)
         .gte('created_at', since.toISOString()),
     ])
 

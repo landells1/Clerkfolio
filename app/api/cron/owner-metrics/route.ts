@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
-import { currentLondonWeekWindow } from '@/lib/engagement/streaks'
+import { previousLondonWeekWindow } from '@/lib/engagement/streaks'
 import { fetchOwnerMetrics, buildOwnerMetricsEmail } from '@/lib/metrics/owner-metrics'
 import { LEGAL_ENTITY } from '@/lib/legal/entity'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
+import { sendEmail } from '@/lib/email/send'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -24,7 +25,7 @@ export async function GET(req: NextRequest) {
     if (!resendKey) return NextResponse.json({ ok: true, sent: false, skipped: 'missing_resend_key' })
 
     const supabase = createServiceClient()
-    const { start, end } = currentLondonWeekWindow()
+    const { start, end } = previousLondonWeekWindow()
     const windowLabel = `week of ${start.toISOString().split('T')[0]}`
 
     let snapshot
@@ -39,16 +40,15 @@ export async function GET(req: NextRequest) {
 
     const email = buildOwnerMetricsEmail(snapshot)
     const resend = new Resend(resendKey)
-    try {
-      await resend.emails.send({
-        from: 'Clerkfolio <hello@clerkfolio.co.uk>',
-        to: LEGAL_ENTITY.contactEmail,
-        subject: email.subject,
-        text: email.text,
-        html: email.html,
-      })
-    } catch (error) {
-      logBackgroundJobError('cron.owner-metrics.email', error)
+    const result = await sendEmail(resend, {
+      from: 'Clerkfolio <hello@clerkfolio.co.uk>',
+      to: LEGAL_ENTITY.contactEmail,
+      subject: email.subject,
+      text: email.text,
+      html: email.html,
+    })
+    if (!result.ok) {
+      logBackgroundJobError('cron.owner-metrics.email', new Error(result.error), { code: result.code })
       return NextResponse.json({ ok: false, sent: false, error: 'email_send_failed' }, { status: 500 })
     }
 

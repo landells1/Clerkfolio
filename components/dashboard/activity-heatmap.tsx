@@ -1,6 +1,7 @@
 // Server component - no 'use client'
 
 import { Fragment } from 'react'
+import { londonDateParts } from '@/lib/engagement/streaks'
 
 interface ActivityHeatmapProps {
   dates: string[] // YYYY-MM-DD strings
@@ -42,8 +43,10 @@ export default function ActivityHeatmap({ dates }: ActivityHeatmapProps) {
     countMap.set(d, (countMap.get(d) ?? 0) + 1)
   }
 
-  // Start from the Monday (WEEKS - 1) weeks ago
-  const today     = new Date()
+  // Start from the Monday (WEEKS - 1) weeks ago. "Today" is the UK calendar
+  // day (as a UTC-midnight date so the UTC getters below read it back).
+  const ukToday   = londonDateParts(new Date())
+  const today     = new Date(Date.UTC(ukToday.year, ukToday.month - 1, ukToday.day))
   const dayOfWeek = today.getUTCDay() // 0 = Sun
   const diffToMon = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
   const thisMonday = new Date(today)

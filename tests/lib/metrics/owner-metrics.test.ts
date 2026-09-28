@@ -44,8 +44,8 @@ describe('buildOwnerMetricsEmail', () => {
     const email = buildOwnerMetricsEmail(snapshotFixture())
     expect(email.subject).toContain('week of 2026-07-06')
     expect(email.text).toContain('Total users: 100')
-    expect(email.text).toContain('New signups this week: 5')
-    expect(email.text).toContain('Active users this week: 20')
+    expect(email.text).toContain('New signups last week: 5')
+    expect(email.text).toContain('Active users last week: 20')
     expect(email.text).toContain('Portfolio entries created: 30')
     expect(email.text).toContain('Cases created: 10')
     expect(email.text).toContain('Completed onboarding: 80')
@@ -73,8 +73,8 @@ describe('buildOwnerMetricsEmail', () => {
 
   it('handles an empty specialty list gracefully', () => {
     const email = buildOwnerMetricsEmail(snapshotFixture({ specialtyPopularity: [] }))
-    expect(email.text).toContain('no active specialty tracking this week')
-    expect(email.html).toContain('No active specialty tracking this week')
+    expect(email.text).toContain('no active specialty tracking last week')
+    expect(email.html).toContain('No active specialty tracking last week')
   })
 
   it('escapes html-special characters in the window label', () => {

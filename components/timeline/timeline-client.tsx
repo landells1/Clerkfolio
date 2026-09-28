@@ -264,10 +264,14 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
 
   async function completeSelectedItem() {
     if (!selectedItem) return
-    if (selectedItem.type === 'goal') {
-      await supabase.from('goals').update({ completed_at: new Date().toISOString() }).eq('id', selectedItem.id.replace('goal-', ''))
-    } else if (!selectedItem.isAuto) {
-      await supabase.from('deadlines').update({ completed: true }).eq('id', selectedItem.id.replace('deadline-', ''))
+    // National NHS dates are read-only reference items; nothing to update.
+    if (selectedItem.type !== 'goal' && selectedItem.isAuto) return
+    const { error } = selectedItem.type === 'goal'
+      ? await supabase.from('goals').update({ completed_at: new Date().toISOString() }).eq('id', selectedItem.id.replace('goal-', ''))
+      : await supabase.from('deadlines').update({ completed: true }).eq('id', selectedItem.id.replace('deadline-', ''))
+    if (error) {
+      addToast(`Could not complete this ${selectedItem.type}. Please try again.`, 'error')
+      return
     }
     addToast(selectedItem.type === 'goal' ? 'Goal completed' : 'Deadline completed', 'success')
     setSelectedItem(null)
@@ -277,7 +281,11 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
   async function deleteSelectedItem() {
     if (!selectedItem || selectedItem.isAuto) return
     if (!confirm(`Delete this ${selectedItem.type}?`)) return
-    await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
+    const { error } = await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
+    if (error) {
+      addToast(`Could not delete this ${selectedItem.type}. Please try again.`, 'error')
+      return
+    }
     addToast(selectedItem.type === 'goal' ? 'Goal deleted' : 'Deadline deleted', 'success')
     setSelectedItem(null)
     router.refresh()

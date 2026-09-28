@@ -65,6 +65,18 @@ export function currentLondonWeekWindow(now = new Date()) {
   }
 }
 
+/**
+ * The previous full UK Monday-to-Monday week. Weekly digests and owner metrics
+ * run on Monday morning over this window: running over the CURRENT week meant
+ * the Saturday digest never reported weekend logging, and the Monday metrics
+ * email covered only a few hours.
+ */
+export function previousLondonWeekWindow(now = new Date()) {
+  const current = currentLondonWeekWindow(now)
+  const inPreviousWeek = new Date(current.start.getTime() - 12 * 60 * 60 * 1000)
+  return currentLondonWeekWindow(inPreviousWeek)
+}
+
 export function previousLondonMonthWindow(now = new Date()) {
   const parts = londonDateParts(now)
   const startThisMonth = { year: parts.year, month: parts.month, day: 1 }

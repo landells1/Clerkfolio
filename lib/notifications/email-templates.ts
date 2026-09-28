@@ -149,7 +149,7 @@ export function weeklyDigestEmail(firstName: string | null, summary: DigestSumma
   return digestEmail({
     firstName,
     title: 'Your weekly Clerkfolio digest',
-    intro: 'Here is what you logged this week.',
+    intro: 'Here is what you logged last week.',
     summary,
     unsubscribeUrl,
   })
