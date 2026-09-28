@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ARCP_CATEGORY_LABELS, type ARCPCapability, type ARCPEntryLink, type ARCPCategory } from '@/lib/types/arcp'
 import CapabilityRow from './capability-row'
 
-const CATEGORY_ORDER: ARCPCategory[] = ['clinical', 'safety', 'professional', 'development']
+const ALL_CATEGORIES: ARCPCategory[] = ['clinical', 'professional', 'development', 'safety']
 
 type Props = {
   capabilities: ARCPCapability[]
@@ -25,6 +25,8 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
     router.refresh()
   }
 
+  // Only groups that hold capabilities (the FP2021 FPCs use three of four).
+  const CATEGORY_ORDER = ALL_CATEGORIES.filter(cat => capabilities.some(c => c.category === cat))
   const grouped = CATEGORY_ORDER.reduce<Record<ARCPCategory, ARCPCapability[]>>((acc, cat) => {
     acc[cat] = capabilities.filter(c => c.category === cat)
     return acc
@@ -50,7 +52,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
               style={{ width: capabilities.length > 0 ? `${(totalLinked / capabilities.length) * 100}%` : '0%' }}
             />
           </div>
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
             {CATEGORY_ORDER.map(cat => {
               const total = capabilities.filter(c => c.category === cat).length
               const linked = capabilities.filter(c => c.category === cat && hasEvidence(c.capability_key)).length

@@ -1,10 +1,15 @@
+// The stored category column predates the curriculum re-seed and is limited to
+// these four values; the UK Foundation Programme Curriculum 2021's three Higher
+// Level Outcomes are stored in three of them (see
+// supabase/migrations/2026_09_28_arcp_capabilities_fp2021_fpcs.sql). 'safety'
+// is unused by the 13 FPCs.
 export type ARCPCategory = 'clinical' | 'safety' | 'professional' | 'development'
 
 export const ARCP_CATEGORY_LABELS: Record<ARCPCategory, string> = {
-  clinical:     'Clinical Skills',
-  safety:       'Patient Safety',
-  professional: 'Professional Skills',
-  development:  'Professional Development',
+  clinical:     'HLO 1: An accountable, capable and compassionate doctor',
+  safety:       'Patient safety',
+  professional: 'HLO 2: A valuable member of the healthcare workforce',
+  development:  'HLO 3: A professional, responsible for their own practice and portfolio development',
 }
 
 export type ARCPCapability = {

@@ -65,11 +65,13 @@ export default async function ARCPPage() {
           What are capabilities?
         </summary>
         <p className="mt-3 text-sm text-[var(--text-secondary)] leading-6">
-          The Foundation Programme curriculum sets out 17 high-level capabilities (e.g. patient
-          care, professional behaviour, leadership). At ARCP your supervisor wants to see evidence
-          across all of them. Linking a portfolio entry or case here records that you think it
+          The UK Foundation Programme Curriculum 2021 has 13 Foundation Professional Capabilities
+          (FPCs) grouped under 3 Higher Level Outcomes (HLOs). At ARCP the panel looks at how your
+          evidence maps across them. Linking a portfolio entry or case here records that you think it
           demonstrates a particular capability - the same entry can support multiple capabilities.
-          Click any row below to add or remove linked entries.
+          Click any row below to add or remove linked entries. The{' '}
+          <Link href="/guides/foundation-arcp-evidence-requirements" className="underline text-[var(--accent-text)]">foundation ARCP evidence guide</Link>{' '}
+          explains each one.
         </p>
       </details>
 
