@@ -11,7 +11,10 @@ export default function BackButton() {
       return
     }
 
-    router.push('/settings')
+    // '/' works for everyone: visitors land on the homepage and signed-in
+    // users are sent on to their dashboard. '/settings' bounced a visitor who
+    // opened a legal page directly to the login screen.
+    router.push('/')
   }
 
   return (

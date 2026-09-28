@@ -22,7 +22,7 @@ export default function NotFound() {
         <Link href="/" style={{ background: 'var(--button-primary-bg)', color: 'var(--button-primary-text)', padding: '12px 24px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 600 }}>
           Back to home
         </Link>
-        <Link href="/dashboard" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid rgba(245,245,242,0.15)', padding: '12px 24px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
+        <Link href="/dashboard" style={{ background: 'transparent', color: 'var(--text-primary)', border: '1px solid var(--border-strong)', padding: '12px 24px', borderRadius: 8, textDecoration: 'none', fontSize: 14, fontWeight: 500 }}>
           Go to dashboard
         </Link>
       </div>

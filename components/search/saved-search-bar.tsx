@@ -5,6 +5,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { parseSearchQuery } from '@/lib/search/parser'
 import { resolveFilterPersistence, stripNavParams } from '@/lib/search/filter-persistence'
+import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
 
 type Surface = 'cases' | 'portfolio' | 'timeline' | 'logs'
 
@@ -30,11 +31,11 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
 
   useEffect(() => {
     const key = `clerkfolio-filters:${pathname}`
-    const decision = resolveFilterPersistence(searchParams.toString(), localStorage.getItem(key))
+    const decision = resolveFilterPersistence(searchParams.toString(), storageGet(key))
     if (decision.action === 'restore') {
       router.replace(`${pathname}?${decision.params}`)
     } else if (decision.action === 'persist') {
-      localStorage.setItem(key, decision.params)
+      storageSet(key, decision.params)
     }
   }, [pathname, router, searchParams])
 
@@ -110,7 +111,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
   // Clearing therefore drops the persisted entry first, then navigates bare, so
   // the surface defaults to the full unfiltered view (QOL-016).
   function clearFilters() {
-    try { localStorage.removeItem(`clerkfolio-filters:${pathname}`) } catch {}
+    try { storageRemove(`clerkfolio-filters:${pathname}`) } catch {}
     router.replace(pathname)
   }
 

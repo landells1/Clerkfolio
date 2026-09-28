@@ -21,6 +21,12 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   const { addToast, addUndoToast } = useToast()
 
   const [selectMode, setSelectMode] = useState(false)
+  // The bulk-action bar sits where the mobile FAB is; hide the FAB while
+  // selecting (see the [data-bulk-select] rule in globals.css).
+  useEffect(() => {
+    document.body.dataset.bulkSelect = selectMode ? 'true' : 'false'
+    return () => { delete document.body.dataset.bulkSelect }
+  }, [selectMode])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [tagModalOpen, setTagModalOpen] = useState(false)
   const [categoryModalOpen, setCategoryModalOpen] = useState(false)

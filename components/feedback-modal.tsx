@@ -75,7 +75,9 @@ export function FeedbackModal({
         <div className="flex items-center justify-between mb-5">
           <h2 id="feedback-title" className="text-base font-semibold text-[var(--text-primary)]">Send feedback</h2>
           <button
+            type="button"
             onClick={onClose}
+            aria-label="Close feedback"
             className="text-[var(--text-muted)] hover:text-[var(--text-primary)] transition-colors"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -86,8 +88,8 @@ export function FeedbackModal({
 
         <form onSubmit={handleFeedbackSubmit} className="space-y-3">
             <div>
-              <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Category</label>
-              <select
+              <label htmlFor="feedback-category" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Category</label>
+              <select id="feedback-category"
                 value={feedback.category}
                 onChange={e => setFeedback(f => ({ ...f, category: e.target.value as FeedbackCategory }))}
                 className={SELECT}
@@ -99,8 +101,8 @@ export function FeedbackModal({
             </div>
             {feedback.category === 'specialty_request' && (
               <div>
-                <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Which specialty?</label>
-                <input
+                <label htmlFor="feedback-specialty" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Which specialty?</label>
+                <input id="feedback-specialty"
                   required
                   value={feedback.specialty}
                   onChange={e => setFeedback(f => ({ ...f, specialty: e.target.value }))}
@@ -110,8 +112,8 @@ export function FeedbackModal({
               </div>
             )}
             <div>
-              <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Your name</label>
-              <input
+              <label htmlFor="feedback-name" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Your name</label>
+              <input id="feedback-name"
                 required
                 value={feedback.name}
                 onChange={e => setFeedback(f => ({ ...f, name: e.target.value }))}
@@ -120,8 +122,8 @@ export function FeedbackModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Email</label>
-              <input
+              <label htmlFor="feedback-email" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Email</label>
+              <input id="feedback-email"
                 type="email"
                 required
                 value={feedback.email}
@@ -131,8 +133,8 @@ export function FeedbackModal({
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Comment</label>
-              <textarea
+              <label htmlFor="feedback-comment" className="block text-xs font-medium text-[var(--text-emphasis)] mb-1.5 uppercase tracking-wide">Comment</label>
+              <textarea id="feedback-comment"
                 required
                 rows={4}
                 value={feedback.comment}

@@ -41,7 +41,7 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
     title: 'Anonymised case logging',
     paragraphs: [
       'Log a clinical case from your phone or laptop. Every case form reminds you to leave out patient identifiers - no names, dates of birth or NHS numbers - so your case diary remains an anonymised record of your clinical experience.',
-      'Cases can include a clinical area, specialty tags, competency themes, notes and an importance rating. Drafts save automatically while you type.',
+      'Cases can include a clinical area, specialty tags, competency themes, notes and an importance rating. If you step away mid-entry, the tab keeps the case details (never the free-text notes) until you come back.',
     ],
   },
   {
@@ -64,7 +64,7 @@ const featureSections: { id: string; title: string; paragraphs: string[]; bullet
     id: 'export',
     title: 'Import and export your records',
     paragraphs: [
-      'Bring an existing portfolio across with Horus CSV bulk import on Pro, or use CSV and JSON import. Export application PDFs, a CV in PDF or Word, CSV and JSON records, or a full ZIP backup whenever you need one.',
+      'Bring an existing portfolio across with bulk import on Pro: Horus CSV, general CSV or a Clerkfolio JSON backup. Export application PDFs, a CV in PDF or Word, CSV and JSON records, or a full ZIP backup whenever you need one.',
     ],
   },
   {

@@ -44,7 +44,8 @@ export function applyTheme(theme: Theme): void {
     }
     // Keep the address-bar / PWA chrome colour in step with the canvas.
     const meta = document.querySelector('meta[name="theme-color"]')
-    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0B0B0C' : '#EDE8D0')
+    // Must match --bg-canvas in app/globals.css for each theme.
+    if (meta) meta.setAttribute('content', theme === 'dark' ? '#0B0B0C' : '#F3EDDA')
   }
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, theme)

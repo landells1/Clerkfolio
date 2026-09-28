@@ -22,7 +22,7 @@ const features = [
   {
     tag: '03 / CASES',
     title: 'Log cases while the details are fresh.',
-    body: 'Record anonymised cases with clinical area, learning and supporting evidence. Drafts save automatically while you write.',
+    body: 'Record anonymised cases with clinical area, learning and supporting evidence, from your phone or your desktop.',
     mock: <MockCasesList compact className="h-[350px] sm:h-[390px]" />,
     wide: true,
   },

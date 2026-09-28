@@ -493,3 +493,9 @@ body.theme-high-contrast button {
     font-size: 16px !important;
   }
 }
+
+/* Hide the floating quick-log button while a list is in bulk-select mode:
+   the bulk-action bar occupies the same corner on phones. */
+body[data-bulk-select="true"] [data-fab] {
+  display: none;
+}

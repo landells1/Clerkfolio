@@ -12,6 +12,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import SpecialtyTag from '@/components/ui/specialty-tag'
 import ListGroupHeader from '@/components/ui/list-group-header'
 import { getSpecialtyColour, getCaseRowColour, colourClasses } from '@/lib/specialties/colours'
+import { storageGet, storageSet } from '@/lib/safe-storage'
 
 type Props = {
   cases: Case[]
@@ -38,6 +39,12 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   const { addToast, addUndoToast } = useToast()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
+  // The bulk-action bar sits where the mobile FAB is; hide the FAB while
+  // selecting (see the [data-bulk-select] rule in globals.css).
+  useEffect(() => {
+    document.body.dataset.bulkSelect = selectMode ? 'true' : 'false'
+    return () => { delete document.body.dataset.bulkSelect }
+  }, [selectMode])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [tagModalOpen, setTagModalOpen] = useState(false)
   const [bulkTags, setBulkTags] = useState<string[]>([])
@@ -57,12 +64,12 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   type Density = 'compact' | 'comfortable'
   const [density, setDensity] = useState<Density>('compact')
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('clerkfolio-cases-density') : null
+    const stored = typeof window !== 'undefined' ? storageGet('clerkfolio-cases-density') : null
     if (stored === 'compact' || stored === 'comfortable') setDensity(stored)
   }, [])
   function changeDensity(next: Density) {
     setDensity(next)
-    try { window.localStorage.setItem('clerkfolio-cases-density', next) } catch {}
+    try { storageSet('clerkfolio-cases-density', next) } catch {}
   }
 
   const filtered = useMemo(() => {

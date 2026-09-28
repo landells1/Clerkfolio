@@ -135,8 +135,9 @@ export default async function PricingPage() {
               by {VERIFIED_BONUS_MB} MB. One verified email per account.
             </p>
             <p>
-              <strong className="font-medium text-ink">Referrals add to your allowance.</strong> Each
-              successful referral adds one PDF export and one share link to a free account, and
+              <strong className="font-medium text-ink">Referrals add to your allowance.</strong> Once
+              your university or NHS email is verified, each successful referral adds one PDF export
+              and one share link to a free account, and
               {' '}{REFERRAL_STORAGE_BONUS_AT} referrals add {REFERRAL_STORAGE_BONUS_MB} MB of
               permanent storage. Details in the{' '}
               <Link href="/terms" className="text-[var(--accent-text)] underline underline-offset-2">terms</Link>.

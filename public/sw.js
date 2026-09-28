@@ -42,11 +42,17 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'CLEAR_CACHE' || event.data?.type === 'LOGOUT') {
+    // Drop everything user-specific, then re-cache the public /offline
+    // fallback. It was only ever added on install, and sw.js is unchanged
+    // between deploys, so after the first logout offline navigations fell
+    // back to the browser's own error page.
     event.waitUntil(Promise.all([
       caches.delete(STATIC_CACHE),
       caches.delete(SHELL_CACHE),
       caches.delete(API_CACHE),
-    ]))
+    ]).then(() => caches.open(SHELL_CACHE))
+      .then((cache) => cache.add(OFFLINE_FALLBACK_PATH))
+      .catch(() => undefined))
   }
   if (event.data?.type === 'WARM_OFFLINE_LATEST') {
     event.waitUntil(

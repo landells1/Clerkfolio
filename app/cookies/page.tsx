@@ -9,7 +9,7 @@ export const metadata = marketingMetadata({
   path: '/cookies',
 })
 
-const lastUpdated = '9 June 2026'
+const lastUpdated = '28 September 2026'
 
 type CookieRow = {
   name: string
@@ -36,6 +36,22 @@ const rows: CookieRow[] = [
     purpose: 'PKCE code verifier used during the OAuth sign-in flow. Cleared after sign-in completes.',
     expiry: 'Session (cleared on sign-in completion)',
     setBy: 'Supabase SSR (@supabase/ssr)',
+  },
+  {
+    name: 'cf_recovery',
+    type: 'cookie',
+    category: 'strictly-necessary',
+    purpose: 'Set only during a password reset. Confirms the reset link was opened in this browser so the set-new-password page can be used, then removed once the password is changed.',
+    expiry: 'A few minutes, or until the password is changed',
+    setBy: 'Clerkfolio (password reset confirmation)',
+  },
+  {
+    name: 'cf_fp_seen',
+    type: 'cookie',
+    category: 'strictly-necessary',
+    purpose: 'Security housekeeping. Records that this signed-in session was recently checked against your list of active sessions, so the check runs at most every few minutes instead of on every page.',
+    expiry: '5 minutes',
+    setBy: 'Clerkfolio (Next.js middleware)',
   },
   {
     name: 'cf_consent_v1',
@@ -89,7 +105,7 @@ const rows: CookieRow[] = [
     name: 'Clerkfolio app cache',
     type: 'cacheAPI',
     category: 'strictly-necessary',
-    purpose: 'The service worker (sw.js) caches static app assets to allow the app shell to load offline and to speed up subsequent visits. Cleared on logout.',
+    purpose: 'The service worker (sw.js) caches static app assets, the offline fallback page, the dashboard, cases and portfolio page shells, and a small summary of your latest entries so the app can open offline and load faster. Everything except the public offline page is cleared on logout.',
     expiry: 'Persistent until the service worker clears its cache or the user logs out',
     setBy: 'Clerkfolio service worker (sw.js)',
   },

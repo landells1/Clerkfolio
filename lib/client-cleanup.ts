@@ -1,4 +1,5 @@
 'use client'
+import { storageRemove } from '@/lib/safe-storage'
 
 const SESSION_PATTERNS = [
   /^clerkfolio-.*-draft(?::.+)?$/,
@@ -35,7 +36,7 @@ export function clearClientStateOnAuthChange() {
   } catch {}
 
   try {
-    LOCAL_KEYS.forEach(key => window.localStorage.removeItem(key))
+    LOCAL_KEYS.forEach(key => storageRemove(key))
     removeMatching(window.localStorage, LOCAL_PATTERNS)
   } catch {}
 

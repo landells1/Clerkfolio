@@ -37,10 +37,12 @@ export default async function ReferralsPage() {
   const earnedBadges = new Set<string>(profile?.referral_badges ?? [])
   const foundingEarned = earnedBadges.has('founding_sharer')
 
-  const institutionVerified = Boolean(profile?.student_email_verified) && (
-    !profile?.student_email_verification_due_at ||
-    new Date(`${profile.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
-  )
+  // Same rule as referral activation (lib/referrals/rewards.ts) and the DB's
+  // recompute_profile_tier: a null due date counts as EXPIRED. Treating it as
+  // verified hid the warning while referrals silently never activated.
+  const institutionVerified = Boolean(profile?.student_email_verified) &&
+    Boolean(profile?.student_email_verification_due_at) &&
+    new Date(`${profile!.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
 
   const nextRung = REFERRAL_LADDER.find(b => rewarded < b.threshold)
   const topThreshold = REFERRAL_LADDER[REFERRAL_LADDER.length - 1].threshold

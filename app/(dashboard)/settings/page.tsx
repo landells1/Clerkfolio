@@ -24,6 +24,7 @@ import { DataExportSection } from '@/components/settings/data-export-section'
 import { ReferralCodeSection } from '@/components/settings/referral-code-section'
 import { saveBlob } from '@/lib/download-blob'
 import { PRO_STORAGE_MB, formatStorageQuota } from '@/lib/entitlements/limits'
+import { storageSet, storageRemove } from '@/lib/safe-storage'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
@@ -374,7 +375,7 @@ export default function SettingsPage() {
     // Drop the offline dashboard cache (written by offline-cache-primer.tsx).
     // Account delete is privacy-critical - leaving stale portfolio / case
     // titles in localStorage would defeat the deletion.
-    try { localStorage.removeItem('clerkfolio-offline-latest') } catch {}
+    try { storageRemove('clerkfolio-offline-latest') } catch {}
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'LOGOUT' })
     }
@@ -385,7 +386,7 @@ export default function SettingsPage() {
   function setDisplayPref(key: 'high_contrast' | 'dyslexic_font', value: boolean) {
     const nextPrefs = { ...profile.display_prefs, [key]: value }
     setProfile(p => ({ ...p, display_prefs: nextPrefs }))
-    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    storageSet('display_prefs', JSON.stringify(nextPrefs))
     document.body.classList.toggle('theme-high-contrast', Boolean(nextPrefs.high_contrast))
     document.body.classList.toggle('font-dyslexic', Boolean(nextPrefs.dyslexic_font))
   }
@@ -397,7 +398,7 @@ export default function SettingsPage() {
     applyTheme(theme)
     const nextPrefs = { ...profile.display_prefs, theme }
     setProfile(p => ({ ...p, display_prefs: nextPrefs }))
-    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    storageSet('display_prefs', JSON.stringify(nextPrefs))
     apiFetch('/api/settings/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

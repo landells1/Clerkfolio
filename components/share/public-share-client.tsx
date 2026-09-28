@@ -105,13 +105,17 @@ export default function PublicShareClient({ token }: { token: string }) {
       setError(json.error ?? fallback)
       return
     }
-    if (nextPin) sessionStorage.setItem(pinSessionKey(token), nextPin)
+    // Storage can be blocked for a logged-out viewer; remembering the PIN for
+    // this tab is a convenience, never a reason to fail the page.
+    if (nextPin) { try { sessionStorage.setItem(pinSessionKey(token), nextPin) } catch {} }
     setPayload(json as SharePayload)
     setPinRequired(false)
   }
 
   useEffect(() => {
-    load(sessionStorage.getItem(pinSessionKey(token)) ?? '')
+    let rememberedPin = ''
+    try { rememberedPin = sessionStorage.getItem(pinSessionKey(token)) ?? '' } catch {}
+    load(rememberedPin)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token])
 

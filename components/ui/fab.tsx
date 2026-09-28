@@ -6,6 +6,7 @@ export default function FAB() {
   return (
     <button
       onClick={() => openQuickAdd()}
+      data-fab
       aria-label="Quick log (N)"
       title="Quick log (N)"
       className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-5 z-40 w-14 h-14 rounded-full bg-[var(--button-primary-bg)] hover:bg-[var(--button-primary-bg-hover)] active:scale-95 shadow-[0_4px_24px_rgba(0,0,0,0.25)] flex items-center justify-center transition-all duration-150 lg:w-12 lg:h-12 lg:bottom-8 lg:right-8"

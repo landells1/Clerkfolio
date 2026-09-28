@@ -14,7 +14,7 @@ const PAGES: { path: string; lastModified: string; priority: number }[] = [
   { path: '/about', lastModified: '2026-07-13', priority: 0.8 },
   { path: '/privacy', lastModified: '2026-07-13', priority: 0.5 },
   { path: '/terms', lastModified: '2026-07-06', priority: 0.5 },
-  { path: '/cookies', lastModified: '2026-06-09', priority: 0.3 },
+  { path: '/cookies', lastModified: '2026-09-28', priority: 0.3 },
   { path: '/subprocessors', lastModified: '2026-07-06', priority: 0.3 },
   { path: '/security', lastModified: '2026-07-06', priority: 0.5 },
   { path: '/contact', lastModified: '2026-07-06', priority: 0.5 },

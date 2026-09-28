@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client'
 import { apiFetch } from '@/lib/api-fetch'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES, isMedicalStudentStage } from '@/lib/constants/career-stages'
+import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
@@ -67,7 +68,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(DRAFT_KEY)
+      const raw = storageGet(DRAFT_KEY)
       if (!raw) return
       const draft = JSON.parse(raw) as {
         step?: Step
@@ -86,7 +87,7 @@ export default function OnboardingPage() {
       if (Array.isArray(draft.selectedSpecialties)) setSelectedSpecialties(draft.selectedSpecialties.slice(0, MAX_TRACKED_SPECIALTIES))
       if (draft.firstEntryTarget) setFirstEntryTarget(draft.firstEntryTarget)
     } catch {
-      window.localStorage.removeItem(DRAFT_KEY)
+      storageRemove(DRAFT_KEY)
     } finally {
       setDraftLoaded(true)
     }
@@ -94,7 +95,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!draftLoaded) return
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
+    storageSet(DRAFT_KEY, JSON.stringify({
       step,
       firstName,
       lastName,
@@ -138,7 +139,7 @@ export default function OnboardingPage() {
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
-    try { window.localStorage.removeItem(DRAFT_KEY) } catch {}
+    try { storageRemove(DRAFT_KEY) } catch {}
     clearClientStateOnAuthChange()
     let globalOk = false
     try {
@@ -187,7 +188,7 @@ export default function OnboardingPage() {
       return
     }
 
-    window.localStorage.removeItem(DRAFT_KEY)
+    storageRemove(DRAFT_KEY)
     // Hard navigation (not router.push + router.refresh): completing onboarding
     // flips onboarding_complete server-side, and the middleware reads it fresh
     // on a full request. A soft push here raced with router.refresh() and left
