@@ -34,8 +34,8 @@ const CONCEPTS: Term[] = [
   { term: 'Categories', description: 'Top-level entry types: Audit & QIP, Teaching & Presentations, Conferences & Courses, Publications & Research, Leadership & Societies, Prizes & Awards, Procedures & Clinical Skills, Reflections & CBDs/DOPs, Custom.' },
   { term: 'Snippets', description: 'Short reusable phrases you can drop into any portfolio note via a slash shortcut (e.g. /reflection).' },
   { term: 'Templates', description: 'Reusable entry shapes you can clone for new entries. Saved from existing entries via the "Template" button.' },
-  { term: 'Goals vs deadlines', description: 'Goals are personal targets you set ("Complete 3 audits by FY1 end"). Deadlines are application/ARCP dates that can\'t slip - some are auto-loaded from your tracked specialties.' },
-  { term: 'Auto-loaded deadlines', description: 'Deadlines that came from your tracked specialty config (e.g. IMT 2026 application opening). Marked with an "Auto" badge on the timeline.' },
+  { term: 'Goals vs deadlines', description: 'Goals are personal targets you set ("Complete 3 audits by FY1 end"). Deadlines are application/ARCP dates that can\'t slip - you add your own, and the national NHS recruitment dates can be shown automatically.' },
+  { term: 'Auto-loaded deadlines', description: 'The national NHS specialty recruitment dates (applications opening and closing, interviews, offers). Marked with an "Auto" badge on the timeline; switch them on or off with the "Show NHS national recruitment dates" tick.' },
 ]
 
 const REFLECTION_FRAMEWORKS: Term[] = [

@@ -84,7 +84,7 @@ export function transactionalEmail({
               </tr>
               <tr>
                 <td style="padding:18px 24px;background:#fafafa;">
-                  <a href="${baseUrl}${safePath}" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">${escapeHtml(ctaLabel)}</a>
+                  <a href="${baseUrl}${safePath}" style="display:inline-block;background:#1B6FD9;color:#FFFFFF;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">${escapeHtml(ctaLabel)}</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage these emails from Clerkfolio settings.</p>
                 </td>
               </tr>
@@ -132,7 +132,7 @@ export function notificationEmailHtml(firstName: string | null, items: Notificat
               ${rows}
               <tr>
                 <td style="padding:18px 24px;background:#fafafa;">
-                  <a href="${baseUrl}/timeline" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open timeline</a>
+                  <a href="${baseUrl}/timeline" style="display:inline-block;background:#1B6FD9;color:#FFFFFF;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open timeline</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage these emails from Clerkfolio settings.</p>
                   ${unsubscribeHtmlLine(unsubscribeUrl)}
                 </td>
@@ -229,7 +229,7 @@ function digestEmail({
               </tr>
               <tr>
                 <td style="padding:18px 24px;background:#fafafa;">
-                  <a href="${baseUrl}/dashboard" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open dashboard</a>
+                  <a href="${baseUrl}/dashboard" style="display:inline-block;background:#1B6FD9;color:#FFFFFF;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Open dashboard</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">You can manage digest emails from Clerkfolio settings.</p>
                   ${unsubscribeHtmlLine(unsubscribeUrl)}
                 </td>
@@ -269,7 +269,7 @@ export function buildAutoRevokeEmail({
               </tr>
               <tr>
                 <td style="padding:18px 24px;background:#fafafa;">
-                  <a href="${baseUrl}/export?tab=share" style="display:inline-block;background:#1B6FD9;color:#0B0B0C;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Review shared links</a>
+                  <a href="${baseUrl}/export?tab=share" style="display:inline-block;background:#1B6FD9;color:#FFFFFF;font-weight:700;font-size:14px;text-decoration:none;padding:10px 14px;border-radius:10px;">Review shared links</a>
                   <p style="margin:14px 0 0;font-size:12px;line-height:1.5;color:#777;">This protects read-only portfolio links from unusual traffic.</p>
                 </td>
               </tr>

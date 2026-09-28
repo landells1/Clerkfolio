@@ -10,7 +10,8 @@ import Link from 'next/link'
 
 type ReferralRow = { id: string; status: string; created_at: string; activated_at: string | null; reward_granted_at: string | null }
 
-export default async function ReferralsPage() {
+export default async function ReferralsPage({ searchParams }: { searchParams?: Promise<{ ref?: string }> }) {
+  const openedOwnLink = (await searchParams)?.ref === 'self'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -66,6 +67,12 @@ export default async function ReferralsPage() {
           </p>
         </div>
       </div>
+
+      {openedOwnLink && (
+        <div role="status" className="mb-6 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm text-[var(--accent-soft-text)]">
+          That was your own referral link, so there was nothing to apply. Share it with colleagues - it rewards you when they join.
+        </div>
+      )}
 
       {!institutionVerified && (
         <section className="mb-6 rounded-2xl border border-accent/25 bg-accent/10 p-5">

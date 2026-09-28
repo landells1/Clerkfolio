@@ -17,13 +17,17 @@ function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
       if (!user) return
       const { count: n } = await supabase
         .from('notifications')
-        .select('id', { count: 'exact' })
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('read', false)
-        .limit(0)
       setCount(n ?? 0)
     }
     load()
+    // Re-check when the user comes back to the tab, so new reminders appear
+    // without a full page reload.
+    const onVisible = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [])
   return [count, setCount]
 }

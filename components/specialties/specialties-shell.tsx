@@ -186,8 +186,8 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                   </div>
                   <p className="text-fg font-medium mb-1">No specialty trackers yet</p>
                   <p className="max-w-sm text-xs text-fg-2">
-                    Pick a specialty to score your evidence by domain and auto-load the application
-                    deadlines for the upcoming cycle. Free tier tracks one specialty at a time.
+                    Pick a specialty to score your evidence by domain against its person specification.
+                    The national NHS recruitment dates show on your Timeline. Free tier tracks one specialty at a time.
                   </p>
                   <button
                     onClick={() => setShowAddModal(true)}
