@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { CV_ENTRY_LIMIT, cvCategoryOrder } from '@/lib/export/cv-category-order'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
@@ -16,14 +17,8 @@ const LABELS: Record<string, string> = {
   st_application: 'ST application CV',
 }
 
-const CATEGORY_ORDER: Record<string, string[]> = {
-  clinical: ['procedure', 'audit_qip', 'teaching', 'reflection', 'leadership', 'conference', 'publication', 'prize', 'custom'],
-  academic: ['publication', 'audit_qip', 'conference', 'teaching', 'prize', 'leadership', 'custom', 'procedure', 'reflection'],
-  st_application: ['audit_qip', 'leadership', 'teaching', 'publication', 'procedure', 'conference', 'prize', 'reflection', 'custom'],
-}
-
 function orderEntriesForTemplate(entries: Record<string, unknown>[], template: string) {
-  const order = CATEGORY_ORDER[template] ?? CATEGORY_ORDER.clinical
+  const order: string[] = cvCategoryOrder(template)
   const seen = new Set<string>()
   return entries
     .filter(entry => {
@@ -85,8 +80,9 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('user_id', user.id)
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .order('date', { ascending: false })
-      .limit(120),
+      .limit(CV_ENTRY_LIMIT),
     // Structured columns only (never notes/meta/cost_pence) for the CV log
     // sections - same query shape as /api/export/docx and the preview.
     supabase
@@ -114,6 +110,7 @@ export async function POST(req: NextRequest) {
       templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
       templateAccent: template === 'academic' ? '#14B8A6' : template === 'st_application' ? '#A855F7' : '#1B6FD9',
       logSections,
+      categoryOrder: cvCategoryOrder(template),
     })
 
     // Atomically claim the free PDF slot after a successful render.

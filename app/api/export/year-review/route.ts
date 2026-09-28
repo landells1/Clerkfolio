@@ -53,6 +53,7 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('user_id', user.id)
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .gte('date', `${year}-01-01`)
       .lte('date', `${year}-12-31`)
       .order('date', { ascending: false }),

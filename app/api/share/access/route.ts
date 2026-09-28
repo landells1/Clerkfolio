@@ -6,7 +6,8 @@ import { verifyPin } from '@/lib/share/pin'
 import { buildAutoRevokeEmail } from '@/lib/notifications/email-templates'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { validateOrigin } from '@/lib/csrf'
-import { isPublicWebhookHost } from '@/lib/share/ssrf'
+import { resolvesToPublicAddresses } from '@/lib/share/ssrf-resolve'
+import { fetchSharedEntries } from '@/lib/share/shared-entries'
 import { requestIp } from '@/lib/request-ip'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 
@@ -76,7 +77,7 @@ async function sendShareViewWebhook(
   try {
     const parsed = new URL(url)
     if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return
-    if (!isPublicWebhookHost(parsed.hostname)) return
+    if (!(await resolvesToPublicAddresses(parsed.hostname))) return
 
     const controller = new AbortController()
     const timeout = setTimeout(() => controller.abort(), 3000)
@@ -155,23 +156,9 @@ export async function POST(req: NextRequest) {
   const userClient = await createClient()
   const { data: { user: authenticatedUser } } = await userClient.auth.getUser()
   if (authenticatedUser?.id === link.user_id) {
-    let ownerQuery = supabase
-      .from('portfolio_entries')
-      .select('id, title, date, category, specialty_tags, interview_themes, notes, refl_free_text, created_at, updated_at')
-      .eq('user_id', link.user_id)
-      .is('deleted_at', null)
-      .order('date', { ascending: false })
-
-    if (link.scope === 'specialty' && link.specialty_key) {
-      ownerQuery = ownerQuery.contains('specialty_tags', [link.specialty_key])
-    }
-    if (link.scope === 'theme' && link.theme_slug) {
-      ownerQuery = ownerQuery.contains('interview_themes', [link.theme_slug])
-    }
-
     const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
       supabase.from('profiles').select('first_name, last_name').eq('id', link.user_id).maybeSingle(),
-      ownerQuery,
+      fetchSharedEntries(supabase, link),
     ])
 
     if (entriesError) {
@@ -221,15 +208,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  // 2. Per-IP request rate limit. Separate, generic DOS protection on the
-  //    endpoint itself (counts every attempt, success or fail). Cannot
-  //    replace the share-wide PIN lockout because an attacker rotating IPs
-  //    bypasses it.
+  // 2. Per-IP wrong-PIN rate limit on this link. Counts FAILED attempts only:
+  //    counting successful views too meant an interview panel on one
+  //    hospital network (shared NAT IP) hit 429 after five colleagues opened
+  //    the link. Raw request volume per IP is already bounded by the
+  //    endpoint-wide share-probe limiter above, and a leaked link by the
+  //    100-views-an-hour auto-revoke. Cannot replace the share-wide PIN
+  //    lockout because an attacker rotating IPs bypasses it.
   const { count: recentAttempts } = await supabase
     .from('share_access_attempts')
     .select('id', { count: 'exact', head: true })
     .eq('share_link_id', link.id)
     .eq('ip_hash', ipHash)
+    .eq('success', false)
     .gte('created_at', minutesAgo(1))
 
   if ((recentAttempts ?? 0) >= ACCESS_RATE_LIMIT) {
@@ -302,23 +293,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'This share link has been paused after unusual traffic.' }, { status: 429 })
   }
 
-  let query = supabase
-    .from('portfolio_entries')
-    .select('id, title, date, category, specialty_tags, interview_themes, notes, refl_free_text, created_at, updated_at')
-    .eq('user_id', link.user_id)
-    .is('deleted_at', null)
-    .order('date', { ascending: false })
-
-  if (link.scope === 'specialty' && link.specialty_key) {
-    query = query.contains('specialty_tags', [link.specialty_key])
-  }
-  if (link.scope === 'theme' && link.theme_slug) {
-    query = query.contains('interview_themes', [link.theme_slug])
-  }
-
   const [{ data: profile }, { data: entries, error: entriesError }] = await Promise.all([
     supabase.from('profiles').select('first_name, last_name').eq('id', link.user_id).maybeSingle(),
-    query,
+    fetchSharedEntries(supabase, link),
   ])
 
   if (entriesError) {

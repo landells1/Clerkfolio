@@ -147,8 +147,12 @@ export function ShareTab({
           {shareScope === 'theme' && (
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme</span>
-              <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-              <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
+              {/* A select, not free text: a typo'd theme created a link that
+                  matched nothing yet still used up a free share slot. */}
+              <select value={shareTheme} onChange={e => setShareTheme(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
+                <option value="">{themes.length === 0 ? 'No competency themes on your entries yet' : 'Choose a theme'}</option>
+                {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
+              </select>
             </label>
           )}
           <div>

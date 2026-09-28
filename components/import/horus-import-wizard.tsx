@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Papa from 'papaparse'
 import { CATEGORIES } from '@/lib/types/portfolio'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { parseUkDate } from '@/lib/import/uk-date'
 
 // Known Horus and foundation e-portfolio column names (case-insensitive matching)
 const COL_DATE         = ['date', 'event date', 'created date', 'completion date', 'signed date']
@@ -75,7 +76,8 @@ function parseRows(data: Record<string, string>[], headers: string[]): HorusRow[
 
     const issues: string[] = []
     if (!rawTitle) issues.push('Missing title - will be skipped')
-    if (!rawDate)  issues.push('Missing date')
+    if (!rawDate)  issues.push('Missing date - will be skipped')
+    else if (!parseUkDate(rawDate)) issues.push('Unrecognised date (use DD/MM/YYYY) - will be skipped')
     if (!rawType)  issues.push('Missing type - will import as Custom')
 
     return {
@@ -113,7 +115,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [dupHandling, setDupHandling] = useState<DuplicateHandling>('skip')
   const [importing, setImporting] = useState(false)
-  const [result, setResult] = useState<{ created: number; skipped: number } | null>(null)
+  const [result, setResult] = useState<{ created: number; skipped: number; errors: { row: number; error: string }[] } | null>(null)
   const fileRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
 
@@ -163,32 +165,43 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
   async function handleImport() {
     setImporting(true)
     const toImport = rows.filter(r => r.selected && r.title)
+    // The server caps each request at 500 rows, so large Horus exports are sent
+    // in batches and the results summed (row numbers offset per batch).
+    const BATCH = 500
+    const totals = { created: 0, skipped: 0, errors: [] as { row: number; error: string }[] }
+    for (let start = 0; start < toImport.length; start += BATCH) {
+      const batch = toImport.slice(start, start + BATCH)
+      const res = await apiFetch<{ created: number; skipped: number; errors: { row: number; error: string }[]; error?: string }>('/api/import/horus', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          rows: batch.map(r => ({
+            date: r.date,
+            type: r.type,
+            title: r.title,
+            category: r.mappedCategory,
+            supervisor_name: r.supervisor,
+            supervision_level: r.grade,
+            notes: [r.comments, r.setting ? `Clinical setting: ${r.setting}` : ''].filter(Boolean).join('\n\n'),
+            specialty_tags: selectedTags,
+          })),
+          dupHandling,
+        }),
+      })
 
-    const res = await apiFetch<{ created: number; skipped: number; errors: { row: number; error: string }[]; error?: string }>('/api/import/horus', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        rows: toImport.map(r => ({
-          date: r.date,
-          type: r.type,
-          title: r.title,
-          category: r.mappedCategory,
-          supervisor_name: r.supervisor,
-          supervision_level: r.grade,
-          notes: [r.comments, r.setting ? `Clinical setting: ${r.setting}` : ''].filter(Boolean).join('\n\n'),
-          specialty_tags: selectedTags,
-        })),
-        dupHandling,
-      }),
-    })
-
-    if (!res.ok || !res.data) {
-      setError(res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Import failed')
-      setImporting(false)
-      return
+      if (!res.ok || !res.data) {
+        const message = res.status === null ? NETWORK_ERROR_MESSAGE : res.data?.error ?? 'Import failed'
+        // Earlier batches are already saved - say so rather than implying nothing imported.
+        setError(totals.created > 0 ? `${message} ${totals.created} entries from earlier batches were imported; re-run with "Skip duplicates" to finish.` : message)
+        setImporting(false)
+        return
+      }
+      totals.created += res.data.created
+      totals.skipped += res.data.skipped
+      totals.errors.push(...(res.data.errors ?? []).map(err => ({ ...err, row: err.row + start })))
     }
 
-    setResult(res.data)
+    setResult(totals)
     setStep(4)
     setImporting(false)
   }
@@ -467,6 +480,17 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
                 <p className="text-xs text-[var(--text-muted)] mt-1">Skipped</p>
               </div>
             </div>
+            {result.errors.length > 0 && (
+              <div className="mt-6 w-full max-w-md rounded-xl border border-amber-400/20 bg-amber-400/5 p-4 text-left text-xs text-[var(--warning)]">
+                <p className="font-medium">{result.errors.length} row{result.errors.length === 1 ? ' was' : 's were'} not imported:</p>
+                <ul className="mt-2 space-y-1 text-[var(--text-secondary)]">
+                  {result.errors.slice(0, 10).map(err => (
+                    <li key={`${err.row}-${err.error}`}>Row {err.row}: {err.error}</li>
+                  ))}
+                  {result.errors.length > 10 && <li>...and {result.errors.length - 10} more.</li>}
+                </ul>
+              </div>
+            )}
           </div>
           <div className="flex justify-center gap-3">
             <Link

@@ -405,6 +405,10 @@ export default function ExportPage() {
       setError('Track a specialty before creating a specialty-scoped link.')
       return
     }
+    if (shareScope === 'theme' && !shareTheme) {
+      setError('Choose a competency theme for this link.')
+      return
+    }
 
     setShareLoading(true)
     setError(null)

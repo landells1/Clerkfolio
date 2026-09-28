@@ -177,8 +177,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const events = [...configuredDeadlines, ...(deadlines ?? []), ...goalEvents].flatMap(deadline => {
     const start = icsDate(deadline.due_date)
+    // Date-only strings parse as UTC midnight, so step the day in UTC too (a
+    // local setDate() would land on the same day on a non-UTC runtime).
     const endDate = new Date(deadline.due_date)
-    endDate.setDate(endDate.getDate() + 1)
+    endDate.setUTCDate(endDate.getUTCDate() + 1)
     const end = icsDate(endDate.toISOString().split('T')[0])
     return [
       'BEGIN:VEVENT',
@@ -200,9 +202,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:Clerkfolio Timeline',
+    // Hint subscribers to re-poll a few times a day (Apple/Outlook honour these).
+    'REFRESH-INTERVAL;VALUE=DURATION:PT6H',
+    'X-PUBLISHED-TTL:PT6H',
     ...events,
     'END:VCALENDAR',
-  ].join('\r\n')
+  ].join('\r\n') + '\r\n' // RFC 5545: every content line ends with CRLF
 
   return new NextResponse(body, {
     headers: {

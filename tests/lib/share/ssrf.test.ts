@@ -95,3 +95,24 @@ describe('isPublicWebhookHost — accepts genuine public hosts', () => {
     expect(isPublicWebhookHost(host)).toBe(true)
   })
 })
+
+describe('isPublicWebhookHost - IPv4 embedded in IPv6', () => {
+  it.each([
+    '[::ffff:a9fe:a9fe]', // URL-normalised ::ffff:169.254.169.254
+    '[::ffff:7f00:1]',    // ::ffff:127.0.0.1
+    '[::ffff:a00:1]',     // ::ffff:10.0.0.1
+    '[::7f00:1]',         // IPv4-compatible 127.0.0.1
+    '[64:ff9b::a9fe:a9fe]', // NAT64 169.254.169.254
+    '[64:ff9b::127.0.0.1]',
+  ])('rejects %s', host => {
+    expect(isPublicWebhookHost(host)).toBe(false)
+  })
+
+  it('still accepts a mapped public address', () => {
+    expect(isPublicWebhookHost('[::ffff:808:808]')).toBe(true) // 8.8.8.8
+  })
+
+  it('matches what new URL() produces for a mapped metadata address', () => {
+    expect(isPublicWebhookHost(new URL('http://[::ffff:169.254.169.254]/').hostname)).toBe(false)
+  })
+})

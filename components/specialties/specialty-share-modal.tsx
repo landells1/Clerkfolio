@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { apiFetch } from '@/lib/api-fetch'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 type ShareLinkData = { id: string; token: string; expires_at: string }
 
@@ -36,7 +36,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
     }
     setGenerating(true)
     setError(null)
-    const { ok, data } = await apiFetch<ShareLinkData & { error?: string }>('/api/share', {
+    const { ok, status, data } = await apiFetch<ShareLinkData & { error?: string; limit?: number }>('/api/share', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ specialty_key: specialtyKey, pin: pin.trim() }),
@@ -44,6 +44,11 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
     if (ok && data) {
       setLink(data)
       setPin('')
+    } else if (status === null) {
+      setError(NETWORK_ERROR_MESSAGE)
+    } else if (data?.error === 'limit_reached') {
+      const limit = typeof data.limit === 'number' ? data.limit : 1
+      setError(`You're using all ${limit} of your free share link${limit === 1 ? '' : 's'}. Revoke one under Import & export > Share links, or upgrade to Pro for unlimited links.`)
     } else {
       setError(data?.error ?? 'Could not create share link.')
     }
@@ -56,14 +61,19 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
     setRevoking(true)
     const { ok } = await apiFetch(`/api/share?id=${link.id}`, { method: 'DELETE' })
     if (ok) setLink(null)
+    else setError('Could not revoke the link. Please try again.')
     setRevoking(false)
   }
 
-  function handleCopy() {
+  async function handleCopy() {
     if (!link) return
-    navigator.clipboard.writeText(`${BASE_URL}/share/${link.token}`)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    try {
+      await navigator.clipboard.writeText(`${BASE_URL}/share/${link.token}`)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      setError('Clipboard unavailable. Select the link above and copy it manually.')
+    }
   }
 
   const url = link ? `${BASE_URL}/share/${link.token}` : null
@@ -80,7 +90,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
           <div>
             <h2 className="text-base font-semibold text-[var(--text-primary)]">Share read-only link</h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
-              Anyone with the link can view your evidence - no account needed.
+              Anyone with the link and its PIN can view the portfolio entries for this specialty - no account needed. Evidence files and cases are never shared.
             </p>
           </div>
           <button onClick={onClose} className="shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mt-0.5">
@@ -160,7 +170,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
                 </svg>
-                <span className="text-xs text-[var(--text-muted)]">Read-only - no login required</span>
+                <span className="text-xs text-[var(--text-muted)]">Read-only - PIN required, no account needed</span>
               </div>
               <div className="flex items-center gap-2">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">

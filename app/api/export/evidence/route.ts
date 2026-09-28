@@ -88,17 +88,32 @@ export async function GET(req: NextRequest) {
   })
 
   const zip = new JSZip()
+  const failed: string[] = []
   await Promise.allSettled(files.map(async (file, index) => {
-    const { data } = await supabase.storage.from('evidence').download(file.file_path)
-    if (!data) return
-    zip.file(archiveNames[index], await data.arrayBuffer())
+    try {
+      const { data } = await supabase.storage.from('evidence').download(file.file_path)
+      if (!data) { failed.push(archiveNames[index]); return }
+      zip.file(archiveNames[index], await data.arrayBuffer())
+    } catch {
+      failed.push(archiveNames[index])
+    }
   }))
+
+  // Never hand back a quietly incomplete archive (same rule as the GDPR export).
+  if (failed.length === files.length) {
+    return NextResponse.json({ error: 'Could not download your evidence files. Please try again.' }, { status: 502 })
+  }
+  if (failed.length > 0) {
+    zip.file('FAILED.txt', `These files could not be downloaded and are NOT in this archive. Please try the export again.\n\n${failed.sort().join('\n')}\n`)
+  }
 
   const buffer = await zip.generateAsync({ type: 'arraybuffer', compression: 'DEFLATE', compressionOptions: { level: 6 } })
   return new NextResponse(buffer, {
     headers: {
       'Content-Type': 'application/zip',
-      'Content-Disposition': `attachment; filename="clerkfolio-evidence-${entryId}.zip"`,
+      // No filename here: the client names the file after the entry title,
+      // which a server-sent filename would override.
+      'Content-Disposition': 'attachment',
     },
   })
 }

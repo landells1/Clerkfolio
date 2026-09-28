@@ -331,7 +331,15 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     if (!token) {
       const { ok, status, data } = await apiFetch<{ token?: string; error?: string; requiresRotation?: boolean }>('/api/calendar/feed-token', { method: 'POST' })
       if (data?.requiresRotation) {
+        // The stored feed token is hash-only, so an existing link can't be
+        // shown again - the only way forward is a NEW link, which silently
+        // disconnected any calendar already subscribed. Ask first.
+        const proceed = window.confirm(
+          'For security your existing calendar link can\'t be shown again. Continuing creates a new link, and any calendar already subscribed to the old link will stop updating until you re-add it. Continue?'
+        )
+        if (!proceed) return null
         const rotated = await rotateCalendarFeed(false)
+        if (rotated) addToast('New calendar link created. Re-add it anywhere you used the old one.', 'info')
         return rotated
       }
       if (!ok || !data?.token) {

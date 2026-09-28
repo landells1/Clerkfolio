@@ -137,9 +137,9 @@ export function PdfExportTab({
             </select>
             <p className="mt-2 text-[11px] text-[var(--text-muted)]">
               {pdfTemplate === 'default' && 'Clean general-purpose layout, grouped by category.'}
-              {pdfTemplate === 'foundation' && 'Foundation Programme layout grouped by ARCP capability.'}
-              {pdfTemplate === 'mrcp' && 'Tailored to MRCP application section ordering.'}
-              {pdfTemplate === 'st_application' && 'Higher specialty (ST3+) self-assessment layout.'}
+              {pdfTemplate === 'foundation' && 'Foundation portfolio cover page for ARCP preparation, entries grouped by category.'}
+              {pdfTemplate === 'mrcp' && 'MRCP portfolio cover page, entries grouped by category.'}
+              {pdfTemplate === 'st_application' && 'Specialty training application cover page, entries grouped by category.'}
             </p>
           </div>
         )}
