@@ -6,6 +6,7 @@ import CvDownloadButton from '@/components/export/cv-download-button'
 import DocxDownloadButton from '@/components/export/docx-download-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -96,7 +97,7 @@ export default async function CvGeneratorPage({
       </div>
       {!subInfo.isPro && (
         <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
-          {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining. ' : 'Your included PDF has been used. '}
+          {subInfo.limits.canExportPdf ? `${pdfRemainingLabel(subInfo)}. ` : 'Your included PDFs have been used. '}
           CV PDF and DOCX downloads share the PDF allowance with Application PDF and Year in review downloads.
         </p>
       )}

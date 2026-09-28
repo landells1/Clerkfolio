@@ -134,3 +134,9 @@ export function activeWeeksYearToDate(activeWeeks: string[], now = new Date()) {
   const year = londonDateParts(now).year
   return activeWeeks.filter(key => key.startsWith(`${year}-W`)).length
 }
+
+/** Calendar year a "year in review" covers: the previous UK year during January. */
+export function yearInReviewYear(now: Date = new Date()) {
+  const { year, month } = londonDateParts(now)
+  return month === 1 ? year - 1 : year
+}

@@ -1,5 +1,6 @@
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { localIsoDate } from '@/lib/timeline/calendar-grid'
 
 // Constants, types and pure helpers shared between the Import & export page
 // and its tab components.
@@ -49,10 +50,31 @@ export function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
+// Local (UK) calendar date, not the UTC date - the UTC date is a day behind
+// between 00:00 and 01:00 BST, which skewed the expiry picker's min/max.
 export function isoDateOffset(days: number) {
   const date = new Date()
   date.setDate(date.getDate() + days)
-  return date.toISOString().split('T')[0]
+  return localIsoDate(date)
+}
+
+const MAX_SHARE_EXPIRY_MS = 90 * 86_400_000
+
+/**
+ * A custom expiry date ("YYYY-MM-DD") means the link works for the whole of
+ * that day, so send the end of the day in the user's time zone. Clamped just
+ * inside the server's 90-day cap so picking the last allowed date still works.
+ */
+export function customExpiryToIso(date: string, now = Date.now()): string | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return null
+  const endOfDay = new Date(`${date}T23:59:59`)
+  if (Number.isNaN(endOfDay.getTime())) return null
+  return new Date(Math.min(endOfDay.getTime(), now + MAX_SHARE_EXPIRY_MS - 60_000)).toISOString()
+}
+
+/** A share link that has passed its expiry but has not been revoked yet. */
+export function isShareLinkExpired(link: Pick<ShareLink, 'expires_at'>, now = Date.now()) {
+  return new Date(link.expires_at).getTime() <= now
 }
 
 export function shareLabel(link: ShareLink) {

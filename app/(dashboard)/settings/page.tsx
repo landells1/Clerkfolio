@@ -21,6 +21,7 @@ import { InstitutionalEmailSection } from '@/components/settings/institutional-e
 import { PasswordSection } from '@/components/settings/password-section'
 import { DataExportSection } from '@/components/settings/data-export-section'
 import { ReferralCodeSection } from '@/components/settings/referral-code-section'
+import { saveBlob } from '@/lib/download-blob'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
@@ -266,15 +267,7 @@ export default function SettingsPage() {
     try {
       const { ok, response } = await apiFetch('/api/account/export', { method: 'POST', parse: 'none' })
       if (!ok || !response) throw new Error('Export failed')
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `clerkfolio-export-${new Date().toISOString().split('T')[0]}.zip`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      saveBlob(await response.blob(), `clerkfolio-export-${new Date().toISOString().split('T')[0]}.zip`)
     } catch {
       addToast('Failed to generate export', 'error')
     } finally {

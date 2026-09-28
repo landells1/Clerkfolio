@@ -244,7 +244,7 @@ export async function PATCH(req: NextRequest) {
 
   const { data: existing, error: existingError } = await supabase
     .from('share_links')
-    .select('revoked, revoked_at')
+    .select('revoked, revoked_at, expires_at')
     .eq('id', id)
     .eq('user_id', user.id)
     .maybeSingle()
@@ -259,6 +259,19 @@ export async function PATCH(req: NextRequest) {
       { error: 'This link was revoked and cannot be extended. Create a new share link.' },
       { status: 409 }
     )
+  }
+
+  // Renewing an EXPIRED link brings it back into the active count, so a free
+  // user must have room under their allowance (1 + rewarded referrals) -
+  // otherwise "create a new link, then renew the old one" beat the cap.
+  if (new Date(existing.expires_at).getTime() <= Date.now()) {
+    const subInfo = await fetchSubscriptionInfo(supabase, user.id)
+    if (!subInfo.isPro && !subInfo.limits.canCreateShareLink) {
+      return NextResponse.json(
+        { error: 'limit_reached', limit: 1 + subInfo.referralCount, used: subInfo.usage.shareLinksUsed, upgrade_url: '/upgrade' },
+        { status: 403 }
+      )
+    }
   }
 
   const { data, error } = await supabase

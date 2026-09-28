@@ -197,8 +197,14 @@ export async function POST(request: NextRequest) {
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+    // The export page's "Include notes and reflection text" tick maps to the
+    // `notes` field; unticked, strip every free-text narrative field so a PDF
+    // sent to a panel carries only the structured record.
+    const pdfEntries = selectedFields.includes('notes')
+      ? filteredEntries
+      : filteredEntries.map(entry => ({ ...entry, notes: null, refl_free_text: null, refl_clinical_context: null }))
     const buffer = await renderPortfolioPdf({
-      entries: filteredEntries,
+      entries: pdfEntries,
       userName,
       specialty: specialtyDisplay,
       exportedAt,

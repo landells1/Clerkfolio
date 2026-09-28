@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
+import { yearInReviewYear } from '@/lib/engagement/streaks'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
@@ -41,7 +42,10 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const year = new Date().getFullYear()
+  // The year-in-review cron emails on 2 January about the year that just
+  // ended, so throughout January the review covers the previous calendar year
+  // (UK time) rather than a near-empty new one.
+  const year = yearInReviewYear(new Date())
   const [{ data: profile }, { data: entries }] = await Promise.all([
     supabase.from('profiles').select('first_name, last_name').eq('id', user.id).single(),
     supabase
@@ -54,16 +58,24 @@ export async function POST(req: NextRequest) {
       .order('date', { ascending: false }),
   ])
 
+  // Never spend a free PDF allowance on an empty document.
+  if (!entries || entries.length === 0) {
+    return NextResponse.json(
+      { error: `No portfolio entries dated in ${year} yet. Your year in review will appear once you log some.` },
+      { status: 400 }
+    )
+  }
+
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   try {
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
     const buffer = await renderPortfolioPdf({
-      entries: entries ?? [],
+      entries,
       userName,
       specialty: `${year} year in review`,
       exportedAt: new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }),
       templateName: `${year} year in review`,
-      templateSubtitle: 'Your Clerkfolio portfolio entries from this calendar year',
+      templateSubtitle: `Your Clerkfolio portfolio entries from ${year}`,
       templateAccent: '#F59E0B',
     })
 
