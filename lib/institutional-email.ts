@@ -23,6 +23,8 @@ export function isNhsEmail(email: string) {
   return (
     domain === 'nhs.net' ||
     domain === 'hscni.net' ||
+    // NHS Scotland's standard staff format is the bare name@nhs.scot.
+    domain === 'nhs.scot' ||
     NHS_EMAIL_PATTERNS.some(pattern => pattern.test(domain))
   )
 }

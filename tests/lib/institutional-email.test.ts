@@ -89,6 +89,7 @@ describe('isNhsEmail', () => {
 
   it('accepts nhs.scot', () => {
     expect(isNhsEmail('alice@ggc.nhs.scot')).toBe(true)
+    expect(isNhsEmail('alice.smith@nhs.scot')).toBe(true)
   })
 
   it('rejects non-NHS', () => {

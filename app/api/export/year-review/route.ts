@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canExportPdf) {
     return NextResponse.json(
-      { error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' },
+      { error: 'limit_reached', limit: 1 + sub.referralCount, upgrade_url: '/upgrade' },
       { status: 403 }
     )
   }
@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
     if (!sub.isPro) {
       const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
       if (!claimed) {
-        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+        return NextResponse.json({ error: 'limit_reached', limit: 1 + sub.referralCount, upgrade_url: '/upgrade' }, { status: 403 })
       }
     }
 

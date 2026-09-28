@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
   // PDF-only lifetime cap: do not block CSV / JSON exports.
   if ((!format || format === 'pdf') && !subInfo.limits.canExportPdf) {
-    return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
+    return NextResponse.json({ error: 'limit_reached', limit: 1 + subInfo.referralCount, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
   }
 
   if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
@@ -214,7 +214,7 @@ export async function POST(request: NextRequest) {
     if (!subInfo.isPro) {
       const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
       if (!claimed) {
-        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+        return NextResponse.json({ error: 'limit_reached', limit: 1 + subInfo.referralCount, upgrade_url: '/upgrade' }, { status: 403 })
       }
     }
 
