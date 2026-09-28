@@ -10,7 +10,10 @@ import { createHmac, timingSafeEqual } from 'crypto'
 // the Settings → Notifications page toggles). Keep these in sync with
 // DEFAULT_PREFS in app/(dashboard)/settings/notifications/page.tsx.
 export const UNSUBSCRIBE_LISTS = {
-  weekly_digest: ['weekly_digest'],
+  // Both digests: the monthly digest only goes to users with the weekly one
+  // OFF (shouldSendMonthlyDigest), so switching off weekly alone silently
+  // enrolled the user in a monthly email they never asked for.
+  weekly_digest: ['weekly_digest', 'monthly_digest'],
   monthly_digest: ['monthly_digest'],
   reminders: ['deadlines', 'share_link_expiring', 'application_window', 'activity_nudge'],
   all: ['weekly_digest', 'monthly_digest', 'deadlines', 'share_link_expiring', 'application_window', 'activity_nudge'],
@@ -19,7 +22,7 @@ export const UNSUBSCRIBE_LISTS = {
 export type UnsubscribeList = keyof typeof UNSUBSCRIBE_LISTS
 
 export const UNSUBSCRIBE_LIST_LABELS: Record<UnsubscribeList, string> = {
-  weekly_digest: 'weekly digest emails',
+  weekly_digest: 'digest emails (weekly and monthly)',
   monthly_digest: 'monthly digest emails',
   reminders: 'reminder emails (deadlines, expiring share links, application windows, and nudges)',
   all: 'all Clerkfolio emails',

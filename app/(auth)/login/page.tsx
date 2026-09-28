@@ -29,6 +29,7 @@ function LoginForm() {
   const recoveryFailed = confirmationFailed && searchParams.get('type') === 'recovery'
   const wrongAccountVerify = searchParams.get('verify') === 'wrong_account'
   const sessionRevoked = searchParams.get('session') === 'revoked'
+  const passwordChanged = searchParams.get('password') === 'changed'
   const localLogout = searchParams.get('logout') === 'local'
   const nextPath = safeNextPath(searchParams.get('next'))
 
@@ -87,6 +88,12 @@ function LoginForm() {
       {wrongAccountVerify && (
         <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--warning)] mb-4">
           That verification link belongs to a different Clerkfolio account. Sign in to the account that requested the link, then re-open the link from the email.
+        </div>
+      )}
+
+      {passwordChanged && (
+        <div role="status" className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg px-3.5 py-2.5 text-sm text-[var(--success)] mb-4">
+          Password changed. Sign in with your new password to continue.
         </div>
       )}
 

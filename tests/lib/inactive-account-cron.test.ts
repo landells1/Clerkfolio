@@ -14,12 +14,14 @@ const state: {
   deletedUserIds: string[]
   signedOutUserIds: string[]
   scheduledSubscriptionIds: string[]
+  recentActivityTables: string[]
 } = {
   users: [],
   profileSubscriptionId: null,
   deletedUserIds: [],
   signedOutUserIds: [],
   scheduledSubscriptionIds: [],
+  recentActivityTables: [],
 }
 
 vi.mock('@/lib/monitoring', () => ({ logBackgroundJobError: vi.fn() }))
@@ -71,6 +73,20 @@ vi.mock('@/lib/supabase/server', () => ({
           }),
         }
       }
+      if (table === 'session_fingerprints' || table === 'portfolio_entries' || table === 'cases') {
+        return {
+          select: () => ({
+            eq: () => ({
+              gt: () => ({
+                limit: async () => ({
+                  data: state.recentActivityTables.includes(table) ? [{ id: 'recent' }] : [],
+                  error: null,
+                }),
+              }),
+            }),
+          }),
+        }
+      }
       if (table === 'evidence_files') {
         return {
           select: () => ({
@@ -100,6 +116,7 @@ beforeEach(() => {
   state.deletedUserIds = []
   state.signedOutUserIds = []
   state.scheduledSubscriptionIds = []
+  state.recentActivityTables = []
 })
 
 describe('inactive account retention cron', () => {
@@ -110,7 +127,8 @@ describe('inactive account retention cron', () => {
 
     expect(response.status).toBe(200)
     expect(await response.json()).toMatchObject({ eligible: 1, deleted: 1, failed: 0 })
-    expect(state.signedOutUserIds).toEqual([INACTIVE_USER.id])
+    // deleteUser alone ends the sessions; admin.signOut takes a JWT, not an id.
+    expect(state.signedOutUserIds).toEqual([])
     expect(state.deletedUserIds).toEqual([INACTIVE_USER.id])
   })
 
@@ -122,6 +140,19 @@ describe('inactive account retention cron', () => {
     expect(await response.json()).toMatchObject({ eligible: 0, deleted: 0 })
     expect(state.deletedUserIds).toEqual([])
   })
+
+  it.each(['session_fingerprints', 'portfolio_entries', 'cases'])(
+    'keeps an account with no recent sign-in but recent app activity (%s)',
+    async table => {
+      state.users = [INACTIVE_USER]
+      state.recentActivityTables = [table]
+
+      const response = await GET(cronRequest())
+
+      expect(await response.json()).toMatchObject({ eligible: 1, active: 1, deleted: 0 })
+      expect(state.deletedUserIds).toEqual([])
+    },
+  )
 
   it('schedules an active paid subscription to end before deleting data', async () => {
     state.users = [INACTIVE_USER]

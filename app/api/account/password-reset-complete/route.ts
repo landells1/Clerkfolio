@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient, createServiceClient } from '@/lib/supabase/server'
 import { validateOrigin } from '@/lib/csrf'
 import { notifyPasswordChanged } from '@/lib/notifications/password-changed'
+import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
+
+// A real reset calls this once. Bound replays so a signed-in session looping
+// the endpoint cannot fan out unlimited "password changed" emails.
+const RESET_COMPLETE_LIMIT = { max: 3, windowSeconds: 60 * 60, prefix: 'password-reset-complete' }
 
 // Called by /update-password after a successful reset-link password change.
 //
@@ -23,13 +28,22 @@ export async function POST(req: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorised' }, { status: 401 })
 
+  const rateLimit = await checkRateLimit({ key: user.id, ...RESET_COMPLETE_LIMIT })
+  if (!rateLimit.success) {
+    return NextResponse.json(
+      { error: 'Too many requests.' },
+      { status: 429, headers: rateLimitHeaders(rateLimit, RESET_COMPLETE_LIMIT.windowSeconds) }
+    )
+  }
+
   const service = createServiceClient()
 
-  await service.from('audit_log').insert({
+  const { error: auditError } = await service.from('audit_log').insert({
     user_id: user.id,
     action: 'password_reset',
     metadata: { at: new Date().toISOString() },
   })
+  if (auditError) console.error('password-reset-complete: audit insert failed:', auditError.message)
 
   await notifyPasswordChanged(service, { userId: user.id, email: user.email ?? null, mode: 'reset' })
 

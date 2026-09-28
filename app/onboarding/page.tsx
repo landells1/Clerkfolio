@@ -58,8 +58,10 @@ export default function OnboardingPage() {
   ].filter((value): value is string => Boolean(value))
   const profileStepBlocked = step === 'profile' && missingProfileItems.length > 0
   const profileHintId = 'onboarding-profile-requirements'
+  // Every config (a slice(0, 18) here hid CSRH, Psych Learning Disability and
+  // the PH+GP dual programme from onboarding).
   const entryLevelSpecialties = useMemo(
-    () => SPECIALTY_CONFIGS.slice(0, 18),
+    () => SPECIALTY_CONFIGS,
     []
   )
 
@@ -176,7 +178,10 @@ export default function OnboardingPage() {
       setError('Could not finish onboarding. Check your connection and try again.')
       return
     }
-    if (!ok) {
+    // 409 = onboarding is already complete (a retry after a lost response, or
+    // another tab finished first). That is success for this user - carry on
+    // to the app instead of showing an error they cannot act on.
+    if (!ok && status !== 409) {
       setSaving(false)
       setError(data?.error ?? 'Could not finish onboarding.')
       return

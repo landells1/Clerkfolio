@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import { NextRequest, NextResponse } from 'next/server'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
@@ -5,6 +6,7 @@ import { createClient } from '@/lib/supabase/server'
 import { requestIp } from '@/lib/request-ip'
 
 const SIGNUP_LIMIT = { max: 5, windowSeconds: 60 * 60, prefix: 'auth-signup' }
+const SIGNUP_NETWORK_LIMIT = { max: 40, windowSeconds: 60 * 60, prefix: 'auth-signup-net' }
 
 function statusRedirect(req: NextRequest, state: string, headers?: Record<string, string>) {
   const target = new URL('/signup/status', req.nextUrl.origin)
@@ -33,8 +35,14 @@ export async function POST(req: NextRequest) {
     return statusRedirect(req, 'invalid')
   }
 
+  // Same two-tier policy as /api/auth/preflight: a loose per-network ceiling
+  // (shared hospital/university NAT) plus a tight per-address limit.
+  const networkLimit = await checkRateLimit({ key: requestIp(req), ...SIGNUP_NETWORK_LIMIT })
+  if (!networkLimit.success) {
+    return statusRedirect(req, 'rate_limited', rateLimitHeaders(networkLimit, SIGNUP_NETWORK_LIMIT.windowSeconds))
+  }
   const rateLimit = await checkRateLimit({
-    key: requestIp(req),
+    key: createHash('sha256').update(email.toLowerCase()).digest('hex'),
     ...SIGNUP_LIMIT,
   })
   if (!rateLimit.success) {

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
-import { isAccountInactiveForRetention } from '@/lib/account/inactive-user-retention'
+import { inactiveAccountCutoff, isAccountInactiveForRetention } from '@/lib/account/inactive-user-retention'
 import { logBackgroundJobError } from '@/lib/monitoring'
 import { getStripe } from '@/lib/stripe'
 import * as Sentry from '@sentry/nextjs'
@@ -12,6 +12,10 @@ export const maxDuration = 60
 
 const AUTH_PAGE_SIZE = 1_000
 const MAX_DELETIONS_PER_RUN = 20
+// Bound per-run work separately from deletions, so accounts that can't be
+// deleted yet (subscription winding down, recently active) at the front of
+// the list no longer starve everyone behind them.
+const MAX_CANDIDATES_PER_RUN = 100
 const STORAGE_BUCKET = 'evidence'
 const STORAGE_DELETE_CHUNK = 500
 
@@ -53,10 +57,10 @@ async function resolveSubscription(
   }
 }
 
-async function removeEvidence(
+async function evidencePaths(
   supabase: ReturnType<typeof createServiceClient>,
   userId: string,
-) {
+): Promise<string[]> {
   const { data: files, error: filesError } = await supabase
     .from('evidence_files')
     .select('file_path')
@@ -64,16 +68,43 @@ async function removeEvidence(
 
   if (filesError) throw filesError
 
-  const paths = (files ?? [])
+  return (files ?? [])
     .map(file => file.file_path)
     .filter((path): path is string => typeof path === 'string' && path.length > 0)
+}
 
+async function removeStorageObjects(
+  supabase: ReturnType<typeof createServiceClient>,
+  paths: string[],
+) {
   for (let offset = 0; offset < paths.length; offset += STORAGE_DELETE_CHUNK) {
     const { error } = await supabase.storage
       .from(STORAGE_BUCKET)
       .remove(paths.slice(offset, offset + STORAGE_DELETE_CHUNK))
     if (error) throw error
   }
+}
+
+// auth.users.last_sign_in_at only moves on a real sign-in, NOT when a session
+// silently refreshes - so a doctor who stays signed in on their phone for two
+// years and uses the app daily looked "inactive". Treat any recent app
+// activity (a session seen by the middleware, or an entry/case written) as
+// activity too.
+async function hasRecentAppActivity(
+  supabase: ReturnType<typeof createServiceClient>,
+  userId: string,
+  cutoffIso: string,
+): Promise<boolean> {
+  const checks = await Promise.all([
+    supabase.from('session_fingerprints').select('id').eq('user_id', userId).gt('last_seen_at', cutoffIso).limit(1),
+    supabase.from('portfolio_entries').select('id').eq('user_id', userId).gt('updated_at', cutoffIso).limit(1),
+    supabase.from('cases').select('id').eq('user_id', userId).gt('updated_at', cutoffIso).limit(1),
+  ])
+  for (const { data, error } of checks) {
+    if (error) throw error
+    if ((data ?? []).length > 0) return true
+  }
+  return false
 }
 
 async function purgeInactiveUser(
@@ -85,6 +116,7 @@ async function purgeInactiveUser(
   const { data: latest, error: latestError } = await supabase.auth.admin.getUserById(user.id)
   if (latestError) throw latestError
   if (!latest.user || !isAccountInactiveForRetention(latest.user)) return 'active'
+  if (await hasRecentAppActivity(supabase, user.id, inactiveAccountCutoff().toISOString())) return 'active'
 
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
@@ -98,12 +130,23 @@ async function purgeInactiveUser(
   if (subscriptionDisposition === 'pending') return 'subscription_pending'
   if (subscriptionDisposition === 'blocked') return 'subscription_blocked'
 
-  await removeEvidence(supabase, user.id)
-  const { error: signOutError } = await supabase.auth.admin.signOut(user.id, 'global')
-  if (signOutError) throw signOutError
+  // Collect storage paths first, delete the auth user (cascading its rows and
+  // sessions), THEN remove the objects. The previous order removed evidence
+  // and then called auth.admin.signOut(userId) - which takes a JWT, not a user
+  // id, so it always failed - leaving accounts whose files were wiped but
+  // which were never deleted, retried every night.
+  const paths = await evidencePaths(supabase, user.id)
 
   const { error: deleteError } = await supabase.auth.admin.deleteUser(user.id)
   if (deleteError) throw deleteError
+
+  try {
+    await removeStorageObjects(supabase, paths)
+  } catch (error) {
+    // The account and its rows are gone; only orphan storage objects remain,
+    // which the owner can clear from the bucket. Log, but count the deletion.
+    logBackgroundJobError('cron.purge_inactive_accounts.storage_remove', error, { count: paths.length })
+  }
 
   return 'deleted'
 }
@@ -140,7 +183,7 @@ export async function GET(request: NextRequest) {
 
     const candidates = users
       .filter(user => isAccountInactiveForRetention(user))
-      .slice(0, MAX_DELETIONS_PER_RUN)
+      .slice(0, MAX_CANDIDATES_PER_RUN)
 
     const results = {
       deleted: 0,
@@ -152,6 +195,7 @@ export async function GET(request: NextRequest) {
     }
 
     for (const user of candidates) {
+      if (results.deleted >= MAX_DELETIONS_PER_RUN) break
       try {
         const result = await purgeInactiveUser(supabase, user)
         results[result] += 1

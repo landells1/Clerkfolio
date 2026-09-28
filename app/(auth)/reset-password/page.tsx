@@ -21,14 +21,14 @@ export default function ResetPasswordPage() {
       const { ok, status } = await apiFetch('/api/auth/preflight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reset' }),
+        body: JSON.stringify({ action: 'reset', email }),
       })
       if (status === null) {
         setError(NETWORK_ERROR_MESSAGE)
         return
       }
       if (status === 429) {
-        setError('Too many password reset attempts from this network. Please wait an hour and try again.')
+        setError('Too many password reset attempts. Please wait an hour and try again.')
         return
       }
       if (!ok) {

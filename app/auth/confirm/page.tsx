@@ -83,10 +83,14 @@ function ConfirmContent() {
     // indication that the account context has changed. Defense-in-depth: the
     // recovery-AAL gate on /update-password closes the takeover path; this
     // makes the swap explicit.
+    // Scope 'local': only this browser. The default global sign-out also
+    // logged the user out on every other device. Email-change links are
+    // confirmed by the SAME account from its own session, so leave that
+    // session alone (signing out first could also leave the swap unfinished).
     const { data: { user: existingUser } } = await supabase.auth.getUser()
-    if (existingUser) {
+    if (existingUser && type !== 'email_change') {
       clearClientStateOnAuthChange()
-      await supabase.auth.signOut()
+      await supabase.auth.signOut({ scope: 'local' })
     }
     const { error: otpError } = await supabase.auth.verifyOtp({
       token_hash: tokenHash,

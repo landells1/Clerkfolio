@@ -1,6 +1,7 @@
 'use client'
 
 import type { Dispatch, SetStateAction } from 'react'
+import { VERIFIED_BONUS_MB, formatStorageQuota } from '@/lib/entitlements/limits'
 
 export type StudentEmailState = {
   email: string
@@ -50,7 +51,7 @@ export function InstitutionalEmailSection({
         <div>
           <h2 className="text-base font-semibold text-[var(--text-primary)]">Institutional email</h2>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Verify a university or NHS email for Student storage where eligible and referral rewards. Re-verification is required yearly, and you can change this email when your institution changes.
+            Verify a university or NHS email for +{formatStorageQuota(VERIFIED_BONUS_MB)} Verified storage and to unlock referral rewards. Re-verification is required yearly, and you can change this email when your institution changes.
           </p>
         </div>
         <StudentEmailStatus studentEmail={studentEmail} />

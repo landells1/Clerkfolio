@@ -6,6 +6,7 @@ import BillingActionButton from '@/components/upgrade/billing-action-button'
 import MemberDiscountCard from '@/components/upgrade/member-discount-card'
 import StorageMeter from '@/components/upgrade/storage-meter'
 import { PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
+import { PRO_STORAGE_MB, formatStorageQuota } from '@/lib/entitlements/limits'
 
 export default async function UpgradePage() {
   const supabase = await createClient()
@@ -33,7 +34,7 @@ export default async function UpgradePage() {
         <section className="mb-6 rounded-2xl border border-accent/30 bg-accent/10 p-5">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">Pro is optional for medical students</h2>
           <p className="mt-2 text-sm leading-6 text-[var(--text-secondary)]">
-            Pro is optional for medical students - most stay on the free / student tier until they graduate.
+            Pro is optional for medical students - most stay on Free (or Verified, with a university email) until they graduate.
             Upgrade now if you want extra storage or unlimited share links.
           </p>
         </section>
@@ -98,7 +99,7 @@ export default async function UpgradePage() {
             <ChecklistItem done={subInfo.isPro} label="Unlock unlimited exports" />
             <ChecklistItem done={subInfo.isPro} label="Create more portfolio share links" />
             <ChecklistItem done={subInfo.isPro} label="Track multiple specialty applications" />
-            <ChecklistItem done={subInfo.isPro} label="Increase evidence storage to 5 GB" />
+            <ChecklistItem done={subInfo.isPro} label={`Increase evidence storage to ${formatStorageQuota(PRO_STORAGE_MB)}`} />
           </div>
           <Link href="/settings/referrals" className="mt-5 inline-flex text-sm font-medium text-[var(--accent-text)] hover:text-[var(--text-primary)]">
             View referral rewards
