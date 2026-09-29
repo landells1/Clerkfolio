@@ -131,6 +131,7 @@ Important local migrations:
 - `2026_07_12_career_stage_add_f3_out_of_training.sql`: widens the `profiles_career_stage_check` CHECK to add `F3` and `OUT_OF_TRAINING`. Additive/backward-compatible; applied to prod 2026-07-12; advisors unchanged.
 - `2026_09_28_prelaunch_review_db_fixes.sql`: `claim_free_pdf_export` now allows `1 + completed referrals` (it hard-coded `< 1`, so referral-earned PDFs rendered then 403'd); `rename_user_tag` de-duplicates merged arrays; `audit_action` gains `password_reset` (reset audit inserts were failing 22P02); `handle_institutional_email_on_auth_change` accepts bare `@nhs.scot`. Applied to prod 2026-09-28; advisors unchanged.
 - `2026_09_28_arcp_capabilities_fp2021_fpcs.sql`: re-seeds `arcp_capabilities` with the 13 FP2021 FPCs (see Specialties And ARCP). Aborts if any link references a retired key; rollback list in the file. Applied to prod 2026-09-28.
+- `2026_09_29_saved_searches_unique_per_surface.sql`: swaps `saved_searches` UNIQUE `(user_id, name)` for `(user_id, surface, name)`. Applied to prod 2026-09-29 AFTER the select-then-update/insert client deployed (the previous client upserted on `user_id,name`); rollback in the file.
 
 High-value functions: `claim_free_pdf_export`, `get_profile_entitlements`, `increment_pro_feature_usage`, `guard_profile_writes`, `handle_new_user`, `ensure_profile_for_current_user`, `confirm_student_email_token` (Batch 6: + recycled-email ledger guard/write), `enforce_specialty_track_cap`, `audit_auth_email_change`, `handle_institutional_email_on_auth_change` (Batch 6; SECURITY DEFINER trigger fn, EXECUTE = postgres+service_role only), `rename_user_tag`, `record_active_session_fingerprint` (Batch 5; INVOKER, service_role-only).
 
@@ -423,7 +424,7 @@ Sentry (error/performance monitoring) is classed as strictly-necessary diagnosti
 - **Free-tier copy** comes from `lib/entitlements/allowance.ts` (`pdfAllowance`/`shareAllowance`/`pdfRemainingLabel`); never hard-code "1 of 1".
 - **Imports** parse dates with `lib/import/uk-date.ts` (strict day-first, no US fallback, no UTC roll-back); unreadable dates are reported, never replaced with today. JSON restore skips trashed and demo rows.
 - **Trash covers `personal_log`** (restore, permanent delete, purge cron). The purge cron deletes exactly the ids whose evidence cleanup succeeded, in batches of 100.
-- **Saved searches** overwrite only a same-named search on the SAME surface (select-then-update/insert). The DB unique is still `(user_id, name)`, so a same name on another page is rejected with a message; moving it to `(user_id, surface, name)` needs a migration applied AFTER this code deploys (the old client upserts on `user_id,name`).
+- **Saved searches** overwrite only a same-named search on the SAME surface (select-then-update/insert). Names are unique per `(user_id, surface, name)` since `2026_09_29_saved_searches_unique_per_surface.sql` (applied 2026-09-29, after the client deployed), so the same name can be reused on another page.
 - **Stripe checkout** lists the customer's subscriptions before creating a session (no double subscription before the webhook lands) and treats a `resource_missing` customer as new (sandbox->live switch).
 - **Enter in entry/case forms** performs the primary save (`lib/forms/enter-submit.ts`); "Save & add another" is read from the real submitter.
 
