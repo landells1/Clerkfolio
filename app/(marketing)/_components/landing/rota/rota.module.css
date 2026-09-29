@@ -1,0 +1,183 @@
+/* The Rota: the landing page is one spreadsheet. Tokens are scoped to the
+   landing root so the app's cream/dark system is untouched. Palette law:
+   each --r-cat-* fill means exactly one portfolio category, everywhere.
+   Tokens also land on <body> (via :has) so overscroll and the root layout's
+   skip link match the sheet instead of the app's cream canvas. */
+.root,
+:global(body):has(.root) {
+  --r-ground: #ffffff;
+  --r-header: #f1f3ef;
+  --r-grid: #d3d9d1;
+  --r-grid-strong: #9ea79d;
+  --r-ink: #101316;
+  --r-ink-2: #3a4046;
+  --r-ink-3: #5c636a;
+  --r-select: #1e7b4f;
+  --r-select-hover: #17643f;
+  --r-select-soft: #e4f1e9;
+  --r-on-select: #ffffff;
+  --r-band: #101316;
+  --r-band-ink: #f1f3ef;
+  --r-band-ink-2: #b9c0bb;
+  --r-band-grid: #2c3237;
+  --r-on-fill: #101316;
+  --r-cat-audit: #ffc23d;
+  --r-cat-teaching: #9dbbff;
+  --r-cat-cases: #ffa3b8;
+  --r-cat-courses: #bfe87a;
+  --r-cat-leadership: #7adce0;
+
+  background: var(--r-ground);
+  color: var(--r-ink);
+  font-family: var(--font-archivo), system-ui, sans-serif;
+  font-variant-numeric: tabular-nums;
+  min-height: 100vh;
+  overflow-x: clip;
+}
+
+:global(html[data-theme='dark']) .root,
+:global(html[data-theme='dark'] body):has(.root) {
+  --r-ground: #111416;
+  --r-header: #191d20;
+  --r-grid: #2b3136;
+  --r-grid-strong: #4a535a;
+  --r-ink: #eef1ec;
+  --r-ink-2: #c3c9c4;
+  --r-ink-3: #959c97;
+  --r-select: #43c185;
+  --r-select-hover: #62d29a;
+  --r-select-soft: #16301f;
+  --r-on-select: #07120c;
+  --r-band: #eef1ec;
+  --r-band-ink: #101316;
+  --r-band-ink-2: #454c52;
+  --r-band-grid: #c9cfc8;
+  --r-cat-audit: #f2b632;
+  --r-cat-teaching: #86a7f5;
+  --r-cat-cases: #f28ca4;
+  --r-cat-courses: #a9d765;
+  --r-cat-leadership: #5ec6ca;
+}
+
+:global(body):has(.root) :global(.skip-link) {
+  background: var(--r-select);
+  color: var(--r-on-select);
+}
+
+/* globals.css turns every table into a scrolling block below 640px. The
+   sheet tables here scroll inside their own strips instead, and must stay
+   real tables so the frozen label column can stick. */
+.root table {
+  display: table;
+  max-width: none;
+  overflow: visible;
+}
+
+.root ::selection {
+  background: var(--r-select);
+  color: var(--r-on-select);
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--r-select);
+  outline-offset: 2px;
+}
+
+.root a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+/* Condensed heavy display voice: the rota header printed bold. */
+.display {
+  font-stretch: 72%;
+  font-weight: 800;
+  letter-spacing: -0.012em;
+  word-spacing: 0.08em;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+
+.label {
+  font-stretch: 88%;
+  font-weight: 650;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.prose {
+  text-wrap: pretty;
+}
+
+/* Cells: one hairline grid, drawn by the cells themselves. */
+.cell {
+  border-right: 1px solid var(--r-grid);
+  border-bottom: 1px solid var(--r-grid);
+}
+
+/* The one accent: the selected-cell outline and its fill handle. */
+.selected {
+  position: relative;
+  outline: 2px solid var(--r-select);
+  outline-offset: -2px;
+  z-index: 1;
+}
+
+/* A ground-coloured hairline inside the outline keeps it legible on any fill. */
+.selected > button {
+  box-shadow: inset 0 0 0 3px var(--r-ground);
+}
+
+.selected::after {
+  content: '';
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  background: var(--r-select);
+  border: 1.5px solid var(--r-ground);
+}
+
+/* Career fills paint in stage by stage, once, on first view. */
+@media (prefers-reduced-motion: no-preference) {
+  .fill {
+    animation: paint 720ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--col, 0) * 150ms + var(--row, 0) * 45ms + 180ms);
+  }
+}
+
+@keyframes paint {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.scrollStrip {
+  scrollbar-width: none;
+}
+
+.scrollStrip::-webkit-scrollbar {
+  display: none;
+}
+
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqIcon {
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+details[open] .faqIcon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqIcon {
+    transition: none;
+  }
+}

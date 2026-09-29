@@ -4,16 +4,21 @@ import { JsonLd } from '@/components/seo/json-ld'
 import { LANDING_FAQS } from '@/lib/marketing/faqs'
 import { SITE_NAME, SITE_URL } from '@/lib/marketing/metadata'
 import { PRICING_TIERS } from '@/lib/marketing/pricing'
-import { Audience } from './(marketing)/_components/landing/audience'
-import { CtaFooter } from './(marketing)/_components/landing/cta-footer'
-import { FAQ } from './(marketing)/_components/landing/faq'
-import { Features } from './(marketing)/_components/landing/features'
-import { Hero } from './(marketing)/_components/landing/hero'
-import { HowItWorks } from './(marketing)/_components/landing/how-it-works'
-import { Nav } from './(marketing)/_components/landing/nav'
-import { Pricing } from './(marketing)/_components/landing/pricing'
-import { ProblemValue } from './(marketing)/_components/landing/problem-value'
-import { TrustAndControl } from './(marketing)/_components/landing/trust-and-control'
+import { archivo } from './(marketing)/_components/landing/rota/fonts'
+import { HowSheet } from './(marketing)/_components/landing/rota/how-sheet'
+import { RotaFooter } from './(marketing)/_components/landing/rota/rota-footer'
+import { RotaNav } from './(marketing)/_components/landing/rota/rota-nav'
+import {
+  AudienceSheet,
+  FaqSheet,
+  FeaturesSheet,
+  HeroSheet,
+  PricingSheet,
+  PrivacySheet,
+  WhySheet,
+} from './(marketing)/_components/landing/rota/rota-sections'
+import rota from './(marketing)/_components/landing/rota/rota.module.css'
+import { SheetTabs } from './(marketing)/_components/landing/rota/sheet-tabs'
 
 const title = 'Clerkfolio | UK medical portfolio tracker for your whole career'
 const description = 'The portfolio tracker for UK medical students and doctors: achievements, specialty application evidence and anonymised cases, in one place for your whole career.'
@@ -100,25 +105,26 @@ export default async function LandingPage({ searchParams }: { searchParams?: Pro
   const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
+    <div className={`${archivo.variable} ${rota.root}`}>
       <JsonLd data={landingStructuredData()} nonce={nonce} />
       {wasDeleted ? (
-        <div role="status" className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-[var(--success)] md:px-14">
+        <div role="status" className="border-b border-[var(--r-grid)] bg-[var(--r-select-soft)] px-4 py-3 text-[15px] text-[var(--r-ink)] sm:px-6 lg:px-10">
           Your account has been permanently deleted. Sorry to see you go.
         </div>
       ) : null}
-      <Nav />
+      <RotaNav />
       <main>
-        <Hero />
-        <ProblemValue />
-        <HowItWorks />
-        <Features />
-        <TrustAndControl />
-        <Audience />
-        <Pricing />
-        <FAQ />
+        <HeroSheet />
+        <WhySheet />
+        <HowSheet />
+        <FeaturesSheet />
+        <PrivacySheet />
+        <AudienceSheet />
+        <PricingSheet />
+        <FaqSheet />
+        <SheetTabs />
       </main>
-      <CtaFooter />
+      <RotaFooter />
     </div>
   )
 }
