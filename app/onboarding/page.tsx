@@ -12,9 +12,9 @@ import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
 const ALL_STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
-const MEDICAL_STUDENT_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
+const STUDENT_STAGE_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
 function getSteps(careerStage: string): Step[] {
-  return isMedicalStudentStage(careerStage) ? MEDICAL_STUDENT_STEPS : ALL_STEPS
+  return isMedicalStudentStage(careerStage) ? STUDENT_STAGE_STEPS : ALL_STEPS
 }
 
 const MAX_TRACKED_SPECIALTIES = 1
