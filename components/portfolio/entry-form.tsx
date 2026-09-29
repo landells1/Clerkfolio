@@ -23,7 +23,9 @@ import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
-import { GIBBS_FIELDS, ROLFE_FIELDS, DRISCOLL_FIELDS, buildFrameworkText, parseFrameworkText, detectFramework } from '@/lib/portfolio/reflection-frameworks'
+import { localIsoDate } from '@/lib/timeline/calendar-grid'
+import { submitOnEnterAsPrimary } from '@/lib/forms/enter-submit'
+import { GIBBS_FIELDS, ROLFE_FIELDS, DRISCOLL_FIELDS, buildFrameworkText, parseFrameworkText, detectFramework, convertReflection } from '@/lib/portfolio/reflection-frameworks'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -223,6 +225,9 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     if (d.pub_status !== undefined) setPubStatus(String(d.pub_status))
     if (d.prize_level !== undefined) setPrizeLevel(String(d.prize_level))
     if (d.proc_name !== undefined) setProcName(String(d.proc_name))
+    // Saved by "Save as template" for procedures but previously never applied.
+    if (d.proc_setting !== undefined) setProcSetting(String(d.proc_setting))
+    if (d.proc_supervision !== undefined) setProcSupervision(String(d.proc_supervision))
     if (d.refl_type !== undefined) setReflType(String(d.refl_type))
     markDirty()
     setTemplatePickerOpen(false)
@@ -230,7 +235,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   // After hydration, fill the date default if nothing restored it. Runs once.
   useEffect(() => {
-    setDate(current => current || new Date().toISOString().split('T')[0])
+    setDate(current => current || localIsoDate(new Date()))
   }, [])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
@@ -448,7 +453,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setDraftRestored(false)
     setCategory(defaultCategory ?? 'audit_qip')
     setTitle('')
-    setDate(new Date().toISOString().split('T')[0])
+    setDate(localIsoDate(new Date()))
     setNotes('')
     setSpecialtyTags([])
     setInterviewThemes([])
@@ -465,7 +470,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     setCustomFreeText('')
   }
 
-  const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
   // The create path's insert → upload → profile-update chain outlives the
@@ -489,8 +493,13 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     // Flush any uncommitted specialty search text. If exactly one option
     // matches we auto-commit it; otherwise the SpecialtyTagSelect surfaces an
     // inline warning of its own and we block the save with a matching banner.
-    const pendingTagError = specialtyRef.current?.commitPending()
-    if (pendingTagError) { setError(pendingTagError); return }
+    const pendingTags = specialtyRef.current?.commitPending()
+    if (pendingTags?.error) { setError(pendingTags.error); return }
+    // Which button submitted? Enter in a field submits via the FIRST submit
+    // button in the DOM, which was "Save & add another" - read the actual
+    // submitter instead of a click-set ref that also stuck after a failed save.
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null
+    const addAnother = submitter?.dataset.addAnother === 'true'
     setSaving(true)
     setError(null)
 
@@ -501,7 +510,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       return
     }
 
-    const payload = buildPayload()
+    const payload = { ...buildPayload(), specialty_tags: pendingTags?.value ?? specialtyTags }
 
     if (mode === 'create') {
       const { count: existingInCategory } = await supabase
@@ -523,7 +532,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         if (uploadErrors.length > 0) {
           clearPortfolioDrafts()
           if (mountedRef.current) setIsDirty(false)
-          addToast('Entry saved, but some files failed to upload.', 'error')
+          addToast(`Entry saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
           if (mountedRef.current) router.push(`/portfolio/${data.id}?upload=failed`)
           return
         }
@@ -547,8 +556,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
       }
       const uploaded = pendingFiles.length
       addToast(uploaded > 0 ? `Entry saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Entry saved', 'success')
-      if (addAnotherRef.current) {
-        addAnotherRef.current = false
+      if (addAnother) {
         if (mountedRef.current) {
           setSaving(false)
           window.location.assign(`/portfolio/new?category=${category}&fresh=${Date.now()}`)
@@ -568,7 +576,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'portfolio')
         setUploading(false)
         if (uploadErrors.length > 0) {
-          setError(`Changes saved, but some files failed to upload: ${uploadErrors.join('; ')}`)
+          // The changes (and any files that did upload) are saved. Leave the
+          // form rather than keep the whole staged list: saving again would
+          // re-upload the files that already succeeded and double-count them.
+          setIsDirty(false)
+          addToast(`Changes saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
+          router.push(`/portfolio/${initialData!.id}?upload=failed`)
           return
         }
       }
@@ -597,6 +610,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     <>
       <form
         onSubmit={handleSubmit}
+        // Every input/select/textarea change bubbles here, so no field can be
+        // edited without the unsaved-changes guard noticing (several
+        // category-specific fields never called markDirty themselves).
+        onChange={() => markDirty()}
+        onKeyDown={submitOnEnterAsPrimary}
         onPaste={event => {
           const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
           if (files.length === 0) return
@@ -674,7 +692,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </Field>
           <div className={GRID2}>
             <Field label="Date *">
-              <input type="date" required value={date} onChange={e => setDate(e.target.value)} onFocus={() => markDirty()} className={INPUT} />
+              <input type="date" required value={date} onChange={e => { setDate(e.target.value); markDirty() }} className={INPUT} />
             </Field>
           </div>
           <Field label="Linked specialties">
@@ -944,11 +962,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       type="button"
                       onClick={() => {
                         if (fw === reflFramework) return
-                        if (reflFramework === 'none' && reflFreeText) {
-                          setReflFreeText('')
-                        }
-                        setReflParts({})
+                        // Carry the written text across instead of wiping it.
+                        const next = convertReflection(reflFramework, reflFreeText, reflParts, fw)
+                        setReflFreeText(next.freeText)
+                        setReflParts(next.parts)
                         setReflFramework(fw)
+                        markDirty()
                       }}
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         reflFramework === fw
@@ -1069,7 +1088,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           {mode === 'create' && (
             <button
               type="submit"
-              onClick={() => { addAnotherRef.current = true }}
+              data-add-another="true"
               disabled={saving || uploading}
               className="flex-1 border border-accent/40 text-[var(--accent-text)] hover:bg-accent/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
             >

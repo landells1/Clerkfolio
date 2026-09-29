@@ -11,7 +11,7 @@ test.describe('public landing page', () => {
 
     await page.goto('/')
 
-    await expect(page).toHaveTitle('Clerkfolio | One medical portfolio for your whole career')
+    await expect(page).toHaveTitle('Clerkfolio | UK medical portfolio tracker for your whole career')
     await expect(page.getByRole('heading', { level: 1, name: /one medical portfolio for your whole career/i })).toBeVisible()
     await expect(page.getByText('Public sign-ups opening soon').first()).toBeVisible()
     await expect(page.getByRole('link', { name: 'See how Clerkfolio works' })).toBeVisible()

@@ -6,6 +6,7 @@ import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { IMPORT_RATE_MAX, IMPORT_RATE_WINDOW_SECONDS } from '@/lib/import/shared'
 import { parseDate, mapReflectionType } from '@/lib/import/horus-parse'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 function buildNotes(row: { notes: string; type: string; supervisor_name: string; supervision_level: string }) {
   return [
@@ -123,21 +124,34 @@ export async function POST(req: NextRequest) {
   // If skip-duplicates mode, fetch existing titles+dates for this user
   const existingPairs = new Set<string>()
   if (dupHandling === 'skip') {
-    const { data: existing } = await supabase
+    // Paged: an unpaginated read stops at PostgREST's 1000-row cap, so
+    // duplicates of older entries on a heavy account slipped through.
+    const { data: existing, error: existingError } = await fetchAllRows<{ title: string | null; date: string }>((from, to) => supabase
       .from('portfolio_entries')
       .select('title, date')
       .eq('user_id', user.id)
       .is('deleted_at', null)
+      .order('id')
+      .range(from, to))
+    if (existingError) {
+      console.error('import/horus duplicate lookup error:', existingError.message)
+      return NextResponse.json({ error: 'Failed to check for duplicates. Please try again.' }, { status: 500 })
+    }
 
     existing?.forEach(e => existingPairs.add(`${e.title?.toLowerCase().trim()}|${e.date}`))
   }
 
   // Build insert rows
-  const today = new Date().toISOString().split('T')[0]
   const toInsert = []
 
   for (const { row, index } of validRows) {
-    const parsedDate = parseDate(row.date) ?? today
+    // Never guess: an unreadable date used to become today's date silently.
+    const parsedDate = parseDate(row.date)
+    if (!parsedDate) {
+      errors.push({ row: index + 1, error: row.date?.trim() ? `Unrecognised date "${row.date.trim().slice(0, 40)}" (use DD/MM/YYYY)` : 'Missing date' })
+      skipped++
+      continue
+    }
     const key = `${row.title.toLowerCase().trim()}|${parsedDate}`
     const notes = buildNotes(row)
 

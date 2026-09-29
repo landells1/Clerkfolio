@@ -9,12 +9,15 @@ type Entry = {
   title: string
   category: Category
   date: string
-  notes: string | null
-  refl_free_text: string | null
+  conf_event_name: string | null
+  pub_journal: string | null
+  leader_role: string | null
+  leader_organisation: string | null
+  prize_body: string | null
+  proc_name: string | null
 }
 
-// Generic per-category line, used only as a fallback when an entry has no
-// notes / reflection text of its own to draw from.
+// Generic per-category line, used when an entry has no structured detail.
 const CATEGORY_FALLBACK: Record<Category, string> = {
   audit_qip: 'Delivered quality improvement evidence with measurable clinical governance value.',
   teaching: 'Created and delivered teaching with a clear learning impact.',
@@ -27,26 +30,30 @@ const CATEGORY_FALLBACK: Record<Category, string> = {
   custom: 'Added verified portfolio evidence with clear professional relevance.',
 }
 
-// Pull the first sentence from the entry's own reflection or notes so two
-// same-category entries don't stack identical boilerplate. Capped so the
-// snippet stays postable. (F-045)
-function highlightFrom(...sources: (string | null | undefined)[]): string | null {
-  for (const source of sources) {
-    const cleaned = (source ?? '').replace(/\s+/g, ' ').trim()
-    if (!cleaned) continue
-    const breakAt = cleaned.search(/[.!?](\s|$)/)
-    let highlight = breakAt >= 0 ? cleaned.slice(0, breakAt + 1) : cleaned
-    if (highlight.length > 200) highlight = `${highlight.slice(0, 197).trimEnd()}…`
-    if (!/[.!?…]$/.test(highlight)) highlight += '.'
-    return highlight
+// A distinguishing detail from STRUCTURED fields only, so two same-category
+// entries don't stack identical boilerplate (F-045). Free-text notes and
+// reflections are never used: a LinkedIn post is public and those fields can
+// carry clinical detail.
+function structuredDetail(entry: Entry): string | null {
+  const clean = (value: string | null | undefined) => value?.replace(/\s+/g, ' ').trim().slice(0, 120) || null
+  switch (entry.category) {
+    case 'conference': return clean(entry.conf_event_name) ? `Attended ${clean(entry.conf_event_name)}.` : null
+    case 'publication': return clean(entry.pub_journal) ? `Published in ${clean(entry.pub_journal)}.` : null
+    case 'leadership': {
+      const role = clean(entry.leader_role)
+      const org = clean(entry.leader_organisation)
+      return role && org ? `${role}, ${org}.` : role ? `${role}.` : org ? `Leadership role with ${org}.` : null
+    }
+    case 'prize': return clean(entry.prize_body) ? `Awarded by ${clean(entry.prize_body)}.` : null
+    case 'procedure': return clean(entry.proc_name) ? `Clinical skill: ${clean(entry.proc_name)}.` : null
+    default: return null
   }
-  return null
 }
 
 function sentence(entry: Entry) {
   const label = CATEGORIES.find(category => category.value === entry.category)?.short ?? 'Portfolio'
   const date = new Date(entry.date).toLocaleDateString('en-GB', { month: 'short', year: 'numeric' })
-  const body = highlightFrom(entry.refl_free_text, entry.notes) ?? CATEGORY_FALLBACK[entry.category]
+  const body = structuredDetail(entry) ?? CATEGORY_FALLBACK[entry.category]
   return `Achievement: ${entry.title}. ${body} ${label}. ${date}.`
 }
 

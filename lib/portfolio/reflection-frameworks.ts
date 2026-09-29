@@ -57,3 +57,34 @@ export function detectFramework(text: string): 'gibbs' | 'rolfe' | 'none' {
   if (text.includes('**What?:**') && text.includes('**Now What?:**')) return 'rolfe'
   return 'none'
 }
+
+export type ReflectionFramework = 'none' | 'gibbs' | 'rolfe' | 'driscoll'
+
+/**
+ * Carry a reflection across a framework switch without losing any text.
+ * Switching used to clear everything, so tapping another framework and back
+ * silently wiped a written reflection. Rolfe and Driscoll share field keys, so
+ * their answers map across directly; otherwise the existing text moves into
+ * the free-text box (for 'none') or the first box of the new framework.
+ */
+export function convertReflection(
+  from: ReflectionFramework,
+  freeText: string,
+  parts: Record<string, string>,
+  to: ReflectionFramework,
+): { freeText: string; parts: Record<string, string> } {
+  if (from === to) return { freeText, parts }
+  if (from !== 'none' && to !== 'none') {
+    const fromKeys = fieldsFor(from).map(f => f.key).join('|')
+    const toKeys = fieldsFor(to).map(f => f.key).join('|')
+    if (fromKeys === toKeys) return { freeText: '', parts: { ...parts } }
+  }
+  const text = from === 'none'
+    ? freeText.trim()
+    : fieldsFor(from)
+        .filter(f => parts[f.key]?.trim())
+        .map(f => `${f.label} ${parts[f.key].trim()}`)
+        .join('\n\n')
+  if (to === 'none') return { freeText: text, parts: {} }
+  return { freeText: '', parts: text ? { [fieldsFor(to)[0].key]: text } : {} }
+}

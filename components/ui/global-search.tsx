@@ -77,7 +77,15 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
   const searchGeneration = useRef(0)
 
   useEffect(() => {
-    if (q.trim().length < 2) { setResults([]); setSearchError(false); return }
+    if (q.trim().length < 2) {
+      // Invalidate any search still in flight so its late response can't
+      // repopulate results after the box was cleared.
+      searchGeneration.current++
+      setResults([])
+      setSearchError(false)
+      setLoading(false)
+      return
+    }
     const timer = setTimeout(async () => {
       const generation = ++searchGeneration.current
       const isStale = () => searchGeneration.current !== generation
@@ -95,14 +103,29 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
         const [entriesResult, casesResult, filesResult] = await Promise.all([
           supabase.from('portfolio_entries').select('id, title, category').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
           supabase.from('cases').select('id, title, clinical_domain, clinical_domains').eq('user_id', user.id).ilike('title', `%${q.trim()}%`).is('deleted_at', null).limit(5),
-          supabase.from('evidence_files').select('entry_id, entry_type, file_name').eq('user_id', user.id).ilike('file_name', `%${q.trim()}%`).limit(5),
+          supabase.from('evidence_files').select('id, file_name').eq('user_id', user.id).ilike('file_name', `%${q.trim()}%`).limit(5),
         ])
         if (isStale()) return
         if (entriesResult.error || casesResult.error || filesResult.error) {
           setSearchError(true)
           setResults([])
         } else {
-          const files = filesResult.data ?? []
+          // Resolve matching files through evidence_file_links so a file reused
+          // on several entries/cases is found from each of them (the legacy
+          // evidence_files.entry_id only knows the original upload).
+          const matchedFiles = filesResult.data ?? []
+          const linksResult = matchedFiles.length
+            ? await supabase.from('evidence_file_links').select('file_id, entry_id, entry_type').in('file_id', matchedFiles.map(file => file.id)).limit(20)
+            : { data: [], error: null }
+          if (isStale()) return
+          if (linksResult.error) {
+            setSearchError(true)
+            setResults([])
+            setLoading(false)
+            return
+          }
+          const fileNames = new Map(matchedFiles.map(file => [file.id, file.file_name]))
+          const files = (linksResult.data ?? []).map(link => ({ entry_id: link.entry_id, entry_type: link.entry_type, file_name: fileNames.get(link.file_id) ?? 'Evidence file' }))
           const portfolioFileIds = files.filter(file => file.entry_type !== 'case').map(file => file.entry_id)
           const caseFileIds = files.filter(file => file.entry_type === 'case').map(file => file.entry_id)
           const [activeFileEntries, activeFileCases] = await Promise.all([
@@ -144,7 +167,15 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
               subtitle: 'Evidence file',
             })),
           ]
-          setResults(r)
+          // One row per destination + label: an entry matching on its title
+          // AND a file name (or two matching files) no longer duplicates rows.
+          const seen = new Set<string>()
+          setResults(r.filter(row => {
+            const key = `${row.type}:${row.id}:${row.title}`
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+          }))
           setSelected(0)
         }
       } catch {
@@ -257,7 +288,7 @@ export default function GlobalSearch({ onClose, careerStage = null }: { onClose:
             ))}
             {results.map((r, i) => (
               <button
-                key={r.id}
+                key={`${r.type}-${r.id}-${r.title}`}
                 id={`gs-result-${i}`}
                 role="option"
                 aria-selected={i + matchingCommands.length === selected}

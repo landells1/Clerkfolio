@@ -10,7 +10,8 @@ import Link from 'next/link'
 
 type ReferralRow = { id: string; status: string; created_at: string; activated_at: string | null; reward_granted_at: string | null }
 
-export default async function ReferralsPage() {
+export default async function ReferralsPage({ searchParams }: { searchParams?: Promise<{ ref?: string }> }) {
+  const openedOwnLink = (await searchParams)?.ref === 'self'
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -37,10 +38,12 @@ export default async function ReferralsPage() {
   const earnedBadges = new Set<string>(profile?.referral_badges ?? [])
   const foundingEarned = earnedBadges.has('founding_sharer')
 
-  const institutionVerified = Boolean(profile?.student_email_verified) && (
-    !profile?.student_email_verification_due_at ||
-    new Date(`${profile.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
-  )
+  // Same rule as referral activation (lib/referrals/rewards.ts) and the DB's
+  // recompute_profile_tier: a null due date counts as EXPIRED. Treating it as
+  // verified hid the warning while referrals silently never activated.
+  const institutionVerified = Boolean(profile?.student_email_verified) &&
+    Boolean(profile?.student_email_verification_due_at) &&
+    new Date(`${profile!.student_email_verification_due_at}T23:59:59.999Z`).getTime() >= Date.now()
 
   const nextRung = REFERRAL_LADDER.find(b => rewarded < b.threshold)
   const topThreshold = REFERRAL_LADDER[REFERRAL_LADDER.length - 1].threshold
@@ -64,6 +67,12 @@ export default async function ReferralsPage() {
           </p>
         </div>
       </div>
+
+      {openedOwnLink && (
+        <div role="status" className="mb-6 rounded-xl border border-accent/20 bg-accent/10 px-4 py-3 text-sm text-[var(--accent-soft-text)]">
+          That was your own referral link, so there was nothing to apply. Share it with colleagues - it rewards you when they join.
+        </div>
+      )}
 
       {!institutionVerified && (
         <section className="mb-6 rounded-2xl border border-accent/25 bg-accent/10 p-5">

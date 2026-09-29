@@ -61,10 +61,12 @@ describe('unsubscribe token sign/verify', () => {
 })
 
 describe('applyUnsubscribe', () => {
-  it('sets the single mapped key false without mutating input', () => {
+  it('turns off both digests without mutating input', () => {
+    // Monthly only goes to users with weekly OFF, so a weekly-only opt-out
+    // would silently enrol the user in the monthly digest.
     const current = { weekly_digest: true, deadlines: true }
     const next = applyUnsubscribe(current, 'weekly_digest')
-    expect(next).toEqual({ weekly_digest: false, deadlines: true })
+    expect(next).toEqual({ weekly_digest: false, monthly_digest: false, deadlines: true })
     expect(current.weekly_digest).toBe(true) // unchanged
   })
 

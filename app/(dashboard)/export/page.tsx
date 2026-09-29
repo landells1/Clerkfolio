@@ -15,6 +15,8 @@ import {
   EXPORT_FIELDS,
   exportScopeLabel,
   formatDate,
+  customExpiryToIso,
+  isShareLinkExpired,
   type ExportFormat,
   type PdfTemplate,
   type ShareScope,
@@ -29,6 +31,8 @@ import { BackupTab } from '@/components/export/backup-tab'
 import { ShareTab } from '@/components/export/share-tab'
 import { FilesTab } from '@/components/export/files-tab'
 import { EXPORT_PRESELECT_STORAGE_KEY, parseExportPreselect } from '@/lib/export/preselect'
+import { includedPdfPhrase } from '@/lib/entitlements/allowance'
+import { saveBlob } from '@/lib/download-blob'
 
 type Tab = 'import' | 'pdf' | 'backup' | 'share' | 'files'
 type EntrySpecialtyFields = { specialty_tags: string[] | null }
@@ -244,8 +248,12 @@ export default function ExportPage() {
     [portfolioTags, trackedApps],
   )
   const selectedIsRealSpecialty = specialty !== '' && specialty !== ALL_RECORDS && specialty !== UNTAGGED_RECORDS
-  const hasActiveShareLinks = shareLinks.length > 0
-  const canCreateShareLink = subInfo ? (subInfo.isPro || shareLinks.length < 1) : false
+  // Expired-but-unrevoked links are still listed (so they can be renewed or
+  // revoked) but no longer count against the free cap, matching the server's
+  // active-link count (1 + rewarded referrals).
+  const activeShareLinkCount = shareLinks.filter(link => !isShareLinkExpired(link)).length
+  const hasActiveShareLinks = activeShareLinkCount > 0
+  const canCreateShareLink = subInfo ? (subInfo.isPro || activeShareLinkCount < 1 + subInfo.referralCount) : false
 
   // Prefer the clean filename the server already sets in Content-Disposition
   // (e.g. "clerkfolio-all-records-2026-06-21.csv"). `a.download` overrides
@@ -253,13 +261,15 @@ export default function ExportPage() {
   // state leaked sentinels/slugs into the saved file name (F-043).
   async function downloadBlob(res: Response, fallbackName: string) {
     const serverName = filenameFromContentDisposition(res.headers.get('content-disposition'))
-    const blob = await res.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = serverName ?? fallbackName
-    a.click()
-    URL.revokeObjectURL(url)
+    saveBlob(await res.blob(), serverName ?? fallbackName)
+  }
+
+  // With a category/theme filter active only the visible selected entries are
+  // exported - the same rule for the Application PDF and Append PDF paths.
+  function visibleSelectedEntryIds() {
+    return (categoryFilter !== 'all' || themeFilter)
+      ? Array.from(selectedEntryIds).filter(id => visible.some(entry => entry.id === id))
+      : Array.from(selectedEntryIds)
   }
 
   async function refreshSubscriptionInfo() {
@@ -275,20 +285,18 @@ export default function ExportPage() {
     }
     setGenerating(true)
     setError(null)
-    const exportEntryIds = (categoryFilter !== 'all' || themeFilter)
-      ? Array.from(selectedEntryIds).filter(id => visible.some(entry => entry.id === id))
-      : Array.from(selectedEntryIds)
+    const exportEntryIds = visibleSelectedEntryIds()
     const { ok, status, response } = await apiFetch('/api/export', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty: exportScopeLabel(specialty), format, template: pdfTemplate, theme: themeFilter || null, fields: selectedFields }),
+      body: JSON.stringify({ entryIds: exportEntryIds, caseIds: Array.from(exportCaseIds), specialty: exportScopeLabel(specialty), format, template: pdfTemplate, theme: themeFilter || null, fields: format === 'pdf' ? (selectedFields.includes('notes') ? ['title', 'notes'] : ['title']) : selectedFields }),
       parse: 'none',
     })
     setGenerating(false)
     if (!ok || !response) {
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const json = await response?.json().catch(() => ({})) ?? {}
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Upgrade to Pro for unlimited PDF downloads.` : json.error ?? 'Export failed. Please try again.')
+      setError(json.error === 'limit_reached' ? `You've used your ${includedPdfPhrase(json.limit)}. Upgrade to Pro for unlimited PDF downloads.` : json.error ?? 'Export failed. Please try again.')
       if (format === 'pdf' && json.error === 'limit_reached') await refreshSubscriptionInfo()
       return
     }
@@ -328,7 +336,7 @@ export default function ExportPage() {
     if (!ok || !response) {
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const json = await response?.json().catch(() => ({})) ?? {}
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${includedPdfPhrase(json.limit)}. Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not generate year in review PDF.')
       return
     }
     await downloadBlob(response, `clerkfolio-year-review-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -341,13 +349,13 @@ export default function ExportPage() {
     setError(null)
     const form = new FormData()
     form.set('pdf', appendPdfFile)
-    form.set('entryIds', JSON.stringify(Array.from(selectedEntryIds)))
+    form.set('entryIds', JSON.stringify(visibleSelectedEntryIds()))
     const { ok, status, response } = await apiFetch('/api/export/pdf-append', { method: 'POST', body: form, parse: 'none' })
     setAppendingPdf(false)
     if (!ok || !response) {
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const json = await response?.json().catch(() => ({})) ?? {}
-      setError(json.error === 'limit_reached' ? `You've used your ${json.limit} included PDF export. Appended PDFs, Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
+      setError(json.error === 'limit_reached' ? `You've used your ${includedPdfPhrase(json.limit)}. Appended PDFs, Year in review, Application PDF and CV PDF/DOCX downloads share this allowance.` : json.error ?? 'Could not append entries to PDF.')
       return
     }
     await downloadBlob(response, `clerkfolio-appended-${new Date().toISOString().split('T')[0]}.pdf`)
@@ -397,12 +405,16 @@ export default function ExportPage() {
       setError('Track a specialty before creating a specialty-scoped link.')
       return
     }
+    if (shareScope === 'theme' && !shareTheme) {
+      setError('Choose a competency theme for this link.')
+      return
+    }
 
     setShareLoading(true)
     setError(null)
     const expiresAt = expiryPreset
       ? new Date(Date.now() + expiryPreset * 86_400_000).toISOString()
-      : customExpiry
+      : customExpiryToIso(customExpiry)
 
     if (!expiresAt) {
       setShareLoading(false)
@@ -438,6 +450,7 @@ export default function ExportPage() {
     setShareLinks(prev => [json as ShareLink, ...prev])
     setSharePin('')
     setViewWebhookUrl('')
+    await refreshSubscriptionInfo()
   }
 
   async function revokeShareLink(id: string) {
@@ -447,6 +460,7 @@ export default function ExportPage() {
       setShareLinks(prev => prev.filter(link => link.id !== id))
       setConfirmRevoke(null)
       addToast('Share link revoked', 'success')
+      void refreshSubscriptionInfo()
     } else {
       setError('Could not revoke share link. Please try again.')
     }
@@ -463,8 +477,11 @@ export default function ExportPage() {
       const expiresAt = data.expires_at
       setShareLinks(prev => prev.map(link => link.id === id ? { ...link, expires_at: expiresAt } : link))
       addToast(`Share link renewed - expires ${formatDate(expiresAt)}`, 'success')
+      void refreshSubscriptionInfo()
     } else {
-      setError(data?.error ?? 'Could not renew share link. Please try again.')
+      setError(data?.error === 'limit_reached'
+        ? 'You are at your active share link limit. Revoke another link or upgrade to renew this one.'
+        : data?.error ?? 'Could not renew share link. Please try again.')
     }
   }
 

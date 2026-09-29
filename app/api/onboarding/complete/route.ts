@@ -191,8 +191,10 @@ export async function POST(req: NextRequest) {
         .from('specialty_applications')
         .upsert(appRows, { onConflict: 'user_id,specialty_key', ignoreDuplicates: true })
       if (error) {
+        // Onboarding is already marked complete above, so a 500 here left the
+        // user retrying into a 409 "already complete" error. The specialty can
+        // be added from /specialties; don't fail the whole completion.
         console.error('onboarding/complete: specialty upsert failed:', error.message)
-        return NextResponse.json({ error: 'Could not save your specialty selection. Please try again.' }, { status: 500 })
       }
     }
   }

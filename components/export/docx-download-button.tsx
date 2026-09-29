@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { saveBlob } from '@/lib/download-blob'
 
 // Mirrors CvDownloadButton - same PDF allowance gate (canExportPdf), same
 // apiFetch/blob-download pattern, .docx container instead of .pdf.
 export default function DocxDownloadButton({ template, isPro, canExportPdf }: { template: string; isPro: boolean; canExportPdf: boolean }) {
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const allowanceUsed = !isPro && !canExportPdf
@@ -21,18 +24,15 @@ export default function DocxDownloadButton({ template, isPro, canExportPdf }: { 
       if (status === null) { setError(NETWORK_ERROR_MESSAGE); return }
       const body = await response?.json().catch(() => ({})) ?? {}
       setError(body.error === 'limit_reached'
-        ? 'Your included PDF has been used. CV, Application PDF and Year in review downloads share this allowance.'
+        ? 'Your included PDF allowance has been used. CV, Application PDF and Year in review downloads share this allowance.'
         : body.error ?? 'Could not generate your CV DOCX.')
       return
     }
 
-    const blob = await response.blob()
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `clerkfolio-cv-${template}.docx`
-    a.click()
-    URL.revokeObjectURL(url)
+    saveBlob(await response.blob(), `clerkfolio-cv-${template}.docx`)
+    // Re-read the server-computed allowance so the sibling PDF/DOCX button
+    // reflects the export this download just used.
+    router.refresh()
   }
 
   return (

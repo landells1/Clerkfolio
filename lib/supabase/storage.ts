@@ -140,6 +140,17 @@ export async function uploadPendingFiles(
       body: { fileId },
     })
 
+    // A 413 (file/quota too large, row already removed) or 415 (failed
+    // verification) from the edge function is a definitive answer. Falling
+    // back to /api/upload/verify for those turned "Storage limit reached"
+    // into a misleading "File not found".
+    const scanResponse = (scanError as { context?: unknown } | null)?.context
+    if (scanError && scanResponse instanceof Response && (scanResponse.status === 413 || scanResponse.status === 415)) {
+      const body = await scanResponse.clone().json().catch(() => ({})) as { error?: string }
+      errors.push(`${file.name}: ${scanResponse.status === 415 ? 'File failed server-side verification' : body.error ?? 'File is too large for your remaining storage'}`)
+      continue
+    }
+
     if (scanError) {
       const verifyRes = await fetch('/api/upload/verify', {
         method: 'POST',

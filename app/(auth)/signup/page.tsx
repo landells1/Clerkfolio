@@ -8,6 +8,7 @@ import { isAcUkEmail, isNhsEmail } from '@/lib/institutional-email'
 import PasswordInput from '@/components/ui/password-input'
 import { MARKETING_EVENTS } from '@/lib/marketing/analytics-events'
 import { trackMarketingEvent } from '@/lib/marketing/analytics'
+import { VERIFIED_BONUS_MB, formatStorageQuota } from '@/lib/entitlements/limits'
 
 function safeUpgradeIntent(value: string | null) {
   if (!value || !value.startsWith('/') || value.startsWith('//')) return null
@@ -62,10 +63,10 @@ export default function SignupPage() {
       const preflight = await fetch('/api/auth/preflight', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'signup' }),
+        body: JSON.stringify({ action: 'signup', email }),
       })
       if (preflight.status === 429) {
-        setError('Too many sign-up attempts from this network. Please wait an hour and try again.')
+        setError('Too many sign-up attempts. Please wait an hour and try again.')
         return
       }
       if (!preflight.ok) {
@@ -154,7 +155,7 @@ export default function SignupPage() {
             placeholder="you@example.com"
           />
           {/* Inline institutional-email detection: lights up when an .ac.uk or
-              NHS email is entered, hinting at the Student / Foundation tier
+              NHS email is entered, hinting at the Verified storage bonus
               before the user even submits. Cosmetic only - actual tier is
               granted post-verification. Uses the same validators as the server
               so client and server tier-hints agree. */}
@@ -166,7 +167,7 @@ export default function SignupPage() {
             return (
               <div className="mt-2 inline-flex items-center gap-1.5 rounded text-[11px] px-2 py-0.5 border border-pill-green bg-pill-green text-[var(--cat-green-text)]">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                {isAcUk ? 'Student email - eligible for Student tier after verification' : 'NHS email - eligible for Foundation tier once you set your training stage'}
+                {isAcUk ? 'University email' : 'NHS email'} - eligible for +{formatStorageQuota(VERIFIED_BONUS_MB)} Verified storage once confirmed
               </div>
             )
           })()}

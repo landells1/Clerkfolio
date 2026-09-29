@@ -186,8 +186,8 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                   </div>
                   <p className="text-fg font-medium mb-1">No specialty trackers yet</p>
                   <p className="max-w-sm text-xs text-fg-2">
-                    Pick a specialty to score your evidence by domain and auto-load the application
-                    deadlines for the upcoming cycle. Free tier tracks one specialty at a time.
+                    Pick a specialty to score your evidence by domain against its person specification.
+                    The national NHS recruitment dates show on your Timeline. Free tier tracks one specialty at a time.
                   </p>
                   <button
                     onClick={() => setShowAddModal(true)}
@@ -343,24 +343,27 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
     setLoading(true)
     try {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) { addToast('Please sign in again', 'error'); return }
 
-      // Create new application row
-      const { data: newRows, error: insertError } = await supabase
-        .from('specialty_applications')
-        .insert({ user_id: user.id, specialty_key: newConfig.key, cycle_year: newConfig.cycleYear, bonus_claimed: false })
-        .select()
-      if (insertError || !newRows?.[0]) { addToast('Failed to start new cycle', 'error'); setLoading(false); return }
-
-      // Archive the old row
+      // Archive the old cycle FIRST. The specialty-track-cap trigger counts
+      // ACTIVE applications, so inserting first always failed for free users
+      // (their one active slot was still taken by the old cycle).
       const { error: archiveError } = await supabase
         .from('specialty_applications')
         .update({ is_active: false, archived_at: new Date().toISOString() })
         .eq('id', oldApp.id)
-      if (archiveError) {
-        // Roll back the insert so two active cycles of the same specialty
-        // cannot coexist (the old cycle failed to archive).
-        await supabase.from('specialty_applications').delete().eq('id', newRows[0].id)
+      if (archiveError) { addToast('Failed to start new cycle', 'error'); return }
+
+      const { data: newRows, error: insertError } = await supabase
+        .from('specialty_applications')
+        .insert({ user_id: user.id, specialty_key: newConfig.key, cycle_year: newConfig.cycleYear, bonus_claimed: false })
+        .select()
+      if (insertError || !newRows?.[0]) {
+        // Put the old cycle back so the user is never left with none.
+        await supabase
+          .from('specialty_applications')
+          .update({ is_active: true, archived_at: null })
+          .eq('id', oldApp.id)
         addToast('Failed to start new cycle', 'error')
         return
       }

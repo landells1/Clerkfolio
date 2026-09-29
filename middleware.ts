@@ -101,7 +101,6 @@ export async function middleware(request: NextRequest) {
     pathname === '/privacy' ||
     pathname === '/terms' ||
     pathname === '/cookies' ||
-    pathname === '/dpa' ||
     pathname === '/subprocessors' ||
     pathname === '/security' ||
     pathname === '/contact' ||
@@ -184,10 +183,20 @@ export async function middleware(request: NextRequest) {
       }
 
       if (existing?.revoked_at) {
+        // End this browser's (revoked) Supabase session before redirecting.
+        // Redirecting alone left the session cookies in place, so /login ran
+        // this same check and redirected again - ERR_TOO_MANY_REDIRECTS until
+        // the user cleared cookies by hand. signOut() writes the cleared auth
+        // cookies onto supabaseResponse via setAll; copy them to the redirect.
+        await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined)
         const url = request.nextUrl.clone()
         url.pathname = '/login'
+        url.search = ''
         url.searchParams.set('session', 'revoked')
-        return applySecurityHeaders(NextResponse.redirect(url), nonce)
+        const redirect = NextResponse.redirect(url)
+        supabaseResponse.cookies.getAll().forEach(cookie => redirect.cookies.set(cookie))
+        redirect.cookies.delete('cf_fp_seen')
+        return applySecurityHeaders(redirect, nonce)
       }
 
       if (existing?.id) {

@@ -215,3 +215,13 @@ describe('previousLondonMonthWindow', () => {
     expect(label).toBe('December 2025')
   })
 })
+
+describe('previousLondonWeekWindow', () => {
+  it('covers the whole previous Monday-to-Monday UK week', async () => {
+    const { previousLondonWeekWindow } = await import('@/lib/engagement/streaks')
+    // Monday 5 Oct 2026, 09:00 UTC (10:00 BST)
+    const { start, end } = previousLondonWeekWindow(new Date('2026-10-05T09:00:00Z'))
+    expect(start.toISOString()).toBe('2026-09-27T23:00:00.000Z') // Mon 28 Sep 00:00 BST
+    expect(end.toISOString()).toBe('2026-10-04T23:00:00.000Z')   // Mon 5 Oct 00:00 BST
+  })
+})

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { storageGet, storageSet } from '@/lib/safe-storage'
 
 interface SpecialtyRadarProps {
   counts: Record<string, number>
@@ -153,13 +154,13 @@ export default function SpecialtyRadar({ counts, fullWidth = false }: SpecialtyR
   const [view, setView] = useState<'bar' | 'radar'>('bar')
 
   useEffect(() => {
-    const stored = localStorage.getItem('clerkfolio-chart-view')
+    const stored = storageGet('clerkfolio-chart-view')
     if (stored === 'bar' || stored === 'radar') setView(stored)
   }, [])
 
   function handleSetView(v: 'bar' | 'radar') {
     setView(v)
-    localStorage.setItem('clerkfolio-chart-view', v)
+    storageSet('clerkfolio-chart-view', v)
   }
 
   const sorted = Object.entries(counts)

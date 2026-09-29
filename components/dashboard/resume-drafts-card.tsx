@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
-import { isPortfolioDraftKey, portfolioDraftHasContent } from '@/lib/drafts/draft-keys'
+import { caseDraftHasContent, isPortfolioDraftKey, portfolioDraftHasContent } from '@/lib/drafts/draft-keys'
 
 type Draft = {
   key: string
@@ -46,6 +46,9 @@ export default function ResumeDraftsCard({ userId }: { userId: string }) {
         // are not a real "in progress" entry and must not raise a resume card
         // (BUG-005). Case drafts use a different shape and are left untouched.
         if (isPortfolioDraftKey(key, userId) && !portfolioDraftHasContent(parsed)) {
+          continue
+        }
+        if (key.startsWith('clerkfolio-case-draft:') && !caseDraftHasContent(parsed)) {
           continue
         }
         const category = key.startsWith('clerkfolio-case-draft:') ? 'case' : parsed.category ?? key.replace(/^clerkfolio-/, '').replace(/-draft:.+$/, '')

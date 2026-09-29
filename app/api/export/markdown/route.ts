@@ -17,6 +17,7 @@ export async function GET() {
     .eq('user_id', user.id)
     .eq('category', 'reflection')
     .is('deleted_at', null)
+    .eq('is_demo', false)
     .order('date', { ascending: true })
 
   if (error) {

@@ -6,6 +6,8 @@ import CvDownloadButton from '@/components/export/cv-download-button'
 import DocxDownloadButton from '@/components/export/docx-download-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
+import { CV_ENTRY_LIMIT, cvCategoryOrder } from '@/lib/export/cv-category-order'
 
 const TEMPLATES = [
   { key: 'clinical', label: 'Clinical' },
@@ -14,12 +16,6 @@ const TEMPLATES = [
 ] as const
 
 type CvTemplate = typeof TEMPLATES[number]['key']
-
-const TEMPLATE_CATEGORY_ORDER: Record<CvTemplate, Category[]> = {
-  clinical: ['procedure', 'audit_qip', 'teaching', 'reflection', 'leadership', 'conference', 'publication', 'prize', 'custom'],
-  academic: ['publication', 'audit_qip', 'conference', 'teaching', 'prize', 'leadership', 'custom', 'procedure', 'reflection'],
-  st_application: ['audit_qip', 'leadership', 'teaching', 'publication', 'procedure', 'conference', 'prize', 'reflection', 'custom'],
-}
 
 const TEMPLATE_INTRO: Record<CvTemplate, string> = {
   clinical: 'Clinical template prioritises practical clinical experience, governance, teaching, and reflective development.',
@@ -56,8 +52,9 @@ export default async function CvGeneratorPage({
       .select('id, title, date, category, notes, specialty_tags, conf_event_name, pub_journal, pub_status, leader_role, leader_organisation, prize_body')
       .eq('user_id', user!.id)
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .order('date', { ascending: false })
-      .limit(80),
+      .limit(CV_ENTRY_LIMIT),
     // Structured columns only (never notes/meta/cost_pence) - same query shape
     // as the /api/export/cv and /api/export/docx routes so all three CV
     // renderings stay in sync.
@@ -73,7 +70,7 @@ export default async function CvGeneratorPage({
   ])
   const rows = dedupeEntries((entries ?? []) as PortfolioEntry[])
   const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
-  const categoryOrder = TEMPLATE_CATEGORY_ORDER[template]
+  const categoryOrder = cvCategoryOrder(template)
 
   return (
     <div className="max-w-5xl mx-auto p-6 lg:p-8">
@@ -96,7 +93,7 @@ export default async function CvGeneratorPage({
       </div>
       {!subInfo.isPro && (
         <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
-          {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining. ' : 'Your included PDF has been used. '}
+          {subInfo.limits.canExportPdf ? `${pdfRemainingLabel(subInfo)}. ` : 'Your included PDFs have been used. '}
           CV PDF and DOCX downloads share the PDF allowance with Application PDF and Year in review downloads.
         </p>
       )}

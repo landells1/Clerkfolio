@@ -30,6 +30,8 @@ export default function robots(): MetadataRoute.Robots {
           '/help/',
           '/trash',
           '/trash/',
+          '/logs',
+          '/logs/',
           '/upgrade',
           '/upgrade/',
           '/onboarding',

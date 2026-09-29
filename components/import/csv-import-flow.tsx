@@ -7,6 +7,8 @@ import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { parseUkDate } from '@/lib/import/uk-date'
+import { localIsoDate } from '@/lib/timeline/calendar-grid'
 
 type ImportTarget = 'portfolio' | 'cases'
 type Step = 1 | 2 | 3 | 4
@@ -137,17 +139,18 @@ function previewValue(key: string, value: unknown) {
   if (key === 'category' && typeof value === 'string') return categoryLabel(value)
   if (key === 'specialty_tags' && Array.isArray(value)) return value.map(tag => formatSpecialtyLabel(String(tag))).join('; ')
   if (Array.isArray(value)) return value.join('; ')
+  if (key === 'date' && value === INVALID_DATE) return 'Unrecognised date - row will be skipped'
   return String(value ?? '')
 }
 
+const INVALID_DATE = 'invalid'
+
+// Blank dates default to today (UK calendar day, visible in the preview). A
+// date that is present but unreadable is flagged and the row is skipped -
+// never silently replaced with today or read as US month-first.
 function isoDate(value: string | undefined) {
-  if (!value) return new Date().toISOString().split('T')[0]
-  const dmy = value.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/)
-  if (dmy) return `${dmy[3]}-${dmy[2].padStart(2, '0')}-${dmy[1].padStart(2, '0')}`
-  const iso = value.match(/^\d{4}-\d{2}-\d{2}$/)
-  if (iso) return value
-  const parsed = new Date(value)
-  return Number.isNaN(parsed.getTime()) ? new Date().toISOString().split('T')[0] : parsed.toISOString().split('T')[0]
+  if (!value?.trim()) return localIsoDate(new Date())
+  return parseUkDate(value) ?? INVALID_DATE
 }
 
 export default function CsvImportFlow() {
@@ -216,8 +219,11 @@ export default function CsvImportFlow() {
     setImporting(true)
 
     const getValue = (row: Record<string, string>, field: FieldKey) => mapping[field] ? row[mapping[field]!] : ''
-    const payloadRows = rows
-      .filter(row => getValue(row, 'title')?.trim())
+    const titledRows = rows.filter(row => getValue(row, 'title')?.trim())
+    const datedRows = titledRows.filter(row => isoDate(getValue(row, 'date')) !== INVALID_DATE)
+    const clientSkipped = rows.length - datedRows.length
+    const badDates = titledRows.length - datedRows.length
+    const payloadRows = datedRows
       .map(row => {
         if (target === 'portfolio') {
           return {
@@ -241,6 +247,12 @@ export default function CsvImportFlow() {
         }
       })
 
+    if (payloadRows.length === 0) {
+      setImporting(false)
+      addToast(badDates > 0 ? 'No rows to import - every dated row had an unrecognised date. Use DD/MM/YYYY.' : 'No rows to import - map a title column that has values.', 'error')
+      return
+    }
+
     // Route through the server so the entitlement gate and rate limit apply
     // identically to CSV and JSON imports.
     const { ok, status, data: result } = await apiFetch<{ error?: string; imported?: number; skipped?: number }>('/api/import/csv', {
@@ -255,10 +267,11 @@ export default function CsvImportFlow() {
       return
     }
     const imported = Number(result?.imported ?? 0)
-    const skipped = Number(result?.skipped ?? 0)
+    const skipped = Number(result?.skipped ?? 0) + clientSkipped
     const label = target === 'portfolio' ? 'portfolio entries' : 'cases'
     if (skipped > 0) {
-      addToast(`Imported ${imported} ${label} - ${skipped} row${skipped === 1 ? '' : 's'} skipped (missing title or invalid category)`, 'info')
+      const reasons = badDates > 0 ? 'missing title, unrecognised date or invalid category' : 'missing title or invalid category'
+      addToast(`Imported ${imported} ${label} - ${skipped} row${skipped === 1 ? '' : 's'} skipped (${reasons})`, 'info')
     } else {
       addToast(`Imported ${imported} ${label}`, 'success')
     }

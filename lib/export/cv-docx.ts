@@ -28,6 +28,7 @@ import {
   TEACHING_TYPE_LABELS,
   titleCase,
 } from '@/lib/types/portfolio-labels'
+import { resolveSectionOrder } from '@/lib/export/cv-category-order'
 
 // Same canonical order/labels as the PDF renderer (CAT_ORDER/CAT_LABELS in
 // lib/pdf/portfolio-pdf.tsx) - keep both in sync if categories change.
@@ -164,14 +165,14 @@ export type CvDocData = {
  * renderer, without touching the `docx` document-building API. Kept separate
  * so it can be unit tested cheaply (no XML/zip assembly in the test path).
  */
-export function buildCvDocSections(entries: PortfolioEntry[]): CvDocEntrySection[] {
+export function buildCvDocSections(entries: PortfolioEntry[], categoryOrder?: readonly string[]): CvDocEntrySection[] {
   const grouped: Partial<Record<Category, PortfolioEntry[]>> = {}
   for (const e of entries) {
     if (!grouped[e.category]) grouped[e.category] = []
     grouped[e.category]!.push(e)
   }
 
-  return CAT_ORDER.filter(cat => (grouped[cat]?.length ?? 0) > 0).map(cat => ({
+  return resolveSectionOrder(CAT_ORDER, categoryOrder).filter(cat => (grouped[cat]?.length ?? 0) > 0).map(cat => ({
     category: cat,
     categoryLabel: CAT_LABELS[cat],
     entries: grouped[cat]!.map(e => ({
@@ -192,6 +193,8 @@ export function buildCvDocData(params: {
   templateName: string
   templateSubtitle: string
   logSections?: CvLogSection[]
+  /** Template section order (see lib/export/cv-category-order.ts). */
+  categoryOrder?: readonly string[]
 }): CvDocData {
   return {
     userName: params.userName,
@@ -199,7 +202,7 @@ export function buildCvDocData(params: {
     exportedAt: params.exportedAt,
     templateName: params.templateName,
     templateSubtitle: params.templateSubtitle,
-    sections: buildCvDocSections(params.entries),
+    sections: buildCvDocSections(params.entries, params.categoryOrder),
     logSections: params.logSections ?? [],
     totalEntries: params.entries.length,
   }

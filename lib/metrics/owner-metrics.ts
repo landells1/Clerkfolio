@@ -56,15 +56,15 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
 
   const specialtyLines = snapshot.specialtyPopularity.length > 0
     ? snapshot.specialtyPopularity.map(row => `  - ${row.specialtyKey}: ${row.count}`).join('\n')
-    : '  (no active specialty tracking this week)'
+    : '  (no active specialty tracking last week)'
 
   const text = [
     `Clerkfolio owner metrics - ${snapshot.windowLabel}`,
     '',
     'Users',
     `  Total users: ${snapshot.totalUsers}`,
-    `  New signups this week: ${snapshot.newSignups}`,
-    `  Active users this week: ${snapshot.activeUsers}`,
+    `  New signups last week: ${snapshot.newSignups}`,
+    `  Active users last week: ${snapshot.activeUsers}`,
     '',
     'Activity',
     `  Portfolio entries created: ${snapshot.portfolioEntriesCreated}`,
@@ -89,7 +89,7 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
 
   const specialtyRowsHtml = snapshot.specialtyPopularity.length > 0
     ? snapshot.specialtyPopularity.map(row => `<tr><td style="padding:4px 8px;color:#555;">${escapeHtml(row.specialtyKey)}</td><td style="padding:4px 8px;text-align:right;font-weight:600;">${row.count}</td></tr>`).join('')
-    : '<tr><td style="padding:4px 8px;color:#777;" colspan="2">No active specialty tracking this week</td></tr>'
+    : '<tr><td style="padding:4px 8px;color:#777;" colspan="2">No active specialty tracking last week</td></tr>'
 
   const html = `<!doctype html>
   <html>
@@ -108,8 +108,8 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
                 <td style="padding:18px 24px;">
                   <h2 style="margin:0 0 8px;font-size:14px;color:#111113;">Users</h2>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Total users: <strong style="color:#111113;">${snapshot.totalUsers}</strong></p>
-                  <p style="margin:0 0 4px;font-size:14px;color:#555;">New signups this week: <strong style="color:#111113;">${snapshot.newSignups}</strong></p>
-                  <p style="margin:0 0 14px;font-size:14px;color:#555;">Active users this week: <strong style="color:#111113;">${snapshot.activeUsers}</strong></p>
+                  <p style="margin:0 0 4px;font-size:14px;color:#555;">New signups last week: <strong style="color:#111113;">${snapshot.newSignups}</strong></p>
+                  <p style="margin:0 0 14px;font-size:14px;color:#555;">Active users last week: <strong style="color:#111113;">${snapshot.activeUsers}</strong></p>
 
                   <h2 style="margin:0 0 8px;font-size:14px;color:#111113;">Activity</h2>
                   <p style="margin:0 0 4px;font-size:14px;color:#555;">Portfolio entries created: <strong style="color:#111113;">${snapshot.portfolioEntriesCreated}</strong></p>
@@ -184,8 +184,8 @@ export async function fetchOwnerMetrics(
   ] = await Promise.all([
     supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', startIso).lt('created_at', endIso),
-    supabase.from('portfolio_entries').select('id', { count: 'exact', head: true }).is('deleted_at', null).gte('created_at', startIso).lt('created_at', endIso),
-    supabase.from('cases').select('id', { count: 'exact', head: true }).is('deleted_at', null).gte('created_at', startIso).lt('created_at', endIso),
+    supabase.from('portfolio_entries').select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('is_demo', false).gte('created_at', startIso).lt('created_at', endIso),
+    supabase.from('cases').select('id', { count: 'exact', head: true }).is('deleted_at', null).eq('is_demo', false).gte('created_at', startIso).lt('created_at', endIso),
     supabase.from('share_links').select('id', { count: 'exact', head: true }).gte('created_at', startIso).lt('created_at', endIso),
     supabase.from('referrals').select('id', { count: 'exact', head: true }).gte('created_at', startIso).lt('created_at', endIso),
     supabase.from('profiles').select('id', { count: 'exact', head: true }).eq('onboarding_complete', true),
@@ -195,8 +195,8 @@ export async function fetchOwnerMetrics(
     // events) and profiles.updated_at (bumped by unrelated writes like a theme
     // toggle or checklist tick, so it overcounts "activity"). Real portfolio
     // work is the actual product-value signal.
-    supabase.from('portfolio_entries').select('user_id').is('deleted_at', null).gte('created_at', startIso).lt('created_at', endIso),
-    supabase.from('cases').select('user_id').is('deleted_at', null).gte('created_at', startIso).lt('created_at', endIso),
+    supabase.from('portfolio_entries').select('user_id').is('deleted_at', null).eq('is_demo', false).gte('created_at', startIso).lt('created_at', endIso),
+    supabase.from('cases').select('user_id').is('deleted_at', null).eq('is_demo', false).gte('created_at', startIso).lt('created_at', endIso),
     supabase.from('profiles').select('onboarding_checklist_completed_items'),
     supabase.from('specialty_applications').select('specialty_key').eq('is_active', true),
     // referral_funnel is grouped one-row-per-referrer and could exceed

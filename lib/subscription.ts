@@ -54,12 +54,14 @@ export type PlanProvenance = {
 // Pro is buy-only now, so effective Pro == a Stripe subscription: Pro users
 // manage billing, everyone else upgrades. (No referral/gift Pro state exists.)
 export function planProvenance(
-  subInfo: Pick<SubscriptionInfo, 'tier' | 'isPro'>,
+  subInfo: Pick<SubscriptionInfo, 'tier' | 'isPro'> & { isVerified?: boolean },
 ): PlanProvenance {
   if (subInfo.isPro) {
     return { state: 'stripe', label: 'Pro', billingLabel: 'Manage billing', hasStripeBilling: true }
   }
-  return { state: 'free', label: 'Free', billingLabel: 'Upgrade to Pro', hasStripeBilling: false }
+  // Verified is still the free (non-Stripe) state, but the pricing cards mark
+  // it Current, so the label must say Verified rather than Free.
+  return { state: 'free', label: subInfo.isVerified ? 'Verified' : 'Free', billingLabel: 'Upgrade to Pro', hasStripeBilling: false }
 }
 
 type EntitlementRow = {

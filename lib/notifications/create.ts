@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { sendEmail } from '@/lib/email/send'
 
 // noreply@ is the automated From: sender on transactional mail (the contact
 // addresses consolidate onto admin@ in Batch 8 - this is a sending identity,
@@ -42,18 +43,15 @@ export async function createNotification(
   if (error) console.error('createNotification: insert failed:', error.message)
 
   if (email && email.to && process.env.RESEND_API_KEY) {
-    try {
-      const resend = new Resend(process.env.RESEND_API_KEY)
-      await resend.emails.send({
-        from: FROM,
-        to: email.to,
-        subject: email.subject,
-        html: email.html,
-        text: email.text,
-      })
-    } catch (err) {
-      console.error('createNotification: email send failed:', err instanceof Error ? err.message : 'unknown')
-    }
+    const resend = new Resend(process.env.RESEND_API_KEY)
+    const result = await sendEmail(resend, {
+      from: FROM,
+      to: email.to,
+      subject: email.subject,
+      html: email.html,
+      text: email.text,
+    })
+    if (!result.ok) console.error('createNotification: email send failed:', result.error)
   }
 }
 

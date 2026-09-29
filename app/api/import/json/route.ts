@@ -6,6 +6,7 @@ import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { IMPORT_RATE_MAX, IMPORT_RATE_WINDOW_SECONDS, copyInsertable, isRecord } from '@/lib/import/shared'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 const CATEGORY_VALUES = new Set(CATEGORIES.map(category => category.value))
 
@@ -41,10 +42,11 @@ const PORTFOLIO_ALLOWED = new Set([
   'refl_type', 'refl_framework', 'refl_clinical_context', 'refl_supervisor',
   'refl_free_text',
   'custom_free_text',
+  'importance', 'pinned',
 ])
 const CASE_ALLOWED = new Set([
   'title', 'date', 'clinical_domain', 'clinical_domains', 'specialty_tags',
-  'interview_themes', 'notes',
+  'interview_themes', 'notes', 'importance', 'pinned',
 ])
 const DEADLINE_ALLOWED = new Set([
   'title', 'due_date', 'completed', 'is_auto', 'source_specialty_key', 'notes',
@@ -52,6 +54,10 @@ const DEADLINE_ALLOWED = new Set([
 const GOAL_ALLOWED = new Set([
   'category', 'target_count', 'due_date',
 ])
+
+function isTrashedOrDemo(row: Record<string, unknown>) {
+  return Boolean(row.deleted_at) || row.is_demo === true
+}
 
 function safeArray(value: unknown): Record<string, unknown>[] {
   return Array.isArray(value) ? value.filter(isRecord) : []
@@ -209,12 +215,20 @@ export async function POST(req: NextRequest) {
   // inserts below are independent Supabase calls, not a transaction, so a
   // retry after a partial failure must not double-insert whatever already
   // landed.
-  const [{ data: existingEntries }, { data: existingCases }, { data: existingDeadlines }, { data: existingGoals }] = await Promise.all([
-    supabase.from('portfolio_entries').select('title, date, category').eq('user_id', user.id).is('deleted_at', null),
-    supabase.from('cases').select('title, date').eq('user_id', user.id).is('deleted_at', null),
-    supabase.from('deadlines').select('title, due_date').eq('user_id', user.id),
-    supabase.from('goals').select('category, target_count, due_date').eq('user_id', user.id),
+  // Paged: a plain read stops at PostgREST's 1000-row cap, so duplicates of
+  // older rows on a heavy account slipped through the dedupe.
+  const existingReads = await Promise.all([
+    fetchAllRows<Record<string, unknown>>((from, to) => supabase.from('portfolio_entries').select('title, date, category').eq('user_id', user.id).is('deleted_at', null).order('id').range(from, to)),
+    fetchAllRows<Record<string, unknown>>((from, to) => supabase.from('cases').select('title, date').eq('user_id', user.id).is('deleted_at', null).order('id').range(from, to)),
+    fetchAllRows<Record<string, unknown>>((from, to) => supabase.from('deadlines').select('title, due_date').eq('user_id', user.id).order('id').range(from, to)),
+    fetchAllRows<Record<string, unknown>>((from, to) => supabase.from('goals').select('category, target_count, due_date').eq('user_id', user.id).order('id').range(from, to)),
   ])
+  const existingReadError = existingReads.find(read => read.error)?.error
+  if (existingReadError) {
+    console.error('import/json duplicate lookup error:', existingReadError.message)
+    return NextResponse.json({ error: 'Failed to check for duplicates. Please try again.' }, { status: 500 })
+  }
+  const [{ data: existingEntries }, { data: existingCases }, { data: existingDeadlines }, { data: existingGoals }] = existingReads
   const existing = new Set([
     ...(existingEntries ?? []).map(entryKey),
     ...(existingCases ?? []).map(caseKey),
@@ -239,6 +253,9 @@ export async function POST(req: NextRequest) {
         errors.push({ table: 'portfolio_entries', row: index + 1, error: `Invalid category "${category}"` })
         return false
       }
+      // A GDPR backup includes trashed rows and the onboarding demo examples;
+      // restoring must not resurrect them as live, real entries.
+      if (isTrashedOrDemo(row)) { skipped++; return false }
       if (existing.has(entryKey(row))) { skipped++; return false }
       return true
     })
@@ -250,6 +267,7 @@ export async function POST(req: NextRequest) {
         errors.push({ table: 'cases', row: index + 1, error: 'Missing title' })
         return false
       }
+      if (isTrashedOrDemo(row)) { skipped++; return false }
       if (existing.has(caseKey(row))) { skipped++; return false }
       return true
     })

@@ -32,7 +32,9 @@ export default function DuplicateCaseButton({ caseId }: { caseId: string }) {
 
       const { data: newCase, error: insertError } = await supabase
         .from('cases')
-        .insert({ ...rest, title: `${rest.title} (copy)`, user_id: user.id })
+        // A copy is always the user's own real record: copying the onboarding
+        // demo kept is_demo=true and hit the one-active-demo unique index.
+        .insert({ ...rest, is_demo: false, title: `${rest.title} (copy)`, user_id: user.id })
         .select('id')
         .single()
 

@@ -13,6 +13,7 @@ import { applyTheme, type Theme } from '@/lib/theme'
 import type { ProfileState } from '@/components/settings/profile-state'
 import { ConfirmModal } from '@/components/settings/confirm-modal'
 import { CareerStageSection } from '@/components/settings/career-stage-section'
+import { isMedicalStudentStage } from '@/lib/constants/career-stages'
 import { ProfileSection } from '@/components/settings/profile-section'
 import { AppearanceSection } from '@/components/settings/appearance-section'
 import { AccessibilitySection } from '@/components/settings/accessibility-section'
@@ -21,6 +22,9 @@ import { InstitutionalEmailSection } from '@/components/settings/institutional-e
 import { PasswordSection } from '@/components/settings/password-section'
 import { DataExportSection } from '@/components/settings/data-export-section'
 import { ReferralCodeSection } from '@/components/settings/referral-code-section'
+import { saveBlob } from '@/lib/download-blob'
+import { PRO_STORAGE_MB, formatStorageQuota } from '@/lib/entitlements/limits'
+import { storageSet, storageRemove } from '@/lib/safe-storage'
 
 const SETTINGS_ERROR_MESSAGES: Record<string, string> = {
   recovery_required: 'A valid password reset link is required to change your password.',
@@ -56,6 +60,7 @@ export default function SettingsPage() {
   const [savingProfile, setSavingProfile] = useState(false)
   const [sendingStudentEmail, setSendingStudentEmail] = useState(false)
   const [pendingStage, setPendingStage] = useState<string | null>(null)
+  const [deletingAccount, setDeletingAccount] = useState(false)
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' })
   const [passwordLoading, setPasswordLoading] = useState(false)
   const [emailForm, setEmailForm] = useState({ open: false, newEmail: '', password: '' })
@@ -70,6 +75,7 @@ export default function SettingsPage() {
   const [studentEmailError, setStudentEmailError] = useState<string | null>(null)
   const settingsErrorMessage = SETTINGS_ERROR_MESSAGES[searchParams.get('error') ?? ''] ?? null
   const returnedFromCheckout = searchParams.get('upgraded') === 'true'
+  const [upgradePollExhausted, setUpgradePollExhausted] = useState(false)
 
   useEffect(() => {
     setOrigin(window.location.origin)
@@ -78,7 +84,12 @@ export default function SettingsPage() {
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      if (!user) {
+        // Session expired in this tab: don't sit on "Loading settings..." forever.
+        setLoading(false)
+        router.replace('/login?next=/settings')
+        return
+      }
 
       setEmail(user.email ?? '')
       setUserId(user.id)
@@ -123,7 +134,27 @@ export default function SettingsPage() {
       setLoading(false)
     }
     load()
-  }, [supabase])
+  }, [supabase, router])
+
+  // After Stripe checkout the webhook usually lands within seconds; re-check
+  // the plan for ~30s instead of leaving "Completing your upgrade" up forever.
+  const awaitingPro = returnedFromCheckout && Boolean(userId) && subInfo !== null && !subInfo.isPro
+  useEffect(() => {
+    if (!awaitingPro) return
+    let attempts = 0
+    const timer = setInterval(async () => {
+      attempts += 1
+      const refreshed = await fetchSubscriptionInfo(supabase, userId)
+      if (refreshed.isPro) {
+        setSubInfo(refreshed)
+        clearInterval(timer)
+      } else if (attempts >= 10) {
+        setUpgradePollExhausted(true)
+        clearInterval(timer)
+      }
+    }, 3000)
+    return () => clearInterval(timer)
+  }, [awaitingPro, supabase, userId])
 
   useEffect(() => {
     const status = searchParams.get('student_email')
@@ -216,7 +247,7 @@ export default function SettingsPage() {
     setPasswordLoading(false)
     if (!ok) {
       if (data?.signInRequired) {
-        router.replace('/login?session=revoked')
+        router.replace('/login?password=changed')
         router.refresh()
         return
       }
@@ -264,17 +295,15 @@ export default function SettingsPage() {
   async function handleDataExport() {
     setExportLoading(true)
     try {
-      const { ok, response } = await apiFetch('/api/account/export', { method: 'POST', parse: 'none' })
-      if (!ok || !response) throw new Error('Export failed')
-      const blob = await response.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `clerkfolio-export-${new Date().toISOString().split('T')[0]}.zip`
-      document.body.appendChild(a)
-      a.click()
-      document.body.removeChild(a)
-      URL.revokeObjectURL(url)
+      const { ok, status, response } = await apiFetch('/api/account/export', { method: 'POST', parse: 'none' })
+      if (!ok || !response) {
+        // Surface the server's reason (e.g. the rate limit) rather than a
+        // generic failure.
+        const body = await response?.json().catch(() => null) as { error?: string } | null
+        addToast(status === null ? NETWORK_ERROR_MESSAGE : (body?.error ?? 'Failed to generate export'), 'error')
+        return
+      }
+      saveBlob(await response.blob(), `clerkfolio-export-${new Date().toISOString().split('T')[0]}.zip`)
     } catch {
       addToast('Failed to generate export', 'error')
     } finally {
@@ -292,11 +321,11 @@ export default function SettingsPage() {
       body: JSON.stringify({ email: studentEmail.email }),
     })
     if (ok) {
+      // Sending a link does not change the server-side status: a verified
+      // email stays verified until the new link is confirmed, so don't show
+      // the user as "Unverified" in the meantime.
       setStudentEmail(current => ({
         ...current,
-        verified: false,
-        verifiedAt: '',
-        dueAt: '',
         sentAt: new Date().toISOString(),
       }))
       addToast('Verification link sent', 'success')
@@ -327,23 +356,26 @@ export default function SettingsPage() {
   }
 
   async function deleteAccount() {
+    if (deletingAccount) return
     if (!deleteConfirmPassword) {
       addToast('Enter your current password to confirm deletion.', 'error')
       return
     }
+    setDeletingAccount(true)
     const { ok, status, data } = await apiFetch<{ error?: string }>('/api/account/delete', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ confirm: 'DELETE', currentPassword: deleteConfirmPassword }),
     })
     if (!ok) {
+      setDeletingAccount(false)
       addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to delete account'), 'error')
       return
     }
     // Drop the offline dashboard cache (written by offline-cache-primer.tsx).
     // Account delete is privacy-critical - leaving stale portfolio / case
     // titles in localStorage would defeat the deletion.
-    try { localStorage.removeItem('clerkfolio-offline-latest') } catch {}
+    try { storageRemove('clerkfolio-offline-latest') } catch {}
     if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
       navigator.serviceWorker.controller.postMessage({ type: 'LOGOUT' })
     }
@@ -354,7 +386,7 @@ export default function SettingsPage() {
   function setDisplayPref(key: 'high_contrast' | 'dyslexic_font', value: boolean) {
     const nextPrefs = { ...profile.display_prefs, [key]: value }
     setProfile(p => ({ ...p, display_prefs: nextPrefs }))
-    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    storageSet('display_prefs', JSON.stringify(nextPrefs))
     document.body.classList.toggle('theme-high-contrast', Boolean(nextPrefs.high_contrast))
     document.body.classList.toggle('font-dyslexic', Boolean(nextPrefs.dyslexic_font))
   }
@@ -366,7 +398,7 @@ export default function SettingsPage() {
     applyTheme(theme)
     const nextPrefs = { ...profile.display_prefs, theme }
     setProfile(p => ({ ...p, display_prefs: nextPrefs }))
-    window.localStorage.setItem('display_prefs', JSON.stringify(nextPrefs))
+    storageSet('display_prefs', JSON.stringify(nextPrefs))
     apiFetch('/api/settings/profile', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -410,8 +442,10 @@ export default function SettingsPage() {
       {returnedFromCheckout && subInfo && (
         <div role="status" className="mb-6 rounded-2xl border border-emerald-400/25 bg-emerald-400/10 px-4 py-3 text-sm text-[var(--success)]">
           {subInfo.isPro
-            ? "You're now on Pro - enjoy unlimited exports, 5 GB storage, and unlimited share links."
-            : 'Completing your upgrade. Pro access will appear here once payment confirmation has been processed.'}
+            ? `You're now on Pro - enjoy unlimited exports, ${formatStorageQuota(PRO_STORAGE_MB)} storage, and unlimited share links.`
+            : upgradePollExhausted
+              ? 'Your payment is still being confirmed. Refresh this page in a minute - Pro access appears as soon as Stripe confirms it.'
+              : 'Completing your upgrade. Pro access will appear here once payment confirmation has been processed.'}
         </div>
       )}
 
@@ -507,7 +541,7 @@ export default function SettingsPage() {
         </button>
       </section>
 
-      {pendingStage && (
+      {pendingStage && (!isMedicalStudentStage(pendingStage) || profile.student_graduation_date) && (
         <ConfirmModal
           title="Change career stage?"
           body="Changing your career stage will adjust which features are shown in the sidebar. Your data will not be affected. Continue?"
@@ -533,6 +567,8 @@ export default function SettingsPage() {
           passwordValue={deleteConfirmPassword}
           onPasswordChange={setDeleteConfirmPassword}
           passwordRequired
+          busy={deletingAccount}
+          busyLabel="Deleting account..."
           onCancel={() => { setDeleteConfirm(false); setDeleteConfirmText(''); setDeleteConfirmPassword('') }}
           onConfirm={deleteAccount}
         />

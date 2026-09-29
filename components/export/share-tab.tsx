@@ -4,10 +4,12 @@ import Link from 'next/link'
 import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import type { SubscriptionInfo } from '@/lib/subscription'
+import { shareAllowance } from '@/lib/entitlements/allowance'
 import {
   EXPIRY_PRESETS,
   formatDate,
   isoDateOffset,
+  isShareLinkExpired,
   shareLabel,
   type ShareLink,
   type ShareScope,
@@ -90,6 +92,9 @@ export function ShareTab({
   revokingLink: string | null
   onRevoke: (id: string) => void
 }) {
+  const activeLinkCount = shareLinks.filter(link => !isShareLinkExpired(link)).length
+  const allowance = subInfo ? shareAllowance(subInfo, activeLinkCount) : { allowed: 1, remaining: 0 }
+  const linkWord = allowance.allowed === 1 ? 'link' : 'links'
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[320px_1fr]">
       <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
@@ -98,7 +103,7 @@ export function ShareTab({
           <div className="mt-3 rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
             <p className="font-semibold">
               {canCreateShareLink
-                ? '1 of 1 share link available on Free'
+                ? `${allowance.remaining} of ${allowance.allowed} share ${linkWord} available on Free`
                 : hasActiveShareLinks
                   ? 'Active link cap reached'
                   : 'Share link cap reached on Free'}
@@ -108,7 +113,7 @@ export function ShareTab({
                 ? 'Revoke an existing link to create another, or upgrade for unlimited links.'
                 : hasActiveShareLinks
                   ? 'Revoke an existing link or upgrade to Pro for unlimited links.'
-                  : 'Free tier includes 1 active share link. Upgrade to Pro for unlimited links.'}
+                  : `Your free allowance is ${allowance.allowed} active share ${linkWord}. Upgrade to Pro for unlimited links.`}
             </p>
             {!canCreateShareLink && (
               <p className="mt-1 text-[var(--text-secondary)]">
@@ -142,8 +147,12 @@ export function ShareTab({
           {shareScope === 'theme' && (
             <label className="block">
               <span className="mb-1.5 block text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Theme</span>
-              <input value={shareTheme} onChange={e => setShareTheme(e.target.value)} list="themes" className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]" />
-              <datalist id="themes">{themes.map(theme => <option key={theme} value={theme} label={formatCompetencyTheme(theme)} />)}</datalist>
+              {/* A select, not free text: a typo'd theme created a link that
+                  matched nothing yet still used up a free share slot. */}
+              <select value={shareTheme} onChange={e => setShareTheme(e.target.value)} className="w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2.5 text-sm text-[var(--text-primary)]">
+                <option value="">{themes.length === 0 ? 'No competency themes on your entries yet' : 'Choose a theme'}</option>
+                {themes.map(theme => <option key={theme} value={theme}>{formatCompetencyTheme(theme)}</option>)}
+              </select>
             </label>
           )}
           <div>
@@ -211,10 +220,10 @@ export function ShareTab({
 
       <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
         <div className="border-b border-white/[0.06] px-5 py-4">
-          <h2 className="text-base font-semibold text-[var(--text-primary)]">Active links</h2>
+          <h2 className="text-base font-semibold text-[var(--text-primary)]">Your links</h2>
         </div>
         {shareLinks.length === 0 ? (
-          <p className="p-6 text-sm text-[var(--text-muted)]">No active share links.</p>
+          <p className="p-6 text-sm text-[var(--text-muted)]">No share links yet.</p>
         ) : (
           <div className="divide-y divide-white/[0.04]">
             {shareLinks.map(link => (
@@ -222,7 +231,12 @@ export function ShareTab({
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>
                     <p className="text-sm font-medium text-[var(--text-primary)]">{shareLabel(link)}</p>
-                    <p className="mt-1 text-xs text-[var(--text-muted)]">Expires {formatDate(link.expires_at)} - {link.view_count ?? 0} views</p>
+                    <p className="mt-1 text-xs text-[var(--text-muted)]">
+                      {isShareLinkExpired(link)
+                        ? <span className="font-medium text-[var(--warning)]">Expired {formatDate(link.expires_at)}</span>
+                        : <>Expires {formatDate(link.expires_at)}</>}
+                      {' '}- {link.view_count ?? 0} views
+                    </p>
                     {link.view_webhook_url && <p className="mt-1 text-xs text-[var(--success)]">Webhook enabled</p>}
                   </div>
                   <div className="flex flex-wrap gap-2">

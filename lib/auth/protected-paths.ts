@@ -26,6 +26,10 @@ export const PROTECTED_PAGE_PREFIXES = [
   '/import',
   '/help',
   '/onboarding',
+  // Institutional-email verification links need the owning session. Listing it
+  // here sends a signed-out click to /login?next=... and back to the link,
+  // instead of the confirm route rejecting it as "a different account".
+  '/verify-email',
 ] as const
 
 // True when `pathname` is one of the protected pages or a sub-path of one

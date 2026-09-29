@@ -6,6 +6,7 @@ import { CATEGORIES, CATEGORY_COLOURS, type Category, type PortfolioEntry } from
 import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import type { Case } from '@/lib/types/cases'
 import type { SubscriptionInfo } from '@/lib/subscription'
+import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
 import {
   EXPORT_FIELDS,
   exportScopeLabel,
@@ -94,7 +95,7 @@ export function PdfExportTab({
           <div className="rounded-2xl border border-amber-400/20 bg-amber-400/5 p-4 text-xs">
             <p className="mb-1 font-semibold text-[var(--warning)]">
               {subInfo.limits.canExportPdf
-                ? '1 of 1 PDF remaining on Free'
+                ? `${pdfRemainingLabel(subInfo)} on Free`
                 : 'PDF cap reached on Free'}
             </p>
             <p className="text-[var(--text-secondary)]">
@@ -136,9 +137,9 @@ export function PdfExportTab({
             </select>
             <p className="mt-2 text-[11px] text-[var(--text-muted)]">
               {pdfTemplate === 'default' && 'Clean general-purpose layout, grouped by category.'}
-              {pdfTemplate === 'foundation' && 'Foundation Programme layout grouped by ARCP capability.'}
-              {pdfTemplate === 'mrcp' && 'Tailored to MRCP application section ordering.'}
-              {pdfTemplate === 'st_application' && 'Higher specialty (ST3+) self-assessment layout.'}
+              {pdfTemplate === 'foundation' && 'Foundation portfolio cover page for ARCP preparation, entries grouped by category.'}
+              {pdfTemplate === 'mrcp' && 'MRCP portfolio cover page, entries grouped by category.'}
+              {pdfTemplate === 'st_application' && 'Specialty training application cover page, entries grouped by category.'}
             </p>
           </div>
         )}
@@ -165,6 +166,23 @@ export function PdfExportTab({
           </div>
         )}
 
+        {format === 'pdf' ? (
+          <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
+            <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">PDF content</p>
+            <label className="flex items-start gap-2 text-sm text-[var(--text-secondary)]">
+              <input
+                type="checkbox"
+                className="mt-0.5"
+                checked={selectedFields.includes('notes')}
+                onChange={e => setSelectedFields(current => e.target.checked ? [...current.filter(value => value !== 'notes'), 'notes'] : current.filter(value => value !== 'notes'))}
+              />
+              <span>
+                Include notes and reflection text
+                <span className="mt-0.5 block text-[11px] text-[var(--text-muted)]">Untick to leave free-text notes, reflections and clinical context out of the PDF.</span>
+              </span>
+            </label>
+          </div>
+        ) : (
         <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
           <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Fields</p>
           <div className="space-y-2">
@@ -180,6 +198,7 @@ export function PdfExportTab({
             ))}
           </div>
         </div>
+        )}
 
         {format === 'pdf' && (
           <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">

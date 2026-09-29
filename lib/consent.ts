@@ -1,3 +1,4 @@
+import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
 export type ConsentData = {
   analytics: boolean
   ts: string
@@ -11,7 +12,7 @@ export const CONSENT_CHANGED_EVENT = 'cf-consent-changed'
 export function getConsent(): ConsentData | null {
   if (typeof window === 'undefined') return null
   try {
-    const raw = localStorage.getItem(KEY)
+    const raw = storageGet(KEY)
     if (!raw) return null
     return JSON.parse(raw) as ConsentData
   } catch {
@@ -21,13 +22,13 @@ export function getConsent(): ConsentData | null {
 
 export function setConsent(analytics: boolean): ConsentData {
   const data: ConsentData = { analytics, ts: new Date().toISOString(), version: 1 }
-  localStorage.setItem(KEY, JSON.stringify(data))
+  storageSet(KEY, JSON.stringify(data))
   window.dispatchEvent(new CustomEvent(CONSENT_CHANGED_EVENT, { detail: data }))
   return data
 }
 
 export function clearConsent(): void {
-  if (typeof window !== 'undefined') localStorage.removeItem(KEY)
+  if (typeof window !== 'undefined') storageRemove(KEY)
 }
 
 export function hasConsent(): boolean {

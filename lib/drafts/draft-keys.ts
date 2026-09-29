@@ -45,6 +45,14 @@ const PRISTINE_DRAFT_KEYS = new Set([
   'reflFramework',
 ])
 
+/** True if a parsed case autosave draft holds real user input. The date alone
+ *  (auto-filled with today) does not count, so opening /cases/new and leaving
+ *  no longer saves a draft that later restores a stale date. */
+export function caseDraftHasContent(draft: Record<string, unknown>): boolean {
+  const filled = (value: unknown) => typeof value === 'string' ? value.trim().length > 0 : Array.isArray(value) ? value.length > 0 : false
+  return filled(draft.title) || filled(draft.clinicalDomains) || filled(draft.specialtyTags) || (typeof draft.importance === 'string' && draft.importance.length > 0)
+}
+
 /** True if a parsed portfolio autosave draft holds real user input rather than
  *  only the structural defaults an untouched form would autosave. */
 export function portfolioDraftHasContent(draft: Record<string, unknown>): boolean {

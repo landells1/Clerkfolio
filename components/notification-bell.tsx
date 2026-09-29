@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, type Dispatch, type SetStateAction } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient as createBrowserClient } from '@/lib/supabase/client'
 import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 
@@ -16,13 +17,17 @@ function useUnreadCount(): [number, Dispatch<SetStateAction<number>>] {
       if (!user) return
       const { count: n } = await supabase
         .from('notifications')
-        .select('id', { count: 'exact' })
+        .select('id', { count: 'exact', head: true })
         .eq('user_id', user.id)
         .eq('read', false)
-        .limit(0)
       setCount(n ?? 0)
     }
     load()
+    // Re-check when the user comes back to the tab, so new reminders appear
+    // without a full page reload.
+    const onVisible = () => { if (document.visibilityState === 'visible') load() }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
   }, [])
   return [count, setCount]
 }
@@ -93,7 +98,10 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
         {sidebar && <span className="flex-1 text-left">Notifications</span>}
       </button>
 
-      {open && (
+      {/* Portalled to <body>: inside the sidebar <aside>, whose transform makes
+          it the containing block for fixed children, the click-away backdrop
+          only covered the 240px sidebar and the panel ran off phone screens. */}
+      {open && typeof document !== 'undefined' && createPortal(
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
           <div
@@ -102,7 +110,7 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
             aria-modal="true"
             aria-label="Notifications"
             tabIndex={-1}
-            className={`fixed z-[9999] ${sidebar ? 'left-[248px] bottom-4' : 'right-4 top-14'} w-80 bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}
+            className={`fixed z-[9999] ${sidebar ? 'bottom-4 left-4 right-4 lg:left-[248px] lg:right-auto lg:w-80' : 'right-4 top-14 w-[min(20rem,calc(100vw-2rem))]'} bg-[var(--bg-surface)] border border-white/[0.1] rounded-2xl shadow-2xl overflow-hidden`}
           >
             <div className="flex items-center justify-between px-4 py-3 border-b border-white/[0.06]">
               <span className="text-sm font-semibold text-[var(--text-primary)]">Notifications</span>
@@ -142,7 +150,8 @@ function NotificationBell({ className, sidebar }: { className: string; sidebar?:
               )}
             </div>
           </div>
-        </>
+        </>,
+        document.body,
       )}
     </div>
   )

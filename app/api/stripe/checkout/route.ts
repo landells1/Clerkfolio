@@ -27,6 +27,17 @@ export async function POST(request: NextRequest) {
   const stripe = getStripe()
 
   try {
+    // A customer id saved in another Stripe mode (sandbox -> live switch) or
+    // deleted in the Dashboard makes every Stripe call below fail with
+    // resource_missing - treat it as "no customer yet" and create a new one.
+    if (customerId) {
+      const existing = await stripe.customers.retrieve(customerId).catch((error: unknown) => {
+        if ((error as { code?: string } | null)?.code === 'resource_missing') return null
+        throw error
+      })
+      if (!existing || ('deleted' in existing && existing.deleted)) customerId = null
+    }
+
     if (!customerId) {
       const customer = await stripe.customers.create({
         email: user.email,
@@ -47,12 +58,19 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const liveStatuses = ['active', 'trialing', 'past_due', 'unpaid']
     const subscriptionId = profile?.stripe_subscription_id ?? null
+    // The webhook writes stripe_subscription_id, so right after a checkout
+    // (before it lands) the pointer is still empty. Ask Stripe for the
+    // customer's subscriptions directly, or clicking Upgrade again created a
+    // second paid subscription.
     const hasActiveStripeSubscription = subscriptionId
       ? await stripe.subscriptions.retrieve(subscriptionId)
-        .then(subscription => ['active', 'trialing', 'past_due', 'unpaid'].includes(subscription.status))
+        .then(subscription => liveStatuses.includes(subscription.status))
         .catch(() => false)
-      : false
+      : await stripe.subscriptions.list({ customer: customerId, status: 'all', limit: 10 })
+        .then(list => list.data.some(subscription => liveStatuses.includes(subscription.status)))
+        .catch(() => false)
 
     if (profile?.tier === 'pro' || hasActiveStripeSubscription) {
       const portal = await stripe.billingPortal.sessions.create({

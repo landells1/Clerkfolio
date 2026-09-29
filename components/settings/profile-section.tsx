@@ -102,6 +102,10 @@ export function ProfileSection({
                 autoComplete="email"
                 value={emailForm.newEmail}
                 onChange={e => setEmailForm(f => ({ ...f, newEmail: e.target.value }))}
+                // This panel sits inside the profile form: without this, Enter
+                // submitted "Save profile" and no confirmation email was sent.
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!emailChangeLoading) onEmailChange(e) } }}
+                aria-label="New email address"
                 placeholder="new@email.com"
                 className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
               />
@@ -110,6 +114,8 @@ export function ProfileSection({
                 autoComplete="current-password"
                 value={emailForm.password}
                 onChange={e => setEmailForm(f => ({ ...f, password: e.target.value }))}
+                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (!emailChangeLoading) onEmailChange(e) } }}
+                aria-label="Current password"
                 placeholder="Current password"
                 className="mt-2 w-full min-h-[44px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3.5 py-2.5 text-sm normal-case tracking-normal text-[var(--text-primary)] outline-none focus:border-[var(--accent)]"
               />

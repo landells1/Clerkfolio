@@ -49,6 +49,21 @@ export async function POST(req: NextRequest) {
     )
   }
 
+  // Mirror the DB CHECK (student_graduation_date_bounds) with a specific
+  // message instead of the generic "Failed to update profile" it produced.
+  if (typeof studentGraduationDate === 'string') {
+    const grad = new Date(`${studentGraduationDate}T00:00:00Z`).getTime()
+    const now = new Date()
+    const earliest = Date.UTC(now.getUTCFullYear() - 2, now.getUTCMonth(), now.getUTCDate())
+    const latest = Date.UTC(now.getUTCFullYear() + 8, now.getUTCMonth(), now.getUTCDate())
+    if (Number.isNaN(grad) || grad < earliest || grad > latest) {
+      return NextResponse.json(
+        { error: 'Expected graduation date must be between 2 years ago and 8 years from now.' },
+        { status: 400 }
+      )
+    }
+  }
+
   if (timezone !== undefined && !VALID_TIMEZONES.has(timezone)) {
     return NextResponse.json({ error: 'Invalid timezone.' }, { status: 400 })
   }

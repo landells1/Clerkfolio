@@ -51,7 +51,9 @@ export const PRICING_FEATURES = [
   { label: 'Tracked specialties', free: '1 active', verified: '1 active', pro: 'Unlimited' },
   { label: 'Create and organise entries', free: true, verified: true, pro: true },
   { label: 'Bulk import (Horus CSV)', free: false, verified: false, pro: true },
-  { label: 'Referral rewards (+1 PDF & +1 share per referral)', free: true, verified: true, pro: true },
+  // Referrals only activate for institution-verified referrers
+  // (lib/referrals/rewards.ts), so an unverified Free account earns nothing.
+  { label: 'Referral rewards (+1 PDF & +1 share per referral)', free: false, verified: true, pro: 'If verified' },
 ] as const
 
 export const MARKETING_PRICING_FEATURES = {

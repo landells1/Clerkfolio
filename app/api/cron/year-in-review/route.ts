@@ -4,6 +4,14 @@ import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
+import { sendEmail } from '@/lib/email/send'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
+import { yearInReviewYear } from '@/lib/engagement/streaks'
+import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
+
+function escapeHtml(value: string) {
+  return value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
@@ -14,53 +22,57 @@ export async function GET(req: NextRequest) {
 
   return Sentry.withMonitor('cron-year-in-review', async () => {
   const supabase = createServiceClient()
-  const { data: profiles } = await supabase
+  // Opt-in only - this is a marketing/recap email, so PECR requires consent.
+  // Filter in the query (paged) rather than scanning every profile.
+  const { data: profiles } = await fetchAllRows<{ id: string; first_name: string | null }>((from, to) => supabase
     .from('profiles')
-    .select('id, first_name, notification_preferences')
+    .select('id, first_name')
+    .eq('notification_preferences->year_in_review', true)
+    .order('id')
+    .range(from, to))
 
   const resendKey = process.env.RESEND_API_KEY
   let emailed = 0
   let skipped = 0
   if (resendKey && profiles?.length) {
     const resend = new Resend(resendKey)
-    const yearStart = new Date()
-    yearStart.setUTCFullYear(yearStart.getUTCFullYear() - 1)
-    yearStart.setUTCMonth(0, 1)
-    yearStart.setUTCHours(0, 0, 0, 0)
-    const yearEnd = new Date(yearStart)
-    yearEnd.setUTCFullYear(yearEnd.getUTCFullYear() + 1)
+    // The review covers the year that just ended (the export route uses the
+    // same yearInReviewYear rule throughout January), by entry DATE.
+    const year = yearInReviewYear(new Date())
 
     for (const profile of profiles) {
-      const prefs = (profile.notification_preferences ?? {}) as { year_in_review?: boolean }
-      // Opt-in only - this is a marketing/recap email, so PECR requires consent.
-      if (prefs.year_in_review !== true) { skipped++; continue }
-
-      // Only email users who actually logged something in the prior year.
-      // Suppresses "your year in review is ready" emails to dormant accounts.
+      // Only email users who actually logged something in that year, so the
+      // PDF they are sent to is not empty. Demo examples don't count.
       const { count } = await supabase
         .from('portfolio_entries')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', profile.id)
-        .gte('created_at', yearStart.toISOString())
-        .lt('created_at', yearEnd.toISOString())
+        .gte('date', `${year}-01-01`)
+        .lte('date', `${year}-12-31`)
         .is('deleted_at', null)
+        .eq('is_demo', false)
 
       if (!count) { skipped++; continue }
 
       const { data: { user } } = await supabase.auth.admin.getUserById(profile.id)
-      if (!user?.email) { skipped++; continue }
-      try {
-        await resend.emails.send({
-          from: 'Clerkfolio <hello@clerkfolio.co.uk>',
-          to: user.email,
-          subject: 'Your Clerkfolio year in review is ready',
-          text: `Hi ${profile.first_name ?? 'there'}, your year-in-review PDF is ready in Clerkfolio under Export > Data backup.`,
-          html: `<p>Hi ${profile.first_name ?? 'there'},</p><p>Your year-in-review PDF is ready in Clerkfolio under <strong>Export &gt; Data backup</strong>.</p>`,
-        })
-        emailed += 1
-      } catch (error) {
-        logBackgroundJobError('cron.year-in-review.email', error, { userId: profile.id })
-      }
+      if (!user?.email || !user.email_confirmed_at) { skipped++; continue }
+      const unsub = unsubscribeUrl(profile.id, 'year_in_review')
+      const name = profile.first_name ?? 'there'
+      const result = await sendEmail(resend, {
+        from: 'Clerkfolio <hello@clerkfolio.co.uk>',
+        to: user.email,
+        subject: `Your Clerkfolio ${year} year in review is ready`,
+        text: [
+          `Hi ${name}, your ${year} year-in-review PDF is ready in Clerkfolio under Import & export > Data backup.`,
+          unsub ? `\nUnsubscribe from this email: ${unsub}` : '',
+        ].join(''),
+        html: `<p>Hi ${escapeHtml(name)},</p><p>Your ${year} year-in-review PDF is ready in Clerkfolio under <strong>Import &amp; export &gt; Data backup</strong>.</p>${unsub ? `<p style="font-size:12px;color:#666;"><a href="${escapeHtml(unsub)}">Unsubscribe from this email</a></p>` : ''}`,
+        ...(unsub
+          ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+          : {}),
+      })
+      if (result.ok) emailed += 1
+      else logBackgroundJobError('cron.year-in-review.email', new Error(result.error), { userId: profile.id, code: result.code })
     }
   }
 

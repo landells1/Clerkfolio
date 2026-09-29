@@ -15,6 +15,7 @@ const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], display: 'swap', vari
 import PreferencesApplier from '@/components/accessibility/preferences-applier'
 import CookieBanner from '@/components/legal/cookie-banner'
 import AnalyticsGate from '@/components/legal/analytics-gate'
+import SkipLink from '@/components/ui/skip-link'
 
 export const metadata: Metadata = {
   title: 'Clerkfolio - Medical Portfolio Tracker',
@@ -47,7 +48,10 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    // 'default' reserves the status-bar area. 'black-translucent' let the
+    // installed iOS app draw the fixed mobile header (menu, search, bell)
+    // under the clock/notch, since nothing pads for safe-area-inset-top.
+    statusBarStyle: 'default',
     title: 'Clerkfolio',
   },
   other: {
@@ -71,7 +75,7 @@ export default async function RootLayout({
         <script
           nonce={nonce}
           dangerouslySetInnerHTML={{
-            __html: `(function(){try{var t=localStorage.getItem('cf-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');}}catch(e){}})();`,
+            __html: `(function(){try{var t=localStorage.getItem('cf-theme');if(t==='dark'){document.documentElement.setAttribute('data-theme','dark');document.addEventListener('DOMContentLoaded',function(){var m=document.querySelector('meta[name="theme-color"]');if(m){m.setAttribute('content','#0B0B0C');}});}}catch(e){}})();`,
           }}
         />
         <meta name="theme-color" content="#F3EDDA" />
@@ -84,7 +88,7 @@ export default async function RootLayout({
         />
       </head>
       <body>
-        <a href="#main-content" className="skip-link">Skip to main content</a>
+        <SkipLink />
         <PreferencesApplier />
         <div id="main-content" tabIndex={-1}>{children}</div>
         <CookieBanner />

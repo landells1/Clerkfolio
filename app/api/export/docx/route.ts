@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { CV_ENTRY_LIMIT, cvCategoryOrder } from '@/lib/export/cv-category-order'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { buildCvDocData, renderCvDocx } from '@/lib/export/cv-docx'
@@ -20,14 +21,8 @@ const LABELS: Record<string, string> = {
   st_application: 'ST application CV',
 }
 
-const CATEGORY_ORDER: Record<string, string[]> = {
-  clinical: ['procedure', 'audit_qip', 'teaching', 'reflection', 'leadership', 'conference', 'publication', 'prize', 'custom'],
-  academic: ['publication', 'audit_qip', 'conference', 'teaching', 'prize', 'leadership', 'custom', 'procedure', 'reflection'],
-  st_application: ['audit_qip', 'leadership', 'teaching', 'publication', 'procedure', 'conference', 'prize', 'reflection', 'custom'],
-}
-
 function orderEntriesForTemplate(entries: Record<string, unknown>[], template: string) {
-  const order = CATEGORY_ORDER[template] ?? CATEGORY_ORDER.clinical
+  const order: string[] = cvCategoryOrder(template)
   const seen = new Set<string>()
   return entries
     .filter(entry => {
@@ -77,7 +72,7 @@ export async function POST(req: NextRequest) {
   const sub = await fetchSubscriptionInfo(supabase, user.id)
   if (!sub.limits.canExportPdf) {
     return NextResponse.json(
-      { error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' },
+      { error: 'limit_reached', limit: 1 + sub.referralCount, upgrade_url: '/upgrade' },
       { status: 403 }
     )
   }
@@ -90,8 +85,9 @@ export async function POST(req: NextRequest) {
       .select('*')
       .eq('user_id', user.id)
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .order('date', { ascending: false })
-      .limit(120),
+      .limit(CV_ENTRY_LIMIT),
     // Structured columns only (never notes/meta/cost_pence) for the CV log
     // sections - same query shape as /api/export/cv and the preview.
     supabase
@@ -121,6 +117,7 @@ export async function POST(req: NextRequest) {
       templateName: label,
       templateSubtitle: 'Generated CV summary from your Clerkfolio portfolio',
       logSections,
+      categoryOrder: cvCategoryOrder(template),
     })
     const buffer = await renderCvDocx(docData)
 
@@ -129,7 +126,7 @@ export async function POST(req: NextRequest) {
     if (!sub.isPro) {
       const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
       if (!claimed) {
-        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+        return NextResponse.json({ error: 'limit_reached', limit: 1 + sub.referralCount, upgrade_url: '/upgrade' }, { status: 403 })
       }
     }
 

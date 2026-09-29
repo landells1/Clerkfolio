@@ -118,11 +118,18 @@ function isPrivateIpv6(host: string): boolean {
   if (trimmed.startsWith('fe8') || trimmed.startsWith('fe9') ||
       trimmed.startsWith('fea') || trimmed.startsWith('feb')) return true     // link-local fe80::/10
   if (trimmed.startsWith('ff')) return true                                    // multicast
-  // IPv4-mapped: ::ffff:127.0.0.1 etc.
-  const v4MapMatch = trimmed.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/)
-  if (v4MapMatch) {
-    const v4 = ipv4ToInt(v4MapMatch[1])
+  // IPv4-mapped / IPv4-compatible / NAT64 embeddings of an IPv4 address, in
+  // dotted form (::ffff:127.0.0.1) or the hex form WHATWG URL normalises to
+  // ([::ffff:169.254.169.254] -> [::ffff:a9fe:a9fe]).
+  const embedded = trimmed.match(/^(?:::ffff:|::|64:ff9b::)(\d+\.\d+\.\d+\.\d+)$/)
+  if (embedded) {
+    const v4 = ipv4ToInt(embedded[1])
     if (v4 !== null && isPrivateIpv4(v4)) return true
+  }
+  const embeddedHex = trimmed.match(/^(?:::ffff:|::|64:ff9b::)([0-9a-f]{1,4}):([0-9a-f]{1,4})$/)
+  if (embeddedHex) {
+    const v4 = ((parseInt(embeddedHex[1], 16) << 16) >>> 0) + parseInt(embeddedHex[2], 16)
+    if (isPrivateIpv4(v4)) return true
   }
   return false
 }

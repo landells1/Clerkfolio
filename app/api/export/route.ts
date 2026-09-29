@@ -93,7 +93,7 @@ export async function POST(request: NextRequest) {
 
   // PDF-only lifetime cap: do not block CSV / JSON exports.
   if ((!format || format === 'pdf') && !subInfo.limits.canExportPdf) {
-    return NextResponse.json({ error: 'limit_reached', limit: 1, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
+    return NextResponse.json({ error: 'limit_reached', limit: 1 + subInfo.referralCount, used: subInfo.usage.pdfExportsUsed, upgrade_url: '/upgrade' }, { status: 403 })
   }
 
   if ((entryIds?.length ?? 0) > 500 || (caseIds?.length ?? 0) > 500) {
@@ -197,8 +197,14 @@ export async function POST(request: NextRequest) {
   try {
     const selectedTemplate = template && template !== 'default' ? PDF_TEMPLATES[template] : null
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()
+    // The export page's "Include notes and reflection text" tick maps to the
+    // `notes` field; unticked, strip every free-text narrative field so a PDF
+    // sent to a panel carries only the structured record.
+    const pdfEntries = selectedFields.includes('notes')
+      ? filteredEntries
+      : filteredEntries.map(entry => ({ ...entry, notes: null, refl_free_text: null, refl_clinical_context: null }))
     const buffer = await renderPortfolioPdf({
-      entries: filteredEntries,
+      entries: pdfEntries,
       userName,
       specialty: specialtyDisplay,
       exportedAt,
@@ -214,7 +220,7 @@ export async function POST(request: NextRequest) {
     if (!subInfo.isPro) {
       const { data: claimed } = await supabase.rpc('claim_free_pdf_export', { p_user_id: user.id })
       if (!claimed) {
-        return NextResponse.json({ error: 'limit_reached', limit: 1, upgrade_url: '/upgrade' }, { status: 403 })
+        return NextResponse.json({ error: 'limit_reached', limit: 1 + subInfo.referralCount, upgrade_url: '/upgrade' }, { status: 403 })
       }
     }
 

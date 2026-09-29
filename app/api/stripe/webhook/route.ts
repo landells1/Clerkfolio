@@ -59,7 +59,7 @@ async function recordSubscriptionChange(
       type: 'billing',
       title,
       body,
-      link: '/settings',
+      link: '/settings/billing',
     }),
   ])
   if (auditError) console.error('Webhook: failed to write subscription audit event:', auditError.message)
@@ -139,13 +139,36 @@ async function handleStripeEvent(
         await recomputeTierAfterDowngrade(supabase, profile.id)
       }
 
-      if (profile?.id && subscription.cancel_at_period_end) {
+      // Only act on the TRANSITION into / out of a scheduled cancellation.
+      // Every later subscription.updated while cancel_at_period_end stayed
+      // true (a card update, an invoice) re-sent "cancellation scheduled".
+      // Newer API versions schedule portal cancellations via `cancel_at`, so
+      // treat either field as "scheduled".
+      const previous = (event.data as { previous_attributes?: Partial<Stripe.Subscription> }).previous_attributes ?? {}
+      const scheduledNow = Boolean(subscription.cancel_at_period_end || subscription.cancel_at)
+      const changedScheduling = 'cancel_at_period_end' in previous || 'cancel_at' in previous
+      const scheduledBefore = changedScheduling
+        ? Boolean(
+            ('cancel_at_period_end' in previous ? previous.cancel_at_period_end : subscription.cancel_at_period_end)
+            || ('cancel_at' in previous ? previous.cancel_at : subscription.cancel_at)
+          )
+        : scheduledNow
+
+      if (profile?.id && paid && scheduledNow && !scheduledBefore) {
         await recordSubscriptionChange(
           supabase,
           profile.id,
           { event: 'cancellation_scheduled', period_end: getPeriodEnd(subscription) },
           'Subscription cancellation scheduled',
           'Your Pro access remains active until the end of your billing period.',
+        )
+      } else if (profile?.id && paid && !scheduledNow && scheduledBefore) {
+        await recordSubscriptionChange(
+          supabase,
+          profile.id,
+          { event: 'cancellation_reversed', period_end: getPeriodEnd(subscription) },
+          'Pro subscription will continue',
+          'Your scheduled cancellation was removed. Pro will renew as normal.',
         )
       }
 
@@ -168,9 +191,9 @@ async function handleStripeEvent(
 
       if (profile?.id) {
         const recomputedTier = await recomputeTierAfterDowngrade(supabase, profile.id)
-        const planLabel = recomputedTier === 'student'
-          ? 'Student'
-          : recomputedTier === 'foundation' ? 'Foundation' : 'Free'
+        // student/foundation tiers now simply mean institutionally verified
+        // (the Verified plan); the old tier names are retired in the UI.
+        const planLabel = recomputedTier === 'student' || recomputedTier === 'foundation' ? 'Verified' : 'Free'
         await recordSubscriptionChange(
           supabase,
           profile.id,
@@ -211,8 +234,8 @@ async function handleStripeEvent(
             user_id: profile.id,
             type: 'payment_failed',
             title: 'Payment failed - please update your billing details',
-            body: 'Your subscription payment could not be processed. Visit Settings to update your payment method.',
-            link: '/settings',
+            body: 'Your subscription payment could not be processed. Open Billing to update your payment method.',
+            link: '/settings/billing',
           })
         }
       }

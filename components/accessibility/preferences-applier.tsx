@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { applyTheme, getStoredTheme, isTheme } from '@/lib/theme'
+import { storageGet, storageSet } from '@/lib/safe-storage'
 
 type DisplayPrefs = {
   high_contrast?: boolean
@@ -23,7 +24,7 @@ function applyPrefs(prefs: DisplayPrefs) {
 
 export default function PreferencesApplier() {
   useEffect(() => {
-    const cached = window.localStorage.getItem('display_prefs')
+    const cached = storageGet('display_prefs')
     if (cached) {
       try { applyPrefs(JSON.parse(cached) as DisplayPrefs) } catch {}
     }
@@ -37,7 +38,7 @@ export default function PreferencesApplier() {
         .eq('id', user.id)
         .single()
       const prefs = (data?.display_prefs ?? {}) as DisplayPrefs
-      window.localStorage.setItem('display_prefs', JSON.stringify(prefs))
+      storageSet('display_prefs', JSON.stringify(prefs))
       applyPrefs(prefs)
     })
   }, [])

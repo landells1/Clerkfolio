@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { londonDateParts } from '@/lib/engagement/streaks'
 
 export type CalendarWidgetItem = {
   date: string
@@ -13,11 +14,17 @@ function iso(date: Date) {
   return `${y}-${m}-${d}`
 }
 
+// Enough whole weeks to cover the month: 5 for most, 6 when it spans six
+// weeks (a fixed 35 cells dropped e.g. 30 Nov 2026 and 31 May 2027, along
+// with anything due on them).
 function monthDays(month: Date) {
   const first = new Date(month.getFullYear(), month.getMonth(), 1)
+  const leading = (first.getDay() + 6) % 7
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
+  const cells = Math.ceil((leading + daysInMonth) / 7) * 7
   const start = new Date(first)
-  start.setDate(first.getDate() - ((first.getDay() + 6) % 7))
-  return Array.from({ length: 35 }, (_, index) => {
+  start.setDate(first.getDate() - leading)
+  return Array.from({ length: cells }, (_, index) => {
     const d = new Date(start)
     d.setDate(start.getDate() + index)
     return d
@@ -25,7 +32,10 @@ function monthDays(month: Date) {
 }
 
 export default function CalendarWidget({ items }: { items: CalendarWidgetItem[] }) {
-  const now = new Date()
+  // Server-rendered on a UTC runtime: anchor "today" and the month to the UK
+  // calendar date, or the highlight sits on yesterday after midnight BST.
+  const london = londonDateParts(new Date())
+  const now = new Date(london.year, london.month - 1, london.day)
   const days = monthDays(now)
   const counts = new Map<string, { entries: number; deadlines: number }>()
   items.forEach(item => {

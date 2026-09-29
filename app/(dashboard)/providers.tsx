@@ -57,6 +57,10 @@ export default function DashboardProviders({ children, userInterests, careerStag
       const target = e.target instanceof HTMLElement ? e.target : document.activeElement as HTMLElement | null
       const tag = target?.tagName
       if (['INPUT', 'TEXTAREA', 'SELECT'].includes(tag ?? '') || target?.isContentEditable) return
+      // Never act behind an open dialog (quick log, notifications, the
+      // cheatsheet...): single-key shortcuts used to stack a second modal and
+      // focus trap underneath the one the user was looking at.
+      if (document.querySelector('[aria-modal="true"]')) return
 
       if (e.key === '?') {
         e.preventDefault()
@@ -64,9 +68,15 @@ export default function DashboardProviders({ children, userInterests, careerStag
         return
       }
 
-      if (e.key === 'n' || e.key === 'N') {
+      if (!waitingForGo && (e.key === 'n' || e.key === 'N')) {
         e.preventDefault()
         openQuickAdd()
+        return
+      }
+
+      if (!waitingForGo && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault()
+        window.location.assign('/cases/new')
         return
       }
 
@@ -78,11 +88,19 @@ export default function DashboardProviders({ children, userInterests, careerStag
       }
 
       if (waitingForGo) {
+        // Keep in step with the shortcut list in components/ui/global-search.tsx
+        // and the Help page, which advertise all of these.
         const routes: Record<string, string> = {
           d: '/dashboard',
           p: '/portfolio',
           c: '/cases',
           s: '/specialties',
+          t: '/timeline',
+          a: '/arcp',
+          e: '/export',
+          i: '/import',
+          r: '/logs',
+          x: '/settings',
         }
         const route = routes[e.key.toLowerCase()]
         if (route) {

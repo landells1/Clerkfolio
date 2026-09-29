@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import type { SubscriptionInfo } from '@/lib/subscription'
+import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
 
 // Data backup tab: full ZIP backup, year-in-review PDF and reflections
 // markdown downloads. Handlers live in the page.
@@ -39,10 +40,10 @@ export function BackupTab({
       {subInfo && !subInfo.isPro && (
         <div className="mt-5 max-w-2xl rounded-xl border border-amber-400/20 bg-amber-400/5 p-3 text-xs text-[var(--warning)]">
           <p className="font-semibold">
-            {subInfo.limits.canExportPdf ? '1 of 1 PDF remaining' : 'PDF allowance used'}
+            {subInfo.limits.canExportPdf ? pdfRemainingLabel(subInfo) : 'PDF allowance used'}
           </p>
           <p className="mt-1 text-[var(--text-secondary)]">
-            Year in review PDF shares your single included PDF download with Application PDF, appended PDF and CV PDF/DOCX downloads.
+            Year in review PDF shares your included PDF downloads with Application PDF, appended PDF and CV PDF/DOCX downloads.
           </p>
           {!subInfo.limits.canExportPdf && (
             <p className="mt-1 text-[var(--text-secondary)]">

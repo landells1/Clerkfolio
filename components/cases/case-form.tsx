@@ -21,6 +21,9 @@ import { useToast } from '@/components/ui/toast-provider'
 import type { Importance } from '@/lib/types/importance'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { localIsoDate } from '@/lib/timeline/calendar-grid'
+import { submitOnEnterAsPrimary } from '@/lib/forms/enter-submit'
+import { caseDraftHasContent } from '@/lib/drafts/draft-keys'
 import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
 
 type Props = {
@@ -83,7 +86,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
 
   // After hydration, fill the date default if nothing restored it. Runs once.
   useEffect(() => {
-    setDate(current => current || new Date().toISOString().split('T')[0])
+    setDate(current => current || localIsoDate(new Date()))
   }, [])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
@@ -119,23 +122,22 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   useEffect(() => {
     if (mode !== 'create' || !draftKey) return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
+    const draft = { title, date, clinicalDomains, specialtyTags, importance }
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) - only structural metadata.
-      sessionStorage.setItem(draftKey, JSON.stringify({
-        title, date, clinicalDomains, specialtyTags, importance,
-        _expires: Date.now() + 24 * 60 * 60 * 1000,
-      }))
+      // An untouched form (only the auto-filled date) is not a draft.
+      try {
+        if (!caseDraftHasContent(draft)) { sessionStorage.removeItem(draftKey); return }
+        sessionStorage.setItem(draftKey, JSON.stringify({ ...draft, _expires: Date.now() + 24 * 60 * 60 * 1000 }))
+      } catch {}
     }, 1000)
     return () => {
       if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
       // Flush immediately on unmount (or dep change) so navigating away before
       // the 1 s debounce fires doesn't lose the draft.
-      if (isDirtyRef.current) {
+      if (isDirtyRef.current && caseDraftHasContent(draft)) {
         try {
-          sessionStorage.setItem(draftKey, JSON.stringify({
-            title, date, clinicalDomains, specialtyTags, importance,
-            _expires: Date.now() + 24 * 60 * 60 * 1000,
-          }))
+          sessionStorage.setItem(draftKey, JSON.stringify({ ...draft, _expires: Date.now() + 24 * 60 * 60 * 1000 }))
         } catch {}
       }
     }
@@ -191,7 +193,6 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
     return () => clearTimeout(timer)
   }, [notes, specialtyTags, title])
 
-  const addAnotherRef = useRef(false)
   const specialtyRef = useRef<SpecialtyTagSelectHandle | null>(null)
 
   const ph = (key: string, fallback: string) => guidancePlaceholders[key] ?? fallback
@@ -205,8 +206,12 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
-    const pendingTagError = specialtyRef.current?.commitPending()
-    if (pendingTagError) { setError(pendingTagError); return }
+    const pendingTags = specialtyRef.current?.commitPending()
+    if (pendingTags?.error) { setError(pendingTags.error); return }
+    // Read the real submitter: Enter used to trigger the first submit button
+    // ("Save & add another"), and a click-set ref stuck after a failed save.
+    const submitter = (e.nativeEvent as SubmitEvent).submitter as HTMLElement | null
+    const addAnother = submitter?.dataset.addAnother === 'true'
     setSaving(true)
     setError(null)
 
@@ -222,7 +227,8 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
       date,
       clinical_domain: clinicalDomains[0] ?? null,
       clinical_domains: clinicalDomains,
-      specialty_tags: specialtyTags,
+      // The typed-then-auto-committed tag is not in state yet at this point.
+      specialty_tags: pendingTags?.value ?? specialtyTags,
       importance,
       notes: notes.trim() || null,
     }
@@ -239,7 +245,13 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, data.id, 'case')
         setUploading(false)
         if (uploadErrors.length > 0) {
-          setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+          // The case IS saved. Staying on this create form meant "Save case"
+          // again inserted a duplicate case - go to the saved case instead.
+          if (draftKey) sessionStorage.removeItem(draftKey)
+          setIsDirty(false)
+          isDirtyRef.current = false
+          addToast(`Case saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
+          router.push(`/cases/${data.id}?upload=failed`)
           return
         }
       }
@@ -248,8 +260,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
       setIsDirty(false)
       isDirtyRef.current = false
       addToast(uploaded > 0 ? `Case logged · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case logged', 'success')
-      if (addAnotherRef.current) {
-        addAnotherRef.current = false
+      if (addAnother) {
         setSaving(false)
         window.location.assign(`/cases/new?fresh=${Date.now()}`)
         return
@@ -267,7 +278,11 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         const uploadErrors = await uploadPendingFiles(pendingFiles, user.id, initialData!.id!, 'case')
         setUploading(false)
         if (uploadErrors.length > 0) {
-          setError(`Saved, but some files failed: ${uploadErrors.join('; ')}`)
+          // Changes and any successful files are saved; saving again from here
+          // would re-upload the files that already succeeded.
+          setIsDirty(false)
+          addToast(`Case updated, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
+          router.push(`/cases/${initialData!.id}?upload=failed`)
           return
         }
       }
@@ -283,6 +298,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
     <>
     <form
       onSubmit={handleSubmit}
+      onKeyDown={submitOnEnterAsPrimary}
       onPaste={event => {
         const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
         if (files.length === 0) return
@@ -469,7 +485,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         {mode === 'create' && (
           <button
             type="submit"
-            onClick={() => { addAnotherRef.current = true }}
+            data-add-another="true"
             disabled={saving || uploading}
             className="flex-1 border border-accent/40 text-[var(--accent-text)] hover:bg-accent/10 disabled:opacity-50 rounded-xl py-3 text-sm font-medium transition-colors"
           >

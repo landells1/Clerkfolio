@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 
-export default function TrashActions({ id, type }: { id: string; type: 'entry' | 'case' }) {
+export default function TrashActions({ id, type }: { id: string; type: 'entry' | 'case' | 'log' }) {
   const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
@@ -23,7 +23,9 @@ export default function TrashActions({ id, type }: { id: string; type: 'entry' |
     const table =
       type === 'entry'
         ? 'portfolio_entries'
-        : 'cases'
+        : type === 'log'
+          ? 'personal_log'
+          : 'cases'
     const { error } = await supabase
       .from(table)
       .update({ deleted_at: null })

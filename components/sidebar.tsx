@@ -170,6 +170,22 @@ export default function Sidebar({ profile }: { profile: Profile }) {
   const router = useRouter()
   const supabase = createClient()
   const [mobileOpen, setMobileOpen] = useState(false)
+  // Tracks the lg breakpoint so the drawer is only made inert on mobile.
+  const [isDesktop, setIsDesktop] = useState(true)
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 1024px)')
+    const update = () => setIsDesktop(query.matches)
+    update()
+    query.addEventListener('change', update)
+    return () => query.removeEventListener('change', update)
+  }, [])
+  // Esc closes the open mobile drawer.
+  useEffect(() => {
+    if (!mobileOpen) return
+    const onKey = (event: KeyboardEvent) => { if (event.key === 'Escape') setMobileOpen(false) }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [mobileOpen])
   const { openSearch } = useSearch()
   const { openFeedback } = useFeedback()
   // Avoid hydration mismatch flicker when the SSR-assumed platform doesn't match
@@ -225,6 +241,8 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
           onClick={() => setMobileOpen(true)}
           className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors p-2 -ml-1 min-w-[44px] min-h-[44px] flex items-center justify-center"
           aria-label="Open menu"
+          aria-expanded={mobileOpen}
+          aria-controls="app-sidebar"
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
             <line x1="3" y1="6" x2="21" y2="6" />
@@ -299,7 +317,12 @@ const fullName = [profile.first_name, profile.last_name].filter(Boolean).join(' 
         />
       )}
 
-      <aside className={`w-[240px] h-screen bg-[var(--bg-canvas)] border-r border-[var(--border-default)] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside
+        id="app-sidebar"
+        // Off-screen on mobile until opened: keep it out of the tab order and
+        // the screen-reader tree while closed (desktop always shows it).
+        inert={!isDesktop && !mobileOpen}
+        className={`w-[240px] h-screen bg-[var(--bg-canvas)] border-r border-[var(--border-default)] flex flex-col flex-shrink-0 fixed left-0 top-0 z-50 transition-transform duration-300 ease-in-out lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo */}
         <div className="flex items-center justify-between border-b border-white/[0.06]">
         <Link href="/dashboard" prefetch={false} onClick={() => setMobileOpen(false)} className="flex items-center gap-2.5 px-5 py-5 hover:opacity-80 transition-opacity flex-1">

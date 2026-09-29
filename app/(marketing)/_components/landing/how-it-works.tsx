@@ -1,7 +1,7 @@
 import { SectionHeader } from './section-header'
 
 const steps = [
-  ['01', 'Log', 'Add cases or portfolio entries from your phone or desktop. Case drafts save automatically.'],
+  ['01', 'Log', 'Add cases or portfolio entries from your phone or desktop, in a minute or two each.'],
   ['02', 'Tag', 'Add clinical-area and specialty tags, then reuse them across your entries.'],
   ['03', 'Use', 'Link entries to specialty domains, export a PDF, or share selected portfolio entries with a PIN.'],
 ] as const

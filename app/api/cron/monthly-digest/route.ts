@@ -9,11 +9,14 @@ import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
 import { processInBatches } from '@/lib/utils/batch'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
+import { sendEmail } from '@/lib/email/send'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-const EMAIL_CONCURRENCY = 5
+// Resend allows a few requests a second; sendEmail retries rate-limit errors,
+// but keep concurrency low so a digest run does not rely on retries.
+const EMAIL_CONCURRENCY = 2
 
 type Preferences = {
   weekly_digest?: boolean
@@ -77,21 +80,18 @@ export async function GET(req: NextRequest) {
 
     const unsub = unsubscribeUrl(profile.id, 'monthly_digest')
     const email = monthlyDigestEmail(profile.first_name, label, summary, unsub ?? undefined)
-    try {
-      await resend.emails.send({
-        from: 'Clerkfolio <hello@clerkfolio.co.uk>',
-        to: user.email,
-        subject: `${label} in Clerkfolio`,
-        text: email.text,
-        html: email.html,
-        ...(unsub
-          ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
-          : {}),
-      })
-      sent++
-    } catch (error) {
-      logBackgroundJobError('cron.monthly-digest.email', error, { userId: profile.id })
-    }
+    const result = await sendEmail(resend, {
+      from: 'Clerkfolio <hello@clerkfolio.co.uk>',
+      to: user.email,
+      subject: `${label} in Clerkfolio`,
+      text: email.text,
+      html: email.html,
+      ...(unsub
+        ? { headers: { 'List-Unsubscribe': `<${unsub}>`, 'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click' } }
+        : {}),
+    })
+    if (result.ok) sent++
+    else logBackgroundJobError('cron.monthly-digest.email', new Error(result.error), { userId: profile.id, code: result.code })
   })
 
   return NextResponse.json({ ok: true, sent, month: label })
@@ -114,12 +114,14 @@ async function fetchWindowEntriesByUser(
       .from('portfolio_entries')
       .select('user_id, specialty_tags')
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),
     supabase
       .from('cases')
       .select('user_id, specialty_tags')
       .is('deleted_at', null)
+      .eq('is_demo', false)
       .gte('created_at', start.toISOString())
       .lt('created_at', end.toISOString()),
   ])

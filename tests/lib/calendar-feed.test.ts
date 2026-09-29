@@ -127,7 +127,7 @@ describe('GET /api/calendar/feed/[token]', () => {
   it('includes national dates by default when the user has no specialty-specific deadlines', async () => {
     const res = await callFeed()
     const body = await res.text()
-    expect(body).toContain('UID:nhs-round-3-applicationOpens@')
+    expect(body).toContain('UID:national-nhs_round_')
   })
 
   it('suppresses national dates when specialty-specific deadlines exist and no pref is set', async () => {
@@ -139,7 +139,7 @@ describe('GET /api/calendar/feed/[token]', () => {
     }
     const res = await callFeed()
     const body = await res.text()
-    expect(body).not.toContain('UID:nhs-round-3-')
+    expect(body).not.toContain('UID:national-nhs_round_')
     expect(body).toContain('SUMMARY:IMT application deadline')
   })
 
@@ -153,13 +153,13 @@ describe('GET /api/calendar/feed/[token]', () => {
     }
     const res = await callFeed()
     const body = await res.text()
-    expect(body).toContain('UID:nhs-round-3-applicationOpens@')
+    expect(body).toContain('UID:national-nhs_round_')
   })
 
   it('honours an explicit show_national_deadlines=false', async () => {
     state.profile = { data: { id: 'user-1', display_prefs: { show_national_deadlines: false } }, error: null }
     const res = await callFeed()
     const body = await res.text()
-    expect(body).not.toContain('UID:nhs-round-3-')
+    expect(body).not.toContain('UID:national-nhs_round_')
   })
 })

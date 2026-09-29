@@ -7,13 +7,14 @@ import { createClient } from '@/lib/supabase/client'
 import { apiFetch } from '@/lib/api-fetch'
 import { clearClientStateOnAuthChange } from '@/lib/client-cleanup'
 import { CAREER_STAGE_OPTIONS as CAREER_STAGES, isMedicalStudentStage } from '@/lib/constants/career-stages'
+import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
 
 type Step = 'profile' | 'specialties' | 'arcp' | 'first-entry'
 
 const ALL_STEPS: Step[] = ['profile', 'specialties', 'arcp', 'first-entry']
-const MEDICAL_STUDENT_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
+const STUDENT_STAGE_STEPS: Step[] = ['profile', 'specialties', 'first-entry']
 function getSteps(careerStage: string): Step[] {
-  return isMedicalStudentStage(careerStage) ? MEDICAL_STUDENT_STEPS : ALL_STEPS
+  return isMedicalStudentStage(careerStage) ? STUDENT_STAGE_STEPS : ALL_STEPS
 }
 
 const MAX_TRACKED_SPECIALTIES = 1
@@ -58,14 +59,16 @@ export default function OnboardingPage() {
   ].filter((value): value is string => Boolean(value))
   const profileStepBlocked = step === 'profile' && missingProfileItems.length > 0
   const profileHintId = 'onboarding-profile-requirements'
+  // Every config (a slice(0, 18) here hid CSRH, Psych Learning Disability and
+  // the PH+GP dual programme from onboarding).
   const entryLevelSpecialties = useMemo(
-    () => SPECIALTY_CONFIGS.slice(0, 18),
+    () => SPECIALTY_CONFIGS,
     []
   )
 
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(DRAFT_KEY)
+      const raw = storageGet(DRAFT_KEY)
       if (!raw) return
       const draft = JSON.parse(raw) as {
         step?: Step
@@ -84,7 +87,7 @@ export default function OnboardingPage() {
       if (Array.isArray(draft.selectedSpecialties)) setSelectedSpecialties(draft.selectedSpecialties.slice(0, MAX_TRACKED_SPECIALTIES))
       if (draft.firstEntryTarget) setFirstEntryTarget(draft.firstEntryTarget)
     } catch {
-      window.localStorage.removeItem(DRAFT_KEY)
+      storageRemove(DRAFT_KEY)
     } finally {
       setDraftLoaded(true)
     }
@@ -92,7 +95,7 @@ export default function OnboardingPage() {
 
   useEffect(() => {
     if (!draftLoaded) return
-    window.localStorage.setItem(DRAFT_KEY, JSON.stringify({
+    storageSet(DRAFT_KEY, JSON.stringify({
       step,
       firstName,
       lastName,
@@ -136,7 +139,7 @@ export default function OnboardingPage() {
   async function handleSignOut() {
     if (signingOut) return
     setSigningOut(true)
-    try { window.localStorage.removeItem(DRAFT_KEY) } catch {}
+    try { storageRemove(DRAFT_KEY) } catch {}
     clearClientStateOnAuthChange()
     let globalOk = false
     try {
@@ -176,13 +179,16 @@ export default function OnboardingPage() {
       setError('Could not finish onboarding. Check your connection and try again.')
       return
     }
-    if (!ok) {
+    // 409 = onboarding is already complete (a retry after a lost response, or
+    // another tab finished first). That is success for this user - carry on
+    // to the app instead of showing an error they cannot act on.
+    if (!ok && status !== 409) {
       setSaving(false)
       setError(data?.error ?? 'Could not finish onboarding.')
       return
     }
 
-    window.localStorage.removeItem(DRAFT_KEY)
+    storageRemove(DRAFT_KEY)
     // Hard navigation (not router.push + router.refresh): completing onboarding
     // flips onboarding_complete server-side, and the middleware reads it fresh
     // on a full request. A soft push here raced with router.refresh() and left

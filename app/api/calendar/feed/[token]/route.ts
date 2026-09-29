@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createHash } from 'crypto'
 import { createServiceClient } from '@/lib/supabase/server'
 import { CATEGORIES } from '@/lib/types/portfolio'
-import { NHS_ROUND_3_2026_DEADLINES, isSpecialtyCycleStale } from '@/lib/specialties/deadlines'
+import { currentNationalRecruitmentDeadlines, nationalDeadlineId } from '@/lib/specialties/deadlines'
 import { nationalDeadlinesPref, shouldShowNationalDeadlines } from '@/lib/timeline/national-deadlines'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import { requestIp } from '@/lib/request-ip'
@@ -139,12 +139,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const host = req.nextUrl.host
   const now = new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z')
-  // Once the pinned NHS recruitment cycle has elapsed (last close-date + 30-day
-  // grace), these dates sit in the subscriber's real calendar as misleading
-  // past events. Flag them in-place (a stale event a user can see is annotated
-  // is safer than one that silently looks live) until the owner refreshes the
-  // pinned round; the deadlines-freshness tripwire test forces that refresh.
-  const recruitmentStale = isSpecialtyCycleStale(NHS_ROUND_3_2026_DEADLINES)
+  // Only rounds that are still current are published; a closed round drops out
+  // by itself once a newer one is pinned. If every pinned round has elapsed
+  // (last close-date + 30-day grace) the most recent one is flagged in-place (a
+  // stale event a user can see is annotated is safer than one that silently
+  // looks live); the deadlines-freshness tripwire test forces a refresh first.
+  const { deadlines: nationalDeadlines, stale: recruitmentStale } = currentNationalRecruitmentDeadlines()
   // Mirror the Timeline page's visibility rule exactly (shared helper): the
   // user's "Show NHS national recruitment dates" tick wins; when never set,
   // hide the generic national round if specialty-specific deadlines exist.
@@ -154,8 +154,8 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     nationalDeadlinesPref(profile.display_prefs),
     (deadlines ?? []).some(deadline => deadline.source_specialty_key)
   )
-  const configuredDeadlines = (showNational ? NHS_ROUND_3_2026_DEADLINES : []).map(deadline => ({
-    id: `nhs-round-3-${deadline.kind}`,
+  const configuredDeadlines = (showNational ? nationalDeadlines : []).map(deadline => ({
+    id: `national-${nationalDeadlineId(deadline)}`,
     title: recruitmentStale ? `[Past round] ${deadline.label}` : deadline.label,
     due_date: deadline.date,
     details: [
@@ -177,8 +177,10 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
 
   const events = [...configuredDeadlines, ...(deadlines ?? []), ...goalEvents].flatMap(deadline => {
     const start = icsDate(deadline.due_date)
+    // Date-only strings parse as UTC midnight, so step the day in UTC too (a
+    // local setDate() would land on the same day on a non-UTC runtime).
     const endDate = new Date(deadline.due_date)
-    endDate.setDate(endDate.getDate() + 1)
+    endDate.setUTCDate(endDate.getUTCDate() + 1)
     const end = icsDate(endDate.toISOString().split('T')[0])
     return [
       'BEGIN:VEVENT',
@@ -200,9 +202,12 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ toke
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'X-WR-CALNAME:Clerkfolio Timeline',
+    // Hint subscribers to re-poll a few times a day (Apple/Outlook honour these).
+    'REFRESH-INTERVAL;VALUE=DURATION:PT6H',
+    'X-PUBLISHED-TTL:PT6H',
     ...events,
     'END:VCALENDAR',
-  ].join('\r\n')
+  ].join('\r\n') + '\r\n' // RFC 5545: every content line ends with CRLF
 
   return new NextResponse(body, {
     headers: {

@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { storageGet, storageSet } from '@/lib/safe-storage'
 
 const STORAGE_KEY = 'clerkfolio-dashboard-sections'
 
 function readState(): Record<string, boolean> {
   if (typeof window === 'undefined') return {}
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') as Record<string, boolean>
+    return JSON.parse(storageGet(STORAGE_KEY) || '{}') as Record<string, boolean>
   } catch {
     return {}
   }
@@ -16,7 +17,7 @@ function readState(): Record<string, boolean> {
 function writeState(state: Record<string, boolean>) {
   if (typeof window === 'undefined') return
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    storageSet(STORAGE_KEY, JSON.stringify(state))
   } catch {
     // localStorage can throw in private browsing or when full; ignore.
   }

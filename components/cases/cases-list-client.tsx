@@ -12,6 +12,7 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import SpecialtyTag from '@/components/ui/specialty-tag'
 import ListGroupHeader from '@/components/ui/list-group-header'
 import { getSpecialtyColour, getCaseRowColour, colourClasses } from '@/lib/specialties/colours'
+import { storageGet, storageSet } from '@/lib/safe-storage'
 
 type Props = {
   cases: Case[]
@@ -38,6 +39,12 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   const { addToast, addUndoToast } = useToast()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [selectMode, setSelectMode] = useState(false)
+  // The bulk-action bar sits where the mobile FAB is; hide the FAB while
+  // selecting (see the [data-bulk-select] rule in globals.css).
+  useEffect(() => {
+    document.body.dataset.bulkSelect = selectMode ? 'true' : 'false'
+    return () => { delete document.body.dataset.bulkSelect }
+  }, [selectMode])
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [tagModalOpen, setTagModalOpen] = useState(false)
   const [bulkTags, setBulkTags] = useState<string[]>([])
@@ -57,12 +64,12 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   type Density = 'compact' | 'comfortable'
   const [density, setDensity] = useState<Density>('compact')
   useEffect(() => {
-    const stored = typeof window !== 'undefined' ? window.localStorage.getItem('clerkfolio-cases-density') : null
+    const stored = typeof window !== 'undefined' ? storageGet('clerkfolio-cases-density') : null
     if (stored === 'compact' || stored === 'comfortable') setDensity(stored)
   }, [])
   function changeDensity(next: Density) {
     setDensity(next)
-    try { window.localStorage.setItem('clerkfolio-cases-density', next) } catch {}
+    try { storageSet('clerkfolio-cases-density', next) } catch {}
   }
 
   const filtered = useMemo(() => {
@@ -86,7 +93,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   const pinned = filtered.filter(c => c.pinned)
   const unpinned = filtered.filter(c => !c.pinned)
   const grouped = unpinned.reduce((acc: Record<string, Case[]>, c) => {
-    const key = monthLabel(c.created_at)
+    const key = monthLabel(c.date || c.created_at)
     acc[key] = [...(acc[key] ?? []), c]
     return acc
   }, {})
@@ -150,7 +157,12 @@ export default function CasesListClient({ cases, userInterests }: Props) {
   async function bulkAddTags() {
     if (bulkTags.length === 0) return
     setBusy(true)
-    const { data: rows } = await supabase.from('cases').select('id, specialty_tags').in('id', Array.from(selected))
+    const { data: rows, error: fetchError } = await supabase.from('cases').select('id, specialty_tags').in('id', Array.from(selected))
+    if (fetchError || !rows) {
+      setBusy(false)
+      addToast('Could not load the selected cases. No tags were added.', 'error')
+      return
+    }
     const failures: string[] = []
     for (const row of rows ?? []) {
       const merged = Array.from(new Set([...(row.specialty_tags ?? []), ...bulkTags]))
@@ -161,7 +173,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     if (failures.length > 0) {
       addToast(`Applied tags but ${failures.length} ${failures.length === 1 ? 'case' : 'cases'} failed`, 'error')
     } else {
-      addToast(`Tags added to ${selected.size} ${selected.size === 1 ? 'case' : 'cases'}`, 'success')
+      addToast(`Tags added to ${rows.length} ${rows.length === 1 ? 'case' : 'cases'}`, 'success')
     }
     setBulkTags([])
     setTagModalOpen(false)
@@ -339,7 +351,11 @@ function Select({ label, value, onChange, options, getOptionLabel = option => op
 function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, onToggle }: { c: Case; pinned?: boolean; density?: 'compact' | 'comfortable'; selected: boolean; selectMode: boolean; onToggle: () => void }) {
   const primaryTag = c.specialty_tags?.[0]
   const dotColour = colourClasses(getCaseRowColour(c.specialty_tags, c.clinical_domain))
-  const date = new Date(c.date || c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })
+  const rawDate = new Date(c.date || c.created_at)
+  // Show the year once it isn't the current one - "5 Mar" alone was ambiguous.
+  const date = rawDate.toLocaleDateString('en-GB', rawDate.getFullYear() === new Date().getFullYear()
+    ? { day: 'numeric', month: 'short' }
+    : { day: 'numeric', month: 'short', year: 'numeric' })
   const padding = density === 'comfortable' ? 'py-3.5' : 'py-2.5'
   const secondaryClasses = density === 'comfortable'
     ? 'mt-1 text-xs text-fg-2 line-clamp-1'

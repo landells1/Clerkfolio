@@ -30,13 +30,14 @@ import SectionHeader from '@/components/ui/section-header'
 import StatTile from '@/components/ui/stat-tile'
 import ApplicationModeBanner from '@/components/dashboard/application-mode-banner'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { londonDateKey } from '@/lib/engagement/streaks'
+import { buildActiveWeekCache, londonDateKey } from '@/lib/engagement/streaks'
 import { CHANGELOG } from '@/lib/changelog'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
 import { careerStageLabel } from '@/lib/constants/career-stages'
 import { buildThemeCoverage } from '@/lib/portfolio/theme-coverage'
 import { countGoalProgress } from '@/lib/goals/progress'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 export default async function DashboardPage({
   searchParams,
@@ -79,7 +80,9 @@ export default async function DashboardPage({
     supabase
       .from('specialty_applications')
       .select('id, specialty_key, bonus_claimed, is_target')
-      .eq('user_id', user!.id),
+      .eq('user_id', user!.id)
+      // Archived cycles would otherwise show twice in Specialty progress.
+      .eq('is_active', true),
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -94,16 +97,22 @@ export default async function DashboardPage({
       .is('deleted_at', null)
       .order('created_at', { ascending: false })
       .limit(20),
-    supabase
+    // Paged: an unpaginated read stops at PostgREST's 1000-row cap, so stat
+    // tiles froze at 1000 and specialty links past it were dropped.
+    fetchAllRows((from, to) => supabase
       .from('portfolio_entries')
       .select('id, category, specialty_tags, interview_themes, created_at, date, is_demo')
       .eq('user_id', user!.id)
-      .is('deleted_at', null),
-    supabase
+      .is('deleted_at', null)
+      .order('id')
+      .range(from, to)),
+    fetchAllRows((from, to) => supabase
       .from('cases')
       .select('id, specialty_tags, clinical_domain, clinical_domains, interview_themes, created_at, date, is_demo')
       .eq('user_id', user!.id)
-      .is('deleted_at', null),
+      .is('deleted_at', null)
+      .order('id')
+      .range(from, to)),
     supabase
       .from('deadlines')
       .select('id, title, due_date')
@@ -202,8 +211,20 @@ export default async function DashboardPage({
     ...realEntries.map((e: { created_at: string }) => e.created_at),
     ...realCases.map((c: { created_at: string }) => c.created_at),
   ].filter(createdAt => new Date(createdAt).getTime() >= cutoff.getTime())
-  const heatmapDates = heatmapCreatedAts.map(createdAt => createdAt.split('T')[0])
-  const activeWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
+  // UK calendar day, not the UTC date: an entry logged at 00:30 BST belongs to
+  // today, not yesterday (and must agree with hasEntryToday below).
+  const heatmapDates = heatmapCreatedAts.map(createdAt => londonDateKey(createdAt))
+  // Merge the nightly cache with weeks computed from the rows already loaded,
+  // so an entry logged today counts towards the streak straight away (the
+  // cache only refreshes at 02:00).
+  const cachedWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
+  const activeWeeks = Array.from(new Set([
+    ...cachedWeeks,
+    ...buildActiveWeekCache([
+      ...realEntries.map((e: { created_at: string }) => e.created_at),
+      ...realCases.map((c: { created_at: string }) => c.created_at),
+    ]),
+  ])).sort()
   const todayLondon = londonDateKey(new Date())
   const hasEntryToday = heatmapCreatedAts.some(createdAt => londonDateKey(createdAt) === todayLondon)
   const anniversaryYear = profile?.created_at
@@ -231,7 +252,9 @@ export default async function DashboardPage({
   // specialties (person spec only) fall back to essentials/desirables counts.
   const specialtyProgressData = (trackedSpecialtyRows ?? []).map(row => {
     const links = specialtyLinks.filter(link => link.application_id === row.id)
-    const entryCount = new Set(links.map(link => link.entry_id)).size
+    // Checkbox / self-assessed claims have no entry attached - don't count
+    // them as a linked entry.
+    const entryCount = new Set(links.map(link => link.entry_id).filter(Boolean)).size
     const config = getSpecialtyConfig(row.specialty_key)
     const emptyScore = { score: 0, maxScore: 0, essentialsMet: 0, essentialsTotal: 0, desirablesEvidenced: 0, desirablesTotal: 0 }
     if (!config) {

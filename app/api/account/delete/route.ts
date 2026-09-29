@@ -136,11 +136,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Revoke all active sessions before deleting the user. This ensures that
-    // any browser still holding a refresh token for this account cannot use it
-    // after the auth row is gone (which would cause confusing 401 loops).
-    await service.auth.admin.signOut(user.id, 'global')
-
+    // deleteUser removes the user's auth sessions and refresh tokens with it.
+    // (auth.admin.signOut takes a JWT, not a user id, so the previous
+    // signOut(user.id, 'global') call here always failed silently.)
     const { error: authDeleteError } = await service.auth.admin.deleteUser(user.id)
     if (authDeleteError) throw authDeleteError
 

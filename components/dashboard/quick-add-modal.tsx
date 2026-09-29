@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
+import { localIsoDate } from '@/lib/timeline/calendar-grid'
 import { createClient } from '@/lib/supabase/client'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
@@ -117,7 +118,10 @@ export default function QuickAddModal({
   const supabase = createClient()
   const { addToast } = useToast()
   const panelRef = useRef<HTMLDivElement>(null)
-  useFocusTrap(true, panelRef, onClose)
+  // Esc, the X and Cancel all route through requestClose, which asks before
+  // discarding anything typed (the ref keeps the focus-trap callback current).
+  const requestCloseRef = useRef<() => void>(onClose)
+  useFocusTrap(true, panelRef, () => requestCloseRef.current())
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -133,7 +137,7 @@ export default function QuickAddModal({
   // UTC midnight. Today's date is filled in by the post-mount useEffect below.
   const [date, setDate] = useState('')
   useEffect(() => {
-    setDate(current => current || new Date().toISOString().split('T')[0])
+    setDate(current => current || localIsoDate(new Date()))
   }, [])
   const [tags, setTags] = useState<string[]>(initialValues?.tags ?? [])
 
@@ -202,13 +206,19 @@ export default function QuickAddModal({
     e.preventDefault()
     if (!title.trim()) { setError('Title is required.'); return }
     if (type === 'procedure' && !procName.trim()) { setError('Procedure name is required.'); return }
-    const pendingTagError = specialtyRef.current?.commitPending()
-    if (pendingTagError) { setError(pendingTagError); return }
+    const pendingTags = specialtyRef.current?.commitPending()
+    if (pendingTags?.error) { setError(pendingTags.error); return }
+    // The auto-committed typed tag isn't in state yet - use the returned list.
+    const finalTags = pendingTags?.value ?? tags
     setSaving(true)
     setError(null)
 
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { setSaving(false); return }
+    if (!user) {
+      setError('Your session could not be confirmed. Refresh the page or sign in again, then retry.')
+      setSaving(false)
+      return
+    }
 
     if (type === 'case') {
       const casePayload = {
@@ -216,14 +226,14 @@ export default function QuickAddModal({
         date,
         clinical_domain: domains[0] ?? null,
         clinical_domains: domains,
-        specialty_tags: tags,
+        specialty_tags: finalTags,
         notes: notes.trim() || null,
       }
       const { error: err } = await supabase.from('cases').insert({
         user_id: user.id,
         ...casePayload,
       })
-      if (err) { setError(err.message); setSaving(false); return }
+      if (err) { setError('We could not save this case. Check the details and try again.'); setSaving(false); return }
     } else {
       // All non-case types map to a portfolio_entries row with the matching
       // category. Type-specific fields populate where relevant.
@@ -231,7 +241,7 @@ export default function QuickAddModal({
         category: type,
         title: title.trim(),
         date,
-        specialty_tags: tags,
+        specialty_tags: finalTags,
         notes: notes.trim() || null,
       }
 
@@ -253,13 +263,20 @@ export default function QuickAddModal({
         user_id: user.id,
         ...merged,
       })
-      if (err) { setError(err.message); setSaving(false); return }
+      if (err) { setError('We could not save this entry. Check the details and try again.'); setSaving(false); return }
     }
 
     router.refresh()
     addToast(type === 'case' ? 'Case logged' : 'Entry saved', 'success')
     onClose()
   }
+
+  const hasTypedContent = Boolean(title.trim() || notes.trim() || reflFreeText.trim() || procName.trim())
+  function requestClose() {
+    if (!saving && hasTypedContent && !window.confirm('Discard this unsaved entry?')) return
+    onClose()
+  }
+  requestCloseRef.current = requestClose
 
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
@@ -288,7 +305,7 @@ export default function QuickAddModal({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={requestClose}
             className="shrink-0 text-fg-2 hover:text-fg transition-colors"
             aria-label="Close"
           >
@@ -517,7 +534,7 @@ export default function QuickAddModal({
             <div className="flex gap-3 pt-1">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={requestClose}
                 className="flex-1 border border-subtle text-fg-2 hover:text-fg rounded-lg py-2.5 text-sm font-medium transition-colors"
               >
                 Cancel

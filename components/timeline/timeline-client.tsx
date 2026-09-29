@@ -264,10 +264,14 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
 
   async function completeSelectedItem() {
     if (!selectedItem) return
-    if (selectedItem.type === 'goal') {
-      await supabase.from('goals').update({ completed_at: new Date().toISOString() }).eq('id', selectedItem.id.replace('goal-', ''))
-    } else if (!selectedItem.isAuto) {
-      await supabase.from('deadlines').update({ completed: true }).eq('id', selectedItem.id.replace('deadline-', ''))
+    // National NHS dates are read-only reference items; nothing to update.
+    if (selectedItem.type !== 'goal' && selectedItem.isAuto) return
+    const { error } = selectedItem.type === 'goal'
+      ? await supabase.from('goals').update({ completed_at: new Date().toISOString() }).eq('id', selectedItem.id.replace('goal-', ''))
+      : await supabase.from('deadlines').update({ completed: true }).eq('id', selectedItem.id.replace('deadline-', ''))
+    if (error) {
+      addToast(`Could not complete this ${selectedItem.type}. Please try again.`, 'error')
+      return
     }
     addToast(selectedItem.type === 'goal' ? 'Goal completed' : 'Deadline completed', 'success')
     setSelectedItem(null)
@@ -277,7 +281,11 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
   async function deleteSelectedItem() {
     if (!selectedItem || selectedItem.isAuto) return
     if (!confirm(`Delete this ${selectedItem.type}?`)) return
-    await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
+    const { error } = await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
+    if (error) {
+      addToast(`Could not delete this ${selectedItem.type}. Please try again.`, 'error')
+      return
+    }
     addToast(selectedItem.type === 'goal' ? 'Goal deleted' : 'Deadline deleted', 'success')
     setSelectedItem(null)
     router.refresh()
@@ -331,7 +339,15 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     if (!token) {
       const { ok, status, data } = await apiFetch<{ token?: string; error?: string; requiresRotation?: boolean }>('/api/calendar/feed-token', { method: 'POST' })
       if (data?.requiresRotation) {
+        // The stored feed token is hash-only, so an existing link can't be
+        // shown again - the only way forward is a NEW link, which silently
+        // disconnected any calendar already subscribed. Ask first.
+        const proceed = window.confirm(
+          'For security your existing calendar link can\'t be shown again. Continuing creates a new link, and any calendar already subscribed to the old link will stop updating until you re-add it. Continue?'
+        )
+        if (!proceed) return null
         const rotated = await rotateCalendarFeed(false)
+        if (rotated) addToast('New calendar link created. Re-add it anywhere you used the old one.', 'info')
         return rotated
       }
       if (!ok || !data?.token) {
@@ -371,7 +387,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Timeline</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Goals (personal targets you set) and deadlines (applications and ARCP - dates that can&apos;t slip). Auto-loaded items come from your tracked specialties.
+            Goals (personal targets you set) and deadlines (applications and ARCP - dates that can&apos;t slip). Items marked Auto are the national NHS recruitment dates.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -773,7 +789,7 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem, todayIso }: { 
                 <div className="flex flex-col items-end gap-1">
                   <span className={`text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border ${item.type === 'goal' ? 'border-emerald-500/20 bg-emerald-500/10 text-[var(--success)]' : 'border-amber-400/20 bg-amber-400/10 text-[var(--warning)]'}`}>{item.type}</span>
                   {item.isAuto && (
-                    <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[var(--text-emphasis)]" title="Auto-loaded from your tracked specialty">Auto</span>
+                    <span className="text-[10px] uppercase tracking-wide rounded px-1.5 py-0.5 border border-white/[0.08] bg-white/[0.04] text-[var(--text-emphasis)]" title="National NHS recruitment date">Auto</span>
                   )}
                 </div>
               </button>
@@ -786,7 +802,7 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem, todayIso }: { 
         <div className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-10 text-center">
           <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Nothing on your timeline yet</p>
           <p className="text-xs text-[var(--text-secondary)] max-w-sm mx-auto">
-            Track a specialty to auto-load application deadlines, or click &quot;Add goal&quot; to set your own targets (e.g. &quot;Complete 3 audits by end of FY1&quot;).
+            Add a deadline for your applications, or click &quot;Add goal&quot; to set your own targets (e.g. &quot;Complete 3 audits by end of FY1&quot;). Tick &quot;Show NHS national recruitment dates&quot; to see the national round.
           </p>
         </div>
       )}

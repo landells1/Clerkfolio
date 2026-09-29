@@ -47,7 +47,7 @@ export default function NewAccountQuickStart({ hasFirstPortfolio, hasFirstCase, 
         <Card
           done={hasTrackedSpecialty}
           title="Track a specialty"
-          body="Pick the application you're heading towards. Auto-loads deadlines and lets you score evidence by domain."
+          body="Pick the application you're heading towards and score your evidence by domain against its person specification."
           href="/specialties"
           cta="Choose specialty"
         />

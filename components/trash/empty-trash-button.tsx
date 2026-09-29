@@ -32,11 +32,16 @@ export default function EmptyTrashButton({
       return
     }
     const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
-    const [{ data: expiredEntries, error: entryLookupError }, { data: expiredCases, error: caseLookupError }] = await Promise.all([
+    const [
+      { data: expiredEntries, error: entryLookupError },
+      { data: expiredCases, error: caseLookupError },
+      { data: expiredLogs, error: logLookupError },
+    ] = await Promise.all([
       supabase.from('portfolio_entries').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
       supabase.from('cases').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
+      supabase.from('personal_log').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
     ])
-    if (entryLookupError || caseLookupError) {
+    if (entryLookupError || caseLookupError || logLookupError) {
       setLoading(false)
       addToast('Could not empty trash', 'error')
       return
@@ -44,7 +49,8 @@ export default function EmptyTrashButton({
 
     const entryIds = (expiredEntries ?? []).map(row => row.id)
     const caseIds = (expiredCases ?? []).map(row => row.id)
-    if (entryIds.length === 0 && caseIds.length === 0) {
+    const logIds = (expiredLogs ?? []).map(row => row.id)
+    if (entryIds.length === 0 && caseIds.length === 0 && logIds.length === 0) {
       setLoading(false)
       addToast('No items are eligible for permanent deletion yet. Deleted items stay restorable for 30 days.', 'info')
       setOpen(false)
@@ -65,16 +71,29 @@ export default function EmptyTrashButton({
       return
     }
 
-    const [{ error: entryError }, { error: caseError }] = await Promise.all([
-      supabase.from('portfolio_entries').delete().eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
-      supabase.from('cases').delete().eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
+    // Delete exactly the rows whose evidence was just cleaned, in batches that
+    // keep each id filter well inside URL limits.
+    const deleteIds = async (table: 'portfolio_entries' | 'cases' | 'personal_log', ids: string[]) => {
+      for (let offset = 0; offset < ids.length; offset += 100) {
+        const { error } = await supabase.from(table).delete()
+          .in('id', ids.slice(offset, offset + 100))
+          .eq('user_id', user.id)
+          .not('deleted_at', 'is', null)
+        if (error) return false
+      }
+      return true
+    }
+    const results = await Promise.all([
+      deleteIds('portfolio_entries', entryIds),
+      deleteIds('cases', caseIds),
+      deleteIds('personal_log', logIds),
     ])
     setLoading(false)
-    if (entryError || caseError) {
+    if (results.includes(false)) {
       addToast('Could not empty trash', 'error')
       return
     }
-    const deletedCount = entryIds.length + caseIds.length
+    const deletedCount = entryIds.length + caseIds.length + logIds.length
     addToast(`${deletedCount} expired ${deletedCount === 1 ? 'item' : 'items'} permanently deleted`, 'success')
     setOpen(false)
     setConfirm('')

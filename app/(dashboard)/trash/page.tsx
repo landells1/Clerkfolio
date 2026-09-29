@@ -4,6 +4,7 @@ import EmptyTrashButton from '@/components/trash/empty-trash-button'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
 import { titleCase } from '@/lib/types/portfolio-labels'
 import PullToRefresh from '@/components/ui/pull-to-refresh'
+import { PERSONAL_LOG_LABELS, type PersonalLogKind } from '@/components/logs/personal-log-form'
 
 export default async function TrashPage({
   searchParams,
@@ -14,11 +15,15 @@ export default async function TrashPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: deletedEntries }, { data: deletedCases }] = await Promise.all([
+  const [{ data: deletedEntries }, { data: deletedCases }, { data: deletedLogs }] = await Promise.all([
     supabase.from('portfolio_entries').select('id, title, category, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
     supabase.from('cases').select('id, title, clinical_domain, clinical_domains, date, deleted_at')
+      .eq('user_id', user!.id).not('deleted_at', 'is', null)
+      .order('deleted_at', { ascending: false }),
+    // Log entries (training, exams, rotations...) are soft-deleted too.
+    supabase.from('personal_log').select('id, title, kind, date, deleted_at')
       .eq('user_id', user!.id).not('deleted_at', 'is', null)
       .order('deleted_at', { ascending: false }),
   ])
@@ -42,6 +47,15 @@ export default async function TrashPage({
       deletedAt: c.deleted_at,
       type: 'case' as const,
     })),
+    ...(deletedLogs ?? []).map(log => ({
+      id: log.id,
+      title: log.title,
+      subtitle: PERSONAL_LOG_LABELS[log.kind as PersonalLogKind] ?? 'Log entry',
+      category: null,
+      date: log.date,
+      deletedAt: log.deleted_at,
+      type: 'log' as const,
+    })),
   ].sort((a, b) => b.deletedAt.localeCompare(a.deletedAt))
   const recentOnly = resolvedSearchParams.recent === '7'
   const activeCategory = resolvedSearchParams.category ?? ''
@@ -52,6 +66,7 @@ export default async function TrashPage({
   })
 
   const totalItems = filteredItems.length
+  const filtersActive = recentOnly || Boolean(activeCategory)
   const permanentDeleteCutoff = Date.now() - 30 * 86_400_000
   const eligibleItems = items.filter(item => new Date(item.deletedAt).getTime() <= permanentDeleteCutoff)
   const retainedItems = items.filter(item => new Date(item.deletedAt).getTime() > permanentDeleteCutoff)
@@ -61,6 +76,7 @@ export default async function TrashPage({
   const totals = {
     entry: filteredItems.filter(item => item.type === 'entry').length,
     case: filteredItems.filter(item => item.type === 'case').length,
+    log: filteredItems.filter(item => item.type === 'log').length,
   }
 
   return (
@@ -68,7 +84,11 @@ export default async function TrashPage({
       <div className="mb-6">
         <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Trash</h1>
         <p className="text-sm text-[var(--text-muted)] mt-1">
-          {totalItems === 0 ? 'Trash is empty' : `${totalItems} deleted ${totalItems === 1 ? 'item' : 'items'}`}
+          {items.length === 0
+            ? 'Trash is empty'
+            : filtersActive
+              ? `${totalItems} of ${items.length} deleted ${items.length === 1 ? 'item' : 'items'} match these filters`
+              : `${totalItems} deleted ${totalItems === 1 ? 'item' : 'items'}`}
         </p>
       </div>
 
@@ -84,11 +104,12 @@ export default async function TrashPage({
         <button className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-4 text-sm font-medium text-[var(--text-primary)]">Filter</button>
       </form>
 
-      {totalItems > 0 && (
+      {items.length > 0 && (
         <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div className="grid flex-1 grid-cols-2 gap-3">
+          <div className="grid flex-1 grid-cols-3 gap-3">
             <TrashStat label="Portfolio" value={totals.entry} />
             <TrashStat label="Cases" value={totals.case} />
+            <TrashStat label="Logs" value={totals.log} />
           </div>
           <EmptyTrashButton
             eligibleCount={eligibleItems.length}
@@ -107,7 +128,12 @@ export default async function TrashPage({
         </p>
       </div>
 
-      {totalItems === 0 ? (
+      {totalItems === 0 && filtersActive && items.length > 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <p className="text-sm font-medium text-[var(--text-primary)] mb-1">No deleted items match these filters</p>
+          <a href="/trash" className="text-xs text-[var(--accent-text)] underline">Clear filters</a>
+        </div>
+      ) : totalItems === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <div className="w-14 h-14 rounded-2xl bg-white/[0.04] border border-white/[0.08] flex items-center justify-center mb-4">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -116,7 +142,7 @@ export default async function TrashPage({
           </div>
           <p className="text-sm font-medium text-[var(--text-primary)] mb-1">Nothing in trash</p>
           <p className="max-w-sm text-xs text-[var(--text-secondary)]">
-            Deleted entries and cases land here for 30 days, then are permanently removed. You can restore anything within that window.
+            Deleted entries, cases and log entries land here for 30 days, then are permanently removed. You can restore anything within that window.
           </p>
         </div>
       ) : (

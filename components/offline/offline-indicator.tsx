@@ -32,7 +32,10 @@ export default function OfflineIndicator() {
   if (online === null || online) return null
 
   return (
-    <div role="status" aria-live="polite" className="sticky top-0 z-30 border-b border-amber-500/30 bg-amber-500/15 px-4 py-2 text-center text-xs text-[var(--warning)]">
+    // Fixed just below the mobile header (h-14, z-40) so it is visible on
+    // phones; sticky placement hid it behind that header and pushed the
+    // desktop shell into a double scroll. Opaque so text stays legible.
+    <div role="status" aria-live="polite" className="fixed inset-x-0 top-14 z-[45] border-b border-amber-500/30 bg-[var(--bg-surface)] px-4 py-2 text-center text-xs text-[var(--warning)] shadow-sm lg:top-0">
       You are offline. Some data may be out of date and new entries will not save until your connection returns.
     </div>
   )
