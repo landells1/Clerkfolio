@@ -62,9 +62,10 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     const params = Object.fromEntries(searchParams.entries())
     const trimmedName = name.slice(0, 60)
     const query = { ...parseSearchQuery(q), text: q, params }
-    // Overwrite only a same-named search on THIS page. The old upsert keyed on
-    // (user, name) alone, so saving "Leadership" on Cases silently moved and
-    // replaced the Portfolio search of the same name.
+    // Overwrite only a same-named search on THIS page; names are unique per
+    // (user, surface, name). The old upsert keyed on (user, name) alone, so
+    // saving "Leadership" on Cases silently moved and replaced the Portfolio
+    // search of the same name.
     const existing = saved.find(item => item.name === trimmedName)
     const { data, error } = existing
       ? await supabase
@@ -80,8 +81,10 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
           .single()
     setSaving(false)
     if (error || !data) {
+      // 23505 now only means the same name was saved on this page from another
+      // tab since the list loaded.
       setSaveError(error?.code === '23505'
-        ? 'You already use that name for a saved search on another page. Pick a different name.'
+        ? 'A saved search with that name already exists on this page. Refresh and try again.'
         : 'Could not save this search. Please try again.')
       return
     }
