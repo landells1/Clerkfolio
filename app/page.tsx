@@ -4,16 +4,19 @@ import { JsonLd } from '@/components/seo/json-ld'
 import { LANDING_FAQS } from '@/lib/marketing/faqs'
 import { SITE_NAME, SITE_URL } from '@/lib/marketing/metadata'
 import { PRICING_TIERS } from '@/lib/marketing/pricing'
-import { Audience } from './(marketing)/_components/landing/audience'
-import { CtaFooter } from './(marketing)/_components/landing/cta-footer'
-import { FAQ } from './(marketing)/_components/landing/faq'
-import { Features } from './(marketing)/_components/landing/features'
-import { Hero } from './(marketing)/_components/landing/hero'
-import { HowItWorks } from './(marketing)/_components/landing/how-it-works'
-import { Nav } from './(marketing)/_components/landing/nav'
-import { Pricing } from './(marketing)/_components/landing/pricing'
-import { ProblemValue } from './(marketing)/_components/landing/problem-value'
-import { TrustAndControl } from './(marketing)/_components/landing/trust-and-control'
+import { Audience } from './(marketing)/_components/landing/product/audience'
+import { HowItWorks } from './(marketing)/_components/landing/product/how-it-works'
+import { ProductFooter } from './(marketing)/_components/landing/product/product-footer'
+import { ProductHero } from './(marketing)/_components/landing/product/product-hero'
+import { ProductNav } from './(marketing)/_components/landing/product/product-nav'
+import {
+  FaqSection,
+  FeatureSections,
+  PricingSection,
+  PrivacySection,
+  WhySection,
+} from './(marketing)/_components/landing/product/product-sections'
+import product from './(marketing)/_components/landing/product/product.module.css'
 
 const title = 'Clerkfolio | UK medical portfolio tracker for your whole career'
 const description = 'The portfolio tracker for UK medical students and doctors: achievements, specialty application evidence and anonymised cases, in one place for your whole career.'
@@ -100,25 +103,25 @@ export default async function LandingPage({ searchParams }: { searchParams?: Pro
   const nonce = (await headers()).get('x-nonce') ?? undefined
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
+    <div className={product.root}>
       <JsonLd data={landingStructuredData()} nonce={nonce} />
       {wasDeleted ? (
-        <div role="status" className="border-b border-emerald-500/25 bg-emerald-500/10 px-6 py-3 text-sm text-[var(--success)] md:px-14">
+        <div role="status" className="border-b border-[var(--p-line)] bg-[var(--p-surface)] px-5 py-3 text-center text-[15px] sm:px-8">
           Your account has been permanently deleted. Sorry to see you go.
         </div>
       ) : null}
-      <Nav />
+      <ProductNav />
       <main>
-        <Hero />
-        <ProblemValue />
+        <ProductHero />
+        <WhySection />
         <HowItWorks />
-        <Features />
-        <TrustAndControl />
+        <FeatureSections />
+        <PrivacySection />
         <Audience />
-        <Pricing />
-        <FAQ />
+        <PricingSection />
+        <FaqSection />
       </main>
-      <CtaFooter />
+      <ProductFooter />
     </div>
   )
 }

@@ -1,0 +1,245 @@
+/* Product-led landing (Stripe/Apple register): a light, quiet page where the
+   Clerkfolio product is the hero. Tokens are scoped to the landing root, and
+   to <body> via :has so overscroll and the root layout's skip link match.
+   Colour budget: navy ink, one brand blue, one complementary teal. */
+.root,
+:global(body):has(.root) {
+  --p-ground: #ffffff;
+  --p-surface: #f6f8fb;
+  --p-surface-2: #eef2f7;
+  --p-line: #e3e8ef;
+  --p-line-strong: #cfd7e2;
+  --p-ink: #0a1a2f;
+  --p-ink-2: #425466;
+  --p-ink-3: #5c6a7f;
+  --p-blue: #1b6fd9;
+  --p-blue-text: #1760c0;
+  --p-blue-soft: #e8f1fd;
+  --p-teal: #0f9f94;
+  --p-teal-text: #096b63;
+  --p-teal-soft: #e2f5f3;
+  --p-button: #1b6fd9;
+  --p-button-hover: #145fbf;
+  --p-on-button: #ffffff;
+  --p-plane-navy: #123f7f;
+  --p-plane-blue: #1b6fd9;
+  --p-plane-teal: #0b7d74;
+  --p-on-field: #ffffff;
+  --p-navy: #0a1a2f;
+  --p-shadow-frame: 0 1px 1px rgb(10 26 47 / 0.04), 0 12px 28px -12px rgb(10 26 47 / 0.16), 0 48px 96px -32px rgb(10 26 47 / 0.32);
+  --p-shadow-card: 0 1px 2px rgb(10 26 47 / 0.06), 0 10px 24px -12px rgb(10 26 47 / 0.18);
+
+  background: var(--p-ground);
+  color: var(--p-ink);
+  font-family: var(--font-geist), system-ui, sans-serif;
+  min-height: 100vh;
+  overflow-x: clip;
+  scrollbar-color: var(--p-line-strong) var(--p-ground);
+  -webkit-font-smoothing: antialiased;
+}
+
+:global(html[data-theme='dark']) .root,
+:global(html[data-theme='dark'] body):has(.root) {
+  --p-ground: #0a111c;
+  --p-surface: #0f1826;
+  --p-surface-2: #152133;
+  --p-line: #1f2d42;
+  --p-line-strong: #2d3e57;
+  --p-ink: #eef3fa;
+  --p-ink-2: #a9b6c8;
+  --p-ink-3: #8595ab;
+  --p-blue: #3d8bf0;
+  --p-blue-text: #7ab0f7;
+  --p-blue-soft: #13294a;
+  --p-teal: #2cc2b5;
+  --p-teal-text: #5fd8cc;
+  --p-teal-soft: #0e2e2d;
+  --p-shadow-frame: 0 1px 1px rgb(0 0 0 / 0.3), 0 12px 28px -12px rgb(0 0 0 / 0.5), 0 48px 96px -32px rgb(0 0 0 / 0.7);
+  --p-shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 10px 24px -12px rgb(0 0 0 / 0.55);
+}
+
+:global(body):has(.root) :global(.skip-link) {
+  background: var(--p-button);
+  color: var(--p-on-button);
+}
+
+.root ::selection {
+  background: var(--p-blue-soft);
+  color: var(--p-ink);
+}
+
+.root :focus-visible {
+  outline: 2px solid var(--p-blue);
+  outline-offset: 3px;
+}
+
+.root a {
+  text-underline-offset: 0.22em;
+  text-decoration-thickness: 1px;
+}
+
+.display {
+  font-weight: 600;
+  letter-spacing: -0.035em;
+  line-height: 1.04;
+  text-wrap: balance;
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.prose {
+  text-wrap: pretty;
+}
+
+/* The one large colour: an angled field that stages the product. */
+.field {
+  background:
+    linear-gradient(164deg, var(--p-plane-navy) 0 32%, transparent 32.1%),
+    linear-gradient(106deg, transparent 0 66%, var(--p-plane-teal) 66.1%),
+    var(--p-plane-blue);
+  clip-path: polygon(0 14%, 100% 0, 100% 86%, 0 100%);
+}
+
+/* The same planes, cut differently, as a contained stage mid-page. */
+.fieldPanel {
+  background:
+    linear-gradient(200deg, var(--p-plane-navy) 0 28%, transparent 28.1%),
+    linear-gradient(72deg, var(--p-plane-teal) 0 38%, transparent 38.1%),
+    var(--p-plane-blue);
+}
+
+/* Counts tick up from zero once, via a registered integer property. */
+@property --n {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
+
+.count {
+  --n: var(--to);
+  counter-reset: n var(--n);
+}
+
+.count::after {
+  content: counter(n);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .count {
+    animation: tick 1600ms cubic-bezier(0.16, 1, 0.3, 1) 700ms both;
+  }
+
+  /* The hero product settles into place on load. */
+  .settle {
+    animation: settle 1100ms cubic-bezier(0.16, 1, 0.3, 1) 120ms both;
+  }
+
+  /* Rows in the hero list arrive one after another. */
+  .arrive {
+    animation: arrive 700ms cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(500ms + var(--i, 0) * 90ms);
+  }
+
+  .phone {
+    animation: phone 1200ms cubic-bezier(0.16, 1, 0.3, 1) 450ms both;
+  }
+
+  /* Stepper content mounts fresh at each step, so it enters with an animation. */
+  .fade {
+    animation: fadeUp 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  /* Feature visuals rise and settle as they scroll into view. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 32%;
+    }
+  }
+}
+
+@keyframes tick {
+  from {
+    --n: 0;
+  }
+  to {
+    --n: var(--to);
+  }
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0.2;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes settle {
+  from {
+    opacity: 0.35;
+    transform: translateY(36px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes arrive {
+  from {
+    opacity: 0.2;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes phone {
+  from {
+    opacity: 0.3;
+    transform: translateY(48px) rotate(2deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes reveal {
+  from {
+    opacity: 0.4;
+    transform: translateY(56px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.faqSummary::-webkit-details-marker {
+  display: none;
+}
+
+.faqIcon {
+  transition: transform 240ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+details[open] .faqIcon {
+  transform: rotate(45deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .faqIcon {
+    transition: none;
+  }
+}
