@@ -152,12 +152,16 @@
     animation: fadeUp 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 
-  /* Feature visuals rise and settle as they scroll into view. */
-  @supports (animation-timeline: view()) {
-    .reveal {
-      animation: reveal linear both;
-      animation-timeline: view();
-      animation-range: entry 0% cover 32%;
+  /* Feature visuals rise and settle as they scroll into view. Desktop only:
+     on phones the toolbar resizing the viewport mid-scroll moves the
+     scroll-linked progress, which reads as the page jumping. */
+  @media (hover: hover) and (pointer: fine) {
+    @supports (animation-timeline: view()) {
+      .reveal {
+        animation: reveal linear both;
+        animation-timeline: view();
+        animation-range: entry 0% cover 32%;
+      }
     }
   }
 }

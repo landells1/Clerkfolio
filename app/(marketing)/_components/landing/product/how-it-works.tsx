@@ -1,10 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CONTAINER } from './shared'
 import { FileIcon, LinkIcon, LockIcon } from './icons'
 import { Pill } from './mocks'
 import styles from './product.module.css'
+
+// Both states of a slot share one grid cell, so the card is always as tall as
+// its fullest state: stepping through never changes the page height (which
+// made the page jump on phones without scroll anchoring, such as iOS Safari).
+function Slot({ shown, content, placeholder }: { shown: boolean; content: ReactNode; placeholder: string }) {
+  return (
+    <div className="mt-2 grid items-start [&>*]:[grid-area:1/1]">
+      <div key={shown ? 'on' : 'off'} className={shown ? styles.fade : 'invisible'}>{content}</div>
+      <p className={`rounded-xl border border-dashed border-[var(--p-line-strong)] px-3.5 py-2.5 text-[13px] text-[var(--p-ink-3)] ${shown ? 'invisible' : ''}`}>{placeholder}</p>
+    </div>
+  )
+}
 
 const steps = [
   ['Log', 'Add cases or portfolio entries from your phone or desktop, in a minute or two each.'],
@@ -90,31 +102,35 @@ export function HowItWorks() {
             <p className="mt-4 text-[24px] font-semibold tracking-[-0.015em]">VTE prophylaxis re-audit</p>
             <p className="mt-2 text-[14.5px] leading-relaxed text-[var(--p-ink-2)]">Re-audited risk assessment on admission after the new prompt card.</p>
             <p className="mt-6 text-[12px] font-semibold text-[var(--p-ink-3)]">Tags</p>
-            {active >= 1 ? (
-              <div className={`${styles.fade} mt-2 flex flex-wrap gap-1.5`}>
-                <Pill tone="teal">Haematology</Pill>
-                <Pill tone="teal">Quality improvement</Pill>
-                <Pill tone="blue">IMT</Pill>
-              </div>
-            ) : (
-              <p className="mt-2 rounded-xl border border-dashed border-[var(--p-line-strong)] px-3.5 py-2.5 text-[13px] text-[var(--p-ink-3)]">Add tags so you can find it again</p>
-            )}
+            <Slot
+              shown={active >= 1}
+              placeholder="Add tags so you can find it again"
+              content={
+                <div className="flex flex-wrap gap-1.5">
+                  <Pill tone="teal">Haematology</Pill>
+                  <Pill tone="teal">Quality improvement</Pill>
+                  <Pill tone="blue">IMT</Pill>
+                </div>
+              }
+            />
             <p className="mt-6 text-[12px] font-semibold text-[var(--p-ink-3)]">Use</p>
-            {active >= 2 ? (
-            <div className={`${styles.fade} mt-2 space-y-2`}>
-              <p className="flex items-center gap-2.5 rounded-xl bg-[var(--p-blue-soft)] px-3.5 py-2.5 text-[13.5px] font-medium text-[var(--p-blue-text)]">
-                <LinkIcon className="h-4 w-4" /> Linked to IMT 2026: Quality Improvement
-              </p>
-              <p className="flex items-center gap-2.5 rounded-xl border border-[var(--p-line)] px-3.5 py-2.5 text-[13.5px]">
-                <FileIcon className="h-4 w-4 text-[var(--p-ink-3)]" /> Included in your application PDF
-              </p>
-              <p className="flex items-center gap-2.5 rounded-xl border border-[var(--p-line)] px-3.5 py-2.5 text-[13.5px]">
-                <LockIcon className="h-4 w-4 text-[var(--p-ink-3)]" /> Shareable through a PIN link
-              </p>
-            </div>
-            ) : (
-              <p className="mt-2 rounded-xl border border-dashed border-[var(--p-line-strong)] px-3.5 py-2.5 text-[13px] text-[var(--p-ink-3)]">Link it, export it or share it when you need it</p>
-            )}
+            <Slot
+              shown={active >= 2}
+              placeholder="Link it, export it or share it when you need it"
+              content={
+                <div className="space-y-2">
+                  <p className="flex items-center gap-2.5 rounded-xl bg-[var(--p-blue-soft)] px-3.5 py-2.5 text-[13.5px] font-medium text-[var(--p-blue-text)]">
+                    <LinkIcon className="h-4 w-4" /> Linked to IMT 2026: Quality Improvement
+                  </p>
+                  <p className="flex items-center gap-2.5 rounded-xl border border-[var(--p-line)] px-3.5 py-2.5 text-[13.5px]">
+                    <FileIcon className="h-4 w-4 text-[var(--p-ink-3)]" /> Included in your application PDF
+                  </p>
+                  <p className="flex items-center gap-2.5 rounded-xl border border-[var(--p-line)] px-3.5 py-2.5 text-[13.5px]">
+                    <LockIcon className="h-4 w-4 text-[var(--p-ink-3)]" /> Shareable through a PIN link
+                  </p>
+                </div>
+              }
+            />
           </div>
         </figure>
       </div>
