@@ -106,13 +106,13 @@ function RadarView({ sorted, max, fullWidth = false }: { sorted: [string, number
       />
       <polygon
         points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
-        fill="rgba(27,111,217,0.18)"
-        stroke="#1B6FD9"
+        fill="rgb(var(--accent-rgb) / 0.18)"
+        stroke="var(--accent)"
         strokeWidth="1.5"
         strokeLinejoin="round"
       />
       {dataPoints.map((pt, i) => (
-        <circle key={i} cx={pt.x} cy={pt.y} r={fullWidth ? 4 : 3} fill="#1B6FD9" />
+        <circle key={i} cx={pt.x} cy={pt.y} r={fullWidth ? 4 : 3} fill="var(--accent)" />
       ))}
       {sorted.map(([area, count], i) => {
         const cosA = Math.cos(angles[i])

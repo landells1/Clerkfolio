@@ -3,8 +3,9 @@ import { headers } from 'next/headers'
 import { JsonLd } from '@/components/seo/json-ld'
 import { marketingMetadata, SITE_URL } from '@/lib/marketing/metadata'
 import { SPECIALTY_CONFIGS } from '@/lib/specialties'
-import { CtaFooter } from '../(marketing)/_components/landing/cta-footer'
-import { Nav } from '../(marketing)/_components/landing/nav'
+import { ProductFooter } from '../(marketing)/_components/landing/product/product-footer'
+import { ProductNav } from '../(marketing)/_components/landing/product/product-nav'
+import product from '../(marketing)/_components/landing/product/product.module.css'
 import { SectionHeader } from '../(marketing)/_components/landing/section-header'
 
 export const metadata = marketingMetadata({
@@ -94,9 +95,9 @@ function featuresStructuredData() {
 export default async function FeaturesPage() {
   const nonce = (await headers()).get('x-nonce') ?? undefined
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
+    <div className={product.root}>
       <JsonLd data={featuresStructuredData()} nonce={nonce} />
-      <Nav />
+      <ProductNav />
       <main className="px-6 py-12 sm:py-16 md:px-14 lg:py-20">
         <header className="max-w-3xl">
           <h1 className="text-[clamp(34px,7vw,52px)] font-medium leading-[1.05] tracking-[-0.045em] text-ink">
@@ -149,7 +150,7 @@ export default async function FeaturesPage() {
           our <Link href="/security" className="underline underline-offset-2">security policy</Link>.
         </p>
       </main>
-      <CtaFooter />
+      <ProductFooter />
     </div>
   )
 }

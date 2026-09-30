@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og'
 // Open Graph / Twitter share card (F-007). Reuses the brand mark from
 // app/(marketing)/_components/landing/logo.tsx — a linear-gradient rounded
 // square wrapping the inline bar-chart + checkmark SVG — rendered on the
-// #0B0B0C brand card. Next auto-wires both og:image and twitter:image from
+// #0B1633 brand card. Next auto-wires both og:image and twitter:image from
 // this file convention. Satori renders inline SVG, linear-gradient, flexbox
 // and text natively, so this stays brand-exact with zero design asset.
 
@@ -22,7 +22,7 @@ export default function OpengraphImage() {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#0B0B0C',
+          backgroundColor: '#0B1633',
           backgroundImage:
             'radial-gradient(900px 500px at 50% 22%, rgba(27,111,217,0.18), rgba(11,11,12,0))',
         }}
@@ -36,17 +36,17 @@ export default function OpengraphImage() {
               width: 132,
               height: 132,
               borderRadius: 28,
-              background: 'linear-gradient(135deg, #3884DD 0%, #155BB0 100%)',
+              background: 'linear-gradient(135deg, #2B4FAE 0%, #1D3A8A 100%)',
             }}
           >
             <svg viewBox="0 0 64 64" width="84" height="84" fill="none">
-              <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0A3260" fillOpacity="0.85" />
-              <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0A3260" fillOpacity="0.9" />
-              <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0A3260" fillOpacity="0.95" />
-              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="#EAF2FC" />
+              <rect x="8" y="32" width="9" height="24" rx="1.6" fill="#0B1633" fillOpacity="0.85" />
+              <rect x="20" y="26" width="9" height="30" rx="1.6" fill="#0B1633" fillOpacity="0.9" />
+              <rect x="32" y="20" width="9" height="36" rx="1.6" fill="#0B1633" fillOpacity="0.95" />
+              <rect x="44" y="12" width="14" height="44" rx="2.4" fill="#EEF1F8" />
               <path
                 d="M48 34 L52 38 L56 28"
-                stroke="#155BB0"
+                stroke="#F2A20C"
                 strokeWidth="3.2"
                 strokeLinecap="round"
                 strokeLinejoin="round"

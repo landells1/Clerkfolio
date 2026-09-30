@@ -74,7 +74,7 @@ export function SpecialtyScoreCharts({
                 strokeWidth="1"
               />
             ))}
-            <polygon points={radarPoints} fill="rgba(27,111,217,0.2)" stroke="#1B6FD9" strokeWidth="1.6" />
+            <polygon points={radarPoints} fill="rgb(var(--accent-rgb) / 0.2)" stroke="var(--accent)" strokeWidth="1.6" />
             {chartDomains.map((domain, index) => {
               const angle = angles[index]
               const pointX = centerX + Math.cos(angle) * radius * domain.fraction
@@ -84,7 +84,7 @@ export function SpecialtyScoreCharts({
               const textAnchor = Math.cos(angle) > 0.2 ? 'start' : Math.cos(angle) < -0.2 ? 'end' : 'middle'
               return (
                 <g key={domain.key}>
-                  <circle cx={pointX} cy={pointY} r="3.5" fill="#1B6FD9" />
+                  <circle cx={pointX} cy={pointY} r="3.5" fill="var(--accent)" />
                   <text x={labelX} y={labelY} textAnchor={textAnchor} fontSize="10" fill="var(--text-secondary)">
                     {domain.shortLabel}
                   </text>

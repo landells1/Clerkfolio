@@ -100,7 +100,7 @@ export function buildOwnerMetricsEmail(snapshot: OwnerMetricsSnapshot): { subjec
             <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#ffffff;border:1px solid #e7e7e3;border-radius:14px;overflow:hidden;">
               <tr>
                 <td style="padding:22px 24px;border-bottom:1px solid #e7e7e3;">
-                  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#155BB0;">Clerkfolio (owner-only)</p>
+                  <p style="margin:0 0 4px;font-size:13px;font-weight:700;color:#1D3A8A;">Clerkfolio (owner-only)</p>
                   <h1 style="margin:0;font-size:20px;line-height:1.25;color:#111113;">Owner metrics: ${escapeHtml(snapshot.windowLabel)}</h1>
                 </td>
               </tr>

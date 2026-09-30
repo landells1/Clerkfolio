@@ -17,7 +17,7 @@ export function AppearanceSection({
       <p className="text-sm text-[var(--text-secondary)] mb-4">Choose your colour scheme. Applies instantly and follows you across devices.</p>
       <div className="grid grid-cols-2 gap-3 max-w-md" role="radiogroup" aria-label="Colour theme">
         {([
-          { value: 'cream' as Theme, label: 'Cream', hint: 'Warm light (default)', canvas: '#EDE8D0', surface: '#F5F1E1', ink: '#26241E' },
+          { value: 'cream' as Theme, label: 'Light', hint: 'Navy & saffron (default)', canvas: '#F6F7FA', surface: '#FFFFFF', ink: '#0B1633' },
           { value: 'dark' as Theme, label: 'Dark', hint: 'Original scheme', canvas: '#0B0B0C', surface: '#141416', ink: '#F5F5F2' },
         ]).map(opt => {
           const active = (theme ?? 'cream') === opt.value

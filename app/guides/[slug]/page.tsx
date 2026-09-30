@@ -5,8 +5,9 @@ import { notFound } from 'next/navigation'
 import { JsonLd } from '@/components/seo/json-ld'
 import { marketingMetadata, SITE_URL, SITE_NAME } from '@/lib/marketing/metadata'
 import { GUIDES, getGuide, relatedGuides, type Guide, type GuideBlock } from '@/lib/guides'
-import { CtaFooter } from '../../(marketing)/_components/landing/cta-footer'
-import { Nav } from '../../(marketing)/_components/landing/nav'
+import { ProductFooter } from '../../(marketing)/_components/landing/product/product-footer'
+import { ProductNav } from '../../(marketing)/_components/landing/product/product-nav'
+import product from '../../(marketing)/_components/landing/product/product.module.css'
 import { formatGuideDate } from '../format-date'
 
 export function generateStaticParams() {
@@ -151,9 +152,9 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
   const related = relatedGuides(guide)
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[var(--bg-canvas)] text-ink">
+    <div className={product.root}>
       <JsonLd data={guideStructuredData(guide)} nonce={nonce} />
-      <Nav />
+      <ProductNav />
       <main className="px-6 py-12 sm:py-16 md:px-14 lg:py-20">
         <article className="mx-auto max-w-3xl">
           <nav aria-label="Breadcrumb" className="font-mono text-[11px] uppercase tracking-[0.14em] text-ink-dim">
@@ -240,7 +241,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           ) : null}
         </article>
       </main>
-      <CtaFooter />
+      <ProductFooter />
     </div>
   )
 }
