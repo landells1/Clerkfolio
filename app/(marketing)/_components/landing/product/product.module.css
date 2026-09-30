@@ -1,33 +1,56 @@
-/* Product-led landing (Stripe/Apple register): a light, quiet page where the
-   Clerkfolio product is the hero. Tokens are scoped to the landing root, and
-   to <body> via :has so overscroll and the root layout's skip link match.
-   Colour budget: navy ink, one brand blue, one complementary teal. */
+/* Product-led landing (Stripe/Apple register), Navy & Saffron palette.
+   The Clerkfolio product is the hero. Tokens are scoped to the landing root,
+   and to <body> via :has so overscroll and the root layout's skip link match.
+   Colour budget: navy ink, one navy primary, one saffron warm accent. Saffron
+   is for fills, planes and markers only; any text on saffron is ink.
+   The --a-* set themes the app screens inside the mockups with the same
+   palette the app itself uses. Each set has a dark counterpart ready. */
 .root,
 :global(body):has(.root) {
   --p-ground: #ffffff;
-  --p-surface: #f6f8fb;
-  --p-surface-2: #eef2f7;
-  --p-line: #e3e8ef;
-  --p-line-strong: #cfd7e2;
-  --p-ink: #0a1a2f;
-  --p-ink-2: #425466;
-  --p-ink-3: #5c6a7f;
-  --p-blue: #1b6fd9;
-  --p-blue-text: #1760c0;
-  --p-blue-soft: #e8f1fd;
-  --p-teal: #0f9f94;
-  --p-teal-text: #096b63;
-  --p-teal-soft: #e2f5f3;
-  --p-button: #1b6fd9;
-  --p-button-hover: #145fbf;
+  --p-surface: #f6f7fa;
+  --p-surface-2: #eceff5;
+  --p-line: #e1e5ee;
+  --p-line-strong: #cbd2df;
+  --p-ink: #0b1633;
+  --p-ink-2: #3e4a66;
+  --p-ink-3: #59647d;
+  --p-primary: #1d3a8a;
+  --p-primary-text: #1d3a8a;
+  --p-primary-soft: #e6ebf7;
+  --p-warm: #f2a20c;
+  --p-warm-text: #8a5a00;
+  --p-warm-soft: #fdf1d8;
+  --p-button: #1d3a8a;
+  --p-button-hover: #162e6f;
   --p-on-button: #ffffff;
-  --p-plane-navy: #123f7f;
-  --p-plane-blue: #1b6fd9;
-  --p-plane-teal: #0b7d74;
+  --p-plane-ink: #0b1633;
+  --p-plane-navy: #1d3a8a;
+  --p-plane-saffron: #f2a20c;
   --p-on-field: #ffffff;
-  --p-navy: #0a1a2f;
-  --p-shadow-frame: 0 1px 1px rgb(10 26 47 / 0.04), 0 12px 28px -12px rgb(10 26 47 / 0.16), 0 48px 96px -32px rgb(10 26 47 / 0.32);
-  --p-shadow-card: 0 1px 2px rgb(10 26 47 / 0.06), 0 10px 24px -12px rgb(10 26 47 / 0.18);
+  --p-navy: #0b1633;
+  --p-shadow-frame: 0 1px 1px rgb(11 22 51 / 0.04), 0 12px 28px -12px rgb(11 22 51 / 0.16), 0 48px 96px -32px rgb(11 22 51 / 0.32);
+  --p-shadow-card: 0 1px 2px rgb(11 22 51 / 0.06), 0 10px 24px -12px rgb(11 22 51 / 0.18);
+
+  --a-canvas: #f6f7fa;
+  --a-surface: #ffffff;
+  --a-surface-2: #eceff5;
+  --a-surface-3: #e1e6ef;
+  --a-border: #e1e5ee;
+  --a-text: #0b1633;
+  --a-text-2: #3e4a66;
+  --a-muted: #59647d;
+  --a-emphasis: #1b2a55;
+  --a-accent: #1d3a8a;
+  --a-accent-soft: #e6ebf7;
+  --a-accent-soft-text: #1d3a8a;
+  --a-button: #1d3a8a;
+  --a-on-button: #ffffff;
+  --a-nav-active-bg: rgb(242 162 12 / 0.13);
+  --a-nav-active-border: #f2a20c;
+  --a-warning-text: #8a5a00;
+  --a-warning-soft: #fdf1d8;
+  --a-warning-line: #f5d58f;
 
   background: var(--p-ground);
   color: var(--p-ink);
@@ -40,22 +63,38 @@
 
 :global(html[data-theme='dark']) .root,
 :global(html[data-theme='dark'] body):has(.root) {
-  --p-ground: #0a111c;
-  --p-surface: #0f1826;
-  --p-surface-2: #152133;
-  --p-line: #1f2d42;
-  --p-line-strong: #2d3e57;
-  --p-ink: #eef3fa;
-  --p-ink-2: #a9b6c8;
-  --p-ink-3: #8595ab;
-  --p-blue: #3d8bf0;
-  --p-blue-text: #7ab0f7;
-  --p-blue-soft: #13294a;
-  --p-teal: #2cc2b5;
-  --p-teal-text: #5fd8cc;
-  --p-teal-soft: #0e2e2d;
+  --p-ground: #0b1120;
+  --p-surface: #10182b;
+  --p-surface-2: #172238;
+  --p-line: #212d47;
+  --p-line-strong: #2f3d5c;
+  --p-ink: #eef1f8;
+  --p-ink-2: #aab4c9;
+  --p-ink-3: #8a95ad;
+  --p-primary: #6f8ee8;
+  --p-primary-text: #9fb4f2;
+  --p-primary-soft: #1a2750;
+  --p-warm: #f2a20c;
+  --p-warm-text: #f5bb4a;
+  --p-warm-soft: #33260b;
   --p-shadow-frame: 0 1px 1px rgb(0 0 0 / 0.3), 0 12px 28px -12px rgb(0 0 0 / 0.5), 0 48px 96px -32px rgb(0 0 0 / 0.7);
   --p-shadow-card: 0 1px 2px rgb(0 0 0 / 0.35), 0 10px 24px -12px rgb(0 0 0 / 0.55);
+
+  --a-canvas: #0b1120;
+  --a-surface: #10182b;
+  --a-surface-2: #172238;
+  --a-surface-3: #1e2b45;
+  --a-border: #212d47;
+  --a-text: #eef1f8;
+  --a-text-2: #aab4c9;
+  --a-muted: #8a95ad;
+  --a-emphasis: #c9d2e6;
+  --a-accent: #6f8ee8;
+  --a-accent-soft: #1a2750;
+  --a-accent-soft-text: #9fb4f2;
+  --a-warning-text: #f5bb4a;
+  --a-warning-soft: #33260b;
+  --a-warning-line: #5c4412;
 }
 
 :global(body):has(.root) :global(.skip-link) {
@@ -64,12 +103,12 @@
 }
 
 .root ::selection {
-  background: var(--p-blue-soft);
+  background: var(--p-primary-soft);
   color: var(--p-ink);
 }
 
 .root :focus-visible {
-  outline: 2px solid var(--p-blue);
+  outline: 2px solid var(--p-primary);
   outline-offset: 3px;
 }
 
@@ -94,21 +133,36 @@
   text-wrap: pretty;
 }
 
-/* The one large colour: an angled field that stages the product. */
+/* The colour streaks: hard-edged planes of ink, navy and saffron that stage
+   the product. No text ever sits on these, except the closing band's, which
+   stays on the navy planes (see .fieldNavy). */
 .field {
   background:
-    linear-gradient(164deg, var(--p-plane-navy) 0 32%, transparent 32.1%),
-    linear-gradient(106deg, transparent 0 66%, var(--p-plane-teal) 66.1%),
-    var(--p-plane-blue);
+    linear-gradient(164deg, var(--p-plane-ink) 0 32%, transparent 32.1%),
+    linear-gradient(106deg, transparent 0 66%, var(--p-plane-saffron) 66.1%),
+    var(--p-plane-navy);
   clip-path: polygon(0 14%, 100% 0, 100% 86%, 0 100%);
 }
 
 /* The same planes, cut differently, as a contained stage mid-page. */
 .fieldPanel {
   background:
-    linear-gradient(200deg, var(--p-plane-navy) 0 28%, transparent 28.1%),
-    linear-gradient(72deg, var(--p-plane-teal) 0 38%, transparent 38.1%),
-    var(--p-plane-blue);
+    linear-gradient(200deg, var(--p-plane-ink) 0 28%, transparent 28.1%),
+    linear-gradient(72deg, var(--p-plane-saffron) 0 30%, transparent 30.1%),
+    var(--p-plane-navy);
+}
+
+/* Closing band: ink and navy planes only, so white text holds 10:1 or
+   better everywhere; saffron appears as a corner wedge clear of the text. */
+.fieldNavy {
+  background:
+    linear-gradient(164deg, var(--p-plane-ink) 0 40%, transparent 40.1%),
+    var(--p-plane-navy);
+}
+
+.wedge {
+  background: var(--p-plane-saffron);
+  clip-path: polygon(100% 18%, 100% 100%, 12% 100%);
 }
 
 /* Counts tick up from zero once, via a registered integer property. */

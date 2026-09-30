@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import { MARKETING_EVENTS } from '@/lib/marketing/analytics-events'
 import { trackMarketingEvent } from '@/lib/marketing/analytics'
-import { Logo } from '../logo'
+import { Logo } from './mocks'
 import { ClockIcon, MenuIcon } from './icons'
 
 const links = [

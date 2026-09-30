@@ -1,14 +1,14 @@
 import { MARKETING_EVENTS } from '@/lib/marketing/analytics-events'
 import { TrackedLink } from '../tracked-link'
 import { ArrowDownIcon, ClockIcon } from './icons'
-import { AppWindow, CaseLogScreen, DashboardMock, Phone, PortfolioPhoneScreen } from './mocks'
+import { AppWindow, CaseFormPhone, Phone, PortfolioPage, PortfolioPhone } from './mocks'
 import styles from './product.module.css'
 import { CONTAINER, PRIMARY_BUTTON } from './shared'
 
 export function OpeningStatus({ className = '' }: { className?: string }) {
   return (
     <p className={`flex items-center gap-2 text-[15px] text-[var(--p-ink-2)] ${className}`}>
-      <ClockIcon className="h-[18px] w-[18px] text-[var(--p-teal)]" />
+      <ClockIcon className="h-[18px] w-[18px] text-[var(--p-warm)]" />
       Public sign-ups opening soon
     </p>
   )
@@ -41,31 +41,30 @@ export function ProductHero() {
         <ul className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-1.5 text-[13px] text-[var(--p-ink-3)] sm:mt-8 sm:gap-x-6 sm:text-[13.5px]">
           {trust.map(item => (
             <li key={item} className="flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-teal)]" aria-hidden="true" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--p-warm)]" aria-hidden="true" />
               {item}
             </li>
           ))}
         </ul>
       </div>
-      <div className="relative pb-20 sm:pb-28 xl:pb-[300px]">
+      <div className="relative pb-20 sm:pb-28">
         <div className={`${styles.field} absolute inset-x-0 bottom-0 top-[22%]`} aria-hidden="true" />
         <div className={`${CONTAINER} relative`}>
-          <div className={`${styles.settle} relative mx-auto max-w-[1080px] xl:max-w-[1000px]`}>
+          {/* Laptop and phone side by side: the phone sits beside the window,
+              never over it, so no part of either screen is hidden. */}
+          <div className={`${styles.settle} relative mx-auto max-w-[1080px] xl:flex xl:max-w-none xl:items-end xl:justify-center xl:gap-10`}>
             <div className="flex justify-center md:hidden">
-              <Phone label="Example Clerkfolio portfolio on a phone">
-                <PortfolioPhoneScreen />
+              <Phone label="Example Clerkfolio portfolio page on a phone">
+                <PortfolioPhone />
               </Phone>
             </div>
-            <AppWindow label="Example Clerkfolio portfolio screen with entries and linked IMT 2026 evidence" path="portfolio" className="hidden md:block">
-              <DashboardMock />
+            <AppWindow label="Example Clerkfolio portfolio page with category tiles and entries" path="portfolio" className="hidden md:block xl:max-w-[880px] xl:flex-1">
+              <PortfolioPage />
             </AppWindow>
-            {/* Overhangs the window's right edge, over only the empty lower corner of the evidence column. */}
-            <div className={`${styles.phone} absolute -right-[110px] top-[372px] hidden xl:block`}>
-              <div className="origin-top-right scale-[0.9]">
-                <Phone label="Example of logging an anonymised case on a phone">
-                  <CaseLogScreen />
-                </Phone>
-              </div>
+            <div className={`${styles.phone} hidden flex-shrink-0 xl:block xl:translate-y-10`}>
+              <Phone label="Example of logging an anonymised case on a phone">
+                <CaseFormPhone />
+              </Phone>
             </div>
           </div>
         </div>

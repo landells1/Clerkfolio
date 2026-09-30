@@ -95,7 +95,7 @@ export function HowItWorks() {
         >
           <div aria-hidden="true">
             <div className="flex flex-wrap items-center gap-1.5">
-              <Pill tone="blue">Audit & QIP</Pill>
+              <Pill tone="primary">Audit & QIP</Pill>
               <Pill>Aug 2024</Pill>
               <Pill>FY1, North trust</Pill>
             </div>
@@ -107,9 +107,9 @@ export function HowItWorks() {
               placeholder="Add tags so you can find it again"
               content={
                 <div className="flex flex-wrap gap-1.5">
-                  <Pill tone="teal">Haematology</Pill>
-                  <Pill tone="teal">Quality improvement</Pill>
-                  <Pill tone="blue">IMT</Pill>
+                  <Pill tone="warm">Haematology</Pill>
+                  <Pill tone="warm">Quality improvement</Pill>
+                  <Pill tone="primary">IMT</Pill>
                 </div>
               }
             />
@@ -119,7 +119,7 @@ export function HowItWorks() {
               placeholder="Link it, export it or share it when you need it"
               content={
                 <div className="space-y-2">
-                  <p className="flex items-center gap-2.5 rounded-xl bg-[var(--p-blue-soft)] px-3.5 py-2.5 text-[13.5px] font-medium text-[var(--p-blue-text)]">
+                  <p className="flex items-center gap-2.5 rounded-xl bg-[var(--p-primary-soft)] px-3.5 py-2.5 text-[13.5px] font-medium text-[var(--p-primary-text)]">
                     <LinkIcon className="h-4 w-4" /> Linked to IMT 2026: Quality Improvement
                   </p>
                   <p className="flex items-center gap-2.5 rounded-xl border border-[var(--p-line)] px-3.5 py-2.5 text-[13.5px]">

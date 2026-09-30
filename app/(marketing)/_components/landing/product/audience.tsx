@@ -67,7 +67,7 @@ export function Audience() {
           <ul className="space-y-3.5 self-center">
             {current.bullets.map(bullet => (
               <li key={bullet} className="flex gap-3 text-[16px] leading-snug">
-                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--p-teal-soft)] text-[var(--p-teal-text)]">
+                <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-[var(--p-warm-soft)] text-[var(--p-warm-text)]">
                   <CheckIcon className="h-3.5 w-3.5" />
                 </span>
                 {bullet}

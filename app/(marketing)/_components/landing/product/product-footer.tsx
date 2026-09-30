@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import CookiePreferencesButton from '@/components/legal/cookie-preferences-button'
 import { MARKETING_EVENTS } from '@/lib/marketing/analytics-events'
-import { Logo } from '../logo'
+import { Logo } from './mocks'
 import { TrackedLink } from '../tracked-link'
 import { ArrowIcon, ClockIcon } from './icons'
 import { CONTAINER } from './shared'
@@ -19,7 +19,8 @@ export function ProductFooter() {
   return (
     <footer>
       <div className="relative overflow-hidden py-28 sm:py-36">
-        <div className={`${styles.field} absolute inset-0`} aria-hidden="true" />
+        <div className={`${styles.fieldNavy} absolute inset-0`} aria-hidden="true" />
+        <div className={`${styles.wedge} absolute bottom-0 right-0 hidden h-[45%] w-[26%] lg:block`} aria-hidden="true" />
         <div className={`${CONTAINER} relative text-center text-[var(--p-on-field)]`}>
           <h2 className={`${styles.display} mx-auto max-w-[16ch] text-[clamp(2.4rem,5.2vw,4.4rem)]`}>
             Keep your evidence ready for what comes next.

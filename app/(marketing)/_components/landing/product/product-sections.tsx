@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { LANDING_FAQS } from '@/lib/marketing/faqs'
 import { MARKETING_PRICING_FEATURES, PRICING_TIERS } from '@/lib/marketing/pricing'
 import { CheckIcon, DownloadIcon, FileIcon, LinkIcon, LockIcon, PlusIcon, SearchIcon, ShieldIcon } from './icons'
-import { AppWindow, CaseDetailScreen, CasesScreen, EntryDetailMock, ImportMock, PdfMock, Phone, ShareMock, SpecialtyMock } from './mocks'
+import { AppWindow, CaseFormPhone, CasesPhone, EntryDetailPage, ImportPage, PdfExportPage, Phone, ShareLinksPage, SpecialtyPage } from './mocks'
 import { OpeningStatus } from './product-hero'
 import { CONTAINER } from './shared'
 import styles from './product.module.css'
@@ -19,7 +19,7 @@ function Points({ items }: { items: readonly (readonly [string, string, Glyph?])
     <dl className="mt-9 space-y-6">
       {items.map(([title, body, Icon]) => (
         <div key={title} className="flex gap-4">
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--p-blue-soft)] text-[var(--p-blue-text)]">
+          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-[var(--p-primary-soft)] text-[var(--p-primary-text)]">
             {Icon ? <Icon className="h-[18px] w-[18px]" /> : <CheckIcon className="h-[18px] w-[18px]" />}
           </span>
           <div>
@@ -50,8 +50,8 @@ export function WhySection() {
           <Points items={benefits} />
         </div>
         <div className={styles.reveal}>
-          <AppWindow label="Example import screen bringing Horus, spreadsheet and backup records into Clerkfolio" path="import">
-            <ImportMock />
+          <AppWindow label="Example of the Import your portfolio page with the Horus importer" path="import">
+            <ImportPage />
           </AppWindow>
         </div>
       </div>
@@ -75,8 +75,8 @@ export function FeatureSections() {
             <p className={LEAD}>Keep audits, teaching, reflections, procedures, publications, leadership, conferences and prizes in one place. It stays with you through rotations, trusts and training stages.</p>
           </div>
           <div className={styles.reveal}>
-            <AppWindow label="Example portfolio entry with evidence files, competency themes and a specialty link" path="portfolio/entry">
-              <EntryDetailMock />
+            <AppWindow label="Example portfolio entry page with details, competency themes and evidence files" path="portfolio/entry">
+              <EntryDetailPage />
             </AppWindow>
           </div>
         </div>
@@ -89,8 +89,8 @@ export function FeatureSections() {
         </div>
         <div className={`${CONTAINER} mt-14`}>
           <div className={`${styles.reveal} mx-auto max-w-[1000px]`}>
-            <AppWindow label="Example IMT 2026 specialty page listing linked entries per published domain" path="specialties/imt-2026">
-              <SpecialtyMock />
+            <AppWindow label="Example IMT 2026 specialty page with self-assessed score, scoring bands and linked evidence" path="specialties/imt-2026">
+              <SpecialtyPage />
             </AppWindow>
           </div>
         </div>
@@ -101,10 +101,10 @@ export function FeatureSections() {
           <div className={`${styles.fieldPanel} order-2 overflow-hidden rounded-3xl px-6 pt-12 sm:px-10 lg:order-1`}>
             <div className={`${styles.reveal} flex items-end justify-center gap-5`}>
               <Phone label="Example cases list on a phone" className="-mb-24 hidden sm:block">
-                <CasesScreen />
+                <CasesPhone />
               </Phone>
-              <Phone label="Example anonymised case with learning and reflection on a phone" className="-mb-10">
-                <CaseDetailScreen />
+              <Phone label="Example of logging an anonymised case on a phone" className="-mb-10">
+                <CaseFormPhone />
               </Phone>
             </div>
           </div>
@@ -118,8 +118,8 @@ export function FeatureSections() {
       <section id="tools" aria-labelledby="tools-title" className="scroll-mt-20 bg-[var(--p-surface)] py-24 sm:py-32">
         <div className={`${CONTAINER} grid grid-cols-1 items-center gap-14 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-16`}>
           <div className={`${styles.reveal} order-2 lg:order-1`}>
-            <AppWindow label="Example application PDF preview with download and share options" path="export/application-pdf">
-              <PdfMock />
+            <AppWindow label="Example Application PDF tab with format, template and selected entries" path="export/application-pdf">
+              <PdfExportPage />
             </AppWindow>
           </div>
           <div className="order-1 lg:order-2">
@@ -151,8 +151,8 @@ export function PrivacySection() {
           </p>
         </div>
         <div className={styles.reveal}>
-          <AppWindow label="Example share settings: PIN required, expiry date, cases never included, and export formats" path="export?tab=share">
-            <ShareMock />
+          <AppWindow label="Example Share links tab: create a PIN-protected link with an expiry date" path="export?tab=share">
+            <ShareLinksPage />
           </AppWindow>
         </div>
       </div>
@@ -177,11 +177,11 @@ export function PricingSection() {
             >
               <h3 className="text-[20px] font-semibold">{tier.name}</h3>
               <p className="mt-4 text-[30px] font-semibold leading-tight tracking-[-0.025em]">{tier.marketingPrice}</p>
-              <p className={`mt-2 text-[15px] ${pro ? 'text-[color-mix(in_srgb,var(--p-ground)_78%,var(--p-ink))]' : 'text-[var(--p-ink-2)]'}`}>{tier.marketingDescription}</p>
+              <p className={`mt-2 text-[15px] ${pro ? 'text-[color-mix(in_srgb,var(--p-ground)_82%,var(--p-primary))]' : 'text-[var(--p-ink-2)]'}`}>{tier.marketingDescription}</p>
               <ul className={`mt-7 space-y-3 border-t pt-7 ${pro ? 'border-[color-mix(in_srgb,var(--p-ground)_18%,transparent)]' : 'border-[var(--p-line)]'}`}>
                 {MARKETING_PRICING_FEATURES[tier.name].map(feature => (
                   <li key={feature} className="flex gap-3 text-[15px] leading-snug">
-                    <CheckIcon className={`h-[18px] w-[18px] ${pro ? 'text-[var(--p-teal-soft)]' : 'text-[var(--p-teal-text)]'}`} />
+                    <CheckIcon className={`h-[18px] w-[18px] ${pro ? 'text-[var(--p-warm-soft)]' : 'text-[var(--p-warm-text)]'}`} />
                     {feature}
                   </li>
                 ))}
