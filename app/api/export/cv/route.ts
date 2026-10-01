@@ -3,7 +3,8 @@ import { CV_ENTRY_LIMIT, cvCategoryOrder } from '@/lib/export/cv-category-order'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
 import { loadPortfolioPdfRuntime } from '@/lib/pdf/load-runtime'
-import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { buildCvLogSections, CV_LOG_KINDS, CV_LOG_SELECT, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { londonDateKey } from '@/lib/engagement/streaks'
 import { validateOrigin } from '@/lib/csrf'
 import { checkRateLimit, rateLimitHeaders } from '@/lib/rate-limit'
 import * as Sentry from '@sentry/nextjs'
@@ -83,11 +84,11 @@ export async function POST(req: NextRequest) {
       .eq('is_demo', false)
       .order('date', { ascending: false })
       .limit(CV_ENTRY_LIMIT),
-    // Structured columns only (never notes/meta/cost_pence) for the CV log
+    // Structured columns only (never notes, cost_pence or the free-text meta.detail; just the meta end_date key) for the CV log
     // sections - same query shape as /api/export/docx and the preview.
     supabase
       .from('personal_log')
-      .select('id, kind, title, date, expires_at, cpd_hours, attempts, score')
+      .select(CV_LOG_SELECT)
       .eq('user_id', user.id)
       .in('kind', CV_LOG_KINDS)
       .is('deleted_at', null)
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
 
   const label = LABELS[template] ?? LABELS.clinical
   const orderedEntries = orderEntriesForTemplate((entries ?? []) as Record<string, unknown>[], template)
-  const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
+  const logSections = buildCvLogSections((logRows ?? []) as unknown as CvLogRow[], londonDateKey(new Date()))
   const userName = [profile?.first_name, profile?.last_name].filter(Boolean).join(' ') || 'Clerkfolio User'
   try {
     const { renderPortfolioPdf } = loadPortfolioPdfRuntime()

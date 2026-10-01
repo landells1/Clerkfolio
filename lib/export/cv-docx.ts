@@ -280,7 +280,7 @@ export async function renderCvDocx(data: CvDocData): Promise<Buffer> {
     }
   }
 
-  // Log-sourced sections (Courses & Certifications, Examinations) render with
+  // Log-sourced sections (Rotations & placements, Courses & Certifications, Examinations) render with
   // the same heading/entry/detail structure as the portfolio sections above.
   for (const section of data.logSections) {
     children.push(

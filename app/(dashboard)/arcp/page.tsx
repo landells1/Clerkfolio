@@ -1,9 +1,12 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import ARCPPageClient from '@/components/arcp/arcp-page-client'
 import type { ARCPCapability, ARCPEntryLink } from '@/lib/types/arcp'
 import { filterLinksToActiveEntries } from '@/lib/specialties/active-links'
 import { isArcpVisibleStage } from '@/lib/constants/career-stages'
+import { withLinkedEntryMeta } from '@/lib/specialties/linked-entry-meta'
+import { rotationSpans, type RotationRow } from '@/lib/logs/rotations'
+import { londonDateKey } from '@/lib/engagement/streaks'
 
 export default async function ARCPPage() {
   const supabase = await createClient()
@@ -30,7 +33,7 @@ export default async function ARCPPage() {
     )
   }
 
-  const [{ data: capabilities }, { data: links }] = await Promise.all([
+  const [{ data: capabilities }, { data: links }, { data: rotationRows }] = await Promise.all([
     supabase
       .from('arcp_capabilities')
       .select('*')
@@ -40,11 +43,21 @@ export default async function ARCPPage() {
       .select('*')
       .eq('user_id', user!.id)
       .order('created_at', { ascending: true }),
+    // Rotations power the "Rotation" filter (evidence dated inside a block).
+    supabase
+      .from('personal_log')
+      .select('id, title, date, meta')
+      .eq('user_id', user!.id)
+      .eq('kind', 'rotation')
+      .is('deleted_at', null)
+      .order('date', { ascending: true }),
   ])
-  const activeLinks = await filterLinksToActiveEntries(
+  // Entry dates are attached so links can be filtered by rotation span.
+  const activeLinks = await withLinkedEntryMeta(supabase, await filterLinksToActiveEntries(
     supabase,
     (links ?? []) as ARCPEntryLink[]
-  )
+  ))
+  const spans = rotationSpans((rotationRows ?? []) as RotationRow[])
 
   return (
     <div className="p-8 max-w-3xl mx-auto">
@@ -78,6 +91,8 @@ export default async function ARCPPage() {
       <ARCPPageClient
         capabilities={(capabilities ?? []) as ARCPCapability[]}
         initialLinks={activeLinks}
+        rotations={spans}
+        todayKey={londonDateKey(new Date())}
       />
     </div>
   )

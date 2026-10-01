@@ -93,7 +93,7 @@ export default function LinkARCPEvidenceModal({ capability, existingEntryIds, on
       addToast('Failed to link evidence', 'error')
       return
     }
-    onLinked(data)
+    onLinked({ ...data, entry_title: result.title, entry_date: result.date })
     addToast(`Linked to ${capability.name}`, 'success')
     onClose()
   }

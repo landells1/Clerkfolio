@@ -2,6 +2,10 @@ import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import PersonalLogForm, { type PersonalLogKind } from '@/components/logs/personal-log-form'
+import { emptyHeading } from '@/lib/logs/personal-log'
+import { rotationEndDate, rotationSpans, type RotationRow } from '@/lib/logs/rotations'
+import { daysBetween } from '@/lib/dashboard/date-stats'
+import { londonDateKey } from '@/lib/engagement/streaks'
 import WbaHeatmap from '@/components/logs/wba-heatmap'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import LogList from '@/components/logs/log-list'
@@ -26,8 +30,8 @@ const EMPTY_COPY: Record<PersonalLogKind, string> = {
   exam: 'Log exam attempts, scores, dates, and costs.',
   mentor_meeting: 'Keep a record of mentor, supervisor, and careers meetings.',
   oop: 'Capture out-of-programme plans, tasters, and exploratory experiences.',
-  rotation: 'Log rotations so you can connect reflections and evidence to each block.',
-  wba_received: 'Record workplace-based assessments you have received, such as CBDs, DOPS, and Mini-CEX.',
+  rotation: 'Log each rotation with its start and end date. The dashboard then counts the entries and cases dated inside each one.',
+  wba_received: 'A quick tally of the workplace-based assessments you received (CBD, Mini-CEX, DOPS, ACAT, DCT). To write up what you learned from one, add a Reflection entry in your portfolio.',
   teaching_observed: 'Log observed teaching sessions and feedback you received.',
 }
 
@@ -40,7 +44,7 @@ type PersonalLogRow = {
   attempts: number | null
   score: string | null
   cost_pence: number | null
-  meta: { detail?: string } | null
+  meta: { detail?: string; end_date?: string; wba_type?: string } | null
   notes: string | null
 }
 
@@ -61,21 +65,37 @@ export default async function LogsKindPage({
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const { data: rows } = await supabase
-    .from('personal_log')
-    .select('id, title, date, expires_at, cpd_hours, attempts, score, cost_pence, meta, notes')
-    .eq('user_id', user!.id)
-    .eq('kind', tab.kind)
-    .is('deleted_at', null)
-    .order('date', { ascending: false })
+  const [{ data: rows }, { data: rotationRows }] = await Promise.all([
+    supabase
+      .from('personal_log')
+      .select('id, title, date, expires_at, cpd_hours, attempts, score, cost_pence, meta, notes')
+      .eq('user_id', user!.id)
+      .eq('kind', tab.kind)
+      .is('deleted_at', null)
+      .order('date', { ascending: false }),
+    // The WBA table groups by rotation span, so it needs the rotations too.
+    tab.kind === 'wba_received'
+      ? supabase
+          .from('personal_log')
+          .select('id, title, date, meta')
+          .eq('user_id', user!.id)
+          .eq('kind', 'rotation')
+          .is('deleted_at', null)
+      : Promise.resolve({ data: [] as RotationRow[] }),
+  ])
+  const todayKey = londonDateKey(new Date())
   const logRows = ((rows ?? []) as PersonalLogRow[]).filter(row => matchesParsedQuery({
     ...row,
     notes: [row.notes, row.meta?.detail].filter(Boolean).join(' '),
     category: tab.kind,
   }, parsedQuery))
+  // "Reflection due" uses the rotation's real END date (it used the start
+  // date). Rotations without an end date are ongoing and never prompt.
   const rotationReflectionPrompts = tab.kind === 'rotation'
     ? logRows.filter(row => {
-      const daysFromToday = Math.ceil((new Date(row.date).getTime() - Date.now()) / 86400000)
+      const end = rotationEndDate({ date: row.date, meta: row.meta })
+      if (!end) return false
+      const daysFromToday = daysBetween(todayKey, end)
       return daysFromToday >= -14 && daysFromToday <= 14
     }).slice(0, 3)
     : []
@@ -122,18 +142,22 @@ export default async function LogsKindPage({
         <section className="rounded-lg border border-subtle bg-surface-1">
           {logRows.length === 0 ? (
             <div className="p-6">
-              <p className="text-sm font-medium text-fg">No {tab.label.toLowerCase()} entries yet</p>
+              <p className="text-sm font-medium text-fg">{emptyHeading(tab.kind)}</p>
               <p className="mt-1 text-sm text-fg-2">{EMPTY_COPY[tab.kind]}</p>
             </div>
           ) : (
-            <LogList rows={logRows} kind={tab.kind} />
+            <LogList rows={logRows} kind={tab.kind} todayKey={todayKey} />
           )}
         </section>
       </div>
 
       {tab.kind === 'wba_received' && (
         <div className="mt-6">
-          <WbaHeatmap rows={logRows.map(row => ({ title: row.title, meta: row.meta }))} />
+          <WbaHeatmap
+            rows={logRows.map(row => ({ title: row.title, date: row.date, meta: row.meta }))}
+            rotations={rotationSpans((rotationRows ?? []) as RotationRow[])}
+            todayKey={todayKey}
+          />
         </div>
       )}
     </PullToRefresh>

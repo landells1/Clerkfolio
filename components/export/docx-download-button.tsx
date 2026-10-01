@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 import { saveBlob } from '@/lib/download-blob'

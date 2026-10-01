@@ -275,7 +275,7 @@ export default function PortfolioPDF({ entries, userName, specialty, exportedAt,
           </View>
         ))}
 
-        {/* Log-sourced sections (Courses & Certifications, Examinations) */}
+        {/* Log-sourced sections (Rotations & placements, Courses & Certifications, Examinations) */}
         {logSections.map(section => (
           <View key={section.key}>
             <View style={s.catHeading}>

@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ARCP_CATEGORY_LABELS, type ARCPCapability, type ARCPEntryLink, type ARCPCategory } from '@/lib/types/arcp'
+import { arcpLinkSummary, linksInRotation } from '@/lib/arcp/summary'
+import { formatRotationSpan, type RotationSpan } from '@/lib/logs/rotations'
 import CapabilityRow from './capability-row'
 
 const ALL_CATEGORIES: ARCPCategory[] = ['clinical', 'professional', 'development', 'safety']
@@ -10,11 +12,17 @@ const ALL_CATEGORIES: ARCPCategory[] = ['clinical', 'professional', 'development
 type Props = {
   capabilities: ARCPCapability[]
   initialLinks: ARCPEntryLink[]
+  rotations: RotationSpan[]
+  todayKey: string
 }
 
-export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
+export default function ARCPPageClient({ capabilities, initialLinks, rotations, todayKey }: Props) {
   const router = useRouter()
-  const [links, setLinks] = useState<ARCPEntryLink[]>(initialLinks)
+  const [allLinks, setLinks] = useState<ARCPEntryLink[]>(initialLinks)
+  // Rotation filter: only evidence DATED inside the chosen rotation's span.
+  const [rotationId, setRotationId] = useState('')
+  const rotation = rotations.find(span => span.id === rotationId) ?? null
+  const links = rotation ? linksInRotation(allLinks, rotation, todayKey) : allLinks
 
   function handleLinked(newLink: ARCPEntryLink) {
     setLinks(prev => [...prev, newLink])
@@ -39,12 +47,32 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
 
   return (
     <>
+      {rotations.length > 0 && (
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          <label htmlFor="arcp-rotation" className="text-xs font-medium text-[var(--text-secondary)]">Rotation</label>
+          <select
+            id="arcp-rotation"
+            value={rotationId}
+            onChange={event => setRotationId(event.target.value)}
+            className="min-h-[40px] rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-sm text-[var(--text-primary)]"
+          >
+            <option value="">All evidence</option>
+            {[...rotations].reverse().map(span => (
+              <option key={span.id} value={span.id}>{span.title} ({formatRotationSpan(span)})</option>
+            ))}
+          </select>
+          {rotation && (
+            <span className="text-xs text-[var(--text-muted)]">Showing evidence dated inside this rotation only.</span>
+          )}
+        </div>
+      )}
+
       {/* Progress summary */}
       <div className="flex items-center gap-4 mb-6 p-4 bg-[var(--bg-surface)] border border-white/[0.06] rounded-xl">
         <div className="flex-1">
           <div className="flex items-center justify-between mb-1.5">
             <span className="text-xs text-[var(--text-muted)]" title="Capabilities with at least one piece of linked evidence">Evidence coverage</span>
-            <span className="text-xs font-mono text-[var(--text-secondary)]">{totalLinked} / {capabilities.length} capabilities · {links.length} linked {links.length === 1 ? 'entry' : 'entries'}</span>
+            <span className="text-xs font-mono text-[var(--text-secondary)]">{totalLinked} / {capabilities.length} capabilities · {arcpLinkSummary(links)}</span>
           </div>
           <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
             <div
@@ -105,7 +133,7 @@ export default function ARCPPageClient({ capabilities, initialLinks }: Props) {
               <div className="space-y-2">
                 {caps.map(cap => (
                   <CapabilityRow
-                    key={cap.capability_key}
+                    key={`${cap.capability_key}-${rotationId}`}
                     capability={cap}
                     links={links.filter(l => l.capability_key === cap.capability_key)}
                     onLinked={handleLinked}

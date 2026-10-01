@@ -1,11 +1,12 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import { PUB_STATUS_LABELS } from '@/lib/types/portfolio-labels'
 import CvDownloadButton from '@/components/export/cv-download-button'
 import DocxDownloadButton from '@/components/export/docx-download-button'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
-import { buildCvLogSections, CV_LOG_KINDS, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { buildCvLogSections, CV_LOG_KINDS, CV_LOG_SELECT, type CvLogRow } from '@/lib/export/cv-log-sections'
+import { londonDateKey } from '@/lib/engagement/streaks'
 import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
 import { CV_ENTRY_LIMIT, cvCategoryOrder } from '@/lib/export/cv-category-order'
 
@@ -55,21 +56,21 @@ export default async function CvGeneratorPage({
       .eq('is_demo', false)
       .order('date', { ascending: false })
       .limit(CV_ENTRY_LIMIT),
-    // Structured columns only (never notes/meta/cost_pence) - same query shape
+    // Structured columns only (never notes, cost_pence or the free-text meta.detail; just the meta end_date key) - same query shape
     // as the /api/export/cv and /api/export/docx routes so all three CV
     // renderings stay in sync.
     supabase
       .from('personal_log')
-      .select('id, kind, title, date, expires_at, cpd_hours, attempts, score')
+      .select(CV_LOG_SELECT)
       .eq('user_id', user!.id)
       .in('kind', CV_LOG_KINDS)
       .is('deleted_at', null)
       .order('date', { ascending: false })
-      .limit(80),
+      .limit(120),
     fetchSubscriptionInfo(supabase, user!.id),
   ])
   const rows = dedupeEntries((entries ?? []) as PortfolioEntry[])
-  const logSections = buildCvLogSections((logRows ?? []) as CvLogRow[])
+  const logSections = buildCvLogSections((logRows ?? []) as unknown as CvLogRow[], londonDateKey(new Date()))
   const categoryOrder = cvCategoryOrder(template)
 
   return (
@@ -91,11 +92,21 @@ export default async function CvGeneratorPage({
         <CvDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
         <DocxDownloadButton template={template} isPro={subInfo.isPro} canExportPdf={subInfo.limits.canExportPdf} />
       </div>
+      {/* One allowance banner for both download buttons (they used to repeat
+          it under each button as well). */}
       {!subInfo.isPro && (
-        <p className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
-          {subInfo.limits.canExportPdf ? `${pdfRemainingLabel(subInfo)}. ` : 'Your included PDFs have been used. '}
-          CV PDF and DOCX downloads share the PDF allowance with Application PDF and Year in review downloads.
-        </p>
+        <div className="mb-5 rounded-xl border border-amber-400/20 bg-amber-400/5 px-4 py-3 text-xs text-[var(--warning)]">
+          <p>
+            {subInfo.limits.canExportPdf ? `${pdfRemainingLabel(subInfo)}. ` : 'Your included PDF allowance has been used. '}
+            CV PDF and Word downloads share the PDF allowance with Application PDF and Year in review downloads.
+          </p>
+          {!subInfo.limits.canExportPdf && (
+            <p className="mt-1.5 text-[var(--text-secondary)]">
+              <Link href="/upgrade" className="text-[var(--accent-text)] underline">Upgrade for £9.99/yr</Link> for unlimited PDFs, or{' '}
+              <Link href="/settings/referrals" className="text-[var(--accent-text)] underline">invite a colleague</Link>. Each successful referral adds one more free PDF export.
+            </p>
+          )}
+        </div>
       )}
       <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6">
         <h2 className="text-lg font-semibold text-[var(--text-primary)]">{TEMPLATES.find(item => item.key === template)?.label ?? 'Clinical'} CV preview</h2>
@@ -119,7 +130,7 @@ export default async function CvGeneratorPage({
                 <ul className="mt-2 space-y-2">
                   {matching.slice(0, 8).map(entry => (
                     <li key={entry.id} className="text-sm text-[var(--text-secondary)]">
-                      <span className="text-[var(--text-primary)]">{entry.title}</span> · {new Date(entry.date).getFullYear()}
+                      <span className="text-[var(--text-primary)]">{entry.title}</span> · {formatCvDate(entry.date)}
                       {tail(entry, category.value) ? ` · ${tail(entry, category.value)}` : ''}
                     </li>
                   ))}
@@ -127,8 +138,9 @@ export default async function CvGeneratorPage({
               </div>
             )
           })}
-          {/* Log-sourced sections (Courses & Certifications, Examinations) -
-              same structure/order/data as the CV PDF + DOCX. */}
+          {/* Log-sourced sections (Rotations & placements, Courses &
+              Certifications, Examinations) - same structure/order/data as the
+              CV PDF + DOCX. Future-dated items are left out of all three. */}
           {logSections.map(section => (
             <div key={section.key}>
               <h3 className="text-sm font-semibold text-[var(--text-primary)]">{section.title}</h3>
@@ -147,6 +159,11 @@ export default async function CvGeneratorPage({
       </section>
     </div>
   )
+}
+
+// Same day/short-month/year format as the CV PDF and DOCX renderers.
+function formatCvDate(value: string) {
+  return new Date(value).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
 function tail(entry: PortfolioEntry, category: Category) {

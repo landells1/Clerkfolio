@@ -29,4 +29,8 @@ export type ARCPEntryLink = {
   entry_type: 'portfolio' | 'case'
   notes: string | null
   created_at: string
+  // Display-only (never stored): the linked entry's / case's date, resolved
+  // server-side for the rotation filter (lib/specialties/linked-entry-meta.ts).
+  entry_title?: string | null
+  entry_date?: string | null
 }
