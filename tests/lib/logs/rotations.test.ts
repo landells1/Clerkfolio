@@ -96,4 +96,8 @@ describe('formatting', () => {
     expect(formatRotationMonths({ start: '2026-04-01', end: '2026-07-31' })).toBe('Apr 2026 - Jul 2026')
     expect(formatRotationMonths({ start: '2026-09-16', end: null })).toBe('Sept 2026 - present')
   })
+
+  it('shows a single month for a placement that starts and ends in the same month', () => {
+    expect(formatRotationMonths({ start: '2026-06-01', end: '2026-06-26' })).toBe('Jun 2026')
+  })
 })

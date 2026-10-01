@@ -100,11 +100,15 @@ export function formatRotationSpan(span: Pick<RotationSpan, 'start' | 'end'>): s
   return `${formatDay(span.start)} - ${span.end ? formatDay(span.end) : 'ongoing'}`
 }
 
-/** Month-and-year span for the CV: "Aug 2026 - Dec 2026" / "Dec 2026 - present". */
+/**
+ * Month-and-year span for the CV: "Aug 2026 - Dec 2026", "Dec 2026 - present",
+ * or just "Jun 2026" for a placement that starts and ends in the same month.
+ */
 export function formatRotationMonths(span: Pick<RotationSpan, 'start' | 'end'>): string {
   const month = (key: string) => {
     const [y, m] = key.split('-').map(Number)
     return new Date(Date.UTC(y, m - 1, 1)).toLocaleDateString('en-GB', { month: 'short', year: 'numeric', timeZone: 'UTC' })
   }
+  if (span.end && span.end.slice(0, 7) === span.start.slice(0, 7)) return month(span.start)
   return `${month(span.start)} - ${span.end ? month(span.end) : 'present'}`
 }

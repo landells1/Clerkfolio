@@ -56,7 +56,10 @@ export default function EmptyTrashButton({ itemCount }: { itemCount: number }) {
         onConfirm={emptyTrash}
         onCancel={() => setOpen(false)}
       >
-        <p>This permanently deletes all {countLabel(itemCount, 'item')} in Trash now, including anything deleted in the last 30 days. Nothing can be restored afterwards.</p>
+        <p>
+          {itemCount === 1 ? 'This permanently deletes the 1 item in Trash now' : `This permanently deletes all ${itemCount} items in Trash now`}
+          , including anything deleted in the last 30 days. Nothing can be restored afterwards.
+        </p>
         <p>Evidence files attached to those entries and cases are deleted too, unless the same file is still attached to another entry or case - those files are kept.</p>
       </ConfirmDialog>
     </>
