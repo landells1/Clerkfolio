@@ -5,7 +5,7 @@ export function SpecialtyScoreCharts({
 }: {
   domains: Array<{ key: string; label: string; score: number; max: number }>
 }) {
-  const maxLabelLength = 28
+  const maxLabelLength = 24
   const chartDomains = domains.map(domain => ({
     ...domain,
     fraction: domain.max > 0 ? Math.min(domain.score / domain.max, 1) : 0,
@@ -53,7 +53,7 @@ export function SpecialtyScoreCharts({
           <p className="mt-1 text-xs text-[var(--text-muted)]">Normalised coverage across the scored domains for this specialty.</p>
         </div>
         {canRenderRadar ? (
-          <svg viewBox="0 0 360 300" className="w-full" aria-label="Specialty domain radar chart">
+          <svg viewBox="-80 0 520 300" className="mx-auto w-full max-w-[520px]" aria-label="Specialty domain radar chart">
             {[0.25, 0.5, 0.75, 1].map(fraction => (
               <polygon
                 key={fraction}

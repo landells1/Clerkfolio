@@ -125,7 +125,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
               </svg>
               Add specialty
               {!canTrackAnotherSpecialty && (
-                <span className="ml-0.5 text-[10px] font-normal text-[var(--text-secondary)]">
+                <span className="ml-0.5 text-[10px] font-normal text-[var(--button-primary-text)] opacity-75">
                   {activeApplications.length}/{FREE_SPECIALTY_LIMIT}
                 </span>
               )}

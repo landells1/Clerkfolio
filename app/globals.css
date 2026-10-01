@@ -74,6 +74,7 @@
   --bg-overlay-faint: rgba(11, 22, 51, 0.035);
   --bg-overlay-soft:  rgba(11, 22, 51, 0.06);
   --bg-overlay-strong:rgba(11, 22, 51, 0.11);
+  --bg-overlay-heavy: rgba(11, 22, 51, 0.17); /* light-theme stand-in for strong white tints */
 
   /* Borders & dividers */
   --border-subtle:    #E6E9F0; /* hairlines between rows */
@@ -124,7 +125,7 @@
 
   /* Status */
   --success:          #15803D;
-  --warning:          #B45309;
+  --warning:          #8A5A00; /* saffron text, 6:1 on white */
   --danger:           #DC2626;
 
   /* Elevation — light themes need real shadows for depth */
@@ -135,7 +136,7 @@
   /* Category / pill colours — dot, soft chip bg, border, chip text. */
   --cat-blue:    #2563EB; --cat-blue-soft:    #DCE6FA; --cat-blue-border:    #C3D4F5; --cat-blue-text:    #1D4ED8; --cat-blue-dot:    #2563EB;
   --cat-green:   #15803D; --cat-green-soft:   #DCEEDD; --cat-green-border:   #BFE0C4; --cat-green-text:   #15803D; --cat-green-dot:   #15803D;
-  --cat-amber:   #D97706; --cat-amber-soft:   #FBEBD2; --cat-amber-border:   #F0D3A2; --cat-amber-text:   #B45309; --cat-amber-dot:   #D97706;
+  --cat-amber:   #F2A20C; --cat-amber-soft:   #FDF1D8; --cat-amber-border:   #F3D48A; --cat-amber-text:   #8A5A00; --cat-amber-dot:   #F2A20C;
   --cat-rose:    #E11D48; --cat-rose-soft:    #F9DCE2; --cat-rose-border:    #F0C2CC; --cat-rose-text:    #BE123C; --cat-rose-dot:    #E11D48;
   --cat-violet:  #7C3AED; --cat-violet-soft:  #E7DEFA; --cat-violet-border:  #D5C7F2; --cat-violet-text:  #6D28D9; --cat-violet-dot:  #7C3AED;
   --cat-cyan:    #0284C7; --cat-cyan-soft:    #D6EAF7; --cat-cyan-border:    #B3D7EC; --cat-cyan-text:    #0369A1; --cat-cyan-dot:    #0284C7;
@@ -521,4 +522,102 @@ body[data-bulk-select="true"] [data-fab] {
 :where(html:not([data-theme="dark"])) [class~="divide-white/[0.04]"] > :not([hidden]) ~ :not([hidden]),
 :where(html:not([data-theme="dark"])) [class~="divide-white/[0.06]"] > :not([hidden]) ~ :not([hidden]) {
   border-color: var(--border-subtle);
+}
+
+/* Light theme: white-alpha fills (bg-white/[0.06] etc.) were written for the
+   dark theme and vanish on white cards (meter tracks, chips, kbd, toggles).
+   Map them onto navy-tinted overlay tokens. Hover variants map one step up. */
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.02]"],
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.03]"] {
+  background-color: var(--bg-overlay-faint);
+}
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.04]"] {
+  background-color: var(--bg-overlay-soft);
+}
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.05]"],
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.06]"],
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.08]"] {
+  background-color: var(--bg-overlay-strong);
+}
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.1]"],
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.12]"],
+:where(html:not([data-theme="dark"])) [class~="bg-white/[0.18]"] {
+  background-color: var(--bg-overlay-heavy);
+}
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.02]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.03]"]:hover {
+  background-color: var(--bg-overlay-faint);
+}
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.04]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.05]"]:hover {
+  background-color: var(--bg-overlay-soft);
+}
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.06]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.08]"]:hover {
+  background-color: var(--bg-overlay-strong);
+}
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.1]"]:hover {
+  background-color: var(--bg-overlay-heavy);
+}
+
+/* Light theme: the -400 text shades were tuned for a near-black canvas and
+   fall to about 2:1 on white. Map them onto the category text tokens. */
+:where(html:not([data-theme="dark"])) [class~="text-red-400"] {
+  color: var(--cat-red-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-amber-400"] {
+  color: var(--cat-amber-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-yellow-400"] {
+  color: var(--cat-amber-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-orange-400"] {
+  color: var(--cat-amber-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-purple-400"] {
+  color: var(--cat-violet-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-cyan-400"] {
+  color: var(--cat-cyan-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-blue-400"] {
+  color: var(--cat-blue-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-green-400"] {
+  color: var(--cat-green-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-pink-400"] {
+  color: var(--cat-pink-text);
+}
+:where(html:not([data-theme="dark"])) [class~="hover:text-red-400"]:hover {
+  color: var(--cat-red-text);
+}
+:where(html:not([data-theme="dark"])) [class~="text-amber-400/70"] {
+  color: color-mix(in srgb, var(--cat-amber-text) 80%, transparent);
+}
+:where(html:not([data-theme="dark"])) [class~="text-red-400/60"] {
+  color: color-mix(in srgb, var(--cat-red-text) 70%, transparent);
+}
+
+/* Light theme: amber warning tints become the saffron wash so warnings sit
+   on-palette instead of reading as peach. */
+:where(html:not([data-theme="dark"])) [class~="bg-amber-400/5"],
+:where(html:not([data-theme="dark"])) [class~="bg-amber-400/[0.07]"],
+:where(html:not([data-theme="dark"])) [class~="bg-amber-400/8"],
+:where(html:not([data-theme="dark"])) [class~="bg-amber-400/10"],
+:where(html:not([data-theme="dark"])) [class~="bg-amber-500/10"],
+:where(html:not([data-theme="dark"])) [class~="bg-amber-500/15"] {
+  background-color: var(--saffron-soft);
+}
+:where(html:not([data-theme="dark"])) [class~="border-amber-400/20"],
+:where(html:not([data-theme="dark"])) [class~="border-amber-400/25"],
+:where(html:not([data-theme="dark"])) [class~="border-amber-400/30"],
+:where(html:not([data-theme="dark"])) [class~="border-amber-500/20"],
+:where(html:not([data-theme="dark"])) [class~="border-amber-500/30"] {
+  border-color: var(--info-border);
+}
+
+/* Light theme: quieter native scrollbars on horizontal tab strips. */
+html:not([data-theme="dark"]) {
+  scrollbar-color: var(--border-strong) transparent;
 }

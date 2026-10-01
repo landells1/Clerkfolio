@@ -40,7 +40,7 @@ export default function CvDownloadButton({ template, isPro, canExportPdf }: { te
         onClick={download}
         disabled={loading || allowanceUsed}
         title={allowanceUsed ? 'Your included PDF allowance has been used' : undefined}
-        className="rounded-xl bg-[var(--bg-inverse)] px-4 py-2 text-sm font-semibold text-[var(--text-inverse)] disabled:opacity-50"
+        className="rounded-xl bg-[var(--button-primary-bg)] px-4 py-2 text-sm font-semibold text-[var(--button-primary-text)] hover:bg-[var(--button-primary-bg-hover)] disabled:opacity-50"
       >
         {loading ? 'Preparing PDF...' : allowanceUsed ? 'PDF allowance used' : 'Download PDF'}
       </button>
