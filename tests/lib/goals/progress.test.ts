@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { countGoalProgress, buildGoalProgress } from '@/lib/goals/progress'
+import { countGoalProgress, buildGoalProgress, goalState, goalProgressLabel, trainingYearStart } from '@/lib/goals/progress'
 
 describe('countGoalProgress', () => {
   it('counts entries matching category on or after start_date', () => {
@@ -70,5 +70,47 @@ describe('buildGoalProgress', () => {
       { category: 'audit_qip', start_date: '2026-01-01', target_count: 3, loggedCount: 2 },
       { category: 'teaching', start_date: null, target_count: 5, loggedCount: 1 },
     ])
+  })
+})
+
+describe('goalState', () => {
+  const TODAY = '2026-10-01'
+
+  it('is "met" once the count reaches the target, even after the due date', () => {
+    expect(goalState({ target_count: 5, due_date: '2026-09-01' }, 6, TODAY)).toBe('met')
+    expect(goalState({ target_count: 5, due_date: '2026-12-01' }, 5, TODAY)).toBe('met')
+  })
+
+  it('is "overdue" only for an unmet goal past its due date', () => {
+    expect(goalState({ target_count: 6, due_date: '2026-09-30' }, 2, TODAY)).toBe('overdue')
+  })
+
+  it('is "open" for an unmet goal due today or later, or with no due date', () => {
+    expect(goalState({ target_count: 6, due_date: TODAY }, 2, TODAY)).toBe('open')
+    expect(goalState({ target_count: 6, due_date: null }, 2, TODAY)).toBe('open')
+  })
+})
+
+describe('goalProgressLabel', () => {
+  it('appends "target met" for met goals and stays a plain count otherwise', () => {
+    expect(goalProgressLabel({ target_count: 5 }, 6, 'met')).toBe('6 of 5 logged - target met')
+    expect(goalProgressLabel({ target_count: 6 }, 2, 'overdue')).toBe('2 of 6 logged')
+  })
+})
+
+describe('trainingYearStart', () => {
+  it('is 1 August of the current training year', () => {
+    expect(trainingYearStart('2026-10-01')).toBe('2026-08-01')
+    expect(trainingYearStart('2026-08-01')).toBe('2026-08-01')
+    expect(trainingYearStart('2026-07-31')).toBe('2025-08-01')
+    expect(trainingYearStart('2027-02-14')).toBe('2026-08-01')
+  })
+})
+
+describe('countGoalProgress with a backdated start date', () => {
+  it('counts existing entries once the start date covers them', () => {
+    const entries = Array.from({ length: 8 }, (_, i) => ({ category: 'teaching', date: `2026-0${i + 2}-10` }))
+    expect(countGoalProgress({ category: 'teaching', start_date: '2026-10-01' }, entries)).toBe(0)
+    expect(countGoalProgress({ category: 'teaching', start_date: '2026-01-01' }, entries)).toBe(8)
   })
 })

@@ -5,6 +5,7 @@ import { nationalDeadlinesPref, shouldShowNationalDeadlines } from '@/lib/timeli
 import { formatSpecialtyLabel } from '@/lib/specialties'
 import SavedSearchBar from '@/components/search/saved-search-bar'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
+import { fetchAllRows } from '@/lib/supabase/fetch-all'
 
 export default async function TimelinePage({
   searchParams,
@@ -20,7 +21,7 @@ export default async function TimelinePage({
   const [{ data: goals }, { data: specialties }, { data: deadlines }, { data: profile }, { data: goalProgressEntries }] = await Promise.all([
     supabase
       .from('goals')
-      .select('id, category, target_count, due_date, start_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
+      .select('id, title, category, target_count, due_date, start_date, specialty_application_id, specific, measurable, achievable, relevant, time_bound, created_at')
       .eq('user_id', user!.id)
       .is('completed_at', null)
       .order('due_date', { ascending: true }),
@@ -44,12 +45,15 @@ export default async function TimelinePage({
     // demo rows and soft-deletes excluded server-side so no demo/deleted row
     // ever inflates a goal's count (F-022 pattern - see the dashboard's
     // realEntries comment).
-    supabase
+    // Paged: goal counts must see every entry, not PostgREST's first 1000.
+    fetchAllRows<{ category: string; date: string }>((from, to) => supabase
       .from('portfolio_entries')
       .select('category, date')
       .eq('user_id', user!.id)
       .eq('is_demo', false)
-      .is('deleted_at', null),
+      .is('deleted_at', null)
+      .order('id')
+      .range(from, to)),
   ])
 
   const specialtyRows: TimelineSpecialty[] = (specialties ?? []).map(row => ({
@@ -108,7 +112,7 @@ export default async function TimelinePage({
   }))
 
   const filteredGoals = ((goals ?? []) as TimelineGoal[]).filter(goal => matchesParsedQuery({
-    title: goal.specific ?? goal.category,
+    title: goal.title ?? goal.specific ?? goal.category,
     notes: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join(' '),
     date: goal.due_date,
     category: goal.category,

@@ -7,10 +7,12 @@ import { CATEGORIES } from '@/lib/types/portfolio'
 import { useToast } from '@/components/ui/toast-provider'
 import { localIsoDate, monthGridDays } from '@/lib/timeline/calendar-grid'
 import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
-import { countGoalProgress, type GoalProgressEntry } from '@/lib/goals/progress'
+import { countGoalProgress, goalProgressLabel, goalState, trainingYearStart, type GoalProgressEntry, type GoalState } from '@/lib/goals/progress'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 
 export type TimelineGoal = {
   id: string
+  title: string | null
   category: string
   target_count: number
   due_date: string | null
@@ -59,6 +61,22 @@ type TimelineItem = {
   // Neutral progress count, goal items only - "N of target logged", never a
   // pace/readiness judgement (owner red-line - counts only).
   progressLabel: string | null
+  // Goal items only: met / overdue / open (lib/goals/progress.ts goalState).
+  goalState: GoalState | null
+}
+
+// Date status shown in the list. "Overdue" is reserved for the user's OWN
+// unmet items (their deadlines, their unmet goals); a past national NHS date
+// is simply "closed", and a goal that met its target is never overdue.
+function dateStatus(item: TimelineItem, todayIso: string | null): { label: string; tone: 'danger' | 'success' | 'muted' } | null {
+  if (item.type === 'goal') {
+    if (item.goalState === 'met') return { label: 'target met', tone: 'success' }
+    if (item.goalState === 'overdue') return { label: 'overdue', tone: 'danger' }
+    return null
+  }
+  if (!todayIso || item.date >= todayIso) return null
+  if (item.isAuto) return { label: 'closed', tone: 'muted' }
+  return { label: 'overdue', tone: 'danger' }
 }
 
 const COLOURS = ['var(--cat-blue-dot)', 'var(--cat-cyan-dot)', 'var(--cat-teal-dot)', 'var(--cat-green-dot)', 'var(--cat-amber-dot)', 'var(--cat-red-dot)', 'var(--cat-violet-dot)', 'var(--cat-pink-dot)']
@@ -91,8 +109,10 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
   const [showGoalForm, setShowGoalForm] = useState(false)
   const [showEventForm, setShowEventForm] = useState(false)
   const [goalForm, setGoalForm] = useState({
+    title: '',
     category: 'custom',
     target_count: '1',
+    start_date: '',
     due_date: '',
     specialty_application_id: '',
     specific: '',
@@ -115,7 +135,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     if (window.matchMedia('(max-width: 640px)').matches) setView('list')
     const today = iso(new Date())
     setTodayIso(today)
-    setGoalForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
+    setGoalForm(prev => ({ ...prev, due_date: prev.due_date || today, start_date: prev.start_date || today }))
     setEventForm(prev => prev.due_date ? prev : { ...prev, due_date: today })
   }, [])
   const [calendarToken, setCalendarToken] = useState<string | null>(null)
@@ -125,6 +145,12 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
   const [calendarFallbackUrl, setCalendarFallbackUrl] = useState<string | null>(null)
   const [syncMenuOpen, setSyncMenuOpen] = useState(false)
   const [showNational, setShowNational] = useState(showNationalDefault)
+  // Shown after "Copy feed URL" so there is a visible confirmation (and the
+  // URL itself) even when the toast is missed.
+  const [copiedFeedUrl, setCopiedFeedUrl] = useState<string | null>(null)
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false)
+  const [rotateResolver, setRotateResolver] = useState<((proceed: boolean) => void) | null>(null)
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
 
   const colourBySpecialty = useMemo(() => Object.fromEntries(specialties.map((specialty, index) => [specialty.id, COLOURS[index % COLOURS.length]])), [specialties])
 
@@ -134,9 +160,11 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
       .map(goal => {
         const specialty = specialties.find(row => row.id === goal.specialty_application_id)
         const logged = countGoalProgress({ category: goal.category, start_date: goal.start_date }, goalProgressEntries)
+        const state = goalState(goal, logged, todayIso ?? '0000-00-00')
+        const categoryLabel = CATEGORIES.find(category => category.value === goal.category)?.label ?? goal.category
         return {
           id: `goal-${goal.id}`,
-          title: goal.specific || `${goal.target_count} ${CATEGORIES.find(category => category.value === goal.category)?.label ?? goal.category}`,
+          title: goal.title || goal.specific || `${goal.target_count} ${categoryLabel}`,
           date: goal.due_date!,
           details: [goal.measurable, goal.achievable, goal.relevant, goal.time_bound].filter(Boolean).join('\n') || null,
           location: null,
@@ -146,7 +174,8 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
           isAuto: false,
           specialtyApplicationId: goal.specialty_application_id,
           specialtyName: specialty?.name ?? 'Other',
-          progressLabel: `${logged} of ${goal.target_count} logged`,
+          progressLabel: `${goalProgressLabel(goal, logged, state)}${goal.start_date ? ` since ${new Date(goal.start_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}` : ''}`,
+          goalState: state,
         }
       })
     const deadlineItems = deadlines.map(deadline => ({
@@ -162,9 +191,10 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
       specialtyApplicationId: deadline.specialtyApplicationId,
       specialtyName: deadline.specialtyName,
       progressLabel: null,
+      goalState: null,
     }))
     return [...deadlineItems, ...goalItems].sort((a, b) => a.date.localeCompare(b.date))
-  }, [deadlines, goals, goalProgressEntries, specialties])
+  }, [deadlines, goals, goalProgressEntries, specialties, todayIso])
 
   // The server always sends the national NHS recruitment dates (isAuto items);
   // the tick filters them here so toggling is instant, then persists.
@@ -204,8 +234,13 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     e.preventDefault()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return
+    if (goalForm.start_date && goalForm.due_date && goalForm.start_date > goalForm.due_date) {
+      addToast('The start date must be on or before the due date.', 'error')
+      return
+    }
     const { error } = await supabase.from('goals').insert({
       user_id: user.id,
+      title: goalForm.title.trim() || null,
       category: goalForm.category,
       target_count: Number(goalForm.target_count) || 1,
       due_date: goalForm.due_date,
@@ -215,7 +250,9 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
       achievable: goalForm.achievable.trim() || null,
       relevant: goalForm.relevant.trim() || null,
       time_bound: goalForm.time_bound.trim() || null,
-      start_date: iso(new Date()),
+      // Entries dated on or after this count toward the goal; defaults to
+      // today, or the start of the training year via the shortcut.
+      start_date: goalForm.start_date || iso(new Date()),
     })
     if (error) {
       addToast('Failed to add goal', 'error')
@@ -224,8 +261,10 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     addToast('Goal added', 'success')
     setShowGoalForm(false)
     setGoalForm({
+      title: '',
       category: 'custom',
       target_count: '1',
+      start_date: iso(new Date()),
       due_date: iso(new Date()),
       specialty_application_id: '',
       specific: '',
@@ -280,7 +319,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
 
   async function deleteSelectedItem() {
     if (!selectedItem || selectedItem.isAuto) return
-    if (!confirm(`Delete this ${selectedItem.type}?`)) return
+    setDeleteConfirmOpen(false)
     const { error } = await supabase.from(selectedItem.type === 'goal' ? 'goals' : 'deadlines').delete().eq('id', selectedItem.id.replace(`${selectedItem.type}-`, ''))
     if (error) {
       addToast(`Could not delete this ${selectedItem.type}. Please try again.`, 'error')
@@ -295,6 +334,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
     try {
       await navigator.clipboard.writeText(text)
       setCalendarFallbackUrl(null)
+      setCopiedFeedUrl(text)
       addToast(successMessage, 'success')
       return true
     } catch {
@@ -341,10 +381,13 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
       if (data?.requiresRotation) {
         // The stored feed token is hash-only, so an existing link can't be
         // shown again - the only way forward is a NEW link, which silently
-        // disconnected any calendar already subscribed. Ask first.
-        const proceed = window.confirm(
-          'For security your existing calendar link can\'t be shown again. Continuing creates a new link, and any calendar already subscribed to the old link will stop updating until you re-add it. Continue?'
-        )
+        // disconnected any calendar already subscribed. Ask first, in an
+        // in-app dialog (a native confirm can be auto-dismissed or freeze the
+        // tab, which is how "Copy feed URL" appeared to do nothing).
+        const proceed = await new Promise<boolean>(resolve => {
+          setRotateResolver(() => resolve)
+          setRotateConfirmOpen(true)
+        })
         if (!proceed) return null
         const rotated = await rotateCalendarFeed(false)
         if (rotated) addToast('New calendar link created. Re-add it anywhere you used the old one.', 'info')
@@ -445,6 +488,23 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
             value={calendarFallbackUrl}
             onFocus={event => event.currentTarget.select()}
             className="mt-3 w-full rounded-lg border border-white/[0.08] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)]"
+          />
+        </div>
+      )}
+
+      {copiedFeedUrl && !calendarFallbackUrl && (
+        <div role="status" className="mb-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-4">
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-sm font-medium text-[var(--success)]">Calendar feed URL copied to your clipboard</p>
+            <button type="button" onClick={() => setCopiedFeedUrl(null)} className="text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Dismiss</button>
+          </div>
+          <p className="mt-1 text-xs text-[var(--text-secondary)]">Paste it into your calendar app&apos;s &quot;subscribe by URL&quot; option. Keep it private - anyone with the link can see your deadlines and goals.</p>
+          <input
+            readOnly
+            value={copiedFeedUrl}
+            aria-label="Calendar feed URL"
+            onFocus={event => event.currentTarget.select()}
+            className="mt-3 w-full rounded-lg border border-[var(--border-default)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-primary)]"
           />
         </div>
       )}
@@ -574,6 +634,10 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
           <form onSubmit={addGoal} className="w-full sm:max-w-md bg-[var(--bg-surface)] border border-white/[0.08] rounded-t-2xl sm:rounded-2xl p-6 space-y-4">
             <h2 className="text-lg font-semibold text-[var(--text-primary)]">Add goal</h2>
             <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
+              Goal title
+              <input value={goalForm.title} maxLength={200} onChange={e => setGoalForm(f => ({ ...f, title: e.target.value }))} placeholder="e.g. Give six teaching sessions" className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-[var(--border-default)] rounded-lg px-3 text-sm normal-case tracking-normal text-[var(--text-primary)]" />
+            </label>
+            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Portfolio category
               <select value={goalForm.category} onChange={e => setGoalForm(f => ({ ...f, category: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]">
                 {CATEGORIES.map(category => <option key={category.value} value={category.value}>{category.label}</option>)}
@@ -583,10 +647,28 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
               Target count
               <input type="number" min="1" value={goalForm.target_count} onChange={e => setGoalForm(f => ({ ...f, target_count: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
             </label>
-            <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
-              Due date
-              <input type="date" value={goalForm.due_date} onChange={e => setGoalForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
-            </label>
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
+                Count entries from
+                <input type="date" value={goalForm.start_date} max={goalForm.due_date || undefined} onChange={e => setGoalForm(f => ({ ...f, start_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-[var(--border-default)] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
+              </label>
+              <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
+                Due date
+                <input type="date" value={goalForm.due_date} onChange={e => setGoalForm(f => ({ ...f, due_date: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-[var(--border-default)] rounded-lg px-3 text-sm text-[var(--text-primary)]" />
+              </label>
+            </div>
+            <div className="-mt-2 text-xs text-[var(--text-muted)]">
+              Entries in this category dated on or after the start date count toward the goal.{' '}
+              {todayIso && (
+                <button
+                  type="button"
+                  onClick={() => setGoalForm(f => ({ ...f, start_date: trainingYearStart(todayIso) }))}
+                  className="font-medium text-[var(--accent-text)] underline"
+                >
+                  Count existing entries from the start of this training year ({new Date(trainingYearStart(todayIso)).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })})
+                </button>
+              )}
+            </div>
             <label className="block text-xs font-medium uppercase tracking-wide text-[var(--text-emphasis)]">
               Related specialty
               <select value={goalForm.specialty_application_id} onChange={e => setGoalForm(f => ({ ...f, specialty_application_id: e.target.value }))} className="mt-1.5 w-full min-h-[44px] bg-[var(--bg-canvas)] border border-white/[0.08] rounded-lg px-3 text-sm text-[var(--text-primary)]">
@@ -670,7 +752,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
                   key={item.id}
                   type="button"
                   onClick={() => { setSelectedDayIso(null); setSelectedItem(item) }}
-                  className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-4 py-3 text-left hover:border-white/[0.14]"
+                  className="flex w-full items-center gap-3 rounded-xl border border-white/[0.06] bg-[var(--bg-canvas)] px-4 py-3 text-left hover:border-[var(--border-strong)]"
                 >
                   <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }} />
                   <span className="min-w-0 flex-1 truncate text-sm text-[var(--text-primary)]">{item.title}</span>
@@ -747,7 +829,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
               {!selectedItem.isAuto && (
                 <button
                   type="button"
-                  onClick={deleteSelectedItem}
+                  onClick={() => setDeleteConfirmOpen(true)}
                   className="min-h-[44px] rounded-xl border border-red-500/20 bg-red-500/10 px-4 text-sm font-medium text-[var(--danger)]"
                 >
                   Delete
@@ -757,6 +839,26 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={deleteConfirmOpen && Boolean(selectedItem)}
+        title={`Delete this ${selectedItem?.type ?? 'item'}?`}
+        confirmLabel="Delete"
+        busyLabel="Deleting..."
+        tone="danger"
+        onConfirm={deleteSelectedItem}
+        onCancel={() => setDeleteConfirmOpen(false)}
+      >
+        <p>&quot;{selectedItem?.title}&quot; is deleted. This cannot be undone.</p>
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={rotateConfirmOpen}
+        title="Create a new calendar link?"
+        confirmLabel="Create new link"
+        onConfirm={() => { setRotateConfirmOpen(false); rotateResolver?.(true); setRotateResolver(null) }}
+        onCancel={() => { setRotateConfirmOpen(false); rotateResolver?.(false); setRotateResolver(null) }}
+      >
+        <p>For security your existing calendar link can&apos;t be shown again. Continuing creates a new link, and any calendar already subscribed to the old link stops updating until you re-add it.</p>
+      </ConfirmDialog>
     </div>
   )
 }
@@ -769,15 +871,15 @@ function TimelineList({ grouped, colourBySpecialty, onSelectItem, todayIso }: { 
           <h2 className="text-sm font-semibold text-[var(--text-primary)] mb-3">{group}</h2>
           <div className="space-y-2">
             {groupItems.map(item => {
-              const overdue = Boolean(todayIso && item.date < todayIso)
+              const status = dateStatus(item, todayIso)
               return (
-              <button key={item.id} type="button" onClick={() => onSelectItem(item)} className="flex w-full items-center gap-3 rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] px-4 py-3 text-left hover:border-white/[0.14]">
+              <button key={item.id} type="button" onClick={() => onSelectItem(item)} className="flex w-full items-center gap-3 rounded-xl bg-[var(--bg-canvas)] border border-white/[0.06] px-4 py-3 text-left hover:border-[var(--border-strong)]">
                 <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: item.specialtyApplicationId ? colourBySpecialty[item.specialtyApplicationId] : 'var(--cat-neutral-dot)' }} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm text-[var(--text-primary)]">{item.title}</p>
-                  <p className={`text-xs ${overdue ? 'font-medium text-[var(--danger)]' : 'text-[var(--text-secondary)]'}`}>
+                  <p className={`text-xs ${status?.tone === 'danger' ? 'font-medium text-[var(--danger)]' : status?.tone === 'success' ? 'font-medium text-[var(--success)]' : 'text-[var(--text-secondary)]'}`}>
                     {new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
-                    {overdue ? ' - overdue' : ''}
+                    {status ? ` - ${status.label}` : ''}
                   </p>
                   {item.progressLabel && (
                     <p className="mt-0.5 text-xs text-[var(--text-secondary)]">{item.progressLabel}</p>

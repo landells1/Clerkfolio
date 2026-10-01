@@ -38,6 +38,42 @@ export function countGoalProgress(goal: GoalProgressGoal, entries: GoalProgressE
   }).length
 }
 
+export type GoalState = 'met' | 'overdue' | 'open'
+
+/**
+ * Neutral state for a goal row. A goal whose logged count has reached its
+ * target is "met" - never "overdue", however late it was reached. "Overdue"
+ * is reserved for the user's own UNMET goals whose due date has passed.
+ * No pace or readiness judgement either way (owner red-line).
+ */
+export function goalState(
+  goal: { target_count: number; due_date: string | null },
+  loggedCount: number,
+  todayKey: string,
+): GoalState {
+  if (loggedCount >= Math.max(1, goal.target_count)) return 'met'
+  if (goal.due_date && goal.due_date < todayKey) return 'overdue'
+  return 'open'
+}
+
+/** "6 of 5 logged - target met" style label; counts only. */
+export function goalProgressLabel(goal: { target_count: number }, loggedCount: number, state: GoalState): string {
+  const base = `${loggedCount} of ${goal.target_count} logged`
+  return state === 'met' ? `${base} - target met` : base
+}
+
+/**
+ * First day of the UK foundation training year containing `todayKey`
+ * (training years start on the first Wednesday in August; 1 August is the
+ * neutral, well-known boundary used for the "count entries from the start of
+ * this training year" shortcut).
+ */
+export function trainingYearStart(todayKey: string): string {
+  const [year, month] = todayKey.split('-').map(Number)
+  const startYear = month >= 8 ? year : year - 1
+  return `${startYear}-08-01`
+}
+
 export type GoalWithProgress<G extends GoalProgressGoal> = G & { loggedCount: number }
 
 /** Batch helper: attaches a `loggedCount` to each goal via countGoalProgress. */
