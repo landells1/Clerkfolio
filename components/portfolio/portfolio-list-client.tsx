@@ -9,6 +9,7 @@ import SpecialtyTagSelect from './specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import { EXPORT_PRESELECT_STORAGE_KEY } from '@/lib/export/preselect'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 
 type Props = {
   entries: PortfolioEntry[]
@@ -62,8 +63,10 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
   function deselectAll() { setSelected(new Set()) }
   function cancelSelect() { setSelected(new Set()); setSelectMode(false) }
 
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
+
   async function handleBulkTrash() {
-    if (!confirm(`Move ${selected.size} entr${selected.size === 1 ? 'y' : 'ies'} to trash?`)) return
+    setBulkConfirmOpen(false)
     setTrashing(true)
     const { error } = await supabase
       .from('portfolio_entries')
@@ -200,7 +203,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
               <div className={`w-4 h-4 rounded border flex items-center justify-center transition-colors flex-shrink-0 ${
                 selected.has(entry.id)
                   ? 'bg-[var(--accent)] border-[var(--accent)]'
-                  : 'border-white/[0.3] bg-[var(--bg-surface)] group-hover/row:border-white/[0.5]'
+                  : 'border-[var(--text-muted)] bg-[var(--bg-surface)] group-hover/row:border-[var(--text-secondary)]'
               }`}>
                 {selected.has(entry.id) && (
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
@@ -258,7 +261,7 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
             Add to export
           </button>
           <button
-            onClick={handleBulkTrash}
+            onClick={() => setBulkConfirmOpen(true)}
             disabled={trashing}
             className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/15 rounded-lg transition-colors border border-red-500/20 disabled:opacity-50"
           >
@@ -347,6 +350,17 @@ export default function PortfolioListClient({ entries, userInterests }: Props) {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={bulkConfirmOpen}
+        title={`Move ${selected.size} ${selected.size === 1 ? 'entry' : 'entries'} to Trash?`}
+        confirmLabel="Move to Trash"
+        busyLabel="Moving..."
+        tone="danger"
+        onConfirm={handleBulkTrash}
+        onCancel={() => setBulkConfirmOpen(false)}
+      >
+        <p>You can restore them from Trash for 30 days.</p>
+      </ConfirmDialog>
     </>
   )
 }

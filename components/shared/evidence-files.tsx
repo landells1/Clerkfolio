@@ -5,12 +5,8 @@ import { getSignedUrl, deleteEvidenceFile, type EvidenceFile } from '@/lib/supab
 import { apiFetch } from '@/lib/api-fetch'
 import { useToast } from '@/components/ui/toast-provider'
 import ImageLightbox, { type LightboxImage } from '@/components/ui/image-lightbox'
-
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+import { formatFileSize } from '@/lib/utils/file-size'
+import type { RemovalMode } from '@/lib/evidence/staged'
 
 type EvidenceFileItem = EvidenceFile & { linkCount?: number }
 
@@ -19,14 +15,21 @@ export default function EvidenceFiles({
   canDelete = false,
   entryId,
   entryType,
+  stagedRemovals,
+  onStageRemoval,
 }: {
   initialFiles: EvidenceFileItem[]
   canDelete?: boolean
-  // When provided, "remove" unlinks the file from THIS entry (and only deletes
-  // the physical file when it was the last link). Without them, "remove" falls
-  // back to the legacy hard-delete of the whole file.
+  // When provided, "Unlink from this entry" removes the file from THIS entry
+  // only (the physical file is deleted only when it was the last link), and
+  // "Delete file everywhere" removes the file from every entry. Without them,
+  // removing falls back to the legacy hard-delete of the whole file.
   entryId?: string
   entryType?: 'portfolio' | 'case'
+  // Edit forms pass these to STAGE the removal; it is applied on "Save
+  // changes" and discarded by Cancel. Without them the action is immediate.
+  stagedRemovals?: Record<string, RemovalMode>
+  onStageRemoval?: (fileId: string, mode: RemovalMode | null) => void
 }) {
   const { addToast } = useToast()
   const [files, setFiles] = useState<EvidenceFileItem[]>(initialFiles)
@@ -81,11 +84,18 @@ export default function EvidenceFiles({
 
   const canUnlink = Boolean(entryId && entryType)
 
-  async function handleRemove(file: EvidenceFileItem) {
-    setDeleting(file.id)
-    setConfirmDeleteId(null)
+  const staged = Boolean(onStageRemoval)
+  const entryNoun = entryType === 'case' ? 'case' : 'entry'
 
-    if (canUnlink) {
+  async function handleRemove(file: EvidenceFileItem, mode: RemovalMode) {
+    setConfirmDeleteId(null)
+    if (onStageRemoval) {
+      onStageRemoval(file.id, mode)
+      return
+    }
+    setDeleting(file.id)
+
+    if (canUnlink && mode === 'unlink') {
       const params = new URLSearchParams({ fileId: file.id, entryId: entryId!, entryType: entryType! })
       const res = await apiFetch<{ deleted: boolean }>(`/api/evidence/link?${params.toString()}`, {
         method: 'DELETE',
@@ -100,7 +110,7 @@ export default function EvidenceFiles({
       return
     }
 
-    // Legacy path (no entry context): hard-delete the whole file.
+    // Delete file everywhere (or no entry context): hard-delete the whole file.
     const { error } = await deleteEvidenceFile(file.id)
     if (!error) {
       setFiles(prev => prev.filter(f => f.id !== file.id))
@@ -136,19 +146,17 @@ export default function EvidenceFiles({
               : status === 'quarantined' ? ' - quarantined' : ' - verifying'
             const linkCount = file.linkCount ?? 1
             const sharedAcross = linkCount > 1
-            // "Yes" removes; the last-link case also deletes the file, so make
-            // the confirm copy honest either way.
-            const willDeleteFile = !canUnlink || linkCount <= 1
+            const stagedMode = stagedRemovals?.[file.id] ?? null
             return (
           <li
             key={file.id}
-            className="flex items-center gap-3 bg-white/[0.03] border border-white/[0.06] rounded-lg px-3.5 py-2.5"
+            className={`flex flex-wrap items-center gap-3 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-overlay-faint)] px-3.5 py-2.5 ${stagedMode ? 'opacity-70' : ''}`}
           >
             {previewUrls[file.id] ? (
               <button
                 type="button"
                 onClick={() => setLightboxIndex(Math.max(0, lightboxImages.findIndex(image => image.id === file.id)))}
-                className="flex-shrink-0 rounded border border-white/[0.08] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+                className="flex-shrink-0 rounded border border-[var(--border-default)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
                 aria-label={`Open preview of ${file.file_name}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -164,11 +172,20 @@ export default function EvidenceFiles({
               </svg>
             )}
             <div className="flex-1 min-w-0">
-              <p className="text-xs text-[var(--text-primary)] truncate">{file.file_name}</p>
+              <p className={`text-xs text-[var(--text-primary)] truncate ${stagedMode ? 'line-through' : ''}`}>{file.file_name}</p>
               <p className="text-[10px] text-[var(--text-secondary)] font-mono">
-                {formatBytes(file.file_size)}
+                {formatFileSize(file.file_size)}
                 {statusLabel}
               </p>
+              {stagedMode && (
+                <p className="mt-0.5 text-xs text-[var(--warning)]">
+                  {stagedMode === 'delete'
+                    ? 'Will be deleted everywhere when you save changes'
+                    : linkCount <= 1
+                      ? `Will be unlinked when you save changes (this is the only ${entryNoun} using it, so the file is deleted too)`
+                      : `Will be unlinked from this ${entryNoun} when you save changes`}
+                </p>
+              )}
             </div>
             {sharedAcross && (
               <span
@@ -180,6 +197,7 @@ export default function EvidenceFiles({
             )}
             <div className="flex items-center gap-2 shrink-0">
               <button
+                type="button"
                 onClick={() => handleDownload(file)}
                 disabled={downloading === file.id || blocked}
                 className="text-xs text-[var(--accent-text)] hover:text-[var(--accent-bright)] transition-colors disabled:opacity-50"
@@ -187,49 +205,62 @@ export default function EvidenceFiles({
                 {blocked ? 'Locked' : downloading === file.id ? 'Getting link...' : 'Download'}
               </button>
               {canDelete && (
-                confirmDeleteId === file.id ? (
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[10px] text-[var(--text-muted)]">
-                      {willDeleteFile ? 'Delete file?' : 'Remove here?'}
-                    </span>
-                    <button
-                      onClick={() => handleRemove(file)}
-                      disabled={deleting === file.id}
-                      className="text-[10px] text-red-400 hover:text-[var(--danger)] font-medium disabled:opacity-50"
-                    >
-                      {deleting === file.id ? '…' : 'Yes'}
-                    </button>
-                    <button
-                      onClick={() => setConfirmDeleteId(null)}
-                      className="text-[10px] text-[var(--text-secondary)] hover:text-[var(--text-secondary)]"
-                    >
-                      No
-                    </button>
-                  </div>
-                ) : (
+                stagedMode ? (
                   <button
+                    type="button"
+                    onClick={() => onStageRemoval?.(file.id, null)}
+                    className="text-xs font-medium text-[var(--accent-text)] hover:underline"
+                  >
+                    Undo
+                  </button>
+                ) : confirmDeleteId !== file.id ? (
+                  <button
+                    type="button"
                     onClick={() => setConfirmDeleteId(file.id)}
                     disabled={deleting === file.id}
-                    aria-label={canUnlink ? `Remove ${file.file_name} from this entry` : `Delete ${file.file_name}`}
-                    title={
-                      canUnlink && sharedAcross
-                        ? 'Remove from this entry (the file stays on its other entries)'
-                        : canUnlink
-                          ? 'Remove from this entry (this is the only entry using it, so the file is deleted)'
-                          : 'Delete file'
-                    }
-                    className="text-[var(--text-secondary)] hover:text-red-400 transition-colors disabled:opacity-50"
+                    className="text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--danger)] transition-colors disabled:opacity-50"
                   >
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-                      <path d="M10 11v6M14 11v6" />
-                      <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
-                    </svg>
+                    {deleting === file.id ? 'Removing...' : 'Remove...'}
                   </button>
-                )
+                ) : null
               )}
             </div>
+            {canDelete && confirmDeleteId === file.id && !stagedMode && (
+              <div className="flex w-full flex-wrap items-center gap-2 border-t border-[var(--border-subtle)] pt-2">
+                {canUnlink && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(file, 'unlink')}
+                    className="min-h-[36px] rounded-lg border border-[var(--border-default)] px-3 text-xs font-medium text-[var(--text-primary)] hover:bg-[var(--bg-hover)]"
+                    title={linkCount <= 1 ? `This is the only ${entryNoun} using this file, so unlinking also deletes it.` : `The file stays attached to its other ${linkCount - 1 === 1 ? 'entry' : 'entries'}.`}
+                  >
+                    Unlink from this {entryNoun}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemove(file, 'delete')}
+                  className="min-h-[36px] rounded-lg border border-[var(--danger)] px-3 text-xs font-medium text-[var(--danger)] hover:bg-red-500/10"
+                >
+                  Delete file everywhere
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setConfirmDeleteId(null)}
+                  className="min-h-[36px] px-2 text-xs text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                >
+                  Cancel
+                </button>
+                <p className="w-full text-xs text-[var(--text-muted)]">
+                  {canUnlink
+                    ? sharedAcross
+                      ? `Unlinking keeps the file on its other ${linkCount - 1 === 1 ? 'entry' : 'entries'}. Deleting removes it from all ${linkCount}.`
+                      : `This is the only ${entryNoun} using this file, so either option deletes it.`
+                    : 'Deleting removes the file from every entry and case it is attached to.'}
+                  {staged ? ' Nothing changes until you save.' : ''}
+                </p>
+              </div>
+            )}
           </li>
             )
           })()

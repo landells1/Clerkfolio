@@ -7,6 +7,7 @@ import type { Template } from '@/lib/types/templates'
 import { caseTemplates, portfolioTemplates } from '@/lib/templates/filter'
 import { useToast } from '@/components/ui/toast-provider'
 import { apiFetch } from '@/lib/api-fetch'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 
 export default function TemplatesManager({ initialTemplates }: { initialTemplates: Template[] }) {
   const { addToast } = useToast()
@@ -33,8 +34,10 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
     }
   }
 
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null)
+
   async function handleDelete(id: string) {
-    if (!confirm('Delete this template? This cannot be undone.')) return
+    setPendingDeleteId(null)
     const res = await apiFetch(`/api/templates?id=${id}`, { method: 'DELETE' })
     if (res.ok) {
       setTemplates(ts => ts.filter(t => t.id !== id))
@@ -91,7 +94,7 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
                   Rename
                 </button>
                 <button
-                  onClick={() => handleDelete(t.id)}
+                  onClick={() => setPendingDeleteId(t.id)}
                   className="text-xs text-[var(--text-secondary)] hover:text-red-400 transition-colors"
                 >
                   Delete
@@ -171,6 +174,17 @@ export default function TemplatesManager({ initialTemplates }: { initialTemplate
           )}
         </div>
       )}
+      <ConfirmDialog
+        open={pendingDeleteId !== null}
+        title="Delete this template?"
+        confirmLabel="Delete template"
+        busyLabel="Deleting..."
+        tone="danger"
+        onConfirm={() => pendingDeleteId ? handleDelete(pendingDeleteId) : undefined}
+        onCancel={() => setPendingDeleteId(null)}
+      >
+        <p>Entries and cases you created from it are not affected. This cannot be undone.</p>
+      </ConfirmDialog>
     </div>
   )
 }

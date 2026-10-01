@@ -5,6 +5,7 @@ import { isAllowedEvidenceFile, MAX_FILE_BYTES } from '@/lib/supabase/storage'
 import { mergeUniqueFiles } from '@/lib/upload/dedupe-files'
 import { apiFetch } from '@/lib/api-fetch'
 import StorageMeter from '@/components/upgrade/storage-meter'
+import { formatFileSize } from '@/lib/utils/file-size'
 
 /** A 36px placeholder/fallback box showing the generic image icon, used while a
  *  thumbnail loads or if the object-URL preview fails to paint (REG-001: an
@@ -43,11 +44,6 @@ function ImagePreview({ file }: { file: File }) {
 
 const ACCEPTED = '.pdf,.jpg,.jpeg,.png,.doc,.docx,.xlsx,.pptx,.txt,.heic,.heif'
 
-function formatBytes(bytes: number) {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
 
 function fileIcon(mime: string | undefined) {
   if (!mime) return <DocIcon />
@@ -156,7 +152,7 @@ export default function EvidenceUpload({
         }}
         className={`flex flex-col focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)] items-center justify-center gap-2 border-2 border-dashed rounded-xl py-6 px-4 transition-colors text-center ${
           disabled
-            ? 'border-white/[0.05] cursor-not-allowed opacity-50'
+            ? 'border-[var(--border-subtle)] cursor-not-allowed opacity-50'
             : dragOver
               ? 'border-[var(--accent)] bg-accent/10 cursor-copy'
               : 'border-white/[0.1] hover:border-accent/50 hover:bg-accent/5 cursor-pointer'
@@ -202,7 +198,7 @@ export default function EvidenceUpload({
               }
               <div className="flex-1 min-w-0">
                 <p className="text-xs text-[var(--text-primary)] truncate">{f.name}</p>
-                <p className="text-[10px] text-[var(--text-secondary)] font-mono">{formatBytes(f.size)}</p>
+                <p className="text-[10px] text-[var(--text-secondary)] font-mono">{formatFileSize(f.size)}</p>
               </div>
               <button
                 type="button"

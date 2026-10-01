@@ -8,6 +8,7 @@ import { useToast } from '@/components/ui/toast-provider'
 import StorageMeter from '@/components/upgrade/storage-meter'
 import type { SubscriptionInfo } from '@/lib/subscription'
 import { formatDate } from './shared'
+import { formatFileSize } from '@/lib/utils/file-size'
 
 type LibraryLink = {
   entry_id: string
@@ -29,11 +30,6 @@ type LibraryFile = {
 
 // Base-ten sizes, matching the storage quota units used everywhere else in the
 // app (1 MB = 1,000,000 bytes - see lib/entitlements/limits.ts).
-function formatFileSize(bytes: number) {
-  if (bytes < 1000) return `${bytes} B`
-  if (bytes < 1_000_000) return `${(bytes / 1000).toFixed(1)} KB`
-  return `${(bytes / 1_000_000).toFixed(1)} MB`
-}
 
 function entryHref(link: LibraryLink) {
   return link.entry_type === 'portfolio' ? `/portfolio/${link.entry_id}` : `/cases/${link.entry_id}`

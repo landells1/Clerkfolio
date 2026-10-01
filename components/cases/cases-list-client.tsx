@@ -9,10 +9,12 @@ import SpecialtyTagSelect from '@/components/portfolio/specialty-tag-select'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import { formatSpecialtyLabel } from '@/lib/specialties'
+import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 import SpecialtyTag from '@/components/ui/specialty-tag'
 import ListGroupHeader from '@/components/ui/list-group-header'
 import { getSpecialtyColour, getCaseRowColour, colourClasses } from '@/lib/specialties/colours'
 import { storageGet, storageSet } from '@/lib/safe-storage'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 
 type Props = {
   cases: Case[]
@@ -29,8 +31,11 @@ function monthLabel(date: string) {
   return new Date(date).toLocaleDateString('en-GB', { month: 'long', year: 'numeric' })
 }
 
-function clinicalArea(c: Case) {
-  return c.clinical_domain || c.clinical_domains?.[0] || 'Clinical area not set'
+// Every clinical area on the case (the detail page shows them all; the card
+// used to show only the first).
+function clinicalAreaLabel(c: Pick<Case, 'clinical_domain' | 'clinical_domains'>) {
+  const areas = c.clinical_domains?.length ? c.clinical_domains : c.clinical_domain ? [c.clinical_domain] : []
+  return areas.length > 0 ? areas.join(', ') : 'Clinical area not set'
 }
 
 export default function CasesListClient({ cases, userInterests }: Props) {
@@ -112,8 +117,10 @@ export default function CasesListClient({ cases, userInterests }: Props) {
     setSelectMode(false)
   }
 
+  const [bulkConfirmOpen, setBulkConfirmOpen] = useState(false)
+
   async function bulkTrash() {
-    if (!confirm(`Move ${selected.size} ${selected.size === 1 ? 'case' : 'cases'} to trash?`)) return
+    setBulkConfirmOpen(false)
     setBusy(true)
     const { error } = await supabase.from('cases').update({ deleted_at: new Date().toISOString() }).in('id', Array.from(selected))
     setBusy(false)
@@ -309,7 +316,7 @@ export default function CasesListClient({ cases, userInterests }: Props) {
         <div className="fixed bottom-20 left-3 right-3 z-40 flex flex-wrap items-center gap-2 rounded-2xl border border-white/[0.1] bg-[var(--bg-raised)] px-4 py-3 shadow-2xl sm:bottom-6 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 sm:flex-nowrap">
           <span className="mr-1 text-xs font-medium text-[var(--text-secondary)]">{selected.size} selected</span>
           <button onClick={() => setTagModalOpen(true)} className="rounded-lg border border-white/[0.08] bg-white/[0.06] px-3 py-1.5 text-xs font-medium text-[var(--text-primary)]">Add tag</button>
-          <button onClick={bulkTrash} disabled={busy} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 disabled:opacity-50">{busy ? 'Working...' : 'Move to trash'}</button>
+          <button onClick={() => setBulkConfirmOpen(true)} disabled={busy} className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 disabled:opacity-50">{busy ? 'Working...' : 'Move to trash'}</button>
           <button onClick={cancelSelect} className="ml-1 text-xs text-[var(--text-muted)] hover:text-[var(--text-primary)]">Close</button>
         </div>
       )}
@@ -327,6 +334,17 @@ export default function CasesListClient({ cases, userInterests }: Props) {
           </div>
         </div>
       )}
+      <ConfirmDialog
+        open={bulkConfirmOpen}
+        title={`Move ${selected.size} ${selected.size === 1 ? 'case' : 'cases'} to Trash?`}
+        confirmLabel="Move to Trash"
+        busyLabel="Moving..."
+        tone="danger"
+        onConfirm={bulkTrash}
+        onCancel={() => setBulkConfirmOpen(false)}
+      >
+        <p>You can restore them from Trash for 30 days.</p>
+      </ConfirmDialog>
     </>
   )
 }
@@ -382,7 +400,13 @@ function DenseCaseRow({ c, pinned, density = 'compact', selected, selectMode, on
                 {c.specialty_tags && c.specialty_tags.length > 1 && (
                   <span className="text-[11px] text-fg-3">+{c.specialty_tags.length - 1}</span>
                 )}
-                <span className="text-[11px] text-fg-3 truncate">· {clinicalArea(c)}</span>
+                <span className="text-[11px] text-fg-3 truncate">· {clinicalAreaLabel(c)}</span>
+                {(c.interview_themes ?? []).length > 0 && (
+                  <span className="text-[11px] text-[var(--cat-violet-text)] truncate">
+                    · {formatCompetencyTheme(c.interview_themes![0])}
+                    {c.interview_themes!.length > 1 ? ` +${c.interview_themes!.length - 1}` : ''}
+                  </span>
+                )}
               </div>
               <div className={secondaryClasses}>
                 {firstSentence(c.notes)}

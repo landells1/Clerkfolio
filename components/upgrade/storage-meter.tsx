@@ -1,9 +1,11 @@
 import { formatStorageQuota } from '@/lib/subscription'
+import { formatStorageUsed } from '@/lib/utils/file-size'
 
+// Small totals show in KB (lib/utils/file-size.ts) so a few kilobytes of
+// evidence never reads "0.0 MB".
 function formatUsed(mb: number): string {
   if (mb >= 1000) return formatStorageQuota(mb)
-  if (mb < 100) return `${mb.toFixed(1)} MB`
-  return `${Math.round(mb)} MB`
+  return formatStorageUsed(mb)
 }
 
 // F-040: show used / quota with a bar and a near-quota / over-quota warning.

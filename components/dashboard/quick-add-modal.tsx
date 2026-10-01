@@ -10,6 +10,7 @@ import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { useToast } from '@/components/ui/toast-provider'
 import { TEACHING_TYPE_LABELS, TEACHING_AUDIENCE_LABELS, REFL_TYPE_SHORT_LABELS } from '@/lib/types/portfolio-labels'
+import SnippetTextarea from '@/components/ui/snippet-textarea'
 
 const INPUT = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors'
 const TEXTAREA = 'w-full bg-surface-0 border border-subtle rounded-lg px-3.5 py-2.5 text-sm text-fg placeholder-fg-2 focus:outline-none focus:border-strong transition-colors resize-none'
@@ -272,8 +273,12 @@ export default function QuickAddModal({
   }
 
   const hasTypedContent = Boolean(title.trim() || notes.trim() || reflFreeText.trim() || procName.trim())
+  // In-panel confirmation instead of a native confirm (which blocks the page
+  // and can freeze the tab). Esc / X / Cancel ask once; a second Esc keeps editing.
+  const [confirmDiscard, setConfirmDiscard] = useState(false)
   function requestClose() {
-    if (!saving && hasTypedContent && !window.confirm('Discard this unsaved entry?')) return
+    if (confirmDiscard) { setConfirmDiscard(false); return }
+    if (!saving && hasTypedContent) { setConfirmDiscard(true); return }
     onClose()
   }
   requestCloseRef.current = requestClose
@@ -281,6 +286,15 @@ export default function QuickAddModal({
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 backdrop-blur-sm sm:items-center sm:p-4">
       <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Quick log" tabIndex={-1} className="max-h-[92vh] w-full max-w-md overflow-y-auto rounded-t-2xl border border-subtle bg-surface-2 p-6 shadow-modal transition-transform sm:rounded-2xl">
+        {confirmDiscard && (
+          <div role="alert" className="mb-4 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-3">
+            <p className="text-sm font-medium text-[var(--text-primary)]">Discard this unsaved entry?</p>
+            <div className="mt-2 flex gap-2">
+              <button type="button" autoFocus onClick={() => setConfirmDiscard(false)} className="min-h-[36px] flex-1 rounded-lg border border-[var(--border-default)] px-3 text-xs font-medium text-[var(--text-primary)]">Keep editing</button>
+              <button type="button" onClick={() => { setConfirmDiscard(false); onClose() }} className="min-h-[36px] flex-1 rounded-lg bg-[var(--danger)] px-3 text-xs font-semibold text-white">Discard</button>
+            </div>
+          </div>
+        )}
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <div className="flex items-center gap-3 min-w-0">
@@ -452,11 +466,11 @@ export default function QuickAddModal({
                 </div>
                 <div>
                   <label className={LABEL}>Notes</label>
-                  <textarea
+                  <SnippetTextarea
                     rows={3}
                     value={reflFreeText}
-                    onChange={e => setReflFreeText(e.target.value)}
-                    placeholder="What happened, what you learnt..."
+                    onValueChange={setReflFreeText}
+                    placeholder="What happened, what you learnt... (type / for snippets)"
                     className={TEXTAREA}
                   />
                 </div>
@@ -520,11 +534,11 @@ export default function QuickAddModal({
             {/* Notes */}
             <div>
               <label className={LABEL}>Comments <span className="normal-case font-normal text-fg-2">(optional)</span></label>
-              <textarea
+              <SnippetTextarea
                 rows={3}
                 value={notes}
-                onChange={e => setNotes(e.target.value)}
-                placeholder="Any notes, learning points, or comments..."
+                onValueChange={setNotes}
+                placeholder="Any notes, learning points, or comments... (type / for snippets)"
                 className={TEXTAREA}
               />
             </div>

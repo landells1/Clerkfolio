@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import { invalidateSnippets } from '@/components/ui/slash-menu'
 
 type Snippet = {
   id: string
@@ -48,6 +49,7 @@ export default function SnippetsPage() {
     }
     setShortcut('')
     setBody('')
+    invalidateSnippets()
     addToast('Snippet saved', 'success')
     load()
   }
@@ -58,6 +60,7 @@ export default function SnippetsPage() {
       addToast('Failed to delete snippet', 'error')
       return
     }
+    invalidateSnippets()
     setSnippets(current => current.filter(snippet => snippet.id !== id))
   }
 
@@ -72,8 +75,10 @@ export default function SnippetsPage() {
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">Snippets</h1>
           <p className="mt-1 text-sm text-[var(--text-muted)]">
-            Reusable phrases for portfolio and case notes. In fields with the snippets menu, type a slash followed by the shortcut
-            name (e.g. <span className="font-mono">/reflection</span>) to insert the body.
+            Reusable phrases for your notes. In any notes or reflection box (portfolio entries, cases, reflections including
+            Gibbs, Rolfe and Driscoll steps, and log notes), type <span className="font-mono">/</span> followed by the start of a
+            shortcut (e.g. <span className="font-mono">/sbar</span>). A menu of matching snippets appears: use the arrow keys and
+            press Enter or Tab to insert one, or click it. Esc closes the menu.
           </p>
         </div>
       </div>

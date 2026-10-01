@@ -11,6 +11,7 @@ import PinButton from '@/components/ui/pin-button'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import MarkdownRenderer from '@/components/ui/markdown-renderer'
 import { fetchEvidenceForEntry } from '@/lib/evidence/server'
+import { formatCompetencyTheme } from '@/lib/types/portfolio-labels'
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })
@@ -29,7 +30,7 @@ export default async function CaseDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: c }, evidenceFiles] = await Promise.all([
+  const [{ data: c }, evidenceFiles, { data: customThemes }] = await Promise.all([
     supabase
       .from('cases')
       .select('*')
@@ -38,6 +39,7 @@ export default async function CaseDetailPage({
       .is('deleted_at', null)
       .single(),
     fetchEvidenceForEntry(supabase, id, 'case'),
+    supabase.from('custom_competency_themes').select('slug, name').eq('user_id', user!.id),
   ])
 
   if (!c) notFound()
@@ -67,7 +69,7 @@ export default async function CaseDetailPage({
           />
           <Link
             href={`/cases/${c.id}/edit`}
-            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-white/[0.15] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -122,6 +124,20 @@ export default async function CaseDetailPage({
             <span className="inline-flex px-2.5 py-1 rounded-lg text-xs bg-[var(--bg-overlay-soft)] text-[var(--text-primary)] border border-white/[0.08]">
               {IMPORTANCE_LABELS[importance]}
             </span>
+          </div>
+        )}
+
+        {/* Competency themes (same column and picker as portfolio entries) */}
+        {(c.interview_themes ?? []).length > 0 && (
+          <div>
+            <p className="text-[10px] font-medium text-[var(--text-emphasis)] uppercase tracking-wider mb-2">Competency themes</p>
+            <div className="flex flex-wrap gap-1.5">
+              {(c.interview_themes as string[]).map(theme => (
+                <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-[var(--cat-violet-text)] border border-violet-400/20">
+                  {formatCompetencyTheme(theme, customThemes ?? [])}
+                </span>
+              ))}
+            </div>
           </div>
         )}
 

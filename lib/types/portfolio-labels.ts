@@ -91,14 +91,23 @@ export const REFL_FRAMEWORK_LABELS: Record<string, string> = {
 }
 
 // Competency themes: stored values can be either preset display names
-// (e.g. "Leadership") or custom slugs (e.g. "gbr_safe_working"). Use this
-// helper everywhere a stored value is rendered to the user.
+// (e.g. "Leadership") or custom slugs (e.g. "surgical-skills"). Use this
+// helper everywhere a stored value is rendered to the user. Pass the user's
+// custom themes when available so a custom theme renders exactly as the user
+// typed its name ("Surgical skills", "BMA work"); without them the slug is
+// shown in sentence case - never Title Case, which turned "Surgical skills"
+// into "Surgical Skills" on one page and not another.
 import { COMPETENCY_THEMES } from '@/lib/constants/competency-themes'
 const PRESET_THEMES = new Set<string>(COMPETENCY_THEMES)
 
-export function formatCompetencyTheme(value: string): string {
+export type CustomThemeName = { slug: string; name: string }
+
+export function formatCompetencyTheme(value: string, customThemes: CustomThemeName[] = []): string {
   if (PRESET_THEMES.has(value)) return value
-  return titleCase(value)
+  const custom = customThemes.find(theme => theme.slug === value)
+  if (custom) return custom.name
+  const words = value.replace(/[_-]+/g, ' ').trim()
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : value
 }
 
 // One canonical helper to build a human-readable subtitle for an entry,

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, type KeyboardEvent } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { type NewCase } from '@/lib/types/cases'
@@ -11,6 +11,7 @@ import { useFocusTrap } from '@/lib/hooks/use-focus-trap'
 import SpecialtyTagSelect, { type SpecialtyTagSelectHandle } from '@/components/portfolio/specialty-tag-select'
 import ImportanceSelect from '@/components/portfolio/importance-select'
 import ClinicalAreaSelect from '@/components/cases/clinical-area-select'
+import CompetencyThemePicker from '@/components/portfolio/competency-theme-picker'
 import EvidenceUpload from '@/components/shared/evidence-upload'
 import EvidenceFiles from '@/components/shared/evidence-files'
 import AttachExistingEvidence from '@/components/shared/attach-existing-evidence'
@@ -24,7 +25,10 @@ import { formatSpecialtyLabel } from '@/lib/specialties'
 import { localIsoDate } from '@/lib/timeline/calendar-grid'
 import { submitOnEnterAsPrimary } from '@/lib/forms/enter-submit'
 import { caseDraftHasContent } from '@/lib/drafts/draft-keys'
-import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
+import SnippetTextarea from '@/components/ui/snippet-textarea'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
+import { applyStagedEvidence, useStagedEvidence } from '@/components/shared/staged-evidence'
+import { formSnapshot, isFormDirty } from '@/lib/forms/dirty'
 
 type Props = {
   mode: 'create' | 'edit'
@@ -50,7 +54,6 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
-  const snippets = useSnippets()
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -70,6 +73,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   const [specialtyTags, setSpecialtyTags] = useState<string[]>(initialData?.specialty_tags ?? [])
   const [suggestedTags, setSuggestedTags] = useState<string[]>([])
   const [importance, setImportance] = useState<Importance | null>(initialData?.importance ?? null)
+  const [interviewThemes, setInterviewThemes] = useState<string[]>(initialData?.interview_themes ?? [])
   const [notes, setNotes] = useState(initialData?.notes ?? '')
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
   const draftKey = mode === 'create' && authenticatedUserId ? draftKeyForUser(authenticatedUserId) : null
@@ -80,14 +84,34 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   const templatePickerRef = useRef<HTMLDivElement>(null)
   useFocusTrap(templatePickerOpen, templatePickerRef, () => setTemplatePickerOpen(false))
 
-  // Dirty state — ref mirrors state so cleanup closures always see current value
-  const [isDirty, setIsDirty] = useState(false)
+  // Edit mode: attach / unlink / delete of existing files is staged here and
+  // applied by "Save changes" (Cancel discards it).
+  const stagedEvidence = useStagedEvidence()
+
+  // Dirty state (lib/forms/dirty.ts): a snapshot comparison against how the
+  // form looked once loaded, so a form edited back to its starting values is
+  // pristine again. The ref mirrors it for the draft-flush cleanup closure.
+  const snapshot = formSnapshot({
+    title, date, clinicalDomains, specialtyTags, importance, interviewThemes, notes,
+    files: pendingFiles.map(file => `${file.name}:${file.size}`),
+    evidence: stagedEvidence.signature,
+  })
+  const [baseline, setBaseline] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const isDirty = !saved && isFormDirty(baseline, snapshot)
   const isDirtyRef = useRef(false)
+  isDirtyRef.current = isDirty
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false)
 
   // After hydration, fill the date default if nothing restored it. Runs once.
   useEffect(() => {
     setDate(current => current || localIsoDate(new Date()))
   }, [])
+
+  // Capture the pristine snapshot once the post-mount defaults have landed.
+  useEffect(() => {
+    if (baseline === null && date) setBaseline(snapshot)
+  }, [baseline, date, snapshot])
 
   // ── Auto-save draft (create mode only) ──────────────────────────────────
   // sessionStorage is used deliberately: it is scoped to the browser tab and is
@@ -110,6 +134,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
       else if (d.clinicalDomain !== undefined) setClinicalDomains(d.clinicalDomain ? [d.clinicalDomain] : [])
       if (d.specialtyTags !== undefined) setSpecialtyTags(d.specialtyTags)
       if (d.importance !== undefined) setImportance(d.importance)
+      if (Array.isArray(d.interviewThemes)) setInterviewThemes(d.interviewThemes)
       setDraftRestored(true)
     } catch {
       // ignore parse errors
@@ -122,7 +147,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
   useEffect(() => {
     if (mode !== 'create' || !draftKey) return
     if (draftTimerRef.current) clearTimeout(draftTimerRef.current)
-    const draft = { title, date, clinicalDomains, specialtyTags, importance }
+    const draft = { title, date, clinicalDomains, specialtyTags, importance, interviewThemes }
     draftTimerRef.current = setTimeout(() => {
       // Do not persist clinical free text (notes) - only structural metadata.
       // An untouched form (only the auto-filled date) is not a draft.
@@ -141,7 +166,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         } catch {}
       }
     }
-  }, [mode, draftKey, title, date, clinicalDomains, specialtyTags, importance])
+  }, [mode, draftKey, title, date, clinicalDomains, specialtyTags, importance, interviewThemes])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
 
@@ -155,7 +180,9 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  function markDirty() { setIsDirty(true); isDirtyRef.current = true }
+  // Dirtiness is derived from the snapshot above; kept as a no-op hook point
+  // so existing onChange handlers read clearly.
+  function markDirty() {}
 
   // ── Apply a template ────────────────────────────────────────────────────
 
@@ -169,21 +196,6 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
     if (scaffold !== null) setNotes(scaffold)
     markDirty()
     setTemplatePickerOpen(false)
-  }
-
-  function handleNotesKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
-    if (event.key !== 'Enter' && event.key !== 'Tab') return
-    const target = event.currentTarget
-    if (target.selectionStart !== target.selectionEnd) return
-    const snippet = findSnippetForSlash(notes, target.selectionStart, snippets)
-    if (!snippet) return
-    const next = replaceSnippetShortcut(notes, target.selectionStart, snippet)
-    if (!next) return
-
-    event.preventDefault()
-    setNotes(next.value)
-    markDirty()
-    requestAnimationFrame(() => target.setSelectionRange(next.cursor, next.cursor))
   }
 
   useEffect(() => {
@@ -230,6 +242,9 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
       // The typed-then-auto-committed tag is not in state yet at this point.
       specialty_tags: pendingTags?.value ?? specialtyTags,
       importance,
+      // Competency themes share the legacy-named interview_themes column with
+      // portfolio entries, so cases count in the dashboard theme coverage.
+      interview_themes: interviewThemes,
       notes: notes.trim() || null,
     }
 
@@ -248,8 +263,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
           // The case IS saved. Staying on this create form meant "Save case"
           // again inserted a duplicate case - go to the saved case instead.
           if (draftKey) sessionStorage.removeItem(draftKey)
-          setIsDirty(false)
-          isDirtyRef.current = false
+          setSaved(true)
           addToast(`Case saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
           router.push(`/cases/${data.id}?upload=failed`)
           return
@@ -257,8 +271,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
       }
       const uploaded = pendingFiles.length
       if (draftKey) sessionStorage.removeItem(draftKey)
-      setIsDirty(false)
-      isDirtyRef.current = false
+      setSaved(true)
       addToast(uploaded > 0 ? `Case logged · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case logged', 'success')
       if (addAnother) {
         setSaving(false)
@@ -280,15 +293,20 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         if (uploadErrors.length > 0) {
           // Changes and any successful files are saved; saving again from here
           // would re-upload the files that already succeeded.
-          setIsDirty(false)
+          setSaved(true)
           addToast(`Case updated, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
           router.push(`/cases/${initialData!.id}?upload=failed`)
           return
         }
       }
       const uploaded = pendingFiles.length
-      setIsDirty(false)
-      addToast(uploaded > 0 ? `Case updated · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case updated', 'success')
+      const evidenceErrors = await applyStagedEvidence(initialData!.id!, 'case', stagedEvidence.attach, stagedEvidence.removals)
+      setSaved(true)
+      if (evidenceErrors.length > 0) {
+        addToast(`Case updated, but ${evidenceErrors.join('; ')}. Please try again.`, 'error')
+      } else {
+        addToast(uploaded > 0 ? `Case updated · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Case updated', 'success')
+      }
       router.push(uploaded > 0 ? `/cases/${initialData!.id}?uploaded=${uploaded}` : `/cases/${initialData!.id}`)
     }
     router.refresh()
@@ -329,7 +347,9 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
               setClinicalDomains([])
               setSpecialtyTags([])
               setImportance(null)
+              setInterviewThemes([])
               setNotes('')
+              setBaseline(null)
             }}
             className="text-xs text-accent/70 hover:text-[var(--accent-text)]"
           >
@@ -421,7 +441,7 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
           </div>
         )}
         <p className="text-xs text-[var(--text-secondary)] mt-1">
-          Link cases to specialties for filtering and interview examples. Specialty tracker scores use portfolio entries as evidence.
+          Link cases to the specialties you are tracking so you can filter by them. To count a case as specialty evidence, link it from the specialty tracker.
         </p>
       </div>
 
@@ -434,18 +454,19 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         </p>
       </div>
 
+      {/* Competency themes */}
+      <CompetencyThemePicker value={interviewThemes} onChange={setInterviewThemes} onDirty={markDirty} />
+
       {/* Notes */}
       <div>
         <label className={LABEL}>Notes</label>
-        <textarea
+        <SnippetTextarea
           rows={6}
           value={notes}
           maxLength={10000}
-          onChange={e => { setNotes(e.target.value); markDirty() }}
-          onKeyDown={handleNotesKeyDown}
-          onFocus={() => markDirty()}
+          onValueChange={v => { setNotes(v); markDirty() }}
           className={INPUT}
-          placeholder={ph('notes', 'Clinical context, learning points, what happened - anonymised…')}
+          placeholder={ph('notes', 'Clinical context, learning points, what happened - anonymised… (type / for snippets)')}
         />
         {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
         <AnonymisationHint />
@@ -456,12 +477,36 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         <label className={LABEL}>Evidence</label>
         {/* Already-attached files (edit mode): list with per-file remove/unlink (QOL-013) */}
         {mode === 'edit' && existingEvidence.length > 0 && (
-          <EvidenceFiles initialFiles={existingEvidence} canDelete entryId={initialData?.id} entryType="case" />
+          <EvidenceFiles
+            initialFiles={existingEvidence}
+            canDelete
+            entryId={initialData?.id}
+            entryType="case"
+            stagedRemovals={stagedEvidence.removals}
+            onStageRemoval={stagedEvidence.stageRemoval}
+          />
         )}
         <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
-        {/* Reuse an already-uploaded file instead of re-uploading it. */}
+        {/* Reuse an already-uploaded file instead of re-uploading it (staged until Save changes). */}
         {mode === 'edit' && initialData?.id && (
-          <AttachExistingEvidence entryId={initialData.id} entryType="case" />
+          <>
+            {stagedEvidence.attach.length > 0 && (
+              <ul className="space-y-1.5">
+                {stagedEvidence.attach.map(file => (
+                  <li key={file.id} className="flex items-center gap-3 rounded-lg border border-accent/30 bg-[var(--accent-soft)] px-3.5 py-2 text-xs text-[var(--accent-soft-text)]">
+                    <span className="min-w-0 flex-1 truncate">{file.file_name} - will be attached when you save changes</span>
+                    <button type="button" onClick={() => stagedEvidence.unstageAttach(file.id)} className="shrink-0 font-medium underline">Don&apos;t attach</button>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <AttachExistingEvidence
+              entryId={initialData.id}
+              entryType="case"
+              stagedIds={stagedEvidence.attach.map(file => file.id)}
+              onStage={stagedEvidence.stageAttach}
+            />
+          </>
         )}
       </div>
 
@@ -475,10 +520,10 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         <button
           type="button"
           onClick={() => {
-            if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
+            if (isDirty) { setLeaveConfirmOpen(true); return }
             router.back()
           }}
-          className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
+          className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] rounded-xl py-3 text-sm font-medium transition-colors"
         >
           Cancel
         </button>
@@ -511,6 +556,23 @@ export default function CaseForm({ mode, initialData, userInterests = [], templa
         </div>
       )}
     </form>
+
+    <ConfirmDialog
+      open={leaveConfirmOpen}
+      title="Discard your changes?"
+      confirmLabel="Discard changes"
+      cancelLabel="Keep editing"
+      tone="danger"
+      onConfirm={() => {
+        setLeaveConfirmOpen(false)
+        setSaved(true)
+        if (draftKey) { try { sessionStorage.removeItem(draftKey) } catch {} }
+        router.back()
+      }}
+      onCancel={() => setLeaveConfirmOpen(false)}
+    >
+      <p>You have changes on this case that are not saved. Leaving now discards them{mode === 'edit' ? ', including any files you chose to attach or remove' : ''}.</p>
+    </ConfirmDialog>
 
     {/* Template picker modal */}
     {templatePickerOpen && (

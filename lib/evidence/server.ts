@@ -78,46 +78,6 @@ export async function fetchEvidenceForEntry(
 }
 
 /**
- * The user's full evidence library for the "attach existing file" picker: every
- * clean physical file they own, each with the list of entries it is linked to
- * (so the UI can show "linked to N entries" and hide files already attached to
- * the current entry). One query per table + a client-side join; the row counts
- * here are bounded by a single user's quota.
- */
-export async function fetchUserEvidenceLibrary(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<EvidenceFileWithLinks[]> {
-  const [{ data: files, error: filesError }, { data: allLinks, error: linksError }] = await Promise.all([
-    supabase
-      .from('evidence_files')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('scan_status', 'clean')
-      .order('created_at', { ascending: false }),
-    supabase
-      .from('evidence_file_links')
-      .select('file_id, entry_id, entry_type'),
-  ])
-
-  if (filesError || !files) return []
-
-  const linksByFile = new Map<string, { entry_id: string; entry_type: EvidenceEntryType }[]>()
-  if (!linksError && allLinks) {
-    for (const link of allLinks as { file_id: string; entry_id: string; entry_type: EvidenceEntryType }[]) {
-      const list = linksByFile.get(link.file_id) ?? []
-      list.push({ entry_id: link.entry_id, entry_type: link.entry_type })
-      linksByFile.set(link.file_id, list)
-    }
-  }
-
-  return (files as EvidenceFile[]).map(file => ({
-    ...file,
-    links: linksByFile.get(file.id) ?? [],
-  }))
-}
-
-/**
  * Pure shaping for the owner-facing files surface: group link rows per file and
  * resolve each link's entry title from the supplied per-type lookups. A link
  * whose id is missing from its lookup (entry soft-deleted / purged mid-flight)
@@ -146,16 +106,15 @@ export function attachTitlesToLibrary(
 }
 
 /**
- * The user's full evidence library for the OWNER-facing "My files" surface
- * (/export?tab=files via GET /api/evidence/files), with each link's entry/case
- * TITLE resolved server-side. This is deliberately a SEPARATE function from
- * `fetchUserEvidenceLibrary`: the attach-existing picker route
- * (/api/evidence/library) withholds cross-entry titles by design - do not
- * loosen it; the owner viewing their own files page is the one place titles
- * are appropriate. Two differences from the picker fetch:
+ * The user's full evidence library (owner-facing), with each link's
+ * entry/case TITLE resolved server-side. Served by the owner-only GET
+ * /api/evidence/files to both the Files tab and the "Attach an existing file"
+ * picker in the edit forms (the picker used to call a separate title-less
+ * route; every title here is the signed-in owner's own entry or case, so
+ * showing it to them reveals nothing new). Notes:
  *   * ALL scan statuses are included (pending/quarantined files still count
- *     toward the storage quota, and this page exists so users can see and
- *     free what is eating it).
+ *     toward the storage quota, and the Files tab exists so users can see and
+ *     free what is eating it). The picker filters to clean files itself.
  *   * Titles come only from the user's own LIVE rows (`deleted_at is null`),
  *     matching the entry-ownership guards elsewhere; a link to a trashed entry
  *     resolves to `title: null`.

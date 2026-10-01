@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, type FormEvent, type KeyboardEvent, type ReactElement, type ReactNode } from 'react'
+import { Children, cloneElement, isValidElement, useId, useState, useEffect, useRef, type FormEvent, type ReactElement, type ReactNode } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { CATEGORIES, type Category, type NewPortfolioEntry } from '@/lib/types/portfolio'
@@ -22,7 +22,10 @@ import type { Importance } from '@/lib/types/importance'
 import { validateEntryNumericFields } from '@/lib/utils/entry-numeric-validation'
 import { suggestTagsForText } from '@/lib/heuristics/tag-suggester'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { findSnippetForSlash, replaceSnippetShortcut, useSnippets } from '@/components/ui/slash-menu'
+import SnippetTextarea from '@/components/ui/snippet-textarea'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
+import { applyStagedEvidence, useStagedEvidence, type StagedAttach } from '@/components/shared/staged-evidence'
+import { formSnapshot, isFormDirty } from '@/lib/forms/dirty'
 import { localIsoDate } from '@/lib/timeline/calendar-grid'
 import { submitOnEnterAsPrimary } from '@/lib/forms/enter-submit'
 import { GIBBS_FIELDS, ROLFE_FIELDS, DRISCOLL_FIELDS, buildFrameworkText, parseFrameworkText, detectFramework, convertReflection } from '@/lib/portfolio/reflection-frameworks'
@@ -46,7 +49,7 @@ const TOGGLE_BTN = (active: boolean) =>
   `flex-1 py-2 text-sm rounded-lg border transition-colors ${
     active
       ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
-      : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
+      : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
   }`
 
 const WORD_COUNT_CLASS = 'text-[10px] text-[var(--text-secondary)] mt-1 text-right'
@@ -66,8 +69,9 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   let fieldId: string | undefined
 
   const labelledChildren = childArray.map((child, index) => {
-    if (index !== 0 || !isValidElement(child) || typeof child.type !== 'string') return child
-    if (!LABELABLE_FIELD_TYPES.has(child.type)) return child
+    if (index !== 0 || !isValidElement(child)) return child
+    const labelable = typeof child.type === 'string' ? LABELABLE_FIELD_TYPES.has(child.type) : child.type === SnippetTextarea
+    if (!labelable) return child
 
     const element = child as ReactElement<{ id?: string }>
     fieldId = element.props.id ?? generatedId
@@ -82,23 +86,30 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function CheckboxField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
+// A real checkbox (the whole row, label text included, toggles it; it works
+// with the keyboard and screen readers). The old version only reacted to a
+// click on the small box itself, so clicking "Certificate received" did nothing.
+function CheckboxField({ label, checked, onChange, hint }: { label: string; checked: boolean; onChange: (v: boolean) => void; hint?: string }) {
   return (
-    <label className="flex items-center gap-3 cursor-pointer py-1">
-      <div
-        className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${
-          checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg-canvas)] border-white/[0.15]'
-        }`}
-        onClick={() => onChange(!checked)}
-      >
-        {checked && (
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-        )}
-      </div>
-      <span className="text-sm text-[var(--text-secondary)]">{label}</span>
-    </label>
+    <div>
+      <label className="flex items-center gap-3 cursor-pointer py-1">
+        <input type="checkbox" className="peer sr-only" checked={checked} onChange={e => onChange(e.target.checked)} />
+        <span
+          aria-hidden="true"
+          className={`w-5 h-5 shrink-0 rounded border-2 flex items-center justify-center transition-colors peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--focus-ring)] ${
+            checked ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg-canvas)] border-[var(--text-muted)]'
+          }`}
+        >
+          {checked && (
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-on-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          )}
+        </span>
+        <span className="text-sm text-[var(--text-secondary)]">{label}</span>
+      </label>
+      {hint && <p className="ml-8 text-xs text-[var(--text-muted)]">{hint}</p>}
+    </div>
   )
 }
 
@@ -106,7 +117,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const router = useRouter()
   const supabase = createClient()
   const { addToast } = useToast()
-  const snippets = useSnippets()
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -152,6 +162,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   const [confLevel, setConfLevel] = useState(initialData?.conf_level ?? '')
   const [confCpdHours, setConfCpdHours] = useState<string>(initialData?.conf_cpd_hours?.toString() ?? '')
   const [confCertificate, setConfCertificate] = useState(initialData?.conf_certificate ?? false)
+  // Set when attaching a file ticked "Certificate received" for the user.
+  const [certificateAutoTicked, setCertificateAutoTicked] = useState(false)
 
   // Publication
   const [pubType, setPubType] = useState(initialData?.pub_type ?? '')
@@ -200,9 +212,23 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   // Evidence files
   const [pendingFiles, setPendingFiles] = useState<File[]>([])
+  // Edit mode: attach / unlink / delete of existing files is staged here and
+  // applied by "Save changes" (Cancel discards it).
+  const stagedEvidence = useStagedEvidence()
 
-  // Dirty state
-  const [isDirty, setIsDirty] = useState(false)
+  // A course or conference with a file attached almost always means the
+  // certificate is in hand: tick "Certificate received" (the user can untick).
+  function autoTickCertificate() {
+    if (category === 'conference' && !confCertificate) {
+      setConfCertificate(true)
+      setCertificateAutoTicked(true)
+    }
+  }
+
+  function stageExistingFile(file: StagedAttach) {
+    stagedEvidence.stageAttach(file)
+    autoTickCertificate()
+  }
 
   // ── Apply a template ────────────────────────────────────────────────────────
 
@@ -355,6 +381,34 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
   ])
 
   // ── Dirty / beforeunload ────────────────────────────────────────────────
+  // Snapshot comparison (lib/forms/dirty.ts): the form is dirty only while
+  // its values differ from how it looked once loaded, so typing and then
+  // clearing a field no longer triggers "Leave site?".
+
+  const snapshot = formSnapshot({
+    category, title, date, notes, specialtyTags, interviewThemes, importance,
+    auditType, auditRole, auditCycleStage, auditTrust, auditOutcome, auditPresented,
+    teachingType, teachingAudience, teachingSetting, teachingEvent, teachingInvited,
+    confType, confEventName, confAttendance, confLevel, confCpdHours, confCertificate,
+    pubType, pubJournal, pubAuthors, pubStatus, pubDoi,
+    leaderRole, leaderOrg, leaderStart, leaderEnd, leaderOngoing,
+    prizeBody, prizeLevel, prizeDescription,
+    procName, procSetting, procSupervision, procCount,
+    reflType, reflContext, reflSupervisor, reflFreeText, reflFramework, reflParts,
+    customFreeText,
+    files: pendingFiles.map(file => `${file.name}:${file.size}`),
+    evidence: stagedEvidence.signature,
+  })
+  const [baseline, setBaseline] = useState<string | null>(null)
+  // Captured once the post-mount defaults (today's date, a restored draft)
+  // have landed.
+  useEffect(() => {
+    if (baseline === null && date) setBaseline(snapshot)
+  }, [baseline, date, snapshot])
+  // Switched on after a successful save so leaving for the saved entry never prompts.
+  const [saved, setSaved] = useState(false)
+  const isDirty = !saved && isFormDirty(baseline, snapshot)
+  const [leaveConfirmOpen, setLeaveConfirmOpen] = useState(false)
 
   useEffect(() => {
     if (!isDirty) return
@@ -366,7 +420,8 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  function markDirty() { suppressDraftRef.current = false; setIsDirty(true) }
+  // Re-arms draft autosave after a reset; dirtiness itself is derived from the snapshot.
+  function markDirty() { suppressDraftRef.current = false }
 
   // Clear every portfolio draft fragment for this user. The new-entry form only
   // edits one entry at a time, so once it is saved (or discarded) any per-category
@@ -388,25 +443,6 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
     } catch {
       // ignore storage errors
     }
-  }
-
-  function handleSnippetKeyDown(
-    event: KeyboardEvent<HTMLTextAreaElement>,
-    value: string,
-    setValue: (next: string) => void
-  ) {
-    if (event.key !== 'Enter' && event.key !== 'Tab') return
-    const target = event.currentTarget
-    if (target.selectionStart !== target.selectionEnd) return
-    const snippet = findSnippetForSlash(value, target.selectionStart, snippets)
-    if (!snippet) return
-    const next = replaceSnippetShortcut(value, target.selectionStart, snippet)
-    if (!next) return
-
-    event.preventDefault()
-    setValue(next.value)
-    markDirty()
-    requestAnimationFrame(() => target.setSelectionRange(next.cursor, next.cursor))
   }
 
   useEffect(() => {
@@ -449,8 +485,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
   function resetForm() {
     clearPortfolioDrafts()
-    setIsDirty(false)
     setDraftRestored(false)
+    setCertificateAutoTicked(false)
+    // Re-capture the pristine snapshot once the defaults below have applied.
+    setBaseline(null)
     setCategory(defaultCategory ?? 'audit_qip')
     setTitle('')
     setDate(localIsoDate(new Date()))
@@ -531,14 +569,14 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
         if (mountedRef.current) setUploading(false)
         if (uploadErrors.length > 0) {
           clearPortfolioDrafts()
-          if (mountedRef.current) setIsDirty(false)
+          if (mountedRef.current) setSaved(true)
           addToast(`Entry saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
           if (mountedRef.current) router.push(`/portfolio/${data.id}?upload=failed`)
           return
         }
       }
       clearPortfolioDrafts()
-      if (mountedRef.current) setIsDirty(false)
+      if (mountedRef.current) setSaved(true)
       if ((existingInCategory ?? 0) === 0) {
         import('canvas-confetti').then(mod => mod.default({ particleCount: 60, spread: 55, origin: { y: 0.7 }, ticks: 120 }))
         const { data: profileRow } = await supabase
@@ -579,15 +617,20 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           // The changes (and any files that did upload) are saved. Leave the
           // form rather than keep the whole staged list: saving again would
           // re-upload the files that already succeeded and double-count them.
-          setIsDirty(false)
+          setSaved(true)
           addToast(`Changes saved, but some files failed to upload: ${uploadErrors.join('; ')}`, 'error')
           router.push(`/portfolio/${initialData!.id}?upload=failed`)
           return
         }
       }
       const uploaded = pendingFiles.length
-      setIsDirty(false)
-      addToast(uploaded > 0 ? `Changes saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Changes saved', 'success')
+      const evidenceErrors = await applyStagedEvidence(initialData!.id!, 'portfolio', stagedEvidence.attach, stagedEvidence.removals)
+      setSaved(true)
+      if (evidenceErrors.length > 0) {
+        addToast(`Changes saved, but ${evidenceErrors.join('; ')}. Please try again.`, 'error')
+      } else {
+        addToast(uploaded > 0 ? `Changes saved · ${uploaded} file${uploaded === 1 ? '' : 's'} uploaded` : 'Changes saved', 'success')
+      }
       router.push(uploaded > 0 ? `/portfolio/${initialData!.id}?uploaded=${uploaded}` : `/portfolio/${initialData!.id}`)
     }
   }
@@ -619,6 +662,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           const files = Array.from(event.clipboardData.files).filter(file => file.type.startsWith('image/'))
           if (files.length === 0) return
           setPendingFiles(current => mergeUniqueFiles(current, files))
+          autoTickCertificate()
           markDirty()
         }}
         onDragOver={event => event.preventDefault()}
@@ -674,7 +718,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   className={`py-2.5 px-3 text-sm rounded-xl border text-left transition-colors ${
                     category === c.value
                       ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
-                      : 'bg-[var(--bg-surface)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
+                      : 'bg-[var(--bg-surface)] border-white/[0.08] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
                   }`}
                 >
                   {c.label}
@@ -717,7 +761,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
             )}
           </Field>
           <Field label="Notes / comments">
-            <textarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onChange={e => { setNotes(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, notes, setNotes)} onFocus={() => markDirty()} className={INPUT} placeholder={ph('notes', 'Any additional context or notes...')} />
+            <SnippetTextarea rows={3} value={notes ?? ''} maxLength={LONG_TEXT_MAX} onValueChange={v => { setNotes(v); markDirty() }} className={INPUT} placeholder={ph('notes', 'Any additional context or notes... (type / for snippets)')} />
             {notes && <p className={WORD_COUNT_CLASS}>{wordCount(notes)} words</p>}
             <AnonymisationHint />
           </Field>
@@ -768,7 +812,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       className={`rounded-xl border px-3 py-3 text-left transition-colors ${
                         auditCycleStage === stage.value
                           ? 'border-accent/50 bg-accent/10'
-                          : 'border-white/[0.08] bg-[var(--bg-canvas)] hover:border-white/[0.16]'
+                          : 'border-white/[0.08] bg-[var(--bg-canvas)] hover:border-[var(--border-strong)]'
                       }`}
                     >
                       <span className="block text-sm font-medium text-[var(--text-primary)]">{stage.label}</span>
@@ -777,7 +821,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   ))}
                 </div>
               </Field>
-              <Field label="Outcome / findings"><textarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onChange={e => { setAuditOutcome(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, auditOutcome, setAuditOutcome)} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
+              <Field label="Outcome / findings"><SnippetTextarea rows={2} value={auditOutcome} maxLength={LONG_TEXT_MAX} onValueChange={v => { setAuditOutcome(v); markDirty() }} className={INPUT} placeholder={ph('audit_outcome', 'Summary of outcome or recommendations')} />{auditOutcome && <p className={WORD_COUNT_CLASS}>{wordCount(auditOutcome)} words</p>}</Field>
               <CheckboxField label="Presented at a meeting or grand round" checked={auditPresented} onChange={v => { setAuditPresented(v); markDirty() }} />
             </div>
           )}
@@ -847,7 +891,12 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 </Field>
                 <Field label="CPD hours"><input type="number" min="0" max="999" step="0.5" value={confCpdHours} onChange={e => setConfCpdHours(e.target.value)} className={INPUT} placeholder="e.g. 6" /></Field>
               </div>
-              <CheckboxField label="Certificate received" checked={confCertificate} onChange={v => { setConfCertificate(v); markDirty() }} />
+              <CheckboxField
+                label="Certificate received"
+                checked={confCertificate}
+                onChange={v => { setConfCertificate(v); setCertificateAutoTicked(false); markDirty() }}
+                hint={certificateAutoTicked ? 'Ticked because you attached a file - untick it if that file is not your certificate.' : undefined}
+              />
             </div>
           )}
 
@@ -909,7 +958,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                   </select>
                 </Field>
               </div>
-              <Field label="Description"><textarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onChange={e => { setPrizeDescription(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, prizeDescription, setPrizeDescription)} className={INPUT} placeholder="Brief description of the prize or award" />{prizeDescription && <p className={WORD_COUNT_CLASS}>{wordCount(prizeDescription)} words</p>}</Field>
+              <Field label="Description"><SnippetTextarea rows={3} value={prizeDescription} maxLength={LONG_TEXT_MAX} onValueChange={v => { setPrizeDescription(v); markDirty() }} className={INPUT} placeholder="Brief description of the prize or award" />{prizeDescription && <p className={WORD_COUNT_CLASS}>{wordCount(prizeDescription)} words</p>}</Field>
             </div>
           )}
 
@@ -972,7 +1021,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                       className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
                         reflFramework === fw
                           ? 'bg-[var(--accent-soft)] border-accent/30 text-[var(--accent-soft-text)]'
-                          : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-white/[0.15]'
+                          : 'bg-[var(--bg-canvas)] border-white/[0.08] text-[var(--text-secondary)] hover:border-[var(--border-strong)]'
                       }`}
                     >
                       {fw === 'none' ? 'No framework' : fw === 'gibbs' ? "Gibbs' Cycle" : fw === 'driscoll' ? 'Driscoll' : 'Rolfe'}
@@ -983,7 +1032,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
 
               {reflFramework === 'none' && (
                 <Field label="Free text reflection">
-                  <textarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setReflFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, reflFreeText, setReflFreeText)} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
+                  <SnippetTextarea rows={6} value={reflFreeText} maxLength={LONG_TEXT_MAX} onValueChange={v => { setReflFreeText(v); markDirty() }} className={INPUT} placeholder={ph('notes', 'What happened, what you learnt, what you would do differently...')} />
                   {reflFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(reflFreeText)} words</p>}
                   <AnonymisationHint />
                 </Field>
@@ -993,11 +1042,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <div className="space-y-3">
                   {GIBBS_FIELDS.map(f => (
                     <Field key={f.key} label={`${f.label} - ${f.hint}`}>
-                      <textarea
+                      <SnippetTextarea
                         rows={3}
                         maxLength={LONG_TEXT_MAX}
                         value={reflParts[f.key] ?? ''}
-                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
+                        onValueChange={v => { setReflParts(p => ({ ...p, [f.key]: v })); markDirty() }}
                         className={INPUT}
                         placeholder={f.hint}
                       />
@@ -1010,11 +1059,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <div className="space-y-3">
                   {ROLFE_FIELDS.map(f => (
                     <Field key={f.key} label={`${f.label} - ${f.hint}`}>
-                      <textarea
+                      <SnippetTextarea
                         rows={4}
                         maxLength={LONG_TEXT_MAX}
                         value={reflParts[f.key] ?? ''}
-                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
+                        onValueChange={v => { setReflParts(p => ({ ...p, [f.key]: v })); markDirty() }}
                         className={INPUT}
                         placeholder={f.hint}
                       />
@@ -1027,11 +1076,11 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
                 <div className="space-y-3">
                   {DRISCOLL_FIELDS.map(f => (
                     <Field key={f.key} label={`${f.label} - ${f.hint}`}>
-                      <textarea
+                      <SnippetTextarea
                         rows={4}
                         maxLength={LONG_TEXT_MAX}
                         value={reflParts[f.key] ?? ''}
-                        onChange={e => { setReflParts(p => ({ ...p, [f.key]: e.target.value })); markDirty() }}
+                        onValueChange={v => { setReflParts(p => ({ ...p, [f.key]: v })); markDirty() }}
                         className={INPUT}
                         placeholder={f.hint}
                       />
@@ -1046,7 +1095,7 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           {category === 'custom' && (
             <div className="space-y-4">
               <Field label="Description">
-                <textarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onChange={e => { setCustomFreeText(e.target.value); markDirty() }} onKeyDown={e => handleSnippetKeyDown(e, customFreeText, setCustomFreeText)} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
+                <SnippetTextarea rows={6} value={customFreeText} maxLength={LONG_TEXT_MAX} onValueChange={v => { setCustomFreeText(v); markDirty() }} className={INPUT} placeholder={ph('notes', 'Describe this achievement in your own words...')} />
                 {customFreeText && <p className={WORD_COUNT_CLASS}>{wordCount(customFreeText)} words</p>}
                 <AnonymisationHint />
               </Field>
@@ -1059,12 +1108,36 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <h3 className="text-xs font-medium text-[var(--text-emphasis)] uppercase tracking-wider">Evidence</h3>
           {/* Already-attached files (edit mode): list with per-file remove/unlink (QOL-013) */}
           {mode === 'edit' && existingEvidence.length > 0 && (
-            <EvidenceFiles initialFiles={existingEvidence} canDelete entryId={initialData?.id} entryType="portfolio" />
+            <EvidenceFiles
+              initialFiles={existingEvidence}
+              canDelete
+              entryId={initialData?.id}
+              entryType="portfolio"
+              stagedRemovals={stagedEvidence.removals}
+              onStageRemoval={stagedEvidence.stageRemoval}
+            />
           )}
-          <EvidenceUpload files={pendingFiles} onChange={files => { setPendingFiles(files); markDirty() }} />
-          {/* Reuse an already-uploaded file instead of re-uploading it. */}
+          <EvidenceUpload files={pendingFiles} onChange={files => { if (files.length > pendingFiles.length) autoTickCertificate(); setPendingFiles(files); markDirty() }} />
+          {/* Reuse an already-uploaded file instead of re-uploading it (staged until Save changes). */}
           {mode === 'edit' && initialData?.id && (
-            <AttachExistingEvidence entryId={initialData.id} entryType="portfolio" />
+            <>
+              {stagedEvidence.attach.length > 0 && (
+                <ul className="space-y-1.5">
+                  {stagedEvidence.attach.map(file => (
+                    <li key={file.id} className="flex items-center gap-3 rounded-lg border border-accent/30 bg-[var(--accent-soft)] px-3.5 py-2 text-xs text-[var(--accent-soft-text)]">
+                      <span className="min-w-0 flex-1 truncate">{file.file_name} - will be attached when you save changes</span>
+                      <button type="button" onClick={() => stagedEvidence.unstageAttach(file.id)} className="shrink-0 font-medium underline">Don&apos;t attach</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <AttachExistingEvidence
+                entryId={initialData.id}
+                entryType="portfolio"
+                stagedIds={stagedEvidence.attach.map(file => file.id)}
+                onStage={stageExistingFile}
+              />
+            </>
           )}
         </div>
 
@@ -1078,10 +1151,10 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           <button
             type="button"
             onClick={() => {
-              if (isDirty && !confirm('You have unsaved changes. Leave anyway?')) return
+              if (isDirty) { setLeaveConfirmOpen(true); return }
               router.back()
             }}
-            className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15] rounded-xl py-3 text-sm font-medium transition-colors"
+            className="flex-1 border border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] rounded-xl py-3 text-sm font-medium transition-colors"
           >
             Cancel
           </button>
@@ -1113,6 +1186,18 @@ export default function EntryForm({ mode, initialData, userInterests = [], defau
           </div>
         )}
       </form>
+
+      <ConfirmDialog
+        open={leaveConfirmOpen}
+        title="Discard your changes?"
+        confirmLabel="Discard changes"
+        cancelLabel="Keep editing"
+        tone="danger"
+        onConfirm={() => { setLeaveConfirmOpen(false); setSaved(true); clearPortfolioDrafts(); router.back() }}
+        onCancel={() => setLeaveConfirmOpen(false)}
+      >
+        <p>You have changes on this form that are not saved. Leaving now discards them{mode === 'edit' ? ', including any files you chose to attach or remove' : ''}.</p>
+      </ConfirmDialog>
 
       {/* Template picker modal */}
       {templatePickerOpen && (

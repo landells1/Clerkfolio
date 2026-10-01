@@ -5,12 +5,13 @@ import { fetchUserEvidenceLibraryWithTitles } from '@/lib/evidence/server'
 /**
  * GET /api/evidence/files
  *
- * The owner's full evidence library for the Import & export -> Files tab:
- * every file they own (all scan statuses - pending/quarantined still count
- * toward the storage quota) with the entries/cases it is linked to, TITLES
- * included. Titles are fine here and only here: this is the owner viewing
- * their own data. The attach-existing picker route (/api/evidence/library)
- * deliberately withholds titles - do not merge the two.
+ * The owner's full evidence library: every file they own (all scan statuses -
+ * pending/quarantined still count toward the storage quota) with the
+ * entries/cases it is linked to, TITLES included. Used by the Import & export
+ * -> Files tab and by the "Attach an existing file" picker in the entry/case
+ * edit forms, so the picker can say which entry a file is already attached
+ * to. Owner-only: auth + RLS + explicit user_id filters, and every title
+ * returned is the requesting user's own entry or case.
  *
  * `file_path` is included so the client can request signed downloads through
  * the existing owner-checked `getSignedUrl` helper (same as the entry pages).

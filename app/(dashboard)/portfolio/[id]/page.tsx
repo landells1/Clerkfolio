@@ -55,7 +55,7 @@ export default async function EntryDetailPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const [{ data: entry }, evidenceFiles] = await Promise.all([
+  const [{ data: entry }, evidenceFiles, { data: customThemes }] = await Promise.all([
     supabase
       .from('portfolio_entries')
       .select('*')
@@ -64,6 +64,8 @@ export default async function EntryDetailPage({
       .is('deleted_at', null)
       .single(),
     fetchEvidenceForEntry(supabase, id, 'portfolio'),
+    // Custom theme names, so a custom theme shows exactly as it was typed.
+    supabase.from('custom_competency_themes').select('slug, name').eq('user_id', user!.id),
   ])
 
   if (!entry) notFound()
@@ -90,7 +92,7 @@ export default async function EntryDetailPage({
           <LogSimilarButton category={entry.category} tags={entry.specialty_tags} />
           <Link
             href={`/portfolio/${entry.id}/edit`}
-            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-white/[0.15] transition-colors"
+            className="flex items-center gap-2 px-3.5 py-2 text-sm font-medium text-[var(--text-secondary)] border border-white/[0.08] rounded-lg hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] transition-colors"
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
@@ -154,7 +156,7 @@ export default async function EntryDetailPage({
             <div className="flex flex-wrap gap-1.5">
               {(entry.interview_themes as string[]).map(theme => (
                 <span key={theme} className="px-2.5 py-1 rounded-lg text-xs bg-violet-500/10 text-[var(--cat-violet-text)] border border-violet-400/20">
-                  {formatCompetencyTheme(theme)}
+                  {formatCompetencyTheme(theme, customThemes ?? [])}
                 </span>
               ))}
             </div>
