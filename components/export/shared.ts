@@ -43,6 +43,8 @@ export type ShareLink = {
   view_webhook_url?: string | null
   created_at: string
 }
+/** A revoked link, kept for history. No token: a revoked link is dead. */
+export type RevokedShareLink = Omit<ShareLink, 'token'> & { revoked_at: string | null }
 export type TrackedApp = { id: string; specialty_key: string }
 export type TagCount = { tag: string; count: number }
 
@@ -77,7 +79,7 @@ export function isShareLinkExpired(link: Pick<ShareLink, 'expires_at'>, now = Da
   return new Date(link.expires_at).getTime() <= now
 }
 
-export function shareLabel(link: ShareLink) {
+export function shareLabel(link: Pick<ShareLink, 'scope' | 'theme_slug' | 'specialty_key'>) {
   if (link.scope === 'full') return 'Full portfolio (entries only)'
   if (link.scope === 'theme') return `Theme: ${link.theme_slug ? formatCompetencyTheme(link.theme_slug) : 'unknown'}`
   return formatSpecialtyLabel(link.specialty_key)

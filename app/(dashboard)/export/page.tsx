@@ -21,6 +21,7 @@ import {
   type PdfTemplate,
   type ShareScope,
   type ShareLink,
+  type RevokedShareLink,
   type TrackedApp,
   type TagCount,
 } from '@/components/export/shared'
@@ -78,6 +79,8 @@ export default function ExportPage() {
   const [error, setError] = useState<string | null>(null)
 
   const [shareLinks, setShareLinks] = useState<ShareLink[]>([])
+  const [revokedLinks, setRevokedLinks] = useState<RevokedShareLink[]>([])
+  const [allThemes, setAllThemes] = useState<string[]>([])
   const [shareScope, setShareScope] = useState<ShareScope>('specialty')
   const [shareSpecialty, setShareSpecialty] = useState('')
   const [shareTheme, setShareTheme] = useState('')
@@ -123,11 +126,12 @@ export default function ExportPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) return
 
-      const [subInfo, { data: tagRows }, { data: apps }, links] = await Promise.all([
+      const [subInfo, { data: tagRows }, { data: apps }, links, revoked] = await Promise.all([
         fetchSubscriptionInfo(supabase, user.id),
-        supabase.from('portfolio_entries').select('specialty_tags').eq('user_id', user.id).is('deleted_at', null),
+        supabase.from('portfolio_entries').select('specialty_tags, interview_themes').eq('user_id', user.id).is('deleted_at', null).eq('is_demo', false),
         supabase.from('specialty_applications').select('id, specialty_key').eq('user_id', user.id).eq('is_active', true),
         apiFetch<ShareLink[]>('/api/share').then(r => (r.ok && r.data) ? r.data : []),
+        apiFetch<RevokedShareLink[]>('/api/share?revoked=1').then(r => (r.ok && r.data) ? r.data : []),
       ])
 
       setSubInfo(subInfo)
@@ -139,6 +143,10 @@ export default function ExportPage() {
       })
       const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]).map(([tag, count]) => ({ tag, count }))
       setPortfolioTags(sorted)
+      // Share-link themes come from ALL entries, independent of the
+      // Application PDF tab's specialty filter.
+      setAllThemes(Array.from(new Set(((tagRows ?? []) as { interview_themes?: string[] | null }[]).flatMap(row => row.interview_themes ?? []))).sort())
+      setRevokedLinks(revoked)
       const activeApps = (apps ?? []) as TrackedApp[]
       setTrackedApps(activeApps)
       setShareSpecialty(current =>
@@ -147,12 +155,12 @@ export default function ExportPage() {
           : activeApps[0]?.specialty_key ?? ''
       )
       setShareLinks((links ?? []) as ShareLink[])
-      // When an "Add to export" handoff is pending, start on "All records" so
-      // every preselected entry is loaded before validation - the default
-      // specialty filter would otherwise silently drop out-of-specialty IDs.
-      // Peek only: the loadEntries effect is the sole consumer that removes the key.
-      const hasPendingPreselect = window.sessionStorage.getItem(EXPORT_PRESELECT_STORAGE_KEY) !== null
-      setSpecialty(hasPendingPreselect ? ALL_RECORDS : (sorted[0]?.tag ?? apps?.[0]?.specialty_key ?? ALL_RECORDS))
+      // Always start on "All records": defaulting to a target specialty
+      // silently hid every entry not tagged with it (QA: "1 entry, 0 cases"
+      // after "Add to export"). Narrowing is an explicit choice in the picker,
+      // and the active scope is shown above the list. The "Add to export"
+      // handoff key is consumed only by the loadEntries effect below.
+      setSpecialty(ALL_RECORDS)
     }
     load()
   }, [supabase])
@@ -170,11 +178,13 @@ export default function ExportPage() {
 
       const { data: { user } } = await supabase.auth.getUser()
       if (!user || cancelled) return
+      // Demo (example) rows are never exported.
       const caseQuery = supabase
         .from('cases')
         .select('*')
         .eq('user_id', user.id)
         .is('deleted_at', null)
+        .eq('is_demo', false)
         .order('date', { ascending: false })
       const [{ data }, { data: caseRows }] = await Promise.all([
         supabase
@@ -182,6 +192,7 @@ export default function ExportPage() {
           .select('*')
           .eq('user_id', user.id)
           .is('deleted_at', null)
+          .eq('is_demo', false)
           .order('date', { ascending: false }),
         specialty === ALL_RECORDS || specialty === UNTAGGED_RECORDS
           ? caseQuery
@@ -457,7 +468,12 @@ export default function ExportPage() {
     setRevokingLink(id)
     const { ok } = await apiFetch(`/api/share?id=${id}`, { method: 'DELETE' })
     if (ok) {
+      const revokedLink = shareLinks.find(link => link.id === id)
       setShareLinks(prev => prev.filter(link => link.id !== id))
+      if (revokedLink) {
+        const { token: _token, ...rest } = revokedLink
+        setRevokedLinks(prev => [{ ...rest, revoked_at: new Date().toISOString() }, ...prev])
+      }
       setConfirmRevoke(null)
       addToast('Share link revoked', 'success')
       void refreshSubscriptionInfo()
@@ -542,7 +558,8 @@ export default function ExportPage() {
         </div>
       )}
 
-      {tab !== 'backup' && tab !== 'import' && tab !== 'files' && (
+      {/* Application PDF only: share links have their own scope picker. */}
+      {tab === 'pdf' && (
         <TargetSpecialtyPicker
           specialty={specialty}
           setSpecialty={setSpecialty}
@@ -589,6 +606,7 @@ export default function ExportPage() {
           selectedCaseIds={selectedCaseIds}
           setSelectedCaseIds={setSelectedCaseIds}
           onDownloadEvidenceZip={downloadEvidenceZip}
+          onShowAllRecords={() => setSpecialty(ALL_RECORDS)}
         />
       )}
 
@@ -622,7 +640,7 @@ export default function ExportPage() {
           trackedApps={trackedApps}
           shareTheme={shareTheme}
           setShareTheme={setShareTheme}
-          themes={themes}
+          themes={allThemes}
           expiryPreset={expiryPreset}
           setExpiryPreset={setExpiryPreset}
           customExpiry={customExpiry}
@@ -647,6 +665,7 @@ export default function ExportPage() {
           setConfirmRevoke={setConfirmRevoke}
           revokingLink={revokingLink}
           onRevoke={revokeShareLink}
+          revokedLinks={revokedLinks}
         />
       )}
     </div>

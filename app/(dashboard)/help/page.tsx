@@ -28,11 +28,11 @@ const ACRONYMS: Term[] = [
 ]
 
 const CONCEPTS: Term[] = [
-  { term: 'Linked specialties', description: 'Specialties from your tracked applications that an entry can support (e.g. an audit might count for both IMT and GP). Stored as `specialty_tags`.' },
-  { term: 'Competency themes', description: 'Cross-cutting competency themes (Leadership, Teaching, Communication, Audit & Quality Improvement, etc.) that an entry demonstrates. Add custom themes in Settings.' },
+  { term: 'Linked specialties', description: 'Specialties from your tracked applications that an entry or case can support (e.g. an audit might count for both IMT and GP).' },
+  { term: 'Competency themes', description: 'Cross-cutting competency themes (Leadership, Teaching, Communication, Audit & Quality Improvement, etc.) that an entry or case demonstrates. Add custom themes in Settings.' },
   { term: 'Clinical area', description: 'The medical setting an entry sits in (Cardiology, Geriatrics, A&E). Cases-only field, used for filtering.' },
   { term: 'Categories', description: 'Top-level entry types: Audit & QIP, Teaching & Presentations, Conferences & Courses, Publications & Research, Leadership & Societies, Prizes & Awards, Procedures & Clinical Skills, Reflections & CBDs/DOPs, Custom.' },
-  { term: 'Snippets', description: 'Short reusable phrases you can drop into any portfolio note via a slash shortcut (e.g. /reflection).' },
+  { term: 'Snippets', description: 'Short reusable phrases (set up in Settings > Snippets). In any notes or reflection box, type / and the start of a shortcut (e.g. /sbar) to open a menu of matching snippets, then press Enter or Tab, or click, to insert one.' },
   { term: 'Templates', description: 'Reusable entry shapes you can clone for new entries. Saved from existing entries via the "Template" button.' },
   { term: 'Goals vs deadlines', description: 'Goals are personal targets you set ("Complete 3 audits by FY1 end"). Deadlines are application/ARCP dates that can\'t slip - you add your own, and the national NHS recruitment dates can be shown automatically.' },
   { term: 'Auto-loaded deadlines', description: 'The national NHS specialty recruitment dates (applications opening and closing, interviews, offers). Marked with an "Auto" badge on the timeline; switch them on or off with the "Show NHS national recruitment dates" tick.' },

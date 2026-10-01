@@ -1,20 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import LinkedInSnippets from '@/components/export/linkedin-snippets'
-import type { Category } from '@/lib/types/portfolio'
-
-type LinkedInEntry = {
-  id: string
-  title: string
-  category: Category
-  date: string
-  conf_event_name: string | null
-  pub_journal: string | null
-  leader_role: string | null
-  leader_organisation: string | null
-  prize_body: string | null
-  proc_name: string | null
-}
+import type { LinkedInEntry } from '@/lib/export/linkedin-snippet'
 
 function dedupeEntries(entries: LinkedInEntry[]) {
   const seen = new Set<string>()
@@ -35,7 +22,7 @@ export default async function LinkedInExportPage() {
         // Structured columns only - never notes or reflection free text, which
         // can carry clinical detail that must not end up in a public post.
         // Reflections are left out entirely for the same reason.
-        .select('id, title, category, date, conf_event_name, pub_journal, leader_role, leader_organisation, prize_body, proc_name')
+        .select('id, title, category, date, conf_event_name, conf_type, pub_journal, pub_status, leader_role, leader_organisation, prize_body, proc_name, teaching_type, teaching_audience, teaching_event, audit_type')
         .eq('user_id', user.id)
         .is('deleted_at', null)
         .eq('is_demo', false)
@@ -49,7 +36,7 @@ export default async function LinkedInExportPage() {
         <Link href="/export" className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)]">Back</Link>
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">LinkedIn snippets</h1>
-          <p className="mt-0.5 text-sm text-[var(--text-muted)]">One line per portfolio entry, built from structured fields only. Reflections and notes are never included.</p>
+          <p className="mt-0.5 text-sm text-[var(--text-muted)]">One factual line per portfolio entry, built only from the details you recorded (title, date, event, role). Reflections and notes are never included - edit the wording before you post.</p>
         </div>
       </div>
       <LinkedInSnippets entries={dedupeEntries((entries ?? []) as LinkedInEntry[])} />

@@ -11,7 +11,8 @@ import {
   type TrackedApp,
 } from './shared'
 
-// The "Target specialty" card shown on the Application PDF and Share tabs.
+// The optional "Target specialty" filter on the Application PDF tab (the
+// Share tab has its own scope picker). Defaults to All records.
 export function TargetSpecialtyPicker({
   specialty,
   setSpecialty,
@@ -28,8 +29,9 @@ export function TargetSpecialtyPicker({
   linkedOnlyOptions: TagCount[]
 }) {
   return (
-    <div className="mb-4 rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
-      <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Target specialty</p>
+    <div className="mb-4 rounded-2xl border border-[var(--border-default)] bg-[var(--bg-surface)] p-5">
+      <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Target specialty</p>
+      <p className="mb-3 mt-1 text-xs text-[var(--text-muted)]">Optional. Narrow the list below to entries tagged with one specialty, or keep All records.</p>
       <div className="mb-3 flex flex-wrap gap-2">
         {[
           { value: ALL_RECORDS, label: 'All records' },
@@ -45,7 +47,7 @@ export function TargetSpecialtyPicker({
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tracked specialties</p>
           <div className="flex flex-wrap gap-2">
             {trackedSpecialtyOptions.map(({ key, count }) => (
-              <button key={key} onClick={() => setSpecialty(current => current === key ? '' : key)} className={specialtyChipClass(specialty === key)}>
+              <button key={key} onClick={() => setSpecialty(current => current === key ? ALL_RECORDS : key)} className={specialtyChipClass(specialty === key)}>
                 {formatSpecialtyLabel(key)} <span className="ml-1 text-xs opacity-60">{count}</span>
               </button>
             ))}
@@ -57,7 +59,7 @@ export function TargetSpecialtyPicker({
           <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wider text-[var(--text-emphasis)]">Tagged in your entries</p>
           <div className="flex flex-wrap gap-2">
             {linkedOnlyOptions.map(({ tag, count }) => (
-              <button key={tag} onClick={() => setSpecialty(current => current === tag ? '' : tag)} className={specialtyChipClass(specialty === tag)}>
+              <button key={tag} onClick={() => setSpecialty(current => current === tag ? ALL_RECORDS : tag)} className={specialtyChipClass(specialty === tag)}>
                 {formatSpecialtyLabel(tag)} <span className="ml-1 text-xs opacity-60">{count}</span>
               </button>
             ))}

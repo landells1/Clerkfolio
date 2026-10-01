@@ -8,7 +8,7 @@ export function ChangelogEntryList({ entries }: { entries: ChangelogEntry[] }) {
     <div className="space-y-4">
       {entries.map(entry => (
         <article key={`${entry.date}-${entry.title}`} className="rounded-xl bg-[var(--bg-canvas)] p-4">
-          <p className="text-xs text-[var(--text-muted)]">{new Date(entry.date).toLocaleDateString('en-GB')}</p>
+          <p className="text-xs text-[var(--text-muted)]">{new Date(entry.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
           <h3 className="mt-1 text-sm font-semibold text-[var(--text-primary)]">{entry.title}</h3>
           <p className="mt-1 text-sm text-[var(--text-secondary)]">{entry.body}</p>
         </article>

@@ -1,3 +1,5 @@
+import { isMissing } from '@/lib/search/missing-filter'
+
 export type ParsedSearchQuery = {
   raw: string
   terms: string[]
@@ -152,6 +154,10 @@ export function matchesParsedQuery(
   options: {
     missingFields?: string[]
     extraFields?: string[]
+    // When set, `missing:` uses the real field predicates in
+    // lib/search/missing-filter.ts; otherwise (or for an unknown key) it falls
+    // back to matching against the supplied missingFields labels.
+    recordType?: 'portfolio' | 'case'
   } = {},
 ) {
   const haystack = textFor(record, options.extraFields)
@@ -164,7 +170,11 @@ export function matchesParsedQuery(
   if (parsed.category && normalise(record.category) !== parsed.category) return false
   if (parsed.since && normalise(record.date) < parsed.since) return false
   if (parsed.hasNotes && !normalise(record.notes).trim()) return false
-  if (parsed.missing && !(options.missingFields ?? []).some(field => field.toLowerCase().includes(parsed.missing!))) return false
+  if (parsed.missing) {
+    const predicate = options.recordType ? isMissing(record, parsed.missing, options.recordType) : null
+    if (predicate === false) return false
+    if (predicate === null && !(options.missingFields ?? []).some(field => field.toLowerCase().includes(parsed.missing!))) return false
+  }
 
   return true
 }

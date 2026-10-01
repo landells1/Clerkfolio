@@ -418,7 +418,7 @@ export default function SettingsPage() {
     ['/settings/snippets', 'Snippets', 'Reusable phrases for portfolio notes'],
     ['/settings/templates', 'Templates', 'Reusable entry shapes you can clone'],
     ['/settings/themes', 'Competency themes', 'Custom competency themes (Leadership, Teaching, etc.)'],
-    ['/settings/tags', 'Specialty tags', 'Rename or merge linked-specialty tags'],
+    ['/settings/tags', 'Merge specialty tags', 'Move entries from one linked-specialty tag to another'],
     ['/export?tab=share', 'Shared links', 'Manage read-only public share links'],
     ['/settings/audit-log', 'Audit log', 'Recent security-relevant actions on your account'],
     ['/settings/sessions', 'Sessions', 'Active devices and sign-ins'],
@@ -502,7 +502,7 @@ export default function SettingsPage() {
       <section className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
         <input value={settingsSearch} onChange={e => setSettingsSearch(e.target.value)} placeholder="Search settings" className="min-h-[44px] rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-4 text-sm text-[var(--text-primary)] sm:col-span-2" />
         {settingsLinks.map(([href, label, description]) => <SettingsLink key={href} href={href} label={label} description={description} />)}
-        <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16]">
+        <button onClick={restartTutorial} className="min-h-[44px] text-left bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 text-sm font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)]">
           Restart tutorial
         </button>
       </section>
@@ -579,7 +579,7 @@ export default function SettingsPage() {
 
 function SettingsLink({ href, label, description }: { href: string; label: string; description?: string }) {
   return (
-    <Link href={href} className="min-h-[44px] flex flex-col bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-white/[0.16]">
+    <Link href={href} className="min-h-[44px] flex flex-col bg-[var(--bg-surface)] border border-white/[0.08] rounded-xl px-4 py-3 hover:border-[var(--border-strong)]">
       <span className="text-sm font-medium text-[var(--text-primary)]">{label}</span>
       {description && <span className="mt-0.5 text-[11px] text-[var(--text-muted)]">{description}</span>}
     </Link>

@@ -14,6 +14,7 @@ import {
   type ShareLink,
   type ShareScope,
   type TrackedApp,
+  type RevokedShareLink,
 } from './shared'
 
 // Share links tab: the create-protected-link form and the active-links list.
@@ -55,6 +56,7 @@ export function ShareTab({
   setConfirmRevoke,
   revokingLink,
   onRevoke,
+  revokedLinks,
 }: {
   subInfo: SubscriptionInfo | null
   canCreateShareLink: boolean
@@ -91,6 +93,7 @@ export function ShareTab({
   setConfirmRevoke: (id: string | null) => void
   revokingLink: string | null
   onRevoke: (id: string) => void
+  revokedLinks: RevokedShareLink[]
 }) {
   const activeLinkCount = shareLinks.filter(link => !isShareLinkExpired(link)).length
   const allowance = subInfo ? shareAllowance(subInfo, activeLinkCount) : { allowed: 1, remaining: 0 }
@@ -212,6 +215,9 @@ export function ShareTab({
               Redact tags
             </label>
           </div>
+          <p className="text-xs text-[var(--text-muted)]">
+            The shared page shows your account name (from Settings &gt; Profile) as the portfolio owner.
+          </p>
           <button type="button" onClick={onCreate} disabled={shareLoading || !canCreateShareLink || !/^\d{4,8}$/.test(sharePin.trim()) || (shareScope === 'specialty' && !shareSpecialty)} className="w-full rounded-xl bg-[var(--button-primary-bg)] px-4 py-2.5 text-sm font-semibold text-[var(--button-primary-text)] disabled:opacity-40 disabled:cursor-not-allowed">
             {shareLoading ? 'Creating...' : 'Create link'}
           </button>
@@ -270,6 +276,24 @@ export function ShareTab({
               </article>
             ))}
           </div>
+        )}
+        {revokedLinks.length > 0 && (
+          <details className="border-t border-[var(--border-subtle)] px-5 py-4">
+            <summary className="cursor-pointer text-sm font-medium text-[var(--text-primary)]">
+              Revoked links ({revokedLinks.length})
+            </summary>
+            <p className="mt-2 text-xs text-[var(--text-muted)]">A record of links you have revoked. They no longer open, and they do not count toward your allowance.</p>
+            <ul className="mt-3 space-y-2">
+              {revokedLinks.map(link => (
+                <li key={link.id} className="rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-canvas)] px-3 py-2 text-xs text-[var(--text-secondary)]">
+                  <span className="font-medium text-[var(--text-primary)]">{shareLabel(link)}</span>
+                  {' '}- created {formatDate(link.created_at)}
+                  {link.revoked_at ? ` - revoked ${formatDate(link.revoked_at)}` : ' - revoked'}
+                  {' '}- {link.view_count ?? 0} {link.view_count === 1 ? 'view' : 'views'}
+                </li>
+              ))}
+            </ul>
+          </details>
         )}
       </section>
     </div>

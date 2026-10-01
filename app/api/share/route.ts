@@ -78,10 +78,28 @@ async function verifyShareScope(
   return null
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+  // ?revoked=1 returns the user's revoked links as history (newest first),
+  // WITHOUT the token - a revoked link no longer opens anything, and the
+  // token never needs to reach the browser again.
+  if (req.nextUrl.searchParams.get('revoked') === '1') {
+    const { data, error } = await supabase
+      .from('share_links')
+      .select('id, specialty_key, theme_slug, scope, expires_at, view_count, hide_notes, hide_reflection, redact_tags, revoked_at, created_at')
+      .eq('user_id', user.id)
+      .eq('revoked', true)
+      .order('revoked_at', { ascending: false, nullsFirst: false })
+      .limit(25)
+    if (error) {
+      console.error('share GET revoked error:', error.message)
+      return NextResponse.json({ error: 'Failed to load revoked links. Please try again.' }, { status: 500 })
+    }
+    return NextResponse.json(data ?? [])
+  }
 
   const { data, error } = await supabase
     .from('share_links')

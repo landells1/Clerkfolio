@@ -11,6 +11,10 @@ import CategoryTileGrid from '@/components/portfolio/category-tile-grid'
 import { matchesParsedQuery, parseSearchQuery } from '@/lib/search/parser'
 import { missingCompletenessFields } from '@/lib/utils/completeness'
 import { isImportance } from '@/lib/types/importance'
+import { londonDateKey } from '@/lib/engagement/streaks'
+import { PORTFOLIO_MISSING_OPTIONS, missingFilterLabel } from '@/lib/search/missing-filter'
+import { countLabel } from '@/lib/utils/plural'
+import FilterBanner from '@/components/search/filter-banner'
 
 type ViewMode = 'categories' | 'themes' | 'all'
 
@@ -76,7 +80,7 @@ export default async function PortfolioPage({
     if (!matchesParsedQuery(
       { ...entry, file_names: fileNamesByEntry.get(entry.id) ?? [] },
       parsedQuery,
-      { missingFields: missingCompletenessFields(entry, 'portfolio') },
+      { missingFields: missingCompletenessFields(entry, 'portfolio'), recordType: 'portfolio' },
     )) return false
     return true
   })
@@ -91,12 +95,22 @@ export default async function PortfolioPage({
     ...(customThemes ?? []).map(theme => ({ name: theme.name, slug: normaliseTheme(theme.slug), colour: theme.colour ?? '#1B6FD9' })),
   ]
   const trackedSpecialtyKeys = (trackedSpecialtyRows ?? []).map(row => row.specialty_key)
+  const totalEntries = entries?.length ?? 0
+  // Everything that narrows the list (navigation tabs/categories excluded) -
+  // drives the "Showing N of M" banner so a filtered list is never mistaken
+  // for the whole portfolio.
+  const activeFilterLabels = [
+    q ? `Search: ${q}` : null,
+    importanceFilter ? `Importance: ${importanceFilter}` : null,
+    missing ? missingFilterLabel(missing, 'portfolio') : null,
+  ].filter((label): label is string => Boolean(label))
+  const filtered = activeFilterLabels.length > 0
 
   return (
     <PullToRefresh className="p-6 lg:p-8 max-w-container mx-auto w-full">
       <SectionHeader
         title="Portfolio"
-        sub={`${entries?.length ?? 0} ${(entries?.length ?? 0) === 1 ? 'entry' : 'entries'} logged`}
+        sub={filtered ? `${allEntries.length} of ${countLabel(totalEntries, 'entry', 'entries')}` : `${countLabel(totalEntries, 'entry', 'entries')} logged`}
         actions={
           <Link
             href={activeCategory ? `/portfolio/new?category=${activeCategory}` : '/portfolio/new'}
@@ -119,16 +133,16 @@ export default async function PortfolioPage({
           <option value="medium">Importance: Medium</option>
           <option value="low">Importance: Low</option>
         </select>
-        <select name="missing" defaultValue={missing} className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
+        <select name="missing" defaultValue={missing} aria-label="Missing fields" className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-3 text-sm text-fg">
           <option value="">Any fields</option>
-          <option value="notes">Missing notes</option>
-          <option value="specialty tags">Missing tags</option>
-          <option value="audit cycle stage">Missing audit stage</option>
-          <option value="date">Missing date</option>
+          {PORTFOLIO_MISSING_OPTIONS.map(option => <option key={option.value} value={option.value}>{option.label}</option>)}
         </select>
         <button className="min-h-[44px] rounded-lg border border-subtle bg-surface-1 px-4 text-sm font-medium text-fg">Search</button>
       </form>
-      <SavedSearchBar surface="portfolio" q={q} />
+      <SavedSearchBar surface="portfolio" q={q} showFilteredChip={false} />
+      {filtered && (
+        <FilterBanner labels={activeFilterLabels} shown={allEntries.length} total={totalEntries} singular="entry" plural="entries" clearHref="/portfolio" />
+      )}
 
       <div className="mb-6 flex flex-wrap gap-2 border-b border-subtle pb-4">
         <ViewLink href="/portfolio" active={view === 'categories'} label="Categories" />
@@ -137,7 +151,7 @@ export default async function PortfolioPage({
       </div>
 
       {view === 'categories' && !activeCategory && (
-        <CategoryTileGrid entries={(entries ?? []).map(e => ({ category: e.category as Category, date: e.date, created_at: e.created_at }))} />
+        <CategoryTileGrid entries={(entries ?? []).map(e => ({ category: e.category as Category, date: e.date }))} todayKey={londonDateKey(new Date())} />
       )}
       {view === 'categories' && activeCategory && (
         <div className="mb-6 flex flex-wrap gap-1.5">

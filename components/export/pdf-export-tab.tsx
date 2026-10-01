@@ -7,7 +7,9 @@ import { entrySubtitle as buildEntrySubtitle, formatCompetencyTheme } from '@/li
 import type { Case } from '@/lib/types/cases'
 import type { SubscriptionInfo } from '@/lib/subscription'
 import { pdfRemainingLabel } from '@/lib/entitlements/allowance'
+import { countLabel } from '@/lib/utils/plural'
 import {
+  ALL_RECORDS,
   EXPORT_FIELDS,
   exportScopeLabel,
   formatDate,
@@ -54,6 +56,7 @@ export function PdfExportTab({
   selectedCaseIds,
   setSelectedCaseIds,
   onDownloadEvidenceZip,
+  onShowAllRecords,
 }: {
   subInfo: SubscriptionInfo | null
   format: ExportFormat
@@ -87,7 +90,9 @@ export function PdfExportTab({
   selectedCaseIds: Set<string>
   setSelectedCaseIds: Dispatch<SetStateAction<Set<string>>>
   onDownloadEvidenceZip: (entryId: string, title: string) => void
+  onShowAllRecords: () => void
 }) {
+  const scopeNarrowed = specialty !== ALL_RECORDS || categoryFilter !== 'all' || Boolean(themeFilter)
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[280px_1fr]">
       <aside className="space-y-4">
@@ -206,7 +211,7 @@ export function PdfExportTab({
             <p className="mb-3 text-[11px] text-[var(--text-muted)]">
               Attach an existing PDF (CV, cover letter, supporting evidence) to the end of the export.
             </p>
-            <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[var(--text-secondary)] file:mr-3 file:rounded-lg file:border-0 file:bg-white/[0.08] file:px-3 file:py-2 file:text-xs file:text-[var(--text-primary)]" />
+            <input type="file" accept="application/pdf,.pdf" onChange={e => setAppendPdfFile(e.target.files?.[0] ?? null)} className="block w-full text-xs text-[var(--text-secondary)] file:mr-3 file:rounded-lg file:border-0 file:bg-[var(--bg-overlay-strong)] file:px-3 file:py-2 file:text-xs file:text-[var(--text-primary)]" />
             <button
               onClick={onAppendPdf}
               disabled={!appendPdfFile || selectedEntryIds.size === 0 || appendingPdf}
@@ -221,9 +226,24 @@ export function PdfExportTab({
 
       <section className="overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)]">
         <div className="flex flex-col gap-3 border-b border-white/[0.06] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">
-            {loading ? 'Loading...' : `${visible.length} entries, ${visibleCases.length} cases - ${totalSelected} selected`}
-          </p>
+          <div>
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--text-emphasis)]">
+              {loading ? 'Loading...' : `${countLabel(visible.length, 'entry', 'entries')}, ${countLabel(visibleCases.length, 'case')} - ${totalSelected} selected`}
+            </p>
+            {!loading && (
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Showing {exportScopeLabel(specialty)}
+                {categoryFilter !== 'all' ? `, ${CATEGORIES.find(c => c.value === categoryFilter)?.label ?? categoryFilter} only` : ''}
+                {themeFilter ? `, theme ${formatCompetencyTheme(themeFilter)}` : ''}
+                {scopeNarrowed && specialty !== ALL_RECORDS && (
+                  <>
+                    {' - '}
+                    <button type="button" onClick={onShowAllRecords} className="font-medium text-[var(--accent-text)] underline">Show all records</button>
+                  </>
+                )}
+              </p>
+            )}
+          </div>
           {format === 'pdf' && visibleCases.length > 0 && (
             <p className="text-xs text-[var(--text-muted)]">Cases export as CSV or JSON. PDFs include portfolio entries only.</p>
           )}

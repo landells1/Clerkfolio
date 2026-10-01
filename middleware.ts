@@ -2,6 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 import { requestIp } from '@/lib/request-ip'
 import { isProtectedPagePath } from '@/lib/auth/protected-paths'
+import { readSessionIdFromJwt } from '@/lib/auth/user-agent'
 
 function contentSecurityPolicy(nonce: string): string {
   return [
@@ -40,23 +41,12 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest)).map(byte => byte.toString(16).padStart(2, '0')).join('')
 }
 
-// Decode a Supabase access-token JWT and pull the `session_id` claim.
-// Edge runtime: atob is available. We never trust this token (it's not the
+// Decode a Supabase access-token JWT and pull the `session_id` claim (shared
+// helper in lib/auth/user-agent.ts). We never trust this token (it's not the
 // auth check; supabase.auth.getUser handles that). We only use the session_id
 // for fingerprint scoping, so a malformed JWT just falls back to null and the
 // row keys on (user_id, ip_hash, user_agent) like before.
-function readSessionId(token: string | undefined): string | null {
-  if (!token) return null
-  const parts = token.split('.')
-  if (parts.length !== 3) return null
-  try {
-    const payload = parts[1].replace(/-/g, '+').replace(/_/g, '/')
-    const decoded = JSON.parse(atob(payload + '='.repeat((4 - payload.length % 4) % 4)))
-    return typeof decoded?.session_id === 'string' ? decoded.session_id : null
-  } catch {
-    return null
-  }
-}
+const readSessionId = readSessionIdFromJwt
 
 export async function middleware(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID()).replace(/=+$/, '')

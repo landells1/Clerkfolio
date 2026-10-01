@@ -1,4 +1,4 @@
-﻿import Link from 'next/link'
+import Link from 'next/link'
 import HorusImportWizard from '@/components/import/horus-import-wizard'
 import { createClient } from '@/lib/supabase/server'
 import { fetchSubscriptionInfo } from '@/lib/subscription'
@@ -34,7 +34,9 @@ export default async function ImportPage() {
         <div>
           <h1 className="text-2xl font-semibold text-[var(--text-primary)] tracking-tight">Import your portfolio</h1>
           <p className="text-sm text-[var(--text-muted)] mt-0.5">
-            Bring an existing portfolio into Clerkfolio. The Horus importer is below - you can also map a CSV/spreadsheet or restore a Clerkfolio backup.
+            {sub?.limits.canBulkImport
+              ? 'Bring an existing portfolio into Clerkfolio. The Horus importer is below - you can also map a CSV/spreadsheet or restore a Clerkfolio backup.'
+              : 'Bring an existing portfolio into Clerkfolio from Horus, a CSV/spreadsheet or a Clerkfolio backup. Importing is part of Pro - see below.'}
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link href="/import/csv" className="rounded-lg border border-white/[0.08] px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)]">CSV / spreadsheet</Link>

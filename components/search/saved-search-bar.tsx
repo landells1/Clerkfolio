@@ -4,8 +4,9 @@ import { useEffect, useMemo, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { parseSearchQuery } from '@/lib/search/parser'
-import { resolveFilterPersistence, stripNavParams } from '@/lib/search/filter-persistence'
-import { storageGet, storageSet, storageRemove } from '@/lib/safe-storage'
+import { hasActiveFilters as queryHasActiveFilters, legacyFilterStorageKey } from '@/lib/search/filter-persistence'
+import { storageRemove } from '@/lib/safe-storage'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 
 type Surface = 'cases' | 'portfolio' | 'timeline' | 'logs'
 
@@ -18,7 +19,9 @@ type SavedSearch = {
   }
 }
 
-export default function SavedSearchBar({ surface, q }: { surface: Surface; q: string }) {
+// `showFilteredChip`: pages that render their own FilterBanner (portfolio,
+// cases) turn the small "Filtered / Clear" chip off so the state shows once.
+export default function SavedSearchBar({ surface, q, showFilteredChip = true }: { surface: Surface; q: string; showFilteredChip?: boolean }) {
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
   const pathname = usePathname()
@@ -29,15 +32,11 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
   const [saveName, setSaveName] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
 
+  // Filters are never restored from a previous visit (see
+  // lib/search/filter-persistence.ts); clear what older versions stored.
   useEffect(() => {
-    const key = `clerkfolio-filters:${pathname}`
-    const decision = resolveFilterPersistence(searchParams.toString(), storageGet(key))
-    if (decision.action === 'restore') {
-      router.replace(`${pathname}?${decision.params}`)
-    } else if (decision.action === 'persist') {
-      storageSet(key, decision.params)
-    }
-  }, [pathname, router, searchParams])
+    storageRemove(legacyFilterStorageKey(pathname))
+  }, [pathname])
 
   useEffect(() => {
     async function load() {
@@ -93,9 +92,10 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     setSaveOpen(false)
   }
 
+  const [pendingRemove, setPendingRemove] = useState<SavedSearch | null>(null)
+
   async function removeSaved(id: string) {
-    const item = saved.find(row => row.id === id)
-    if (!item || !window.confirm(`Remove the saved search "${item.name}"?`)) return
+    setPendingRemove(null)
     const { error } = await supabase.from('saved_searches').delete().eq('id', id)
     if (error) { setSaveError('Could not remove that saved search. Please try again.'); return }
     setSaved(prev => prev.filter(row => row.id !== id))
@@ -109,17 +109,13 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
     router.push(params.toString() ? `${pathname}?${params.toString()}` : pathname)
   }
 
-  // A bare URL re-applies the last remembered filters (resolveFilterPersistence),
-  // so simply linking to `pathname` would be undone by the restore effect above.
-  // Clearing therefore drops the persisted entry first, then navigates bare, so
-  // the surface defaults to the full unfiltered view (QOL-016).
+  // The bare path is always the unfiltered view (QOL-016).
   function clearFilters() {
-    try { storageRemove(`clerkfolio-filters:${pathname}`) } catch {}
     router.replace(pathname)
   }
 
   // Only surface "Clear" when a real filter (not just navigational params) is active.
-  const hasActiveFilters = stripNavParams(searchParams.toString()).length > 0
+  const hasActiveFilters = showFilteredChip && queryHasActiveFilters(searchParams.toString())
 
   return (
     <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -139,7 +135,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
         type="button"
         onClick={() => setSaveOpen(current => !current)}
         disabled={saving}
-        className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-secondary)] hover:border-white/[0.16] hover:text-[var(--text-primary)] disabled:opacity-50"
+        className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs font-medium text-[var(--text-secondary)] hover:border-[var(--border-strong)] hover:text-[var(--text-primary)] disabled:opacity-50"
       >
         {saving ? 'Saving...' : 'Save search'}
       </button>
@@ -169,7 +165,7 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
           value=""
           onChange={event => {
             const value = event.target.value
-            if (value.startsWith('remove:')) void removeSaved(value.slice('remove:'.length))
+            if (value.startsWith('remove:')) setPendingRemove(saved.find(row => row.id === value.slice('remove:'.length)) ?? null)
             else applySaved(value)
           }}
           className="min-h-[36px] rounded-lg border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-primary)]"
@@ -182,6 +178,17 @@ export default function SavedSearchBar({ surface, q }: { surface: Surface; q: st
           </optgroup>
         </select>
       )}
+      <ConfirmDialog
+        open={pendingRemove !== null}
+        title="Remove this saved search?"
+        confirmLabel="Remove"
+        busyLabel="Removing..."
+        tone="danger"
+        onConfirm={() => pendingRemove ? removeSaved(pendingRemove.id) : undefined}
+        onCancel={() => setPendingRemove(null)}
+      >
+        <p>&quot;{pendingRemove?.name}&quot; will be removed from your saved searches.</p>
+      </ConfirmDialog>
     </div>
   )
 }

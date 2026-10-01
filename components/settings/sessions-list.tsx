@@ -6,8 +6,8 @@ import { apiFetch } from '@/lib/api-fetch'
 
 export type SessionRow = {
   id: string
-  ip_hash: string
-  user_agent: string | null
+  device: string
+  isCurrent: boolean
   last_seen_at: string
   revoked_at: string | null
   created_at: string
@@ -75,8 +75,18 @@ export default function SessionsList({ initialRows, timezone }: { initialRows: S
         <article key={row.id} className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-[var(--text-primary)]">{row.user_agent ?? 'Unknown browser'}</p>
-              <p className="mt-1 font-mono text-xs text-[var(--text-secondary)]">{row.ip_hash.slice(0, 12)}... - last seen {formatSessionDate(row.last_seen_at, timezone)} ({relativeLastSeen(row.last_seen_at)})</p>
+              <p className="flex flex-wrap items-center gap-2 text-sm font-medium text-[var(--text-primary)]">
+                {row.device}
+                {row.isCurrent && (
+                  <span className="rounded bg-[var(--accent-soft)] px-2 py-0.5 text-[11px] font-medium text-[var(--accent-soft-text)]">This device</span>
+                )}
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                {row.isCurrent
+                  ? 'Active now'
+                  : `Last active ${formatSessionDate(row.last_seen_at, timezone)} (${relativeLastSeen(row.last_seen_at)})`}
+                {' - '}first signed in {formatSessionDate(row.created_at, timezone)}
+              </p>
             </div>
             {row.revoked_at ? (
               <span className="rounded bg-red-500/10 px-2 py-1 text-xs text-[var(--danger)]">Revoked</span>
