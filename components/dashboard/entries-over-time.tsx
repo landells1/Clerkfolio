@@ -52,7 +52,7 @@ export default function EntriesOverTime({ data }: { data: EntriesOverTimeBucket[
                 </linearGradient>
               ))}
             </defs>
-            <CartesianGrid stroke="var(--text-faint)" vertical={false} />
+            <CartesianGrid stroke="var(--border-subtle)" vertical={false} />
             <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} tickLine={false} axisLine={false} />
             <YAxis tick={{ fill: 'var(--text-secondary)', fontSize: 11 }} tickLine={false} axisLine={false} allowDecimals={false} />
             <Tooltip

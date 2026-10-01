@@ -24,7 +24,7 @@ export function SpecialtyScoreCharts({
   }).join(' ')
 
   return (
-    <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="mb-5 grid grid-cols-1 gap-4 xl:grid-cols-2">
       <section className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5">
         <div className="mb-3">
           <h2 className="text-sm font-semibold text-[var(--text-primary)]">Domain score bars</h2>

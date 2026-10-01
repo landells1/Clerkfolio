@@ -85,7 +85,7 @@
   --text-primary:     #0B1633; /* headings, primary copy (navy ink) */
   --text-secondary:   #3E4A66; /* body, labels */
   --text-muted:       #59647D; /* captions, meta, placeholders (5.5:1 on canvas) */
-  --text-faint:       rgba(11, 22, 51, 0.45); /* disabled / faint */
+  --text-faint:       rgba(11, 22, 51, 0.56); /* disabled / faint, about 4:1 */
   --text-on-accent:   #FFFFFF; /* text on accent fills */
   --text-emphasis:    #1B2A55; /* important text (sidebar nav, key labels) */
 
@@ -126,7 +126,7 @@
   /* Status */
   --success:          #15803D;
   --warning:          #8A5A00; /* saffron text, 6:1 on white */
-  --danger:           #DC2626;
+  --danger:           #B91C1C; /* 6.5:1 on white */
 
   /* Elevation — light themes need real shadows for depth */
   --shadow-sm:  0 1px 2px rgba(11, 22, 51, 0.06);
@@ -526,7 +526,9 @@ body[data-bulk-select="true"] [data-fab] {
 
 /* Light theme: white-alpha fills (bg-white/[0.06] etc.) were written for the
    dark theme and vanish on white cards (meter tracks, chips, kbd, toggles).
-   Map them onto navy-tinted overlay tokens. Hover variants map one step up. */
+   Map them onto navy-tinted overlay tokens. Tailwind emits hover variants
+   after this file's rules, so the hover mappings repeat the attribute
+   selector to outrank them. */
 :where(html:not([data-theme="dark"])) [class~="bg-white/[0.02]"],
 :where(html:not([data-theme="dark"])) [class~="bg-white/[0.03]"] {
   background-color: var(--bg-overlay-faint);
@@ -544,19 +546,19 @@ body[data-bulk-select="true"] [data-fab] {
 :where(html:not([data-theme="dark"])) [class~="bg-white/[0.18]"] {
   background-color: var(--bg-overlay-heavy);
 }
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.02]"]:hover,
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.03]"]:hover {
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.02]"][class~="hover:bg-white/[0.02]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.03]"][class~="hover:bg-white/[0.03]"]:hover {
   background-color: var(--bg-overlay-faint);
 }
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.04]"]:hover,
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.05]"]:hover {
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.04]"][class~="hover:bg-white/[0.04]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.05]"][class~="hover:bg-white/[0.05]"]:hover {
   background-color: var(--bg-overlay-soft);
 }
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.06]"]:hover,
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.08]"]:hover {
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.06]"][class~="hover:bg-white/[0.06]"]:hover,
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.08]"][class~="hover:bg-white/[0.08]"]:hover {
   background-color: var(--bg-overlay-strong);
 }
-:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.1]"]:hover {
+:where(html:not([data-theme="dark"])) [class~="hover:bg-white/[0.1]"][class~="hover:bg-white/[0.1]"]:hover {
   background-color: var(--bg-overlay-heavy);
 }
 
@@ -589,7 +591,7 @@ body[data-bulk-select="true"] [data-fab] {
 :where(html:not([data-theme="dark"])) [class~="text-pink-400"] {
   color: var(--cat-pink-text);
 }
-:where(html:not([data-theme="dark"])) [class~="hover:text-red-400"]:hover {
+:where(html:not([data-theme="dark"])) [class~="hover:text-red-400"][class~="hover:text-red-400"]:hover {
   color: var(--cat-red-text);
 }
 :where(html:not([data-theme="dark"])) [class~="text-amber-400/70"] {
@@ -617,7 +619,10 @@ body[data-bulk-select="true"] [data-fab] {
   border-color: var(--info-border);
 }
 
-/* Light theme: quieter native scrollbars on horizontal tab strips. */
+/* Light theme: quieter native scrollbars; horizontal tab strips get thin ones. */
 html:not([data-theme="dark"]) {
   scrollbar-color: var(--border-strong) transparent;
+}
+[class~="overflow-x-auto"] {
+  scrollbar-width: thin;
 }

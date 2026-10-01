@@ -369,7 +369,7 @@ export function SpecialtyDetail({
                   </a>
                   <span className="mx-1">&middot;</span>
                   <span>{source.claim}</span>
-                  <span className="ml-1 text-[var(--text-faint)]">(verified {source.lastVerified})</span>
+                  <span className="ml-1 text-[var(--text-muted)]">(verified {source.lastVerified})</span>
                 </li>
               ))}
             </ul>
