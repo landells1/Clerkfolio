@@ -2,101 +2,35 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
-import { purgeEvidenceForEntriesClient, type EvidencePurgeTarget } from '@/lib/evidence/client-purge'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
+import { countLabel } from '@/lib/utils/plural'
 
-export default function EmptyTrashButton({
-  eligibleCount,
-  retainedCount,
-  nextEligibleAt,
-}: {
-  eligibleCount: number
-  retainedCount: number
-  nextEligibleAt: string | null
-}) {
-  const supabase = createClient()
+// "Empty trash": permanently deletes EVERYTHING currently in Trash, straight
+// away, via the owner-checked server route (POST /api/trash/purge). Guarded by
+// a type-EMPTY confirmation because it cannot be undone. The nightly 30-day
+// auto-purge is separate and unchanged.
+export default function EmptyTrashButton({ itemCount }: { itemCount: number }) {
   const router = useRouter()
   const { addToast } = useToast()
   const [open, setOpen] = useState(false)
-  const [confirm, setConfirm] = useState('')
-  const [loading, setLoading] = useState(false)
 
   async function emptyTrash() {
-    if (confirm !== 'EMPTY') return
-    setLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      setLoading(false)
-      addToast('Please sign in again', 'error')
+    const { ok, status, data } = await apiFetch<{ purged?: { entries: number; cases: number; logs: number }; error?: string }>('/api/trash/purge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ all: true }),
+    })
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Could not empty trash'), 'error')
+      router.refresh()
       return
     }
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 86_400_000).toISOString()
-    const [
-      { data: expiredEntries, error: entryLookupError },
-      { data: expiredCases, error: caseLookupError },
-      { data: expiredLogs, error: logLookupError },
-    ] = await Promise.all([
-      supabase.from('portfolio_entries').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
-      supabase.from('cases').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
-      supabase.from('personal_log').select('id').eq('user_id', user.id).lt('deleted_at', thirtyDaysAgo).not('deleted_at', 'is', null),
-    ])
-    if (entryLookupError || caseLookupError || logLookupError) {
-      setLoading(false)
-      addToast('Could not empty trash', 'error')
-      return
-    }
-
-    const entryIds = (expiredEntries ?? []).map(row => row.id)
-    const caseIds = (expiredCases ?? []).map(row => row.id)
-    const logIds = (expiredLogs ?? []).map(row => row.id)
-    if (entryIds.length === 0 && caseIds.length === 0 && logIds.length === 0) {
-      setLoading(false)
-      addToast('No items are eligible for permanent deletion yet. Deleted items stay restorable for 30 days.', 'info')
-      setOpen(false)
-      setConfirm('')
-      return
-    }
-    // Evidence reuse: unlink every expiring entry's files and delete only the
-    // files whose last link is now gone (a file still linked to a live entry
-    // survives). Shared with the per-row "delete permanently" flow.
-    const purgeTargets: EvidencePurgeTarget[] = [
-      ...entryIds.map(id => ({ entryId: id, entryType: 'portfolio' as const })),
-      ...caseIds.map(id => ({ entryId: id, entryType: 'case' as const })),
-    ]
-    const purge = await purgeEvidenceForEntriesClient(supabase, user.id, purgeTargets)
-    if (purge.error) {
-      setLoading(false)
-      addToast(purge.error, 'error')
-      return
-    }
-
-    // Delete exactly the rows whose evidence was just cleaned, in batches that
-    // keep each id filter well inside URL limits.
-    const deleteIds = async (table: 'portfolio_entries' | 'cases' | 'personal_log', ids: string[]) => {
-      for (let offset = 0; offset < ids.length; offset += 100) {
-        const { error } = await supabase.from(table).delete()
-          .in('id', ids.slice(offset, offset + 100))
-          .eq('user_id', user.id)
-          .not('deleted_at', 'is', null)
-        if (error) return false
-      }
-      return true
-    }
-    const results = await Promise.all([
-      deleteIds('portfolio_entries', entryIds),
-      deleteIds('cases', caseIds),
-      deleteIds('personal_log', logIds),
-    ])
-    setLoading(false)
-    if (results.includes(false)) {
-      addToast('Could not empty trash', 'error')
-      return
-    }
-    const deletedCount = entryIds.length + caseIds.length + logIds.length
-    addToast(`${deletedCount} expired ${deletedCount === 1 ? 'item' : 'items'} permanently deleted`, 'success')
+    const purged = data?.purged
+    const total = purged ? purged.entries + purged.cases + purged.logs : 0
+    addToast(`${countLabel(total, 'item')} deleted permanently`, 'success')
     setOpen(false)
-    setConfirm('')
     router.refresh()
   }
 
@@ -104,38 +38,27 @@ export default function EmptyTrashButton({
     <>
       <div className="sm:max-w-[260px]">
         <button
+          type="button"
           onClick={() => setOpen(true)}
-          disabled={eligibleCount === 0}
-          className="min-h-[44px] w-full rounded-xl border border-red-500/20 px-4 text-sm font-medium text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-45"
+          disabled={itemCount === 0}
+          className="min-h-[44px] w-full rounded-xl border border-[var(--danger)] px-4 text-sm font-medium text-[var(--danger)] disabled:cursor-not-allowed disabled:opacity-45"
         >
           Empty trash
         </button>
-        {eligibleCount === 0 && retainedCount > 0 && nextEligibleAt && (
-          <p className="mt-2 text-xs leading-relaxed text-[var(--text-muted)]">
-            No items can be permanently deleted yet. The next item becomes eligible after{' '}
-            {new Date(new Date(nextEligibleAt).getTime() + 30 * 86_400_000).toLocaleDateString('en-GB', {
-              day: 'numeric',
-              month: 'short',
-              year: 'numeric',
-            })}.
-          </p>
-        )}
       </div>
-      {open && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-0 sm:items-center sm:p-4">
-          <div className="w-full max-w-md rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-6 sm:rounded-2xl">
-            <h2 className="text-lg font-semibold text-[var(--text-primary)]">Empty trash?</h2>
-            <p className="mt-2 text-sm text-[var(--text-secondary)]">Type EMPTY to permanently remove deleted entries and cases whose 30-day restore window has passed.</p>
-            <input value={confirm} onChange={e => setConfirm(e.target.value)} placeholder="EMPTY" className="mt-5 w-full min-h-[44px] rounded-lg border border-red-500/20 bg-[var(--bg-canvas)] px-3.5 text-sm text-[var(--text-primary)]" />
-            <div className="mt-5 flex gap-2">
-              <button onClick={() => setOpen(false)} className="min-h-[44px] flex-1 rounded-lg border border-white/[0.08] text-sm text-[var(--text-primary)]">Cancel</button>
-              <button onClick={emptyTrash} disabled={confirm !== 'EMPTY' || loading} className="min-h-[44px] flex-1 rounded-lg bg-red-500 px-4 text-sm font-semibold text-white disabled:opacity-40">
-                {loading ? 'Emptying...' : 'Empty'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        open={open}
+        title="Empty trash?"
+        confirmLabel="Delete everything permanently"
+        busyLabel="Emptying..."
+        tone="danger"
+        requireText="EMPTY"
+        onConfirm={emptyTrash}
+        onCancel={() => setOpen(false)}
+      >
+        <p>This permanently deletes all {countLabel(itemCount, 'item')} in Trash now, including anything deleted in the last 30 days. Nothing can be restored afterwards.</p>
+        <p>Evidence files attached to those entries and cases are deleted too, unless the same file is still attached to another entry or case - those files are kept.</p>
+      </ConfirmDialog>
     </>
   )
 }

@@ -1,11 +1,12 @@
 'use client'
 
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
 import SwipeToDelete from '@/components/ui/swipe-to-delete'
 import TrashActions from '@/components/trash/trash-actions'
-import { purgeEvidenceForEntriesClient } from '@/lib/evidence/client-purge'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
+import { apiFetch, NETWORK_ERROR_MESSAGE } from '@/lib/api-fetch'
 
 export type TrashItem = {
   id: string
@@ -18,98 +19,80 @@ export type TrashItem = {
 }
 
 export default function TrashRow({ item }: { item: TrashItem }) {
-  const supabase = createClient()
   const router = useRouter()
   const { addToast } = useToast()
-  const permanentDeleteAt = new Date(new Date(item.deletedAt).getTime() + 30 * 86_400_000)
-  const canPermanentlyDelete = permanentDeleteAt.getTime() <= Date.now()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const autoPurgeAt = new Date(new Date(item.deletedAt).getTime() + 30 * 86_400_000)
   const deletedDate = new Date(item.deletedAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const entryDate = new Date(item.date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+  const autoPurgeDate = autoPurgeAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
   const typeLabel = item.type === 'entry' ? 'Portfolio' : item.type === 'log' ? 'Log' : 'Case'
-  const entryType = item.type === 'entry' ? 'portfolio' : 'case'
+  const noun = item.type === 'entry' ? 'entry' : item.type === 'log' ? 'log entry' : 'case'
 
+  // Server-side, owner-checked hard delete (POST /api/trash/purge). Available
+  // straight away - the 30-day window is only when the nightly auto-purge
+  // runs, not a lock on deleting something yourself.
   async function permanentlyDelete() {
-    if (!canPermanentlyDelete) {
-      addToast(`This item can be permanently deleted after ${permanentDeleteAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`, 'error')
+    const { ok, status, data } = await apiFetch<{ error?: string }>('/api/trash/purge', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: [{ id: item.id, type: item.type }] }),
+    })
+    if (!ok) {
+      addToast(status === null ? NETWORK_ERROR_MESSAGE : (data?.error ?? 'Failed to delete item permanently'), 'error')
       return
     }
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) {
-      addToast('Please sign in again', 'error')
-      return
-    }
-    const table = item.type === 'entry' ? 'portfolio_entries' : item.type === 'log' ? 'personal_log' : 'cases'
-
-    // Evidence reuse: this entry's files may also be attached to other live
-    // entries. Unlink this entry's files and delete only the ones whose last
-    // link is now gone (a file still linked elsewhere survives). Log entries
-    // carry no evidence.
-    if (item.type !== 'log') {
-      const purge = await purgeEvidenceForEntriesClient(supabase, user.id, [{ entryId: item.id, entryType }])
-      if (purge.error) {
-        addToast(purge.error, 'error')
-        return
-      }
-    }
-
-    const { data: deletedRows, error } = await supabase
-      .from(table)
-      .delete()
-      .eq('id', item.id)
-      .eq('user_id', user.id)
-      .lt('deleted_at', new Date(Date.now() - 30 * 86_400_000).toISOString())
-      .not('deleted_at', 'is', null)
-      .select('id')
-
-    if (error) {
-      addToast('Failed to delete item permanently', 'error')
-      return
-    }
-    if (!deletedRows?.length) {
-      addToast(`This item can be permanently deleted after ${permanentDeleteAt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}.`, 'error')
-      return
-    }
-    addToast('Item deleted permanently', 'success')
+    setConfirmOpen(false)
+    addToast('Deleted permanently', 'success')
     router.refresh()
   }
 
-  async function confirmPermanentDelete() {
-    if (!window.confirm(`Permanently delete "${item.title}"? This cannot be undone.`)) return
-    await permanentlyDelete()
-  }
-
   return (
-    <SwipeToDelete
-      title="Delete permanently?"
-      description={`This permanently deletes "${item.title}" if its 30-day restore window has passed.`}
-      confirmLabel="Delete permanently"
-      onConfirm={permanentlyDelete}
-    >
-      <div className="flex items-center gap-3 bg-[var(--bg-surface)] border border-white/[0.08] rounded-lg px-4 py-3">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <span className="px-2 py-0.5 rounded-md bg-white/[0.04] border border-white/[0.08] text-[10px] font-medium text-[var(--text-secondary)]">
-              {typeLabel}
-            </span>
-            <p className="text-sm text-[var(--text-primary)] truncate">{item.title}</p>
+    <>
+      <SwipeToDelete
+        title="Delete permanently?"
+        description={`This permanently deletes "${item.title}" now. It cannot be restored.`}
+        confirmLabel="Delete permanently"
+        onConfirm={permanentlyDelete}
+      >
+        <div className="flex flex-col gap-3 rounded-lg border border-[var(--border-default)] bg-[var(--bg-surface)] px-4 py-3 sm:flex-row sm:items-center">
+          <div className="min-w-0 flex-1">
+            <div className="mb-1 flex items-center gap-2">
+              <span className="rounded-md border border-[var(--border-default)] bg-[var(--bg-overlay-soft)] px-2 py-0.5 text-[10px] font-medium text-[var(--text-secondary)]">
+                {typeLabel}
+              </span>
+              <p className="truncate text-sm text-[var(--text-primary)]">{item.title}</p>
+            </div>
+            <p className="text-xs text-[var(--text-secondary)]">
+              <span className="capitalize">{item.subtitle}</span> - {entryDate} - Deleted {deletedDate} - Removed automatically after {autoPurgeDate}
+            </p>
           </div>
-          <p className="text-xs text-[var(--text-secondary)] capitalize">
-            {item.subtitle} - {entryDate} - Deleted {deletedDate}
-          </p>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <TrashActions id={item.id} type={item.type} />
-          {canPermanentlyDelete && (
+          <div className="flex shrink-0 items-center gap-4">
+            <TrashActions id={item.id} type={item.type} />
             <button
               type="button"
-              onClick={confirmPermanentDelete}
-              className="text-xs text-[var(--danger)] transition-colors hover:text-[var(--danger)]"
+              onClick={() => setConfirmOpen(true)}
+              className="min-h-[36px] text-xs font-medium text-[var(--danger)] underline-offset-2 hover:underline"
             >
-              Delete permanently
+              Delete permanently now
             </button>
-          )}
+          </div>
         </div>
-      </div>
-    </SwipeToDelete>
+      </SwipeToDelete>
+      <ConfirmDialog
+        open={confirmOpen}
+        title={`Delete "${item.title}" permanently?`}
+        confirmLabel="Delete permanently"
+        busyLabel="Deleting..."
+        tone="danger"
+        onConfirm={permanentlyDelete}
+        onCancel={() => setConfirmOpen(false)}
+      >
+        <p>This deletes the {noun} now. It cannot be restored afterwards.</p>
+        {item.type !== 'log' && (
+          <p>Evidence files attached to it are deleted too, unless the same file is still attached to another entry or case - those files are kept there.</p>
+        )}
+      </ConfirmDialog>
+    </>
   )
 }

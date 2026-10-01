@@ -1,4 +1,4 @@
-﻿import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@/lib/supabase/server'
 import TrashRow, { type TrashItem } from '@/components/trash/trash-row'
 import EmptyTrashButton from '@/components/trash/empty-trash-button'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
@@ -67,12 +67,6 @@ export default async function TrashPage({
 
   const totalItems = filteredItems.length
   const filtersActive = recentOnly || Boolean(activeCategory)
-  const permanentDeleteCutoff = Date.now() - 30 * 86_400_000
-  const eligibleItems = items.filter(item => new Date(item.deletedAt).getTime() <= permanentDeleteCutoff)
-  const retainedItems = items.filter(item => new Date(item.deletedAt).getTime() > permanentDeleteCutoff)
-  const nextEligibleAt = retainedItems.length > 0
-    ? retainedItems.reduce((next, item) => item.deletedAt < next ? item.deletedAt : next, retainedItems[0].deletedAt)
-    : null
   const totals = {
     entry: filteredItems.filter(item => item.type === 'entry').length,
     case: filteredItems.filter(item => item.type === 'case').length,
@@ -93,7 +87,7 @@ export default async function TrashPage({
       </div>
 
       <form className="mb-6 flex flex-wrap gap-2">
-        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-white/[0.08] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-secondary)]">
+        <label className="flex min-h-[44px] items-center gap-2 rounded-xl border border-[var(--border-default)] bg-[var(--bg-surface)] px-3 text-xs text-[var(--text-secondary)]">
           <input type="checkbox" name="recent" value="7" defaultChecked={recentOnly} />
           Deleted last 7 days
         </label>
@@ -111,11 +105,7 @@ export default async function TrashPage({
             <TrashStat label="Cases" value={totals.case} />
             <TrashStat label="Logs" value={totals.log} />
           </div>
-          <EmptyTrashButton
-            eligibleCount={eligibleItems.length}
-            retainedCount={retainedItems.length}
-            nextEligibleAt={nextEligibleAt}
-          />
+          <EmptyTrashButton itemCount={items.length} />
         </div>
       )}
 
@@ -124,7 +114,7 @@ export default async function TrashPage({
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
         <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-          Items stay in Trash for 30 days before permanent deletion is available. Files linked to restored entries remain available.
+          Items stay in Trash for 30 days and are then deleted automatically. You can restore anything before then, or use Delete permanently now (for example, if an entry accidentally contained identifiable patient detail). Restored entries keep their files.
         </p>
       </div>
 
