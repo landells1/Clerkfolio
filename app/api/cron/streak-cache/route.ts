@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
-import { buildActiveWeekCache } from '@/lib/engagement/streaks'
+import { londonDateKey } from '@/lib/engagement/streaks'
+import { activeWeeksFromRows, addDays } from '@/lib/dashboard/date-stats'
 import * as Sentry from '@sentry/nextjs'
 import { logBackgroundJobError } from '@/lib/monitoring'
 import { fetchAllRows } from '@/lib/supabase/fetch-all'
@@ -17,14 +18,14 @@ export async function GET(req: NextRequest) {
   const supabase = createServiceClient()
   // Only users whose entries/cases changed in the last two days can have a
   // different set of active weeks (the streak itself is computed from the
-  // weeks at read time, and the dashboard merges today's rows live). The old
-  // loop over EVERY profile - unpaged, 3 queries each - would time out as the
-  // user base grew and left later users' caches stale.
+  // weeks at read time; the dashboard computes them live from its own rows).
+  // updated_at is trigger-maintained on both tables, so it catches inserts,
+  // date edits and soft deletes in one pass. The old loop over EVERY profile -
+  // unpaged, 3 queries each - would time out as the user base grew.
   const changedSince = new Date(Date.now() - 2 * 86_400_000).toISOString()
-  const changedReads = await Promise.all(['portfolio_entries', 'cases'].flatMap(table => [
-    fetchAllRows<{ user_id: string }>((from, to) => supabase.from(table).select('user_id').gte('created_at', changedSince).order('id').range(from, to)),
-    fetchAllRows<{ user_id: string }>((from, to) => supabase.from(table).select('user_id').gte('deleted_at', changedSince).order('id').range(from, to)),
-  ]))
+  const changedReads = await Promise.all(['portfolio_entries', 'cases'].map(table =>
+    fetchAllRows<{ user_id: string }>((from, to) => supabase.from(table).select('user_id').gte('updated_at', changedSince).order('id').range(from, to)),
+  ))
   const profileError = changedReads.find(read => read.error)?.error
   if (profileError) {
     logBackgroundJobError('cron.streak-cache.profiles', profileError)
@@ -33,32 +34,34 @@ export async function GET(req: NextRequest) {
   const profiles = Array.from(new Set(changedReads.flatMap(read => (read.data ?? []).map(row => row.user_id))))
     .map(id => ({ id }))
 
-  const since = new Date()
-  since.setUTCDate(since.getUTCDate() - 370)
+  // Active weeks come from each record's OWN date (not created_at), so a
+  // backfilled six months counts in the weeks it happened - the same rule as
+  // the dashboard (lib/dashboard/date-stats.ts). Future-dated rows never count.
+  const todayKey = londonDateKey(new Date())
+  const sinceKey = addDays(todayKey, -370)
   let updated = 0
 
   for (const profile of profiles) {
     const [{ data: portfolioRows }, { data: caseRows }] = await Promise.all([
       supabase
         .from('portfolio_entries')
-        .select('created_at')
+        .select('date')
         .eq('user_id', profile.id)
         .is('deleted_at', null)
         .eq('is_demo', false)
-        .gte('created_at', since.toISOString()),
+        .gte('date', sinceKey)
+        .lte('date', todayKey),
       supabase
         .from('cases')
-        .select('created_at')
+        .select('date')
         .eq('user_id', profile.id)
         .is('deleted_at', null)
         .eq('is_demo', false)
-        .gte('created_at', since.toISOString()),
+        .gte('date', sinceKey)
+        .lte('date', todayKey),
     ])
 
-    const activeWeeks = buildActiveWeekCache([
-      ...(portfolioRows ?? []).map(row => row.created_at),
-      ...(caseRows ?? []).map(row => row.created_at),
-    ])
+    const activeWeeks = activeWeeksFromRows([...(portfolioRows ?? []), ...(caseRows ?? [])], todayKey)
 
     const { error: updateError } = await supabase
       .from('profiles')

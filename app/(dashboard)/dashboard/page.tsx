@@ -30,7 +30,10 @@ import SectionHeader from '@/components/ui/section-header'
 import StatTile from '@/components/ui/stat-tile'
 import ApplicationModeBanner from '@/components/dashboard/application-mode-banner'
 import { formatSpecialtyLabel } from '@/lib/specialties'
-import { buildActiveWeekCache, londonDateKey } from '@/lib/engagement/streaks'
+import { londonDateKey } from '@/lib/engagement/streaks'
+import { activeWeeksFromRows, addDays, countByMonth, heatmapDayKeys, trailingMonths } from '@/lib/dashboard/date-stats'
+import { goalProgressLabel, goalState } from '@/lib/goals/progress'
+import type { RotationRow } from '@/lib/logs/rotations'
 import { CHANGELOG } from '@/lib/changelog'
 import { CATEGORIES, type Category, type PortfolioEntry } from '@/lib/types/portfolio'
 import type { Case } from '@/lib/types/cases'
@@ -48,8 +51,6 @@ export default async function DashboardPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - 364) // 52 weeks to match heatmap window
   // The deadline window is a calendar-date comparison against due_date (a bare
   // YYYY-MM-DD), so bucket "today"/"+30d" by the UK calendar (Europe/London),
   // not UTC. toISOString() here mis-bucketed a due-today deadline for a BST user
@@ -74,7 +75,7 @@ export default async function DashboardPage({
   ] = await Promise.all([
     supabase
       .from('profiles')
-      .select('first_name, career_stage, created_at, last_anniversary_seen_year, streak_cache, onboarding_checklist_dismissed, onboarding_checklist_completed_items, changelog_seen_at, guided_tour_step, demo_dismissed_at')
+      .select('first_name, career_stage, created_at, last_anniversary_seen_year, onboarding_checklist_dismissed, onboarding_checklist_completed_items, changelog_seen_at, guided_tour_step, demo_dismissed_at')
       .eq('id', user!.id)
       .single(),
     supabase
@@ -124,7 +125,7 @@ export default async function DashboardPage({
       .limit(10),
     supabase
       .from('goals')
-      .select('category, target_count, due_date, start_date')
+      .select('title, specific, category, target_count, due_date, start_date')
       .eq('user_id', user!.id)
       .is('completed_at', null)
       .gte('due_date', today)
@@ -137,8 +138,7 @@ export default async function DashboardPage({
       .eq('user_id', user!.id)
       .eq('kind', 'rotation')
       .is('deleted_at', null)
-      .order('date', { ascending: false })
-      .limit(8),
+      .order('date', { ascending: false }),
     supabase
       .from('custom_competency_themes')
       .select('name, slug')
@@ -203,30 +203,19 @@ export default async function DashboardPage({
     domains.forEach(domain => { clinicalAreaCounts[domain] = (clinicalAreaCounts[domain] ?? 0) + 1 })
   })
 
-  // Heatmap data is derived from the demo-excluded realEntries/realCases
-  // (already fetched above) filtered to the 52-week window - two fewer queries
-  // per dashboard load, and demo rows never colour the activity grid (F-022).
-  // If allEntries is ever paginated, restore dedicated windowed queries.
-  const heatmapCreatedAts = [
-    ...realEntries.map((e: { created_at: string }) => e.created_at),
-    ...realCases.map((c: { created_at: string }) => c.created_at),
-  ].filter(createdAt => new Date(createdAt).getTime() >= cutoff.getTime())
-  // UK calendar day, not the UTC date: an entry logged at 00:30 BST belongs to
-  // today, not yesterday (and must agree with hasEntryToday below).
-  const heatmapDates = heatmapCreatedAts.map(createdAt => londonDateKey(createdAt))
-  // Merge the nightly cache with weeks computed from the rows already loaded,
-  // so an entry logged today counts towards the streak straight away (the
-  // cache only refreshes at 02:00).
-  const cachedWeeks = ((profile?.streak_cache as { active_weeks?: string[] } | null)?.active_weeks ?? [])
-  const activeWeeks = Array.from(new Set([
-    ...cachedWeeks,
-    ...buildActiveWeekCache([
-      ...realEntries.map((e: { created_at: string }) => e.created_at),
-      ...realCases.map((c: { created_at: string }) => c.created_at),
-    ]),
-  ])).sort()
-  const todayLondon = londonDateKey(new Date())
-  const hasEntryToday = heatmapCreatedAts.some(createdAt => londonDateKey(createdAt) === todayLondon)
+  // Date semantics (lib/dashboard/date-stats.ts): every "when did this
+  // happen" statistic - heatmap, trends, time since, streak, active weeks -
+  // reads each record's OWN date (the date the user gave the entry/case), so
+  // backfilled or imported work lands on the days it happened instead of one
+  // spike on the day it was typed in. Demo rows never count (F-022).
+  const datedRows = [...realEntries, ...realCases] as { date: string; created_at: string | null }[]
+  const heatmapDates = heatmapDayKeys(datedRows, today, addDays(today, -364))
+  // Computed from every real row already loaded (paged above), so it is
+  // always current; the nightly streak_cache is only read by the digests.
+  const activeWeeks = activeWeeksFromRows(datedRows, today)
+  // "Nothing logged today" is a nudge about ADDING something today, so it is
+  // the one dashboard signal that stays on created_at (UK calendar day).
+  const hasEntryToday = datedRows.some(row => Boolean(row.created_at) && londonDateKey(row.created_at!) === today)
   const anniversaryYear = profile?.created_at
     ? Math.floor((Date.now() - new Date(profile.created_at).getTime()) / (365 * 24 * 60 * 60 * 1000))
     : 0
@@ -236,13 +225,16 @@ export default async function DashboardPage({
     ...(deadlines ?? []).map(d => ({ id: d.id, title: d.title, date: d.due_date, type: 'Deadline' as const, progress: undefined })),
     // Progress is a neutral logged-count only ("N of target logged"), never a
     // pace/readiness judgement (owner red-line) - see lib/goals/progress.ts.
-    ...(goals ?? []).filter(g => g.due_date).map(g => ({
-      id: `${g.category}-${g.due_date}`,
-      title: `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`,
-      date: g.due_date,
-      type: 'Goal' as const,
-      progress: `${countGoalProgress({ category: g.category, start_date: g.start_date }, realEntries)} of ${g.target_count} logged`,
-    })),
+    ...(goals ?? []).filter(g => g.due_date).map(g => {
+      const logged = countGoalProgress({ category: g.category, start_date: g.start_date }, realEntries)
+      return {
+        id: `${g.category}-${g.due_date}`,
+        title: g.title || g.specific || `${g.target_count} ${CATEGORIES.find(category => category.value === g.category)?.label ?? g.category}`,
+        date: g.due_date,
+        type: 'Goal' as const,
+        progress: goalProgressLabel(g, logged, goalState(g, logged, today)),
+      }
+    }),
   ].sort((a, b) => a.date.localeCompare(b.date)).slice(0, 5)
 
   // Specialty progress: one pass over the tracked rows computes both shapes -
@@ -262,21 +254,23 @@ export default async function DashboardPage({
       // render the raw slug (e.g. "acute_internal_medicine") on the dashboard.
       const label = formatSpecialtyLabel(row.specialty_key)
       return {
-        progress: { id: row.id, label, percent: 0, entryCount, scoreLabel: '0' },
+        progress: { id: row.id, label, percent: null, entryCount, scoreLabel: 'No scoring matrix available', evidenceBased: false },
         score: { key: row.id, label, isEvidenceBased: false, ...emptyScore },
       }
     }
     if (isEvidenceBased(config)) {
+      // Person-spec specialties have no points: show plain counts of what the
+      // user has marked/evidenced, never a combined percentage that could read
+      // as a readiness score (owner red-line).
       const progress = getEvidenceProgress(config, links)
-      const denom = progress.essentialsTotal + progress.desirablesTotal
-      const numer = progress.essentialsMet + progress.desirablesEvidenced
       return {
         progress: {
           id: row.id,
           label: config.name,
-          percent: denom === 0 ? 0 : Math.round((numer / denom) * 100),
+          percent: null,
           entryCount,
-          scoreLabel: `${numer}/${denom} criteria`,
+          scoreLabel: `${progress.essentialsMet} of ${progress.essentialsTotal} essentials met, ${progress.desirablesEvidenced} of ${progress.desirablesTotal} desirables evidenced`,
+          evidenceBased: true,
         },
         score: {
           key: row.id,
@@ -303,6 +297,7 @@ export default async function DashboardPage({
         percent: max === 0 ? 0 : Math.min(Math.round((score / max) * 100), 100),
         entryCount,
         scoreLabel: bonus > 0 ? `${score}+${bonus}/${max} pts` : `${score}/${max} pts`,
+        evidenceBased: false,
       },
       score: { key: row.id, label: config.name, isEvidenceBased: false, ...emptyScore, score, maxScore: max },
     }
@@ -330,8 +325,8 @@ export default async function DashboardPage({
       .limit(1)
     targetDeadline = targetDeadlines?.[0]?.due_date ?? null
   }
-  const entriesOverTime = buildEntriesOverTime(realEntries, realCases)
-  const timeSinceRows = buildTimeSinceRows(realEntries as { category: Category; created_at: string }[], realCases as { created_at: string }[])
+  const entriesOverTime = buildEntriesOverTime(realEntries, realCases, today)
+  const timeSinceRows = buildTimeSinceRows(realEntries as { category: Category; date: string }[], realCases as { date: string }[], today)
   const calendarItems: CalendarWidgetItem[] = [
     ...realEntries.map(entry => ({ date: entry.date, type: 'entry' as const })),
     ...realCases.map(c => ({ date: c.date, type: 'case' as const })),
@@ -433,7 +428,7 @@ export default async function DashboardPage({
             <StatTile
               label="Upcoming"
               value={upcomingItems.length}
-              sub="deadlines and goals (30d)"
+              sub={`${upcomingItems.length === 1 ? 'deadline or goal' : 'deadlines and goals'} in the next 30 days`}
               barColour="amber"
             />
           </div>
@@ -441,10 +436,10 @@ export default async function DashboardPage({
           {/* Charts only render once the user has logged something real - empty months
               (and demo-only accounts) are noise. */}
           {(realEntries.length > 0 || realCases.length > 0) && (
-            <DashboardSection title="Trends" subtitle="entries logged per month" defaultOpen>
+            <DashboardSection title="Trends" subtitle="entries and cases per month, by entry date" defaultOpen>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 <EntriesOverTime data={entriesOverTime} />
-                <TimeSinceCard rows={timeSinceRows} />
+                <TimeSinceCard rows={timeSinceRows} todayKey={today} />
               </div>
             </DashboardSection>
           )}
@@ -461,9 +456,10 @@ export default async function DashboardPage({
           {(rotations ?? []).length > 0 && (
             <DashboardSection title="Rotations" defaultOpen>
               <RotationSummaryCards
-                rotations={(rotations ?? []) as { id: string; title: string; date: string; meta: { detail?: string } | null }[]}
+                rotations={(rotations ?? []) as RotationRow[]}
                 entries={realEntries as { date: string }[]}
                 cases={realCases as { date: string }[]}
+                todayKey={today}
               />
             </DashboardSection>
           )}
@@ -506,14 +502,13 @@ export default async function DashboardPage({
   )
 }
 
-function buildEntriesOverTime(entries: { category: string; created_at: string }[], cases: { created_at: string }[]): EntriesOverTimeBucket[] {
-  const now = new Date()
-  const months = Array.from({ length: 12 }, (_, index) => {
-    const date = new Date(now.getFullYear(), now.getMonth() - (11 - index), 1)
-    const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+// Per-month counts keyed by each record's own date (future-dated rows are
+// left out), over the trailing 12 calendar months.
+function buildEntriesOverTime(entries: { category: string; date: string }[], cases: { date: string }[], todayKey: string): EntriesOverTimeBucket[] {
+  const months = trailingMonths(todayKey).map(({ key, label }) => {
     return {
       key,
-      month: date.toLocaleDateString('en-GB', { month: 'short' }),
+      month: label,
       cases: 0,
       audit_qip: 0,
       teaching: 0,
@@ -527,48 +522,58 @@ function buildEntriesOverTime(entries: { category: string; created_at: string }[
     }
   })
   const byKey = Object.fromEntries(months.map(month => [month.key, month]))
-  entries.forEach(entry => {
-    const d = new Date(entry.created_at)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    const bucket = byKey[key]
-    if (bucket && entry.category in bucket) {
-      bucket[entry.category as Category] += 1
-    }
-  })
-  cases.forEach(item => {
-    const d = new Date(item.created_at)
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
-    if (byKey[key]) byKey[key].cases += 1
+  for (const category of CATEGORIES) {
+    const counts = countByMonth(entries.filter(entry => entry.category === category.value), todayKey)
+    counts.forEach((count, key) => {
+      const bucket = byKey[key]
+      if (bucket && category.value in bucket) bucket[category.value] += count
+    })
+  }
+  countByMonth(cases, todayKey).forEach((count, key) => {
+    if (byKey[key]) byKey[key].cases += count
   })
   return months.map(({ key: _key, ...bucket }) => bucket)
 }
 
 
 /** Compact specialty progress panel for the right column.
- *  Points-based specialties (IMT, etc) show "11/30 pts"; evidence-based ones
- *  show "N/M criteria". The percent stays as a quick scan summary. */
-function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number; entryCount: number; scoreLabel: string }[] }) {
+ *  Points-based specialties (IMT, etc) show "11/30 pts" against the official
+ *  scoring matrix; evidence-based (person-spec) ones show plain counts of
+ *  essentials met and desirables evidenced, with no percentage or bar. */
+function SpecialtyProgressPanel({ rows }: { rows: { id: string; label: string; percent: number | null; entryCount: number; scoreLabel: string; evidenceBased: boolean }[] }) {
+  const hasPoints = rows.some(row => !row.evidenceBased && row.percent !== null)
+  const hasEvidence = rows.some(row => row.evidenceBased)
   return (
     <div className="bg-surface-1 border border-subtle rounded-lg overflow-hidden">
       <div className="px-4 pt-4 pb-3 border-b border-subtle">
         <p className="text-sm font-semibold text-fg">Specialty progress</p>
         <p className="mt-0.5 text-[11px] text-fg-2">
-          Points scored against the official scoring matrix.
+          {hasPoints && hasEvidence
+            ? 'Points against the official scoring matrix, or person-spec criteria you have marked.'
+            : hasEvidence
+              ? 'Person-spec criteria you have marked or evidenced.'
+              : 'Points scored against the official scoring matrix.'}
         </p>
       </div>
       <div className="divide-y divide-subtle">
         {rows.map(row => (
           <div key={row.id} className="px-4 py-3 space-y-1.5">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm font-medium text-fg truncate">{row.label}</p>
-              <span className="shrink-0 text-sm font-semibold tabular-nums text-fg">
-                {row.scoreLabel}
-                <span className="ml-1.5 text-xs font-normal text-fg-2">{row.percent}%</span>
-              </span>
-            </div>
-            <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
-              <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${row.percent}%` }} />
-            </div>
+            {row.evidenceBased || row.percent === null ? (
+              <>
+                <p className="text-sm font-medium text-fg">{row.label}</p>
+                <p className="text-xs tabular-nums text-fg-1">{row.scoreLabel}</p>
+              </>
+            ) : (
+              <>
+                <div className="flex items-baseline justify-between gap-2">
+                  <p className="text-sm font-medium text-fg truncate">{row.label}</p>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-fg">{row.scoreLabel}</span>
+                </div>
+                <div className="h-1.5 rounded-full bg-surface-3 overflow-hidden">
+                  <div className="h-full rounded-full bg-accent transition-all" style={{ width: `${row.percent}%` }} />
+                </div>
+              </>
+            )}
             <p className="text-[11px] text-fg-3">
               {row.entryCount} {row.entryCount === 1 ? 'entry' : 'entries'} linked
             </p>

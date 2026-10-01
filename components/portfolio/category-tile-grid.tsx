@@ -1,15 +1,19 @@
 import Link from 'next/link'
 import { CATEGORIES, type Category } from '@/lib/types/portfolio'
+import { ageLabel, latestPastDate } from '@/lib/dashboard/date-stats'
 
-type EntryMeta = { category: Category; date: string; created_at: string }
+type EntryMeta = { category: Category; date: string }
 
 type Props = {
-  // All entries (just the lightweight meta fields needed for counts and last-added).
+  // All entries (just the lightweight meta fields needed for counts and the
+  // latest entry date).
   entries: EntryMeta[]
+  // UK calendar day (YYYY-MM-DD) the "Last:" age is measured against.
+  todayKey: string
 }
 
 // Vercel-style 4-up tile grid replacing the previous chip row. Each tile shows
-// the category name, count, and last-added relative date. Empty categories
+// the category name, count, and the age of its most recent entry date. Empty categories
 // surface an inline "Add first" CTA instead of rendering an empty list below.
 const CATEGORY_PILL: Record<Category, { dot: string; bar: string }> = {
   audit_qip:   { dot: 'bg-green-400',   bar: 'bg-green-500' },
@@ -23,18 +27,7 @@ const CATEGORY_PILL: Record<Category, { dot: string; bar: string }> = {
   custom:      { dot: 'bg-fg-2',        bar: 'bg-fg-2' },
 }
 
-function relativeDays(date: string): string {
-  const d = new Date(date)
-  if (isNaN(d.getTime())) return ''
-  const days = Math.floor((Date.now() - d.getTime()) / (24 * 60 * 60 * 1000))
-  if (days <= 0) return 'today'
-  if (days === 1) return 'yesterday'
-  if (days < 30) return `${days}d ago`
-  if (days < 365) return `${Math.floor(days / 30)}mo ago`
-  return `${Math.floor(days / 365)}y ago`
-}
-
-export default function CategoryTileGrid({ entries }: Props) {
+export default function CategoryTileGrid({ entries, todayKey }: Props) {
   // Group entries by category for counts + last-added.
   const byCategory = new Map<Category, EntryMeta[]>()
   entries.forEach(entry => {
@@ -48,10 +41,9 @@ export default function CategoryTileGrid({ entries }: Props) {
       {CATEGORIES.map(category => {
         const list = byCategory.get(category.value) ?? []
         const count = list.length
-        const lastAdded = list
-          .map(e => e.created_at)
-          .sort()
-          .reverse()[0]
+        // The latest entry DATE, not when it was typed in: a backfilled
+        // category reads "5mo ago", not "Today" (future-dated rows ignored).
+        const lastDate = latestPastDate(list, todayKey)
         const colour = CATEGORY_PILL[category.value]
         const isEmpty = count === 0
         return (
@@ -80,7 +72,7 @@ export default function CategoryTileGrid({ entries }: Props) {
               {isEmpty ? (
                 <span className="text-[var(--accent-text)] group-hover:text-[var(--accent-text)] transition-colors">+ Add first entry</span>
               ) : (
-                <>Last: {relativeDays(lastAdded)}</>
+                <>Last: {lastDate ? ageLabel(lastDate, todayKey).toLowerCase() : 'not yet (future-dated)'}</>
               )}
             </div>
             {!isEmpty && (

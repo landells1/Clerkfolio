@@ -1,6 +1,11 @@
 // Server component - no 'use client'
 
 import { activeWeeksYearToDate, currentStreakFromActiveWeeks } from '@/lib/engagement/streaks'
+import { countLabel, pluralize } from '@/lib/utils/plural'
+
+// Active weeks come from each entry's / case's own date (see
+// lib/dashboard/date-stats.ts), so backfilled work counts in the weeks it
+// actually happened.
 
 interface StreakBadgeProps {
   streak?: number
@@ -15,7 +20,7 @@ export default function StreakBadge({ streak, activeWeeks = [] }: StreakBadgePro
     return (
       <div className="text-xs text-[var(--text-secondary)]">
         <p>Log this week to start a streak</p>
-        {activeWeeks.length > 0 && <p className="mt-1">{activeWeeksThisYear} active weeks this year</p>}
+        {activeWeeks.length > 0 && <p className="mt-1">{countLabel(activeWeeksThisYear, 'active week')} this year</p>}
       </div>
     )
   }
@@ -35,8 +40,8 @@ export default function StreakBadge({ streak, activeWeeks = [] }: StreakBadgePro
       </svg>
       <div className="flex flex-col leading-none">
         <span className="text-2xl font-bold leading-none text-[var(--text-primary)]">{currentStreak}</span>
-        <span className={`mt-0.5 text-xs ${onFire ? 'text-amber-400/70' : 'text-[var(--text-muted)]'}`}>wk streak</span>
-        <span className="mt-1 text-[10px] text-[var(--text-secondary)]">{activeWeeksThisYear} active weeks YTD</span>
+        <span className={`mt-0.5 text-xs ${onFire ? 'text-amber-400/70' : 'text-[var(--text-muted)]'}`}>{pluralize(currentStreak, 'week')} in a row</span>
+        <span className="mt-1 text-[10px] text-[var(--text-secondary)]">{countLabel(activeWeeksThisYear, 'active week')} this year</span>
       </div>
     </div>
   )

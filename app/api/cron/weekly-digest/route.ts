@@ -3,7 +3,7 @@ import { Resend } from 'resend'
 import { createServiceClient } from '@/lib/supabase/server'
 import { validateCronSecret } from '@/lib/cron'
 import { buildDigestSummary, isDigestEmpty, type DigestEntry } from '@/lib/engagement/digest'
-import { previousLondonWeekWindow } from '@/lib/engagement/streaks'
+import { previousLondonWeekWindow, londonDateKey } from '@/lib/engagement/streaks'
 import { weeklyDigestEmail } from '@/lib/notifications/email-templates'
 import { unsubscribeUrl } from '@/lib/notifications/unsubscribe'
 import { processInBatches } from '@/lib/utils/batch'
@@ -102,6 +102,9 @@ export async function GET(req: NextRequest) {
   })
 }
 
+// Entries and cases DATED inside the window (their own date column, not when
+// they were typed in - lib/dashboard/date-stats.ts), so the digest describes
+// work done that period and a big backfill is not reported as one week's work.
 async function fetchWindowEntriesByUser(
   supabase: ReturnType<typeof createServiceClient>,
   start: Date,
@@ -113,15 +116,15 @@ async function fetchWindowEntriesByUser(
       .select('user_id, specialty_tags')
       .is('deleted_at', null)
       .eq('is_demo', false)
-      .gte('created_at', start.toISOString())
-      .lt('created_at', end.toISOString()),
+      .gte('date', londonDateKey(start))
+      .lt('date', londonDateKey(end)),
     supabase
       .from('cases')
       .select('user_id, specialty_tags')
       .is('deleted_at', null)
       .eq('is_demo', false)
-      .gte('created_at', start.toISOString())
-      .lt('created_at', end.toISOString()),
+      .gte('date', londonDateKey(start))
+      .lt('date', londonDateKey(end)),
   ])
 
   const byUser = new Map<string, DigestEntry[]>()
