@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 import { useFeedback } from '@/app/(dashboard)/providers'
 import type { SpecialtyApplication, SpecialtyEntryLink } from '@/lib/specialties'
 import { getSpecialtyConfig, SPECIALTY_CONFIGS, formatSpecialtyLabel } from '@/lib/specialties'
@@ -229,6 +230,7 @@ export function SpecialtiesShell({ applications: initialApplications, links: ini
                         return (
                           <UnknownSpecialtyCard
                             key={app.id}
+                            applicationId={app.id}
                             specialtyKey={app.specialty_key}
                             onRemove={() => handleRemoveApplication(app.id)}
                           />
@@ -401,7 +403,24 @@ function NewCycleBanner({ oldApp, oldConfig, newConfig, onStartNewCycle }: NewCy
 
 // ---------- Placeholder for tracked-specialty rows whose config has been
 // retired or that point at a tag-only key with no scoring matrix.
-function UnknownSpecialtyCard({ specialtyKey, onRemove }: { specialtyKey: string; onRemove: () => void }) {
+function UnknownSpecialtyCard({ applicationId, specialtyKey, onRemove }: { applicationId: string; specialtyKey: string; onRemove: () => void }) {
+  const { addToast } = useToast()
+  const [confirmOpen, setConfirmOpen] = useState(false)
+
+  // Previously this only dropped the card from local state, so the tracker
+  // came back on the next load. Delete it (and its links) for real.
+  async function remove() {
+    const supabase = createClient()
+    const { error: linksError } = await supabase.from('specialty_entry_links').delete().eq('application_id', applicationId)
+    const { error: appError } = linksError ? { error: linksError } : await supabase.from('specialty_applications').delete().eq('id', applicationId)
+    if (appError) {
+      addToast('Failed to remove specialty. Please try again.', 'error')
+      return
+    }
+    setConfirmOpen(false)
+    onRemove()
+  }
+
   return (
     <div className="bg-surface-1 border border-subtle rounded-2xl p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
@@ -412,12 +431,24 @@ function UnknownSpecialtyCard({ specialtyKey, onRemove }: { specialtyKey: string
           </p>
         </div>
         <button
-          onClick={onRemove}
+          type="button"
+          onClick={() => setConfirmOpen(true)}
           className="shrink-0 min-h-[32px] rounded-lg border border-subtle px-3 text-xs font-medium text-fg-2 hover:text-fg hover:border-default transition-colors"
         >
           Remove
         </button>
       </div>
+      <ConfirmDialog
+        open={confirmOpen}
+        title={`Remove ${formatSpecialtyLabel(specialtyKey)}?`}
+        confirmLabel="Remove tracker"
+        busyLabel="Removing..."
+        tone="danger"
+        onConfirm={remove}
+        onCancel={() => setConfirmOpen(false)}
+      >
+        <p>This deletes the tracker and any evidence links to it. Your portfolio entries and cases are not deleted.</p>
+      </ConfirmDialog>
     </div>
   )
 }

@@ -52,7 +52,7 @@ export function SelectionProcessStrip({ process, variant }: Props) {
       </div>
 
       {preInterview && gateMeta && (
-        <div className="mb-3 rounded-lg bg-white/[0.03] border border-white/[0.05] px-3 py-2.5">
+        <div className="mb-3 rounded-lg bg-[var(--bg-overlay-faint)] border border-[var(--border-default)] px-3 py-2.5">
           <p className="text-[10px] font-semibold text-[var(--text-emphasis)] uppercase tracking-wide mb-1">
             {noInterview ? 'Getting an offer' : 'Getting an interview'}
           </p>

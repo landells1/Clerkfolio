@@ -59,7 +59,7 @@ export function BackupTab({
         type="button"
         onClick={onYearReview}
         disabled={yearReviewLoading || Boolean(subInfo && !subInfo.isPro && !subInfo.limits.canExportPdf)}
-        className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-50"
+        className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)] disabled:cursor-not-allowed disabled:opacity-50"
       >
         {yearReviewLoading ? 'Generating...' : 'Year in review PDF'}
       </button>
@@ -67,7 +67,7 @@ export function BackupTab({
         type="button"
         onClick={onMarkdownExport}
         disabled={markdownLoading}
-        className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-white/[0.16] disabled:opacity-50"
+        className="ml-3 inline-flex min-h-[40px] items-center rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] hover:border-[var(--border-strong)] disabled:opacity-50"
       >
         {markdownLoading ? 'Exporting...' : 'Reflections MD'}
       </button>

@@ -248,7 +248,7 @@ export default function HorusImportWizard({ specialtyOptions = [] }: { specialty
             onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
             className={`border-2 border-dashed rounded-2xl p-12 flex flex-col items-center gap-3 cursor-pointer transition-colors ${
-              dragging ? 'border-[var(--accent)] bg-accent/5' : 'border-white/[0.08] hover:border-white/[0.2]'
+              dragging ? 'border-[var(--accent)] bg-accent/5' : 'border-white/[0.08] hover:border-[var(--border-strong)]'
             }`}
           >
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">

@@ -32,7 +32,7 @@ export default function BottomSheet({ open, title, description, children, footer
         className="w-full rounded-t-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 shadow-2xl motion-safe:animate-[sheet-in_180ms_ease-out] sm:max-w-md sm:rounded-2xl sm:p-6"
         onClick={event => event.stopPropagation()}
       >
-        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-white/[0.18] sm:hidden" />
+        <div className="mx-auto mb-4 h-1 w-10 rounded-full bg-[var(--border-strong)] sm:hidden" />
         <div className="mb-4 flex items-start justify-between gap-4">
           <div>
             <h2 id="bottom-sheet-title" className="text-base font-semibold text-[var(--text-primary)]">{title}</h2>

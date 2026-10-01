@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import type { SpecialtyDomain, SpecialtyEntryLink } from '@/lib/specialties'
 import type { Category } from '@/lib/types/portfolio'
+import SnippetTextarea from '@/components/ui/snippet-textarea'
 
 const PORTFOLIO_CATEGORIES: { value: Category; label: string }[] = [
   { value: 'audit_qip', label: 'Audit & QIP' },
@@ -104,7 +105,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
 
       setSuccess(true)
       setTimeout(() => {
-        onLinked(link as SpecialtyEntryLink)
+        onLinked({ ...(link as SpecialtyEntryLink), entry_title: payload.title, entry_date: payload.date })
       }, 900)
     } catch (err) {
       setError('We could not log and link this evidence. Check the details and try again.')
@@ -195,7 +196,7 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                       className={`flex-1 py-2 rounded-xl text-sm font-medium border transition-all ${
                         entryType === t
                           ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)] border-accent/30'
-                          : 'bg-[var(--bg-canvas)] text-[var(--text-secondary)] border-white/[0.08] hover:border-white/[0.16]'
+                          : 'bg-[var(--bg-canvas)] text-[var(--text-secondary)] border-white/[0.08] hover:border-[var(--border-strong)]'
                       }`}
                     >
                       {t === 'portfolio' ? '📄 Portfolio Entry' : '💼 Case'}
@@ -239,11 +240,11 @@ export function LogAndLinkModal({ domain, applicationId, specialtyName, specialt
                 <label className="text-xs text-[var(--text-emphasis)] font-medium uppercase tracking-wide mb-1.5 block">
                   Notes <span className="text-[var(--text-secondary)]">(optional)</span>
                 </label>
-                <textarea
+                <SnippetTextarea
                   value={notes}
-                  onChange={e => setNotes(e.target.value)}
+                  onValueChange={setNotes}
                   rows={3}
-                  placeholder="Any additional details…"
+                  placeholder="Any additional details… (type / for snippets)"
                   className="w-full bg-[var(--bg-canvas)] border border-white/[0.08] rounded-xl px-3.5 py-2.5 text-sm text-[var(--text-primary)] placeholder-[var(--text-secondary)] focus:outline-none focus:border-[var(--accent)] transition-colors resize-none"
                 />
               </div>

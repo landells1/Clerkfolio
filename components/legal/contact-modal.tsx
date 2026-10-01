@@ -50,7 +50,7 @@ export function LegalContactButton() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="rounded-lg border border-white/[0.08] px-4 py-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft transition-colors hover:border-white/[0.16] hover:text-ink"
+        className="rounded-lg border border-white/[0.08] px-4 py-3 font-mono text-[11px] font-semibold tracking-[0.14em] text-ink-soft transition-colors hover:border-[var(--border-strong)] hover:text-ink"
       >
         CONTACT
       </button>
@@ -65,7 +65,7 @@ export function LegalContactButton() {
           }}
         >
           <div style={{
-            background: 'var(--bg-surface)', border: '1px solid rgba(245,245,242,0.1)',
+            background: 'var(--bg-surface)', border: '1px solid var(--border-default)',
             borderRadius: 20, width: '100%', maxWidth: 440, padding: 32,
             fontFamily: '"Inter", -apple-system, system-ui, sans-serif',
           }}>
@@ -110,7 +110,7 @@ export function LegalContactButton() {
                     value={name}
                     onChange={e => setName(e.target.value)}
                     placeholder="Your name"
-                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -121,7 +121,7 @@ export function LegalContactButton() {
                     value={email}
                     onChange={e => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', boxSizing: 'border-box' }}
                   />
                 </div>
                 <div>
@@ -132,7 +132,7 @@ export function LegalContactButton() {
                     value={comment}
                     onChange={e => setComment(e.target.value)}
                     placeholder="How can we help?"
-                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid rgba(245,245,242,0.1)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
+                    style={{ width: '100%', background: 'var(--bg-canvas)', border: '1px solid var(--border-default)', borderRadius: 10, padding: '10px 14px', fontSize: 14, color: 'var(--text-primary)', outline: 'none', resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
                   />
                 </div>
 

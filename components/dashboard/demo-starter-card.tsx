@@ -55,7 +55,7 @@ export default function DemoStarterCard({ show }: { show: boolean }) {
           <button
             onClick={removeDemos}
             disabled={busy !== null}
-            className="min-h-[40px] rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-white/[0.15] disabled:opacity-50"
+            className="min-h-[40px] rounded-xl border border-white/[0.08] px-4 text-sm font-medium text-[var(--text-primary)] transition-colors hover:border-[var(--border-strong)] disabled:opacity-50"
           >
             {busy === 'remove' ? 'Removing...' : 'Remove sample data'}
           </button>

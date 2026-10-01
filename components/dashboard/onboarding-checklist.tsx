@@ -189,7 +189,7 @@ export default function OnboardingChecklist({ completedItems: initialCompleted, 
                   className={`w-5 h-5 rounded flex items-center justify-center border transition-all shrink-0 ${
                     done
                       ? 'bg-[var(--accent)] border-[var(--accent)]'
-                      : 'bg-transparent border-white/[0.2] hover:border-white/[0.4]'
+                      : 'bg-transparent border-white/[0.2] hover:border-[var(--border-strong)]'
                   }`}
                 >
                   {done && (

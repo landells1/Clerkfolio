@@ -1,7 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useToast } from '@/components/ui/toast-provider'
+import ConfirmDialog from '@/components/ui/confirm-dialog'
 import {
   calculateDomainScore,
   calculateDomainsScore,
@@ -43,10 +45,9 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
   const supabase = createClient()
   const { addToast } = useToast()
   const evidenceBased = isEvidenceBased(config)
+  const [confirmOpen, setConfirmOpen] = useState(false)
 
-  async function handleRemove(e: React.MouseEvent) {
-    e.stopPropagation()
-    if (!window.confirm(`Remove ${config.name} tracker? This will delete all linked evidence for this specialty.`)) return
+  async function handleRemove() {
     const { error: linksError } = await supabase.from('specialty_entry_links').delete().eq('application_id', application.id)
     if (linksError) { addToast('Failed to remove specialty. Please try again.', 'error'); return }
     const { error: appError } = await supabase.from('specialty_applications').delete().eq('id', application.id)
@@ -58,13 +59,14 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
       // leaving them silently behind.
       addToast('Specialty removed, but its auto-created deadlines could not be deleted. You can remove them from the Timeline page.', 'error')
     }
+    setConfirmOpen(false)
     onRemove()
   }
 
   return (
     <div
       onClick={onSelect}
-      className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 cursor-pointer hover:border-white/[0.16] transition-all group"
+      className="bg-[var(--bg-surface)] border border-white/[0.08] rounded-2xl p-5 cursor-pointer hover:border-[var(--border-strong)] transition-all group"
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
@@ -84,15 +86,42 @@ export function SpecialtyCard({ config, application, links, isSelected: _, onSel
             </span>
           )}
         </div>
+        {/* Always visible (not hover-only) so it is findable on touch and by
+            keyboard; it opens a confirmation instead of deleting at once. */}
         <button
-          onClick={handleRemove}
-          className="ml-2 shrink-0 w-6 h-6 flex items-center justify-center rounded-lg text-[var(--text-secondary)] hover:text-red-400 hover:bg-red-500/10 transition-all opacity-0 group-hover:opacity-100"
-          aria-label="Remove specialty"
+          type="button"
+          onClick={event => { event.stopPropagation(); setConfirmOpen(true) }}
+          onKeyDown={event => event.stopPropagation()}
+          className="ml-2 inline-flex min-h-[32px] shrink-0 items-center gap-1 rounded-lg border border-[var(--border-default)] px-2 text-xs font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--danger)] hover:text-[var(--danger)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
+          aria-label={`Remove ${config.name} tracker`}
         >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" />
           </svg>
+          Remove
         </button>
+      </div>
+
+      {/* Stop clicks inside the dialog bubbling (through the React tree) to the
+          card's own onClick, which would select the specialty. */}
+      <div onClick={event => event.stopPropagation()} onKeyDown={event => event.stopPropagation()}>
+        <ConfirmDialog
+          open={confirmOpen}
+          title={`Remove ${config.name}?`}
+          confirmLabel="Remove tracker"
+          busyLabel="Removing..."
+          tone="danger"
+          onConfirm={handleRemove}
+          onCancel={() => setConfirmOpen(false)}
+        >
+          <p>This permanently deletes everything you have recorded for this specialty:</p>
+          <ul className="list-disc space-y-1 pl-5">
+            <li>your scoring and any points or bonuses claimed</li>
+            <li>every essential and desirable you ticked or self-marked</li>
+            <li>every evidence link to your entries and cases</li>
+          </ul>
+          <p>Your portfolio entries and cases themselves are not deleted. This cannot be undone.</p>
+        </ConfirmDialog>
       </div>
 
       <SelectionProcessStrip process={config.selectionProcess} variant="compact" />

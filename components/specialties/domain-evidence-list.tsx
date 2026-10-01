@@ -53,8 +53,8 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
               key={link.id}
               className={`relative flex items-start gap-3 p-3 rounded-xl border transition-all ${
                 isCounting
-                  ? 'border-l-2 border-l-[var(--accent)] border-t-white/[0.08] border-r-white/[0.08] border-b-white/[0.08] bg-accent/[0.05]'
-                  : 'border-white/[0.06] bg-white/[0.02]'
+                  ? 'border-[var(--border-default)] border-l-2 border-l-[var(--accent)] bg-accent/[0.05]'
+                  : 'border-[var(--border-subtle)] bg-[var(--bg-overlay-faint)]'
               }`}
             >
               <span className="shrink-0 text-base leading-none mt-0.5">
@@ -70,10 +70,27 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                 ) : null}
               </span>
               <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className={`text-sm font-medium leading-snug ${isCounting ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
-                    {link.band_label}
-                  </span>
+                {/* Name the linked entry/case (title, date, type) instead of
+                    repeating the band label on every row. */}
+                {!isClaimed && link.entry_id && link.entry_type && (
+                  <a
+                    href={link.entry_type === 'case' ? `/cases/${link.entry_id}` : `/portfolio/${link.entry_id}`}
+                    className="block text-sm font-medium leading-snug text-[var(--text-primary)] hover:text-[var(--accent-text)] hover:underline"
+                  >
+                    {link.entry_title ?? (link.entry_type === 'case' ? 'Linked case' : 'Linked entry')}
+                  </a>
+                )}
+                {!isClaimed && link.entry_date && (
+                  <p className="text-xs text-[var(--text-muted)]">
+                    {new Date(link.entry_date).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}
+                  </p>
+                )}
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  {(isClaimed || !isEvidenceOnly) && (
+                    <span className={`text-sm font-medium leading-snug ${isCounting ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
+                      {link.band_label}
+                    </span>
+                  )}
                   {!isEvidenceOnly && (
                     <span
                       className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
@@ -90,20 +107,10 @@ export function DomainEvidenceList({ domain, links, onRemove }: Props) {
                       Self-claimed
                     </span>
                   ) : link.entry_type ? (
-                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[var(--text-secondary)] text-xs capitalize">
-                      {link.entry_type}
+                    <span className="px-1.5 py-0.5 rounded bg-white/[0.05] text-[var(--text-secondary)] text-xs">
+                      {link.entry_type === 'case' ? 'Case' : 'Portfolio entry'}
                     </span>
                   ) : null}
-                  {!isClaimed && link.entry_id && link.entry_type && (
-                    <a
-                      href={link.entry_type === 'case' ? `/cases/${link.entry_id}` : `/portfolio/${link.entry_id}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-[var(--accent-text)] hover:underline"
-                    >
-                      View
-                    </a>
-                  )}
                 </div>
                 {!isEvidenceOnly && domain.scoringRule === 'highest' && (
                   <p className={`text-xs mt-0.5 ${isCounting ? 'text-[var(--accent-text)]' : 'text-[var(--text-secondary)]'}`}>

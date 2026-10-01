@@ -21,7 +21,7 @@ export default function BackButton() {
     <button
       type="button"
       onClick={goBack}
-      className="mb-6 inline-flex min-h-[44px] items-center rounded-lg border border-white/[0.08] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:border-white/[0.16] hover:text-[var(--text-primary)]"
+      className="mb-6 inline-flex min-h-[44px] items-center rounded-lg border border-white/[0.08] px-4 py-2 text-sm font-medium text-[var(--text-secondary)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
     >
       Back
     </button>

@@ -254,7 +254,7 @@ function DomainTabButton({
       className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
         isActive
           ? 'bg-[var(--accent-soft)] text-[var(--accent-soft-text)] border border-accent/25'
-          : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-white/[0.06] hover:border-white/[0.14] hover:text-[var(--text-secondary)]'
+          : 'bg-[var(--bg-surface)] text-[var(--text-muted)] border border-white/[0.06] hover:border-[var(--border-strong)] hover:text-[var(--text-secondary)]'
       }`}
     >
       <span>{domain.label}</span>

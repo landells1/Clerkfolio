@@ -84,7 +84,7 @@ export default function ResumeDraftsCard({ userId }: { userId: string }) {
       </div>
       <div className="mt-3 grid gap-2">
         {drafts.map(draft => (
-          <Link key={draft.key} href={draft.href} className="flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/[0.06] px-3 py-2 hover:border-white/[0.14]">
+          <Link key={draft.key} href={draft.href} className="flex min-h-[44px] items-center justify-between gap-3 rounded-xl border border-white/[0.06] px-3 py-2 hover:border-[var(--border-strong)]">
             <span className="truncate text-sm text-[var(--text-primary)]">{draft.title}</span>
             <span className="shrink-0 text-xs capitalize text-[var(--text-muted)]">{draft.label}</span>
           </Link>

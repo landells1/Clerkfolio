@@ -92,7 +92,7 @@ export default function ActivityFeed({
               const colour = CATEGORY_COLOURS[e.category]
               const label = CATEGORIES.find(c => c.value === e.category)?.short ?? e.category
               const sub = entrySubtitle(e)
-              const dotHex = DOT_HEX[e.category] ?? 'rgba(245,245,242,0.4)'
+              const dotHex = DOT_HEX[e.category] ?? 'var(--text-faint)'
               return (
                 <Link key={e.id} href={`/portfolio/${e.id}`} className="flex items-center gap-3 px-4 py-3 hover:bg-white/[0.02] transition-colors group">
                   <span

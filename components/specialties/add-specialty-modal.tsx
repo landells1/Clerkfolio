@@ -264,7 +264,7 @@ function SpecialtyCard({
     <button
       onClick={() => onSelect(config.key, config.cycleYear)}
       disabled={loading}
-      className="w-full flex items-start justify-between p-4 bg-[var(--bg-canvas)] border border-white/[0.08] hover:border-white/[0.16] rounded-xl transition-all text-left disabled:opacity-50 group"
+      className="w-full flex items-start justify-between p-4 bg-[var(--bg-canvas)] border border-white/[0.08] hover:border-[var(--border-strong)] rounded-xl transition-all text-left disabled:opacity-50 group"
     >
       <div>
         <div className="flex items-center gap-2 mb-1 flex-wrap">

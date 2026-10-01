@@ -24,11 +24,11 @@ export function ImportTab({ subInfo }: { subInfo: SubscriptionInfo | null }) {
           </div>
           <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Bring your NHS foundation e-portfolio (supervised learning events, reflections) straight in from a Horus CSV export. Other foundation portfolio exports with date / type / title columns work too.</p>
         </Link>
-        <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
+        <Link href="/import/csv" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-[var(--border-strong)]">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">CSV / spreadsheet</h2>
           <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Map columns from any CSV (MicroGuide, NHS Learn, or your own) to portfolio entries or cases.</p>
         </Link>
-        <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-white/[0.16]">
+        <Link href="/import/json" className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] p-5 transition-colors hover:border-[var(--border-strong)]">
           <h2 className="text-base font-semibold text-[var(--text-primary)]">Clerkfolio backup</h2>
           <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Restore from a Clerkfolio JSON backup - the file you download from the Data backup tab.</p>
         </Link>

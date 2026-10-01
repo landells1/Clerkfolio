@@ -148,4 +148,9 @@ export type SpecialtyEntryLink = {
   points_claimed: number
   is_checkbox: boolean
   created_at: string
+  // Display-only, never stored: the linked entry's / case's title and date,
+  // resolved server-side by lib/specialties/linked-entry-meta.ts (or set from
+  // the picker when a link is created) so evidence rows can name what is linked.
+  entry_title?: string | null
+  entry_date?: string | null
 }

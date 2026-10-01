@@ -9,7 +9,7 @@ type Props = {
 const Card = ({ done, title, body, href, cta }: { done: boolean; title: string; body: string; href: string; cta: string }) => (
   <Link
     href={href}
-    className={`flex flex-col gap-2 rounded-2xl border p-5 transition-colors ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/[0.08] bg-[var(--bg-surface)] hover:border-white/[0.16]'}`}
+    className={`flex flex-col gap-2 rounded-2xl border p-5 transition-colors ${done ? 'border-emerald-500/20 bg-emerald-500/5' : 'border-white/[0.08] bg-[var(--bg-surface)] hover:border-[var(--border-strong)]'}`}
   >
     <div className="flex items-center gap-2">
       <span className={`flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold ${done ? 'bg-emerald-500 text-[var(--text-inverse)]' : 'border border-white/[0.15] text-[var(--text-secondary)]'}`}>

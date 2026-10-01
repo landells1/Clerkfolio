@@ -128,7 +128,7 @@ export function LinkEvidenceModal({
       if (insertError) throw insertError
       if (!data) throw new Error('No data returned')
 
-      onLinked(data as SpecialtyEntryLink)
+      onLinked({ ...(data as SpecialtyEntryLink), entry_title: selectedResult.title, entry_date: selectedResult.date })
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to link evidence')
     } finally {
@@ -189,7 +189,7 @@ export function LinkEvidenceModal({
                     <button
                       key={result.id}
                       onClick={() => setSelectedResult(result)}
-                      className="w-full flex items-start gap-3 p-3 bg-[var(--bg-canvas)] border border-white/[0.06] hover:border-white/[0.16] rounded-xl text-left transition-all"
+                      className="w-full flex items-start gap-3 p-3 bg-[var(--bg-canvas)] border border-white/[0.06] hover:border-[var(--border-strong)] rounded-xl text-left transition-all"
                     >
                       <span className="text-xs mt-0.5 shrink-0 text-[var(--text-muted)]">{result.type === 'case' ? 'Case' : 'Entry'}</span>
                       <div className="flex-1 min-w-0">

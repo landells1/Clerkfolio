@@ -115,7 +115,7 @@ export function ScoredDomainTab({
                   className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
                     isChecked
                       ? 'bg-[var(--accent)] border-[var(--accent)]'
-                      : 'bg-transparent border-white/[0.2] group-hover:border-white/[0.4]'
+                      : 'bg-transparent border-white/[0.2] group-hover:border-[var(--border-strong)]'
                   }`}
                 >
                   {isChecked && (
@@ -156,7 +156,7 @@ export function ScoredDomainTab({
                     key={band.label}
                     onClick={() => !isPending && onCheckboxToggle(band.label, band.points, !isChecked)}
                     className={`flex items-center gap-3 py-1.5 px-2 rounded-lg border border-transparent transition-all ${
-                      isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-white/[0.06]'
+                      isPending ? 'opacity-50 cursor-wait' : 'cursor-pointer hover:bg-white/[0.03] hover:border-[var(--border-default)]'
                     } ${isChecked ? 'bg-accent/[0.05] border-accent/20' : ''}`}
                   >
                     <div className={`shrink-0 w-4 h-4 rounded flex items-center justify-center border transition-all ${
@@ -191,7 +191,7 @@ export function ScoredDomainTab({
           <div className="flex gap-2 mb-4">
             <button
               onClick={() => setOpenModal('link')}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-sm font-medium transition-all"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] text-sm font-medium transition-all"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />

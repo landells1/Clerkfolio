@@ -82,13 +82,13 @@ export default function CookieBanner() {
         </button>
         <button
           onClick={reject}
-          className="flex-1 rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:border-white/[0.18] hover:text-[var(--text-primary)]"
+          className="flex-1 rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         >
           Reject non-essential
         </button>
         <button
           onClick={save}
-          className="w-full rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:border-white/[0.18] hover:text-[var(--text-primary)]"
+          className="w-full rounded-lg border border-white/[0.08] px-3 py-2 text-xs font-semibold text-[var(--text-secondary)] transition-colors hover:border-[var(--border-strong)] hover:text-[var(--text-primary)]"
         >
           Save preferences
         </button>

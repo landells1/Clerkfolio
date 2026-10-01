@@ -18,7 +18,7 @@ export default function EntryCard({ entry }: { entry: PortfolioEntry & { has_evi
   return (
     <Link
       href={`/portfolio/${entry.id}`}
-      className="block bg-[var(--bg-surface)] border border-white/[0.06] rounded-xl p-4 hover:border-white/[0.12] hover:bg-[var(--bg-raised)] transition-all group animate-card"
+      className="block bg-[var(--bg-surface)] border border-white/[0.06] rounded-xl p-4 hover:border-[var(--border-strong)] hover:bg-[var(--bg-raised)] transition-all group animate-card"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">

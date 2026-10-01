@@ -260,7 +260,7 @@ export default function CompetencyThemePicker({ value = [], onChange, onDirty, m
                   className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-colors ${
                     active
                       ? 'bg-violet-500/20 border-violet-500/40 text-[var(--cat-violet-text)]'
-                      : 'bg-white/[0.04] border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.15]'
+                      : 'bg-white/[0.04] border-white/[0.08] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)]'
                   }`}
                 >
                   {theme.label}{theme.isCustom ? ' *' : ''}

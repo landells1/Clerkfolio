@@ -55,9 +55,13 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
     setGenerating(false)
   }
 
+  // Two-step in-app confirmation (no native confirm, which can block the page).
+  const [confirmingRevoke, setConfirmingRevoke] = useState(false)
+
   async function handleRevoke() {
     if (!link) return
-    if (!confirm('Revoke this link? Anyone using it will lose access immediately.')) return
+    if (!confirmingRevoke) { setConfirmingRevoke(true); return }
+    setConfirmingRevoke(false)
     setRevoking(true)
     const { ok } = await apiFetch(`/api/share?id=${link.id}`, { method: 'DELETE' })
     if (ok) setLink(null)
@@ -91,6 +95,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
             <h2 className="text-base font-semibold text-[var(--text-primary)]">Share read-only link</h2>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">
               Anyone with the link and its PIN can view the portfolio entries for this specialty - no account needed. Evidence files and cases are never shared.
+              The shared page shows your account name as the portfolio owner.
             </p>
           </div>
           <button onClick={onClose} className="shrink-0 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors mt-0.5">
@@ -143,7 +148,7 @@ export function ShareModal({ specialtyKey, onClose }: { specialtyKey: string; on
                 disabled={revoking}
                 className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-red-400 bg-red-500/10 hover:bg-red-500/15 border border-red-500/20 rounded-lg transition-colors disabled:opacity-50"
               >
-                {revoking ? 'Revoking…' : 'Revoke'}
+                {revoking ? 'Revoking…' : confirmingRevoke ? 'Confirm revoke - access ends now' : 'Revoke'}
               </button>
             </div>
             {/* Manage all links */}

@@ -74,27 +74,37 @@ export function DesirableDomainTab({
       )}
 
       {/* Mark as evidenced checkbox */}
+      {/* A real checkbox (keyboard + screen reader), drawn with tokens so the
+          empty box is visible on the light theme too (it used a white-alpha
+          border that vanished on light backgrounds). */}
       <label
         className={`flex items-start gap-3 p-4 rounded-xl border transition-all mb-4 ${
           desirablePending ? 'opacity-50 cursor-wait' : 'cursor-pointer'
         } ${
           isEvidenced
             ? 'bg-accent/[0.06] border-accent/25'
-            : 'bg-[var(--bg-canvas)] border-white/[0.08] hover:border-white/[0.16]'
+            : 'bg-[var(--bg-canvas)] border-[var(--border-default)] hover:border-[var(--border-strong)]'
         }`}
-        onClick={() => !desirablePending && onDesirableCheck()}
       >
-        <div
-          className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border transition-all ${
-            isEvidenced ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-transparent border-white/[0.25]'
+        <input
+          type="checkbox"
+          className="peer sr-only"
+          checked={isEvidenced}
+          disabled={desirablePending}
+          onChange={() => { if (!desirablePending) onDesirableCheck() }}
+        />
+        <span
+          aria-hidden="true"
+          className={`mt-0.5 w-5 h-5 shrink-0 rounded flex items-center justify-center border-2 transition-all peer-focus-visible:ring-2 peer-focus-visible:ring-[var(--focus-ring)] peer-focus-visible:ring-offset-1 ${
+            isEvidenced ? 'bg-[var(--accent)] border-[var(--accent)]' : 'bg-[var(--bg-surface)] border-[var(--text-muted)]'
           }`}
         >
           {isEvidenced && (
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--bg-canvas)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="var(--text-on-accent)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>
           )}
-        </div>
+        </span>
         <span className={`text-sm leading-snug ${isEvidenced ? 'text-[var(--text-primary)]' : 'text-[var(--text-secondary)]'}`}>
           Self-mark evidence for this criterion. Attach a portfolio entry to make it documented evidence.
         </span>
@@ -112,7 +122,7 @@ export function DesirableDomainTab({
         <div className="flex gap-2 mb-3">
           <button
             onClick={() => setOpenModal('link')}
-            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-white/[0.2] text-xs font-medium transition-all"
+            className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl border border-white/[0.12] text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-strong)] text-xs font-medium transition-all"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
