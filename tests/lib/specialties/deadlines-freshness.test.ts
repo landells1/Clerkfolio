@@ -3,6 +3,7 @@ import {
   NHS_NATIONAL_RECRUITMENT_ROUNDS,
   NHS_ROUND_1_2027_DEADLINES,
   NHS_ROUND_3_2026_DEADLINES,
+  NHS_ROUND_3_2027_DEADLINES,
   currentNationalRecruitmentDeadlines,
   nationalDeadlineId,
   type SpecialtyDeadline,
@@ -76,14 +77,28 @@ describe('currentNationalRecruitmentDeadlines', () => {
     // Round 3 2026 ends 2026-10-29; +30 days grace = 2026-11-28.
     const { deadlines, stale } = currentNationalRecruitmentDeadlines(new Date('2026-12-15T12:00:00Z'))
     expect(stale).toBe(false)
-    expect(deadlines.every(d => d.specialtyKey === 'nhs_round_1_2027')).toBe(true)
-    expect(deadlines).toHaveLength(NHS_ROUND_1_2027_DEADLINES.length)
+    expect(deadlines.some(d => d.specialtyKey === 'nhs_round_3_2026')).toBe(false)
+    expect(deadlines).toHaveLength(NHS_ROUND_1_2027_DEADLINES.length + NHS_ROUND_3_2027_DEADLINES.length)
   })
 
   it('falls back to the most recent round, flagged stale, once every round has elapsed', () => {
     const { deadlines, stale } = currentNationalRecruitmentDeadlines(new Date('2030-01-01T12:00:00Z'))
     expect(stale).toBe(true)
-    expect(deadlines).toEqual(NHS_ROUND_1_2027_DEADLINES)
+    expect(deadlines).toEqual(NHS_ROUND_3_2027_DEADLINES)
+  })
+
+  it('keeps only the later round once the earlier one has gone stale', () => {
+    // Round 1 2027 ends 2027-04-15; +30 days grace = 2027-05-15.
+    const { deadlines, stale } = currentNationalRecruitmentDeadlines(new Date('2027-06-01T12:00:00Z'))
+    expect(stale).toBe(false)
+    expect(deadlines.every(d => d.specialtyKey === 'nhs_round_3_2027')).toBe(true)
+  })
+
+  it('treats the last day of the grace window as current, in UTC', () => {
+    // Round 3 2027 ends 2027-10-28, so the cutoff is 2027-11-27T00:00:00Z.
+    const rounds = [NHS_ROUND_3_2027_DEADLINES]
+    expect(currentNationalRecruitmentDeadlines(new Date('2027-11-27T00:00:00Z'), rounds).stale).toBe(false)
+    expect(currentNationalRecruitmentDeadlines(new Date('2027-11-27T00:00:01Z'), rounds).stale).toBe(true)
   })
 
   it('handles empty input', () => {

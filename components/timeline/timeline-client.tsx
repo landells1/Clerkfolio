@@ -521,7 +521,7 @@ export function TimelineClient({ goals, goalProgressEntries, specialties, deadli
             onChange={e => toggleNationalDeadlines(e.target.checked)}
           />
           Show NHS national recruitment dates
-          <span className="text-xs text-[var(--text-muted)]">(auto-loaded from the current recruitment round)</span>
+          <span className="text-xs text-[var(--text-muted)]">(auto-loaded from the current and upcoming recruitment rounds)</span>
         </label>
       </div>
 

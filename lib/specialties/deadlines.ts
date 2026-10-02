@@ -100,8 +100,10 @@ const ROUND_1_2027_SOURCE = {
   sourceLabel: 'NHS England Medical Hub recruitment timeline',
 } as const
 
-// 2027 Round 1 (CT1/ST1 and ST3/ST4 national timeline, posts starting August
-// 2027). Verified 2026-09-28 against the NHS England Medical Hub timeline.
+// 2027 Round 1 (predominantly CT1/ST1, posts starting August to December
+// 2027). Verified 2026-09-28 and re-checked 2026-10-02 against the NHS England
+// Medical Hub timeline. 2027 Round 2 (predominantly ST3/ST4) is deliberately
+// not pinned: Clerkfolio is scoped to entry-level CT1/ST1 applications.
 export const NHS_ROUND_1_2027_DEADLINES: SpecialtyDeadline[] = [
   {
     ...ROUND_1_2027_SOURCE,
@@ -161,12 +163,80 @@ export const NHS_ROUND_1_2027_DEADLINES: SpecialtyDeadline[] = [
   },
 ]
 
+const ROUND_3_2027_SOURCE = {
+  specialtyKey: 'nhs_round_3_2027',
+  sourceUrl: NHS_RECRUITMENT_TIMELINE_URL,
+  sourceLabel: 'NHS England Medical Hub recruitment timeline',
+} as const
+
+// 2027 Round 3 (posts commencing January to March 2028). Verified 2026-10-02
+// against the NHS England Medical Hub timeline.
+export const NHS_ROUND_3_2027_DEADLINES: SpecialtyDeadline[] = [
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: applications open',
+    date: '2027-07-13',
+    kind: 'applicationOpens',
+    details: 'NHS specialty recruitment 2027 Round 3 applications open at 10am UK local time. Round 3 is for posts commencing between January and March 2028. Not all specialties will advertise in this round.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: applications close',
+    date: '2027-07-29',
+    kind: 'applicationCloses',
+    details: 'NHS specialty recruitment 2027 Round 3 applications close at 4pm UK local time.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: interviews open',
+    date: '2027-08-23',
+    kind: 'interviewWindowOpens',
+    details: 'NHS specialty recruitment 2027 Round 3 interview window opens.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: interviews close',
+    date: '2027-10-15',
+    kind: 'interviewWindowCloses',
+    details: 'NHS specialty recruitment 2027 Round 3 interview window closes.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: initial offers',
+    date: '2027-10-19',
+    kind: 'initialOffers',
+    details: 'NHS specialty recruitment 2027 Round 3 initial offers are released by 5pm UK local time.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: hold deadline',
+    date: '2027-10-26',
+    kind: 'holdDeadline',
+    details: 'NHS specialty recruitment 2027 Round 3 hold deadline. Hold deadline is 1pm UK local time.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: upgrade deadline',
+    date: '2027-10-28',
+    kind: 'upgradeDeadline',
+    details: 'NHS specialty recruitment 2027 Round 3 upgrade deadline. Upgrade deadline is 4pm UK local time.',
+  },
+  {
+    ...ROUND_3_2027_SOURCE,
+    label: 'Round 3 2027: hierarchy deadline',
+    date: '2027-10-28',
+    kind: 'hierarchicalDeadline',
+    details: 'NHS specialty recruitment 2027 Round 3 hierarchical deadline. Hierarchical deadline is 5pm UK local time.',
+  },
+]
+
 // Every pinned national round, oldest first. Add the next round here (and in
 // the freshness tripwire test) when NHS England publishes it; verify against
 // NHS_RECRUITMENT_TIMELINE_URL first - dates are time-sensitive.
 export const NHS_NATIONAL_RECRUITMENT_ROUNDS: SpecialtyDeadline[][] = [
   NHS_ROUND_3_2026_DEADLINES,
   NHS_ROUND_1_2027_DEADLINES,
+  NHS_ROUND_3_2027_DEADLINES,
 ]
 
 // Each round's dates are pinned. After a round closes its dates are in the
@@ -178,8 +248,10 @@ export function isSpecialtyCycleStale(deadlines: SpecialtyDeadline[], referenceD
   const latest = deadlines.reduce((acc, d) => (d.date > acc ? d.date : acc), deadlines[0].date)
   // Add a 30-day grace window so we don't flash "stale" the moment the
   // last deadline ticks past - the cycle can still be live in practice.
-  const cutoff = new Date(latest)
-  cutoff.setDate(cutoff.getDate() + 30)
+  // Pinned dates are calendar days: do the arithmetic in UTC so the cutoff
+  // does not drift by an hour across a daylight-saving change.
+  const cutoff = new Date(`${latest}T00:00:00Z`)
+  cutoff.setUTCDate(cutoff.getUTCDate() + 30)
   return referenceDate.getTime() > cutoff.getTime()
 }
 
